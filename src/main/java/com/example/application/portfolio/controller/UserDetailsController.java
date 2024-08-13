@@ -1,4 +1,4 @@
-package com.example.application.user.controller;
+package com.example.application.portfolio.controller;
 
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.Endpoint;

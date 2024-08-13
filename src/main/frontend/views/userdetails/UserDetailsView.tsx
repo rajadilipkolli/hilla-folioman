@@ -1,7 +1,6 @@
 import React, { useRef } from 'react';
 import { Button, FormLayout, FormLayoutResponsiveStep, Notification } from "@vaadin/react-components";
 import { Upload, UploadMaxFilesReachedChangedEvent } from "@vaadin/react-components/Upload";
-import { UserDetailsController } from "Frontend/generated/endpoints";
 
 const layoutSteps: FormLayoutResponsiveStep[] = [
   { minWidth: 0, columns: 1, labelsPosition: 'top' },
