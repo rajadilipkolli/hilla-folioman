@@ -1,4 +1,4 @@
-import ContactRecord from 'Frontend/generated/com/example/application/services/CRMService/ContactRecord';
+import ContactRecord from 'Frontend/generated/com/example/application/crm/services/CRMService/ContactRecord';
 import {useEffect, useState} from 'react';
 import {CRMService} from "Frontend/generated/endpoints";
 import {Grid} from "@vaadin/react-components/Grid";

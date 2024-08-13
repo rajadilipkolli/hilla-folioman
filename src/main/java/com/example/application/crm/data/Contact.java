@@ -1,4 +1,4 @@
-package com.example.application.data;
+package com.example.application.crm.data;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;

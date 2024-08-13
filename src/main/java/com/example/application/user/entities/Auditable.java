@@ -1,5 +1,4 @@
-/* Licensed under Apache-2.0 2021-2024. */
-package com.example.application.entities;
+package com.example.application.user.entities;
 
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;

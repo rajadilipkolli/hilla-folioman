@@ -1,4 +1,4 @@
-package com.example.application.entities;
+package com.example.application.user.entities;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
