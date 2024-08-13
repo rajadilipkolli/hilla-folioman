@@ -21,8 +21,7 @@ public class Contact extends AbstractEntity {
     @ManyToOne
     private Company company;
 
-    public Contact() {
-    }
+    public Contact() {}
 
     public Contact(String firstName, String lastName, String email, Company company) {
         this.firstName = firstName;
@@ -62,5 +61,4 @@ public class Contact extends AbstractEntity {
     public void setCompany(Company company) {
         this.company = company;
     }
-
 }
