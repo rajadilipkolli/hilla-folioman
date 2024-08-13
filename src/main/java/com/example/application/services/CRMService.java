@@ -9,9 +9,7 @@ import com.vaadin.hilla.BrowserCallable;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-
 import java.util.List;
-
 
 @AnonymousAllowed
 @BrowserCallable
@@ -27,27 +25,12 @@ public class CRMService {
 
     public record ContactRecord(
             Long id,
-            @NotNull
-            @Size(min = 1, max = 50)
-            String firstName,
-            @NotNull
-            @Size(min = 1, max = 50)
-            String lastName,
-            @NotNull
-            @Email
-            String email,
-            @NotNull
-            CompanyRecord company
-    ) {
-    }
+            @NotNull @Size(min = 1, max = 50) String firstName,
+            @NotNull @Size(min = 1, max = 50) String lastName,
+            @NotNull @Email String email,
+            @NotNull CompanyRecord company) {}
 
-    public record CompanyRecord(
-            @NotNull
-            Long id,
-            String name
-    ) {
-    }
-
+    public record CompanyRecord(@NotNull Long id, String name) {}
 
     private ContactRecord toContactRecord(Contact c) {
         return new ContactRecord(
@@ -55,29 +38,20 @@ public class CRMService {
                 c.getFirstName(),
                 c.getLastName(),
                 c.getEmail(),
-                new CompanyRecord(
-                        c.getCompany().getId(),
-                        c.getCompany().getName()
-                )
-        );
+                new CompanyRecord(c.getCompany().getId(), c.getCompany().getName()));
     }
 
     private CompanyRecord toCompanyRecord(Company c) {
-        return new CompanyRecord(
-                c.getId(),
-                c.getName()
-        );
+        return new CompanyRecord(c.getId(), c.getName());
     }
 
     public List<CompanyRecord> findAllCompanies() {
-        return companyRepository.findAll().stream()
-                .map(this::toCompanyRecord).toList();
+        return companyRepository.findAll().stream().map(this::toCompanyRecord).toList();
     }
 
     public List<ContactRecord> findAllContacts() {
         List<Contact> all = contactRepository.findAllWithCompany();
-        return all.stream()
-                .map(this::toContactRecord).toList();
+        return all.stream().map(this::toContactRecord).toList();
     }
 
     public ContactRecord save(ContactRecord contact) {
@@ -93,5 +67,4 @@ public class CRMService {
 
         return toContactRecord(saved);
     }
-
 }
