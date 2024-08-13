@@ -1,13 +1,20 @@
-/* Licensed under Apache-2.0 2021-2024. */
 package com.example.application.entities;
 
-import jakarta.persistence.*;
-import org.hibernate.proxy.HibernateProxy;
-
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Objects;
+import org.hibernate.proxy.HibernateProxy;
 
 @Table(
         name = "mf_scheme_nav",
