@@ -19,7 +19,7 @@
             <column name="id" type="BIGINT" defaultValueSequenceNext="mf_scheme_nav_seq">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_mf_scheme_nav"/>
             </column>
-            <column name="nav" type="NUMERIC(10, 4)"/>
+            <column name="nav" type="NUMERIC(12, 4)"/>
             <column name="nav_date" type="DATE"/>
             <column name="mf_scheme_id" type="BIGINT"/>
             <column name="created_by" type="${string.type}"/>
