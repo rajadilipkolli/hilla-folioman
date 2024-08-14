@@ -1,5 +1,5 @@
 /* Licensed under Apache-2.0 2021-2024. */
-package com.example.application.entities;
+package com.example.application.mfschemes.entities;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;

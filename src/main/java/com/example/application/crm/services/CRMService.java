@@ -1,9 +1,9 @@
-package com.example.application.services;
+package com.example.application.crm.services;
 
-import com.example.application.data.Company;
-import com.example.application.data.CompanyRepository;
-import com.example.application.data.Contact;
-import com.example.application.data.ContactRepository;
+import com.example.application.crm.data.Company;
+import com.example.application.crm.data.CompanyRepository;
+import com.example.application.crm.data.Contact;
+import com.example.application.crm.data.ContactRepository;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.BrowserCallable;
 import jakarta.validation.constraints.Email;
@@ -13,12 +13,12 @@ import java.util.List;
 
 @AnonymousAllowed
 @BrowserCallable
-public class CRMService {
+class CRMService {
 
     private final CompanyRepository companyRepository;
     private final ContactRepository contactRepository;
 
-    public CRMService(CompanyRepository companyRepository, ContactRepository contactRepository) {
+    CRMService(CompanyRepository companyRepository, ContactRepository contactRepository) {
         this.companyRepository = companyRepository;
         this.contactRepository = contactRepository;
     }

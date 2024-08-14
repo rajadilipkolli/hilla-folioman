@@ -1,4 +1,4 @@
-package com.example.application.controller;
+package com.example.application.portfolio.controller;
 
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.Endpoint;
@@ -19,7 +19,7 @@ class UserDetailsController {
     private static final Logger log = LoggerFactory.getLogger(UserDetailsController.class);
 
     @PostMapping(value = "/api/upload-handler", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public String upload(@RequestPart("file") MultipartFile multipartFile) throws IOException {
+    String upload(@RequestPart("file") MultipartFile multipartFile) throws IOException {
         log.info("Received file :{} for processing", multipartFile.getOriginalFilename());
         return "SuccessFully processed";
     }
