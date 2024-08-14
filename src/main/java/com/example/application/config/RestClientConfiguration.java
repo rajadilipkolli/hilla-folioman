@@ -19,7 +19,7 @@ public class RestClientConfiguration {
     RestClientCustomizer restClientCustomizer() {
         return restClientBuilder -> restClientBuilder.defaultHeaders(httpHeaders -> {
             httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-            httpHeaders.setAccept(List.of(MediaType.APPLICATION_JSON));
+            httpHeaders.setAccept(List.of(MediaType.APPLICATION_JSON, MediaType.TEXT_PLAIN));
         });
     }
 }

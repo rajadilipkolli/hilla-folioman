@@ -17,9 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(
-        name = "mf_scheme_types",
-        uniqueConstraints = @UniqueConstraint(columnNames = {"scheme_type", "scheme_category"}))
+@Table(name = "mf_scheme_types", uniqueConstraints = @UniqueConstraint(columnNames = {"type", "category"}))
 public class MFSchemeType extends Auditable<String> implements Serializable {
 
     @Id
@@ -40,8 +38,8 @@ public class MFSchemeType extends Auditable<String> implements Serializable {
     @Version
     private Short version;
 
-    @OneToMany(mappedBy = "mfSchemeTypeEntity", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<MFScheme> mfSchemeEntities = new ArrayList<>();
+    @OneToMany(mappedBy = "mfSchemeType", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MFScheme> mfSchemes = new ArrayList<>();
 
     public Integer getSchemeTypeId() {
         return schemeTypeId;
@@ -88,18 +86,18 @@ public class MFSchemeType extends Auditable<String> implements Serializable {
         return this;
     }
 
-    public List<MFScheme> getMfSchemeEntities() {
-        return mfSchemeEntities;
+    public List<MFScheme> getMfSchemes() {
+        return mfSchemes;
     }
 
-    public MFSchemeType setMfSchemeEntities(List<MFScheme> mfSchemeEntities) {
-        this.mfSchemeEntities = mfSchemeEntities;
+    public MFSchemeType setMfSchemes(List<MFScheme> mfSchemeEntities) {
+        this.mfSchemes = mfSchemeEntities;
         return this;
     }
 
-    public void addMFScheme(MFScheme mfSchemeEntity) {
-        mfSchemeEntities.add(mfSchemeEntity);
-        mfSchemeEntity.setMfSchemeTypeEntity(this);
+    public void addMFScheme(MFScheme mfScheme) {
+        mfSchemes.add(mfScheme);
+        mfScheme.setMfSchemeType(this);
     }
 
     @Override
