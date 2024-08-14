@@ -39,7 +39,7 @@ public class MFScheme extends Auditable<String> implements Serializable {
     @JoinColumn(name = "mf_scheme_type_id")
     private MFSchemeType mfSchemeType = null;
 
-    @OneToMany(mappedBy = "mfSchemeEntity", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "mfScheme", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MFSchemeNav> mfSchemeNavs = new ArrayList<>();
 
     @Version
@@ -119,7 +119,7 @@ public class MFScheme extends Auditable<String> implements Serializable {
 
     public MFScheme addSchemeNav(MFSchemeNav mfSchemeNav) {
         mfSchemeNavs.add(mfSchemeNav);
-        mfSchemeNav.setMfSchemeEntity(this);
+        mfSchemeNav.setMfScheme(this);
         return this;
     }
 }

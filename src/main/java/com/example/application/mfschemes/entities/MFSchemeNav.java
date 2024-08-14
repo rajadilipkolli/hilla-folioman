@@ -31,7 +31,7 @@ public class MFSchemeNav extends Auditable<String> implements Serializable {
     @Column(name = "id", nullable = false)
     private Long id;
 
-    @Column(precision = 10, scale = 4)
+    @Column(precision = 12, scale = 4)
     private BigDecimal nav;
 
     @Column(name = "nav_date")
@@ -39,7 +39,7 @@ public class MFSchemeNav extends Auditable<String> implements Serializable {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mf_scheme_id")
-    private MFScheme mfSchemeEntity;
+    private MFScheme mfScheme;
 
     public Long getId() {
         return id;
@@ -68,12 +68,12 @@ public class MFSchemeNav extends Auditable<String> implements Serializable {
         return this;
     }
 
-    public MFScheme getMfSchemeEntity() {
-        return mfSchemeEntity;
+    public MFScheme getMfScheme() {
+        return mfScheme;
     }
 
-    public MFSchemeNav setMfSchemeEntity(MFScheme mfSchemeEntity) {
-        this.mfSchemeEntity = mfSchemeEntity;
+    public MFSchemeNav setMfScheme(MFScheme mfSchemeEntity) {
+        this.mfScheme = mfSchemeEntity;
         return this;
     }
 
@@ -91,8 +91,7 @@ public class MFSchemeNav extends Auditable<String> implements Serializable {
         MFSchemeNav that = (MFSchemeNav) o;
         return Objects.equals(getNav(), that.getNav())
                 && Objects.equals(
-                        getMfSchemeEntity().getSchemeId(),
-                        that.getMfSchemeEntity().getSchemeId())
+                        getMfScheme().getSchemeId(), that.getMfScheme().getSchemeId())
                 && Objects.deepEquals(getNavDate(), that.getNavDate());
     }
 
