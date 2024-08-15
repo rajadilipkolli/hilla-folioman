@@ -37,10 +37,10 @@ public class MFScheme extends Auditable<String> implements Serializable {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mf_scheme_type_id")
-    private MFSchemeType mfSchemeTypeEntity = null;
+    private MFSchemeType mfSchemeType = null;
 
-    @OneToMany(mappedBy = "mfSchemeEntity", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<MFSchemeNav> mfSchemeNavEntities = new ArrayList<>();
+    @OneToMany(mappedBy = "mfScheme", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MFSchemeNav> mfSchemeNavs = new ArrayList<>();
 
     @Version
     private Short version;
@@ -90,21 +90,21 @@ public class MFScheme extends Auditable<String> implements Serializable {
         return this;
     }
 
-    public MFSchemeType getMfSchemeTypeEntity() {
-        return mfSchemeTypeEntity;
+    public MFSchemeType getMfSchemeType() {
+        return mfSchemeType;
     }
 
-    public MFScheme setMfSchemeTypeEntity(MFSchemeType mfSchemeTypeEntity) {
-        this.mfSchemeTypeEntity = mfSchemeTypeEntity;
+    public MFScheme setMfSchemeType(MFSchemeType mfSchemeType) {
+        this.mfSchemeType = mfSchemeType;
         return this;
     }
 
-    public List<MFSchemeNav> getMfSchemeNavEntities() {
-        return mfSchemeNavEntities;
+    public List<MFSchemeNav> getMfSchemeNavs() {
+        return mfSchemeNavs;
     }
 
-    public MFScheme setMfSchemeNavEntities(List<MFSchemeNav> mfSchemeNavEntities) {
-        this.mfSchemeNavEntities = mfSchemeNavEntities;
+    public MFScheme setMfSchemeNavs(List<MFSchemeNav> mfSchemeNavs) {
+        this.mfSchemeNavs = mfSchemeNavs;
         return this;
     }
 
@@ -117,9 +117,9 @@ public class MFScheme extends Auditable<String> implements Serializable {
         return this;
     }
 
-    public MFScheme addSchemeNav(MFSchemeNav mfSchemeNavEntity) {
-        mfSchemeNavEntities.add(mfSchemeNavEntity);
-        mfSchemeNavEntity.setMfSchemeEntity(this);
+    public MFScheme addSchemeNav(MFSchemeNav mfSchemeNav) {
+        mfSchemeNavs.add(mfSchemeNav);
+        mfSchemeNav.setMfScheme(this);
         return this;
     }
 }
