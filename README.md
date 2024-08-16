@@ -34,7 +34,7 @@ Once the JAR file is built, you can run it using
   <tr><td>&nbsp;&nbsp;&nbsp;&nbsp;<code>index.ts</code></td><td>Frontend 
 entrypoint, bootstraps a React application</td></tr>
   <tr><td>&nbsp;&nbsp;&nbsp;&nbsp;<code>routes.tsx</code></td><td>React Router routes definition</td></tr>
-  <tr><td>&nbsp;&nbsp;&nbsp;&nbsp;<code>MainLayout.tsx</code></td><td>Main 
+  <tr><td>&nbsp;&nbsp;&nbsp;&nbsp;<code>views/MainLayout.tsx</code></td><td>Main 
 layout component, contains the navigation menu, uses <a href="https://hilla.dev/docs/react/components/app-layout">
 App Layout</a></td></tr>
   <tr><td>&nbsp;&nbsp;&nbsp;&nbsp;<code>views/</code></td><td>UI view 
