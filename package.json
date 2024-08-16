@@ -24,7 +24,7 @@
     "@vaadin/vaadin-themable-mixin": "24.4.5",
     "@vaadin/vaadin-usage-statistics": "2.1.2",
     "construct-style-sheets-polyfill": "3.1.0",
-    "date-fns": "2.30.0",
+    "date-fns": "3.6.0",
     "lit": "3.2.0",
     "proj4": "2.12.0",
     "react": "18.3.1",
@@ -48,7 +48,7 @@
     "@vaadin/hilla-generator-utils": "24.4.5",
     "@vitejs/plugin-react": "4.3.1",
     "async": "3.2.5",
-    "glob": "10.4.5",
+    "glob": "11.0.0",
     "rollup-plugin-brotli": "3.1.0",
     "rollup-plugin-visualizer": "5.12.0",
     "strip-css-comments": "5.0.0",
@@ -119,7 +119,7 @@
       "workbox-core": "7.1.0",
       "workbox-precaching": "7.1.0"
     },
-    "hash": "bb1262aac0d260d7a28c797942eee6e5c315a78bbafb3e86814801ccac666cdb"
+    "hash": "9507fc611c761fcb60996919b16eb247f187842328b9c9e5f96474bb69c974ca"
   },
   "overrides": {
     "@vaadin/bundles": "$@vaadin/bundles",
