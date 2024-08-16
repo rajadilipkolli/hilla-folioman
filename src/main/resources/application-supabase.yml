@@ -3,4 +3,4 @@ spring:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://aws-0-ap-south-1.pooler.supabase.com:5432/postgres
     username: postgres.jvfamwjuzcthdajfeuyn
-    password: foliom4n@123
+    password: ${DB_PASSWORD}

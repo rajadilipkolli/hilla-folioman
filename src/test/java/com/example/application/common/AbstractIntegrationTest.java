@@ -10,9 +10,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 @ActiveProfiles({"supabase"})
-@SpringBootTest(
-        webEnvironment = RANDOM_PORT,
-        classes = {SQLContainersConfig.class})
+@SpringBootTest(webEnvironment = RANDOM_PORT)
 @AutoConfigureMockMvc
 public abstract class AbstractIntegrationTest {
 
