@@ -86,7 +86,6 @@ public class Initializer {
                     if (nonAmcRow || processRowByForce) {
                         final String schemecode = tokenize[0];
                         final String payout = tokenize[1];
-                        final String reinvestment = tokenize[2];
                         final String schemename = tokenize[3];
                         final String nav = tokenize[4];
                         final String date = tokenize[5];
