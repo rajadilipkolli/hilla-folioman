@@ -47,8 +47,20 @@ export default function MfSchemesView() {
                 style={{ width: '100%' }}
                 theme="no-border"
             >
-                <GridColumn path="fundHouse" header="AMC" />
-                <GridColumn path="schemeName" header="Scheme Name" />
+                <GridColumn path="fundHouse" header="AMC"
+                    renderer={({ item }) => (
+                        <span style={{ whiteSpace: 'normal', overflow: 'visible' }}>
+                            {item.fundHouse}
+                        </span>
+                    )}
+                />
+                <GridColumn path="schemeName" header="Scheme Name"
+                    renderer={({ item }) => (
+                        <span style={{ whiteSpace: 'normal', overflow: 'visible' }}>
+                            {item.schemeName}
+                        </span>
+                    )}
+                />
             </Grid>
         </div>
     );
