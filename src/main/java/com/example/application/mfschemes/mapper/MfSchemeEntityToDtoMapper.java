@@ -4,7 +4,11 @@ import com.example.application.mfschemes.MFSchemeDTO;
 import com.example.application.mfschemes.entities.MFScheme;
 import com.example.application.mfschemes.entities.MFSchemeType;
 import java.time.LocalDate;
-import org.mapstruct.*;
+import org.mapstruct.AfterMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingConstants;
+import org.mapstruct.MappingTarget;
 import org.springframework.util.StringUtils;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
