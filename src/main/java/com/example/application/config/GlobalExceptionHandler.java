@@ -56,7 +56,7 @@ public class GlobalExceptionHandler {
     ProblemDetail onException(NavNotFoundException navNotFoundException) {
         ProblemDetail problemDetail =
                 ProblemDetail.forStatusAndDetail(HttpStatusCode.valueOf(404), navNotFoundException.getMessage());
-        problemDetail.setTitle("Scheme NotFound");
+        problemDetail.setTitle("NAV Not Found");
         return problemDetail;
     }
 
