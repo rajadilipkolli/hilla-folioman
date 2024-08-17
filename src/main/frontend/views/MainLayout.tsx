@@ -20,6 +20,9 @@ export default function MainLayout() {
             <NavLink className={navLinkClasses} to="/">
               Contacts
             </NavLink>
+            <NavLink className={navLinkClasses} to="/mfschemes">
+              Mutual Funds Schemes
+            </NavLink>
             <NavLink className={navLinkClasses} to="/userDetails">
               UserDetails
             </NavLink>
