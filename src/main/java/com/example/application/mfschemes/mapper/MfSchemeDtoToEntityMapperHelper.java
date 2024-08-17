@@ -8,6 +8,7 @@ import com.example.application.mfschemes.repository.MFSchemeTypeRepository;
 import com.example.application.mfschemes.util.SchemeConstants;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.mapstruct.AfterMapping;
@@ -29,6 +30,7 @@ public class MfSchemeDtoToEntityMapperHelper {
 
     private final MFSchemeTypeRepository mfSchemeTypeRepository;
     private final TransactionTemplate transactionTemplate;
+    private final ReentrantLock lock = new ReentrantLock();
 
     public MfSchemeDtoToEntityMapperHelper(
             MFSchemeTypeRepository mfSchemeTypeRepository, TransactionTemplate transactionTemplate) {
@@ -71,12 +73,23 @@ public class MfSchemeDtoToEntityMapperHelper {
         MFSchemeType byTypeAndCategoryAndSubCategory =
                 mfSchemeTypeRepository.findByTypeAndCategoryAndSubCategory(type, category, subCategory);
         if (byTypeAndCategoryAndSubCategory == null) {
-            MFSchemeType mfSchemeType = new MFSchemeType();
-            mfSchemeType.setType(type);
-            mfSchemeType.setCategory(category);
-            mfSchemeType.setSubCategory(subCategory);
-            byTypeAndCategoryAndSubCategory =
-                    transactionTemplate.execute(status -> mfSchemeTypeRepository.save(mfSchemeType));
+            lock.lock(); // Acquiring the lock
+            try {
+                // Double-check within the locked section
+                byTypeAndCategoryAndSubCategory =
+                        mfSchemeTypeRepository.findByTypeAndCategoryAndSubCategory(type, category, subCategory);
+
+                if (byTypeAndCategoryAndSubCategory == null) {
+                    MFSchemeType mfSchemeType = new MFSchemeType();
+                    mfSchemeType.setType(type);
+                    mfSchemeType.setCategory(category);
+                    mfSchemeType.setSubCategory(subCategory);
+                    byTypeAndCategoryAndSubCategory =
+                            transactionTemplate.execute(status -> mfSchemeTypeRepository.save(mfSchemeType));
+                }
+            } finally {
+                lock.unlock(); // Ensure the lock is released in the finally block
+            }
         }
         return byTypeAndCategoryAndSubCategory;
     }
