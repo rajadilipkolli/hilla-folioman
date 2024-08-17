@@ -8,16 +8,17 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import org.hibernate.annotations.DynamicUpdate;
+import java.util.Locale;
 
 @Table(name = "mf_scheme")
 @Entity
-@DynamicUpdate
 public class MFScheme extends Auditable<String> implements Serializable {
 
     @Id
@@ -121,5 +122,13 @@ public class MFScheme extends Auditable<String> implements Serializable {
         mfSchemeNavs.add(mfSchemeNav);
         mfSchemeNav.setMfScheme(this);
         return this;
+    }
+
+    @PrePersist
+    @PreUpdate
+    public void processFields() {
+        if (schemeName != null) {
+            this.schemeNameAlias = schemeName.replaceAll("[\\s\\-]", "").toUpperCase(Locale.ROOT);
+        }
     }
 }
