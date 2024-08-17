@@ -2,9 +2,7 @@ import FundDetailProjection
     from "Frontend/generated/com/example/application/mfschemes/models/projection/FundDetailProjection";
 import React, { useEffect, useState } from "react";
 import { SchemeController } from "Frontend/generated/endpoints";
-import { Grid, GridColumn } from "@vaadin/react-components";
-import { TextField } from "@vaadin/react-components";
-import { Icon } from "@vaadin/react-components";
+import { Grid, GridColumn, Icon, TextField } from "@vaadin/react-components";
 
 export default function MfSchemesView() {
     const [query, setQuery] = useState('');
@@ -49,8 +47,8 @@ export default function MfSchemesView() {
                 style={{ width: '100%' }}
                 theme="no-border"
             >
-                <GridColumn path="fundHouse" header="AMC" autoWidth />
-                <GridColumn path="schemeName" header="Scheme Name" autoWidth />
+                <GridColumn path="fundHouse" header="AMC" />
+                <GridColumn path="schemeName" header="Scheme Name" />
             </Grid>
         </div>
     );
