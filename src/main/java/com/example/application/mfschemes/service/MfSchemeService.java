@@ -36,7 +36,7 @@ public class MfSchemeService {
     }
 
     public List<FundDetailProjection> fetchSchemes(String schemeName) {
-        String sName = "%" + schemeName.toUpperCase(Locale.ROOT) + "%";
+        String sName = "%" + schemeName.strip().replaceAll("\\s", "").toUpperCase(Locale.ROOT) + "%";
         LOGGER.info("Fetching schemes with :{}", sName);
         return this.mFSchemeRepository.findBySchemeNameLikeIgnoreCaseOrderBySchemeIdAsc(sName);
     }

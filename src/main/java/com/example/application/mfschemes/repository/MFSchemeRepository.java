@@ -15,7 +15,7 @@ public interface MFSchemeRepository extends JpaRepository<MFScheme, Long> {
     @Query(
             """
             select new com.example.application.mfschemes.models.projection.FundDetailProjection(m.schemeId, m.schemeName, m.fundHouse) from MFScheme m
-             where UPPER(REPLACE(m.schemeName, '- ', '')) like upper(:schemeName) order by m.schemeId
+             where m.schemeNameAlias like :schemeName order by m.schemeId
             """)
     List<FundDetailProjection> findBySchemeNameLikeIgnoreCaseOrderBySchemeIdAsc(@Param("schemeName") String schemeName);
 }
