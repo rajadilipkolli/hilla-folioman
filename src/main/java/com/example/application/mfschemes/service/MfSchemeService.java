@@ -138,7 +138,8 @@ public class MfSchemeService {
                 .uri(getUri(schemeCode))
                 .retrieve()
                 .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {
-                    LOGGER.error("Error fetching NAV response for schemeCode: {}", schemeCode, e);
+                    LOGGER.error(
+                            "Error fetching NAV response for schemeCode: {} with stack : {}", schemeCode, response);
                     throw new SchemeNotFoundException("scheme with id %d not found".formatted(schemeCode));
                 })
                 .body(NavResponse.class);
