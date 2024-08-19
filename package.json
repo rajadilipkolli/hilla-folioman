@@ -6,7 +6,7 @@
     "@polymer/polymer": "3.5.1",
     "@vaadin/bundles": "24.4.5",
     "@vaadin/common-frontend": "0.0.19",
-    "@vaadin/hilla-file-router": "24.4.5",
+    "@vaadin/hilla-file-router": "24.4.6",
     "@vaadin/hilla-frontend": "24.4.5",
     "@vaadin/hilla-lit-form": "24.4.5",
     "@vaadin/hilla-react-auth": "24.4.5",
