@@ -12,6 +12,7 @@ import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
@@ -106,13 +107,16 @@ public class Initializer {
             if (mfSchemeService.count() != chopArrayList.size()) {
                 StopWatch stopWatch = new StopWatch();
                 stopWatch.start("saving fundNames");
-                List<MFScheme> list = new ArrayList<>();
                 List<Long> schemeCodesList = mfSchemeService.findAllSchemeIds();
-                chopArrayList.removeIf(s -> schemeCodesList.contains(s.schemeCode()));
-                chopArrayList.forEach(scheme -> {
-                    MFScheme mfSchemeEntity = mfSchemeDtoToEntityMapper.mapMFSchemeDTOToMFSchemeEntity(scheme);
-                    list.add(mfSchemeEntity);
-                });
+                List<CompletableFuture<MFScheme>> completableFutureList = chopArrayList.stream()
+                        .filter(scheme -> !schemeCodesList.contains(scheme.schemeCode())) // Filter out existing schemes
+                        .map(mfSchemeDTO -> CompletableFuture.supplyAsync(
+                                () -> mfSchemeDtoToEntityMapper.mapMFSchemeDTOToMFSchemeEntity(mfSchemeDTO)))
+                        .toList();
+                List<MFScheme> list = completableFutureList.stream()
+                        .map(CompletableFuture::join)
+                        .toList();
+                LOGGER.info("found {} new funds, hence inserting", list.size());
                 mfSchemeService.saveAllEntities(list);
                 stopWatch.stop();
                 LOGGER.info("saved in db in : {} sec", stopWatch.getTotalTimeSeconds());
