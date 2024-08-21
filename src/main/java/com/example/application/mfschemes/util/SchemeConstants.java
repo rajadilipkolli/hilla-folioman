@@ -16,4 +16,11 @@ public final class SchemeConstants {
             .appendPattern("[dd-MMM-yyyy]") // Custom format
             .parseDefaulting(ChronoField.YEAR_OF_ERA, LocalDate.now().getYear()) // Default year to current year
             .toFormatter(Locale.ENGLISH); // Ensure English locale for month names
+    public static final String MFAPI_WEBSITE_BASE_URL = "https://api.mfapi.in/mf/";
+    public static final int FIRST_RETRY = 1;
+    public static final int THIRD_RETRY = 3;
+    public static final int MAX_RETRIES = 4;
+    private static final String DATE_PATTERN_DD_MMM_YYYY = "dd-MMM-yyyy";
+    public static final DateTimeFormatter FORMATTER_DD_MMM_YYYY =
+            DateTimeFormatter.ofPattern(DATE_PATTERN_DD_MMM_YYYY, Locale.ENGLISH);
 }
