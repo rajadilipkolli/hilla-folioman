@@ -45,7 +45,7 @@
     "@vaadin/hilla-generator-plugin-model": "24.4.7",
     "@vaadin/hilla-generator-plugin-push": "24.4.7",
     "@vaadin/hilla-generator-plugin-subtypes": "24.4.7",
-    "@vaadin/hilla-generator-utils": "24.4.6",
+    "@vaadin/hilla-generator-utils": "24.4.7",
     "@vitejs/plugin-react": "4.3.1",
     "async": "3.2.6",
     "glob": "11.0.0",
