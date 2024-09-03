@@ -53,9 +53,9 @@
     </changeSet>
     
     <changeSet id="1725375997422-3" author="appUser">
-        <preConditions>
+        <preConditions onFail="MARK_RAN">
             <not>
-                <foreignKeyConstraintExists foreignKeyName="FK_USER_FOLIO_DETAILS_ON_USER_CAS_DETAILS"/>
+                <foreignKeyConstraintExists foreignKeyName="FK_USER_FOLIO_DETAILS_ON_USER_CAS_DETAILS" schemaName="portfolio" foreignKeyTableName="user_folio_details"/>
                 <indexExists schemaName="portfolio" tableName="user_folio_details" indexName="user_details_idx_pan_id"/>
             </not>
         </preConditions>

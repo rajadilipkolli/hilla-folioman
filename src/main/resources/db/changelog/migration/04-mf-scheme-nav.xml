@@ -44,7 +44,7 @@
         <preConditions onFail="MARK_RAN">
             <not>
                 <uniqueConstraintExists tableName="mf_scheme_nav" constraintName="uc_mf_scheme_nav" schemaName="mfschemes"/>
-                <foreignKeyConstraintExists foreignKeyName="FK_MF_SCHEME_NAV_ON_MF_SCHEME" schemaName="mfschemes" foreignKeyTableName="mf_scheme"/>
+                <foreignKeyConstraintExists foreignKeyName="FK_MF_SCHEME_NAV_ON_MF_SCHEME" schemaName="mfschemes" foreignKeyTableName="mf_scheme_nav"/>
             </not>
         </preConditions>
         <addUniqueConstraint columnNames="nav, nav_date, mf_scheme_id" constraintName="uc_mf_scheme_nav"

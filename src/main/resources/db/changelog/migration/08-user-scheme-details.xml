@@ -55,20 +55,26 @@
     </changeSet>
 
     <changeSet id="1725377866823-3" author="appUser">
-        <preConditions>
-            <not>
-                <uniqueConstraintExists tableName="user_scheme_details" schemaName="portfolio" constraintName="uc_userschemedetailsentity"/>
-            </not>
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists schemaName="portfolio" tableName="user_scheme_details"/>
+                <not>
+                    <uniqueConstraintExists schemaName="portfolio" tableName="user_scheme_details" constraintName="uc_userschemedetailsentity"/>
+                </not>
+            </and>
         </preConditions>
         <addUniqueConstraint columnNames="isin, user_folio_id" constraintName="uc_userschemedetailsentity"
                              schemaName="portfolio" tableName="user_scheme_details"/>
     </changeSet>
 
     <changeSet id="1725377866823-4" author="appUser">
-        <preConditions>
-            <not>
-                <foreignKeyConstraintExists foreignKeyName="FK_USER_SCHEME_DETAILS_ON_USER_FOLIO"/>
-            </not>
+        <preConditions onFail="MARK_RAN">
+            <and>
+                <tableExists schemaName="portfolio" tableName="user_scheme_details"/>
+                <not>
+                    <foreignKeyConstraintExists foreignKeyName="FK_USER_SCHEME_DETAILS_ON_USER_FOLIO" schemaName="portfolio" foreignKeyTableName="user_scheme_details"/>
+                </not>
+            </and>
         </preConditions>
         <addForeignKeyConstraint baseColumnNames="user_folio_id" baseTableName="user_scheme_details"
                                  baseTableSchemaName="portfolio" constraintName="FK_USER_SCHEME_DETAILS_ON_USER_FOLIO"

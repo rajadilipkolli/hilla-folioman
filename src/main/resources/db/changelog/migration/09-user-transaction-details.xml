@@ -49,7 +49,7 @@
     </changeSet>
 
     <changeSet id="1725378154309-3" author="appUser">
-        <preConditions>
+        <preConditions onFail="MARK_RAN">
             <not>
                 <indexExists schemaName="portfolio" indexName="user_details_idx_type_transaction_dat" tableName="user_transaction_details" />
             </not>
@@ -62,9 +62,9 @@
     </changeSet>
 
     <changeSet id="1725378154309-4" author="appUser">
-        <preConditions>
+        <preConditions onFail="MARK_RAN">
             <not>
-                <foreignKeyConstraintExists foreignKeyName="FK_USER_TRANSACTION_DETAILS_ON_USER_SCHEME_DETAIL" schemaName="portfolio" />
+                <foreignKeyConstraintExists foreignKeyName="FK_USER_TRANSACTION_DETAILS_ON_USER_SCHEME_DETAIL" schemaName="portfolio" foreignKeyTableName="user_transaction_details" />
             </not>
         </preConditions>
         <addForeignKeyConstraint baseColumnNames="user_scheme_detail_id" baseTableName="user_transaction_details"
