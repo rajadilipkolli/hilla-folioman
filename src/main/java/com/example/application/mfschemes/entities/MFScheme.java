@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-@Table(name = "mf_scheme")
+@Table(name = "mf_scheme", schema = "mfschemes")
 @Entity
 public class MFScheme extends Auditable<String> implements Serializable {
 

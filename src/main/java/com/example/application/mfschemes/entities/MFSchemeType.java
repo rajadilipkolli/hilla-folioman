@@ -1,4 +1,3 @@
-/* Licensed under Apache-2.0 2021-2024. */
 package com.example.application.mfschemes.entities;
 
 import jakarta.persistence.CascadeType;
@@ -17,12 +16,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "mf_scheme_types", uniqueConstraints = @UniqueConstraint(columnNames = {"type", "category"}))
+@Table(
+        name = "mf_scheme_types",
+        schema = "mfschemes",
+        uniqueConstraints =
+                @UniqueConstraint(
+                        columnNames = {"type", "category", "sub_category"},
+                        name = "UK_MF_SCHEME_CATEGORY_MF_SCHEME_TYPE"))
 public class MFSchemeType extends Auditable<String> implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "scheme_type_id_generator")
-    @SequenceGenerator(name = "scheme_type_id_generator", sequenceName = "scheme_type_id_seq", allocationSize = 2)
+    @SequenceGenerator(
+            name = "scheme_type_id_generator",
+            sequenceName = "mf_scheme_types_seq",
+            allocationSize = 2,
+            schema = "mfschemes")
     @Column(name = "scheme_type_id", nullable = false)
     private Integer schemeTypeId;
 

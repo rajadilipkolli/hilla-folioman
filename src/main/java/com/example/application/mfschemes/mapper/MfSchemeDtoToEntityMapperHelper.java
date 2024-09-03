@@ -42,8 +42,7 @@ public class MfSchemeDtoToEntityMapperHelper {
     @AfterMapping
     void updateMFScheme(MFSchemeDTO scheme, @MappingTarget MFScheme mfScheme) {
         MFSchemeNav mfSchemeNav = new MFSchemeNav();
-        mfSchemeNav.setNav(
-                "N.A.".equals(scheme.nav()) ? BigDecimal.ZERO : BigDecimal.valueOf(Double.parseDouble(scheme.nav())));
+        mfSchemeNav.setNav("N.A.".equals(scheme.nav()) ? BigDecimal.ZERO : new BigDecimal(scheme.nav()));
         // Use the flexible formatter to parse the date
         LocalDate parsedDate = LocalDate.parse(scheme.date(), SchemeConstants.FLEXIBLE_DATE_FORMATTER);
         mfSchemeNav.setNavDate(parsedDate);
