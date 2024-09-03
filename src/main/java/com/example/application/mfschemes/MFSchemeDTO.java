@@ -1,9 +1,17 @@
 package com.example.application.mfschemes;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
 import java.io.Serializable;
 
 public record MFSchemeDTO(
-        String amc, Long schemeCode, String isin, String schemeName, String nav, String date, String schemeType)
+        String amc,
+        @Positive Long schemeCode,
+        String isin,
+        @NotBlank String schemeName,
+        String nav,
+        String date,
+        String schemeType)
         implements Serializable {
 
     public MFSchemeDTO withNavAndDateAndSchemeType(String schemeType, String navValue, String navDate) {

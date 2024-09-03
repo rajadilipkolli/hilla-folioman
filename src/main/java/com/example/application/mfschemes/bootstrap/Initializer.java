@@ -113,11 +113,13 @@ public class Initializer {
                         .map(mfSchemeDTO -> CompletableFuture.supplyAsync(
                                 () -> mfSchemeDtoToEntityMapper.mapMFSchemeDTOToMFSchemeEntity(mfSchemeDTO)))
                         .toList();
-                List<MFScheme> list = completableFutureList.stream()
+                List<MFScheme> newMfSchemeList = completableFutureList.stream()
                         .map(CompletableFuture::join)
                         .toList();
-                LOGGER.info("found {} new funds, hence inserting", list.size());
-                mfSchemeService.saveAllEntities(list);
+                if (!newMfSchemeList.isEmpty()) {
+                    LOGGER.info("found {} new funds, hence inserting", newMfSchemeList.size());
+                    mfSchemeService.saveAllEntities(newMfSchemeList);
+                }
                 stopWatch.stop();
                 LOGGER.info("saved in db in : {} sec", stopWatch.getTotalTimeSeconds());
             }

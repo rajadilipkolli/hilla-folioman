@@ -1,12 +1,15 @@
 import FundDetailProjection
     from "Frontend/generated/com/example/application/mfschemes/models/projection/FundDetailProjection";
+import MFSchemeDTO from "Frontend/generated/com/example/application/mfschemes/MFSchemeDTO";
 import React, { useEffect, useState } from "react";
 import { SchemeController } from "Frontend/generated/endpoints";
-import { Grid, GridColumn, Icon, TextField } from "@vaadin/react-components";
+import { Grid, GridColumn, Icon, TextField, Dialog, Button } from "@vaadin/react-components";
 
 export default function MfSchemesView() {
     const [query, setQuery] = useState('');
     const [schemeList, setSchemeList] = useState<FundDetailProjection[]>([]);
+    const [dialogOpened, setDialogOpened] = useState(false);
+    const [schemeDetails, setSchemeDetails] = useState<MFSchemeDTO | null>(null); // Updated type
 
     useEffect(() => {
         if (query.length > 3) {
@@ -47,21 +50,73 @@ export default function MfSchemesView() {
                 style={{ width: '100%' }}
                 theme="no-border"
             >
-                <GridColumn path="fundHouse" header="AMC"
-                    renderer={({ item }) => (
-                        <span style={{ whiteSpace: 'normal', overflow: 'visible' }}>
-                            {item.fundHouse}
-                        </span>
-                    )}
-                />
                 <GridColumn path="schemeName" header="Scheme Name"
-                    renderer={({ item }) => (
-                        <span style={{ whiteSpace: 'normal', overflow: 'visible' }}>
-                            {item.schemeName}
-                        </span>
-                    )}
+                            renderer={({ item }) => (
+                                <a
+                                    href="#"
+                                    style={{
+                                        whiteSpace: 'normal',
+                                        overflow: 'visible',
+                                        color: 'blue',
+                                        textDecoration: 'underline'
+                                    }}
+                                    onClick={(e) => {
+                                        e.preventDefault(); // Prevent the default anchor behavior
+                                        fetch(`/api/nav/${item.schemeId}`, { method: 'GET' })
+                                            .then(response => {
+                                                if (response.ok) {
+                                                    return response.json();
+                                                } else {
+                                                    throw new Error(`HTTP error! status: ${response.status}`);
+                                                }
+                                            })
+                                            .then((data: MFSchemeDTO) => {
+                                                setSchemeDetails(data);
+                                                setDialogOpened(true); // Open dialog with data
+                                            })
+                                            .catch(error => {
+                                                console.error('Error fetching scheme details:', error);
+                                                // Optionally show an error message to the user
+                                            });
+                                    }}
+                                >
+                                    {item.schemeName}
+                                </a>
+                            )}
+                />
+                <GridColumn path="fundHouse" header="AMC"
+                            renderer={({ item }) => (
+                                <span style={{ whiteSpace: 'normal', overflow: 'visible' }}>
+                                    {item.fundHouse}
+                                </span>
+                            )}
                 />
             </Grid>
+
+            <Dialog
+                opened={dialogOpened}
+                onOpenedChanged={(e) => setDialogOpened(e.detail.value)}
+                headerTitle="Scheme Details"
+            >
+                <div>
+                    {schemeDetails ? (
+                        <>
+                            <p><strong>AMC:</strong> {schemeDetails.amc}</p>
+                            <p><strong>Scheme Code:</strong> {schemeDetails.schemeCode}</p>
+                            <p><strong>ISIN:</strong> {schemeDetails.isin}</p>
+                            <p><strong>Scheme Name:</strong> {schemeDetails.schemeName}</p>
+                            <p><strong>NAV:</strong> {schemeDetails.nav}</p>
+                            <p><strong>Date:</strong> {schemeDetails.date}</p>
+                            <p><strong>Scheme Type:</strong> {schemeDetails.schemeType}</p>
+                        </>
+                    ) : (
+                        <p>No details available.</p>
+                    )}
+                </div>
+                <div slot="footer">
+                    <Button onClick={() => setDialogOpened(false)}>Close</Button>
+                </div>
+            </Dialog>
         </div>
     );
 }
