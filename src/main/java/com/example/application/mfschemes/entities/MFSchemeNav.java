@@ -8,6 +8,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import java.io.Serializable;
@@ -18,6 +19,7 @@ import org.hibernate.proxy.HibernateProxy;
 
 @Table(
         name = "mf_scheme_nav",
+        schema = "mfschemes",
         uniqueConstraints = {
             @UniqueConstraint(
                     name = "uc_mf_scheme_nav",
@@ -27,11 +29,12 @@ import org.hibernate.proxy.HibernateProxy;
 public class MFSchemeNav extends Auditable<String> implements Serializable {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "scheme_nav_id_generator")
+    @SequenceGenerator(name = "scheme_nav_id_generator", schema = "mfschemes", sequenceName = "mf_scheme_nav_seq")
     @Column(name = "id", nullable = false)
     private Long id;
 
-    @Column(precision = 12, scale = 4)
+    @Column(precision = 12, scale = 5)
     private BigDecimal nav;
 
     @Column(name = "nav_date")
@@ -92,7 +95,7 @@ public class MFSchemeNav extends Auditable<String> implements Serializable {
         return Objects.equals(getNav(), that.getNav())
                 && Objects.equals(
                         getMfScheme().getSchemeId(), that.getMfScheme().getSchemeId())
-                && Objects.deepEquals(getNavDate(), that.getNavDate());
+                && Objects.equals(getNavDate(), that.getNavDate());
     }
 
     @Override
