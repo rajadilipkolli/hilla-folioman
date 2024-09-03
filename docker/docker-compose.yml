@@ -54,6 +54,17 @@ services:
     networks:
       - folioman-network
 
+  grafanalgtm:
+    image: grafana/otel-lgtm:0.7.1
+    extra_hosts: [ 'host.docker.internal:host-gateway' ]
+    container_name: grafanalgtm
+    environment:
+      - OTEL_METRIC_EXPORT_INTERVAL=500
+    ports:
+      - "3000:3000"
+      - "4317:4317"
+      - "4318:4318"
+
 networks:
   folioman-network:
     driver: bridge
