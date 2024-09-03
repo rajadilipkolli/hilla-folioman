@@ -1,4 +1,4 @@
-package com.example.application.mfschemes.entities;
+package com.example.application.common;
 
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;
@@ -11,7 +11,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
-abstract class Auditable<T> {
+public abstract class Auditable<T> {
 
     @CreatedBy
     protected T createdBy;

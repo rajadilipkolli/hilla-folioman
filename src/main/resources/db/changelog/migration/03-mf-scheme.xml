@@ -8,8 +8,15 @@
 
     <property name="string.type" value="varchar(255)" dbms="!postgresql"/>
     <property name="string.type" value="text" dbms="postgresql"/>
+    <property name="timestamp.type" value="timestamp" dbms="!postgresql"/>
+    <property name="timestamp.type" value="timestamptz" dbms="postgresql"/>
 
     <changeSet id="create_tables" author="appUser">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists schemaName="mfschemes" tableName="mf_scheme"/>
+            </not>
+        </preConditions>
         <createTable schemaName="mfschemes" tableName="mf_scheme">
             <column name="scheme_id" type="BIGINT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_mf_scheme"/>
@@ -23,14 +30,18 @@
             <column name="mf_scheme_type_id" type="INT"/>
             <column name="version" type="tinyint" />
             <column name="created_by" type="${string.type}"/>
-            <column name="created_date" type="timestamptz"/>
+            <column name="created_date" type="${timestamp.type}"/>
             <column name="last_modified_by" type="${string.type}"/>
-            <column name="last_modified_date" type="timestamptz"/>
+            <column name="last_modified_date" type="${timestamp.type}"/>
         </createTable>
     </changeSet>
-    
-    <changeSet id="add_Indexes" author="appUser">
 
+    <changeSet id="add_Indexes" author="appUser">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <foreignKeyConstraintExists foreignKeyName="FK_MF_SCHEME_ON_MF_SCHEME_TYPE" schemaName="mfschemes" foreignKeyTableName="mf_scheme" />
+            </not>
+        </preConditions>
         <addForeignKeyConstraint baseColumnNames="mf_scheme_type_id" baseTableName="mf_scheme"
                                  baseTableSchemaName="mfschemes" constraintName="FK_MF_SCHEME_ON_MF_SCHEME_TYPE"
                                  referencedColumnNames="scheme_type_id" referencedTableName="mf_scheme_types"

@@ -1,5 +1,6 @@
 package com.example.application.mfschemes.entities;
 
+import com.example.application.common.Auditable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;

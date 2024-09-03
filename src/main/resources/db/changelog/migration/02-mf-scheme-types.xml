@@ -8,9 +8,11 @@
 
     <property name="string.type" value="varchar(255)" dbms="!postgresql"/>
     <property name="string.type" value="text" dbms="postgresql"/>
+    <property name="timestamp.type" value="timestamp" dbms="!postgresql"/>
+    <property name="timestamp.type" value="timestamptz" dbms="postgresql"/>
 
     <changeSet id="create_sequences" author="appUser">
-        <preConditions>
+        <preConditions onFail="MARK_RAN">
             <not>
                 <sequenceExists sequenceName="mf_scheme_types_seq" schemaName="mfschemes" />
             </not>
@@ -19,7 +21,7 @@
     </changeSet>
 
     <changeSet id="create_tables" author="appUser">
-        <preConditions>
+        <preConditions onFail="MARK_RAN">
             <not>
                 <tableExists tableName="mf_scheme_types" schemaName="mfschemes" />
             </not>
@@ -37,14 +39,19 @@
             <column name="sub_category" type="${string.type}"/>
             <column name="version" type="tinyint"/>
             <column name="created_by" type="${string.type}"/>
-            <column name="created_date" type="timestamptz"/>
+            <column name="created_date" type="${timestamp.type}"/>
             <column name="last_modified_by" type="${string.type}"/>
-            <column name="last_modified_date" type="timestamptz"/>
+            <column name="last_modified_date" type="${timestamp.type}"/>
         </createTable>
 
     </changeSet>
 
     <changeSet id="add_Indexes" author="appUser">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <uniqueConstraintExists tableName="mf_scheme_types" schemaName="mfschemes" constraintName="UK_MF_SCHEME_CATEGORY_MF_SCHEME_TYPE"/>
+            </not>
+        </preConditions>
         <addUniqueConstraint
                 columnNames="type, category, sub_category"
                 constraintName="UK_MF_SCHEME_CATEGORY_MF_SCHEME_TYPE"
