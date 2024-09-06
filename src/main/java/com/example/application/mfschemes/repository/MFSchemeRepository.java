@@ -22,7 +22,12 @@ public interface MFSchemeRepository extends JpaRepository<MFScheme, Long> {
             """)
     List<FundDetailProjection> findBySchemeNameLikeIgnoreCaseOrderBySchemeIdAsc(@Param("schemeName") String schemeName);
 
-    @EntityGraph(attributePaths = {"mfSchemeType", "mfSchemeNavs"})
+    @Query(
+            """
+            select m from MFScheme m inner join fetch m.mfSchemeNavs mfSchemeNavs
+            where m.schemeId = :schemeCode and mfSchemeNavs.navDate = :date
+            """)
+    @EntityGraph(attributePaths = {"mfSchemeType"})
     Optional<MFScheme> findBySchemeIdAndMfSchemeNavs_NavDate(
             @Param("schemeCode") Long schemeCode, @Param("date") LocalDate navDate);
 

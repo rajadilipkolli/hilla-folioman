@@ -39,11 +39,12 @@ services:
       - folioman-network
 
   redis:
-    image: 'redis:7.4.0-alpine'
+    image: 'redis/redis-stack'
     container_name: redis
     extra_hosts: [ 'host.docker.internal:host-gateway' ]
     ports:
       - "6379:6379"
+      - "8000:8000"
     volumes:
       - 'redis_data:/data:rw'
     healthcheck:
