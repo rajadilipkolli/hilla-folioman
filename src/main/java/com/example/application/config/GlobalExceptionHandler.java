@@ -1,4 +1,4 @@
-package com.example.application.shared.config;
+package com.example.application.config;
 
 import com.example.application.mfschemes.NavNotFoundException;
 import com.example.application.mfschemes.SchemeNotFoundException;

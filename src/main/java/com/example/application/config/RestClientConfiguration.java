@@ -1,4 +1,4 @@
-package com.example.application.shared.config;
+package com.example.application.config;
 
 import java.util.List;
 import org.springframework.boot.web.client.RestClientCustomizer;
