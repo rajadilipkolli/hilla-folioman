@@ -1,7 +1,17 @@
 package com.example.application.portfolio.entities;
 
-import com.example.application.common.Auditable;
-import jakarta.persistence.*;
+import com.example.application.shared.Auditable;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.MapsId;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Table;
 import java.io.Serializable;
 import java.util.Objects;
 import org.hibernate.Hibernate;
