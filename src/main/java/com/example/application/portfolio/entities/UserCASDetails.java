@@ -41,22 +41,6 @@ public class UserCASDetails extends Auditable<String> implements Serializable {
     @OneToMany(mappedBy = "userCasDetails", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserFolioDetails> folios = new ArrayList<>();
 
-    public List<UserFolioDetails> getFolios() {
-        return folios;
-    }
-
-    public void setFolios(List<UserFolioDetails> folios) {
-        this.folios = folios;
-    }
-
-    public InvestorInfo getInvestorInfo() {
-        return investorInfo;
-    }
-
-    public void setInvestorInfo(InvestorInfo investorInfo) {
-        this.investorInfo = investorInfo;
-    }
-
     public Long getId() {
         return id;
     }
@@ -84,20 +68,20 @@ public class UserCASDetails extends Auditable<String> implements Serializable {
         return this;
     }
 
-    public List<UserFolioDetails> getFolioEntities() {
+    public List<UserFolioDetails> getFolios() {
         return folios;
     }
 
-    public UserCASDetails setFolioEntities(List<UserFolioDetails> folios) {
+    public UserCASDetails setFolios(List<UserFolioDetails> folios) {
         this.folios = folios;
         return this;
     }
 
-    public InvestorInfo getInvestorInfoEntity() {
+    public InvestorInfo getInvestorInfo() {
         return investorInfo;
     }
 
-    public UserCASDetails setInvestorInfoEntity(InvestorInfo investorInfo) {
+    public UserCASDetails setInvestorInfo(InvestorInfo investorInfo) {
         if (investorInfo == null) {
             if (this.investorInfo != null) {
                 this.investorInfo.setUserCasDetails(null);

@@ -1,6 +1,6 @@
 package com.example.application.portfolio.entities;
 
-enum CasTypeEnum {
+public enum CasTypeEnum {
     DETAILED,
     SUMMARY
 }
