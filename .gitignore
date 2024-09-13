@@ -6,3 +6,4 @@ src/main/frontend/generated/
 vite.generated.ts
 
 .idea/
+*.iml

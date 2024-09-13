@@ -1,0 +1,132 @@
+{
+  "statement_period": {
+    "from": "01-Jan-1990",
+    "to": "20-Jun-2023"
+  },
+  "file_type": "CAMS",
+  "cas_type": "DETAILED",
+  "investor_info": {
+    "email": "junit@email.com",
+    "name": "Junit",
+    "mobile": "9848022338",
+    "address": "address"
+  },
+  "folios": [
+    {
+      "folio": "15936342 / 43",
+      "amc": "ICICI Prudential Mutual Fund",
+      "schemes": [
+        {
+          "scheme": "ICICI Prudential Nifty Next 50 Index Fund - Direct Plan - Growth (Non-Demat) - ISIN: INF109K01Y80",
+          "isin": "INF109K01Y80",
+          "amfi": null,
+          "advisor": "INA200005166",
+          "type": "EQUITY",
+          "rta": "CAMS",
+          "close": "3801.107",
+          "rta_code": "P8107",
+          "open": "0.0",
+          "close_calculated": "3801.107",
+          "valuation": {
+            "date": "2024-04-12",
+            "nav": 58.1998,
+            "value": 0.0
+          },
+          "transactions": [
+            {
+              "date": "2021-07-19",
+              "description": "Switch In - From Liquid Fund - DP Growth - INA000006651",
+              "amount": 24383.78,
+              "units": 153.371,
+              "nav": 158.9851,
+              "balance": 153.371,
+              "type": "SWITCH_IN",
+              "dividend_rate": null
+            },
+            {
+              "date": "2021-07-19",
+              "description": "*** Stamp Duty ***",
+              "amount": 1.22,
+              "units": null,
+              "nav": null,
+              "balance": null,
+              "type": "STAMP_DUTY_TAX",
+              "dividend_rate": null
+            },
+            {
+              "date": "2022-08-01",
+              "description": "*Switch Out - To Nifty 50 Index Fund-DP Growth-BSE - , less STT",
+              "amount": -5000.0,
+              "units": -28.261,
+              "nav": 176.9251,
+              "balance": 125.11,
+              "type": "SWITCH_OUT",
+              "dividend_rate": null
+            },
+            {
+              "date": "2022-08-01",
+              "description": "*** STT Paid ***",
+              "amount": 0.05,
+              "units": null,
+              "nav": null,
+              "balance": null,
+              "type": "STT_TAX",
+              "dividend_rate": null
+            },
+            {
+              "date": "2021-01-14",
+              "description": "SIP Purchase-BSE - - INA200005166",
+              "amount": 499.98,
+              "units": 15.965,
+              "nav": 31.3182,
+              "balance": 15.965,
+              "type": "PURCHASE_SIP",
+              "dividend_rate": null
+            }
+          ]
+        }
+      ],
+      "PAN": "ABCDE1234F",
+      "KYC": "OK",
+      "PANKYC": "OK"
+    },
+    {
+      "folio": "91095687154 / 0",
+      "amc": "AXIS Mutual Fund",
+      "schemes": [
+        {
+          "scheme": "Axis ELSS Tax Saver Fund - Direct Growth - ISIN: INF846K01EW2",
+          "isin": "INF846K01EW2",
+          "amfi": 120503,
+          "advisor": "INA000006651",
+          "type": "EQUITY",
+          "rta": "KFINTECH",
+          "close": "206.719",
+          "rta_code": "128TSDGG",
+          "open": "0.0",
+          "close_calculated": "206.719",
+          "valuation": {
+            "date": "2024-04-12",
+            "nav": 97.352,
+            "value": 0.0
+          },
+          "transactions": [
+            {
+              "date": "2017-09-20",
+              "description": "Purchase",
+              "amount": 1000.0,
+              "units": 23.711,
+              "nav": 42.1747,
+              "balance": 23.711,
+              "type": "PURCHASE",
+              "dividend_rate": null
+            }
+          ]
+        }
+      ],
+      "PAN": "",
+      "KYC": "OK",
+      "PANKYC": "NOT OK"
+    }
+  ]
+}
