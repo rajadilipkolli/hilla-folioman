@@ -1,4 +1,4 @@
-package com.example.application.common;
+package com.example.application.shared;
 
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.MappedSuperclass;

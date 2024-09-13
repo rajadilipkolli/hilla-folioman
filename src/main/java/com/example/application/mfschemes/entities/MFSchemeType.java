@@ -1,6 +1,6 @@
 package com.example.application.mfschemes.entities;
 
-import com.example.application.common.Auditable;
+import com.example.application.shared.Auditable;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
