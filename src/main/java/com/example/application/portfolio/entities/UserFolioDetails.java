@@ -48,7 +48,7 @@ public class UserFolioDetails extends Auditable<String> implements Serializable 
     private String panKyc;
 
     @OneToMany(mappedBy = "userFolioDetails", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<UserSchemeDetails> schemeEntities = new ArrayList<>();
+    private List<UserSchemeDetails> schemes = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn(name = "user_cas_details_id", nullable = false)
@@ -108,12 +108,12 @@ public class UserFolioDetails extends Auditable<String> implements Serializable 
         return this;
     }
 
-    public List<UserSchemeDetails> getSchemeEntities() {
-        return schemeEntities;
+    public List<UserSchemeDetails> getSchemes() {
+        return schemes;
     }
 
-    public UserFolioDetails setSchemeEntities(List<UserSchemeDetails> schemeEntities) {
-        this.schemeEntities = schemeEntities;
+    public UserFolioDetails setSchemes(List<UserSchemeDetails> schemeEntities) {
+        this.schemes = schemeEntities;
         return this;
     }
 
@@ -126,9 +126,9 @@ public class UserFolioDetails extends Auditable<String> implements Serializable 
         return this;
     }
 
-    public void addSchemeEntity(UserSchemeDetails userSchemeDetailsEntity) {
-        this.schemeEntities.add(userSchemeDetailsEntity);
-        userSchemeDetailsEntity.setUserFolioDetails(this);
+    public void addScheme(UserSchemeDetails userSchemeDetails) {
+        this.schemes.add(userSchemeDetails);
+        userSchemeDetails.setUserFolioDetails(this);
     }
 
     @Override

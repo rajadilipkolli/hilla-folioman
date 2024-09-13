@@ -1,6 +1,6 @@
 package com.example.application.portfolio.entities;
 
-enum FileTypeEnum {
+public enum FileTypeEnum {
     CAMS,
     KARVY,
     UNKNOWN

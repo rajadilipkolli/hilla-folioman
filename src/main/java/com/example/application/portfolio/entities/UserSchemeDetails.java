@@ -196,7 +196,7 @@ public class UserSchemeDetails extends Auditable<String> implements Serializable
         return this;
     }
 
-    public void addTransactionEntity(UserTransactionDetails userTransactionDetails) {
+    public void addTransaction(UserTransactionDetails userTransactionDetails) {
         this.transactions.add(userTransactionDetails);
         userTransactionDetails.setUserSchemeDetails(this);
     }
