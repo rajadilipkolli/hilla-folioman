@@ -13,7 +13,7 @@ import com.example.application.portfolio.models.UserSchemeDTO;
 import com.example.application.portfolio.models.UserTransactionDTO;
 import com.example.application.portfolio.models.response.UploadFileResponse;
 import com.example.application.shared.LocalDateUtility;
-import com.example.application.shared.UserSchemeDetailsService;
+import com.example.application.shared.UserSchemeDetailService;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -40,16 +40,16 @@ public class UserDetailService {
     private final InvestorInfoService investorInfoService;
     private final UserTransactionDetailsService userTransactionDetailsService;
     private final UserFolioDetailService userFolioDetailService;
-    private final UserSchemeDetailsService userSchemeDetailService;
+    private final UserSchemeDetailService userSchemeDetailService;
 
-    public UserDetailService(
+    UserDetailService(
             PortfolioServiceHelper portfolioServiceHelper,
             CasDetailsMapper casDetailsMapper,
             UserCASDetailsService userCASDetailsService,
             InvestorInfoService investorInfoService,
             UserTransactionDetailsService userTransactionDetailsService,
             UserFolioDetailService userFolioDetailService,
-            UserSchemeDetailsService userSchemeDetailService) {
+            UserSchemeDetailService userSchemeDetailService) {
         this.portfolioServiceHelper = portfolioServiceHelper;
         this.casDetailsMapper = casDetailsMapper;
         this.userCASDetailsService = userCASDetailsService;

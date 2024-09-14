@@ -23,16 +23,16 @@ import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
 @Service
-public class MfHistoricalNavService {
+class MfHistoricalNavService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MfHistoricalNavService.class);
 
-    private final MfSchemeInternalService mfSchemeService;
+    private final MfSchemesService mfSchemeService;
     private final RestClient restClient;
     private final MfSchemeDtoToEntityMapper mfSchemeDtoToEntityMapper;
 
-    public MfHistoricalNavService(
-            MfSchemeInternalService mfSchemeService,
+    MfHistoricalNavService(
+            MfSchemesService mfSchemeService,
             RestClient restClient,
             MfSchemeDtoToEntityMapper mfSchemeDtoToEntityMapper) {
         this.mfSchemeService = mfSchemeService;

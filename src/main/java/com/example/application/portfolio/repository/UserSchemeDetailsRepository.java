@@ -23,4 +23,14 @@ public interface UserSchemeDetailsRepository extends JpaRepository<UserSchemeDet
     @Modifying
     @Query("update UserSchemeDetails u set u.amfi = :amfi, u.isin = :isin where u.id = :id")
     void updateAmfiAndIsinById(@Param("amfi") Long schemeId, @Param("isin") String isin, @Param("id") Long id);
+
+    @Query(
+            value =
+                    """
+                    select mf_scheme_id, count(msn.id) from portfolio.user_scheme_details usd join mfschemes.mf_scheme_nav msn
+                    on usd.amfi = msn.mf_scheme_id
+                    group by mf_scheme_id having count(msn.id) < 3
+                    """,
+            nativeQuery = true)
+    List<Long> getHistoricalDataNotLoadedSchemeIdList();
 }

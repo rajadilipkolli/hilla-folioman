@@ -9,13 +9,13 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 @Service
-public class CachedNavService {
+class CachedNavService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CachedNavService.class);
 
-    private final MfSchemeInternalService mfSchemeService;
+    private final MfSchemesService mfSchemeService;
 
-    public CachedNavService(MfSchemeInternalService mfSchemeService) {
+    CachedNavService(MfSchemesService mfSchemeService) {
         this.mfSchemeService = mfSchemeService;
     }
 

@@ -13,16 +13,16 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional(readOnly = true)
-public class UserCASDetailsService {
+class UserCASDetailsService {
 
     private final UserCASDetailsRepository userCASDetailsRepository;
     private final UserFolioDetailService userFolioDetailService;
-    private final UserSchemeDetailsServiceInternal userSchemeDetailService;
+    private final UserSchemeDetailsService userSchemeDetailService;
 
-    public UserCASDetailsService(
+    UserCASDetailsService(
             UserCASDetailsRepository userCASDetailsRepository,
             UserFolioDetailService userFolioDetailService,
-            UserSchemeDetailsServiceInternal userSchemeDetailService) {
+            UserSchemeDetailsService userSchemeDetailService) {
         this.userCASDetailsRepository = userCASDetailsRepository;
         this.userFolioDetailService = userFolioDetailService;
         this.userSchemeDetailService = userSchemeDetailService;

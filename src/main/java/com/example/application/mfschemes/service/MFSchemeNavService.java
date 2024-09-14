@@ -17,12 +17,12 @@ public class MFSchemeNavService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MFSchemeNavService.class);
     private final CachedNavService cachedNavService;
-    private final MfSchemeInternalService mfSchemeService;
+    private final MfSchemesService mfSchemeService;
     private final MfHistoricalNavService historicalNavService;
 
-    public MFSchemeNavService(
+    MFSchemeNavService(
             CachedNavService cachedNavService,
-            MfSchemeInternalService mfSchemeService,
+            MfSchemesService mfSchemeService,
             MfHistoricalNavService historicalNavService) {
         this.cachedNavService = cachedNavService;
         this.mfSchemeService = mfSchemeService;

@@ -11,7 +11,7 @@ class InvestorInfoService {
 
     private final InvestorInfoRepository investorInfoRepository;
 
-    public InvestorInfoService(InvestorInfoRepository investorInfoRepository) {
+    InvestorInfoService(InvestorInfoRepository investorInfoRepository) {
         this.investorInfoRepository = investorInfoRepository;
     }
 

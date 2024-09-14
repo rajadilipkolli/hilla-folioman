@@ -3,7 +3,7 @@ package com.example.application.mfschemes.bootstrap;
 import com.example.application.mfschemes.entities.MFScheme;
 import com.example.application.mfschemes.mapper.MfSchemeDtoToEntityMapper;
 import com.example.application.mfschemes.models.response.MFSchemeDTO;
-import com.example.application.mfschemes.service.MfSchemeInternalService;
+import com.example.application.mfschemes.service.MfSchemesService;
 import com.example.application.mfschemes.util.SchemeConstants;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -31,12 +31,12 @@ public class Initializer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Initializer.class);
     private final RestClient restClient;
-    private final MfSchemeInternalService mfSchemeService;
+    private final MfSchemesService mfSchemeService;
     private final MfSchemeDtoToEntityMapper mfSchemeDtoToEntityMapper;
 
     public Initializer(
             RestClient restClient,
-            MfSchemeInternalService mfSchemeService,
+            MfSchemesService mfSchemeService,
             MfSchemeDtoToEntityMapper mfSchemeDtoToEntityMapper) {
         this.restClient = restClient;
         this.mfSchemeService = mfSchemeService;

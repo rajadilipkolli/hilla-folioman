@@ -17,7 +17,7 @@ class UserFolioDetailService {
 
     private final UserFolioDetailsRepository userFolioDetailsRepository;
 
-    public UserFolioDetailService(UserFolioDetailsRepository userFolioDetailsRepository) {
+    UserFolioDetailService(UserFolioDetailsRepository userFolioDetailsRepository) {
         this.userFolioDetailsRepository = userFolioDetailsRepository;
     }
 
