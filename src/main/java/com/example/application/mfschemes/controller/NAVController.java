@@ -1,7 +1,7 @@
 package com.example.application.mfschemes.controller;
 
+import com.example.application.mfschemes.models.response.MFSchemeDTO;
 import com.example.application.mfschemes.service.MFSchemeNavService;
-import com.example.application.shared.MFSchemeDTO;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.Endpoint;
 import jakarta.validation.Valid;
