@@ -2,9 +2,9 @@ package com.example.application.mfschemes.bootstrap;
 
 import com.example.application.mfschemes.entities.MFScheme;
 import com.example.application.mfschemes.mapper.MfSchemeDtoToEntityMapper;
-import com.example.application.mfschemes.models.response.MFSchemeDTO;
 import com.example.application.mfschemes.service.MfSchemeServiceImpl;
 import com.example.application.mfschemes.util.SchemeConstants;
+import com.example.application.shared.MFSchemeDTO;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;

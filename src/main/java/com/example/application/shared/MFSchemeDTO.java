@@ -1,4 +1,4 @@
-package com.example.application.mfschemes.models.response;
+package com.example.application.shared;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;

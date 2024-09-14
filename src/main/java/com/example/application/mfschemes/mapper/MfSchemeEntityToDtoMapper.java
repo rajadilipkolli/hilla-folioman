@@ -2,7 +2,7 @@ package com.example.application.mfschemes.mapper;
 
 import com.example.application.mfschemes.entities.MFScheme;
 import com.example.application.mfschemes.entities.MFSchemeType;
-import com.example.application.mfschemes.models.response.MFSchemeDTO;
+import com.example.application.shared.MFSchemeDTO;
 import java.time.LocalDate;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
