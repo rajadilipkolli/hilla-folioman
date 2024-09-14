@@ -2,15 +2,13 @@ package com.example.application.config;
 
 import java.util.List;
 import org.springframework.boot.web.client.RestClientCustomizer;
-import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.MediaType;
 import org.springframework.web.client.RestClient;
 
 @Configuration(proxyBeanMethods = false)
-@EnableCaching
-public class RestClientConfiguration {
+class RestClientConfiguration {
 
     @Bean
     RestClient restClient(RestClient.Builder restClientBuilder) {
