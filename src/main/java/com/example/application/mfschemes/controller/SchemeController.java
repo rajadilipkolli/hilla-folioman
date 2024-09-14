@@ -1,7 +1,7 @@
 package com.example.application.mfschemes.controller;
 
-import com.example.application.mfschemes.models.projection.FundDetailProjection;
-import com.example.application.mfschemes.service.MfSchemeService;
+import com.example.application.mfschemes.service.MfSchemeServiceImpl;
+import com.example.application.shared.FundDetailProjection;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.Endpoint;
 import java.util.List;
@@ -16,9 +16,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/scheme")
 public class SchemeController {
 
-    private final MfSchemeService mfSchemeService;
+    private final MfSchemeServiceImpl mfSchemeService;
 
-    public SchemeController(MfSchemeService mfSchemeService) {
+    public SchemeController(MfSchemeServiceImpl mfSchemeService) {
         this.mfSchemeService = mfSchemeService;
     }
 

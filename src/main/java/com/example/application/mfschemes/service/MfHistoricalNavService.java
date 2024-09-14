@@ -1,9 +1,9 @@
 package com.example.application.mfschemes.service;
 
-import com.example.application.mfschemes.MFSchemeDTO;
 import com.example.application.mfschemes.NavNotFoundException;
 import com.example.application.mfschemes.entities.MFScheme;
 import com.example.application.mfschemes.mapper.MfSchemeDtoToEntityMapper;
+import com.example.application.mfschemes.models.response.MFSchemeDTO;
 import com.example.application.mfschemes.util.SchemeConstants;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -26,12 +26,12 @@ public class MfHistoricalNavService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MfHistoricalNavService.class);
 
-    private final MfSchemeService mfSchemeService;
+    private final MfSchemeServiceImpl mfSchemeService;
     private final RestClient restClient;
     private final MfSchemeDtoToEntityMapper mfSchemeDtoToEntityMapper;
 
     public MfHistoricalNavService(
-            MfSchemeService mfSchemeService,
+            MfSchemeServiceImpl mfSchemeService,
             RestClient restClient,
             MfSchemeDtoToEntityMapper mfSchemeDtoToEntityMapper) {
         this.mfSchemeService = mfSchemeService;

@@ -1,8 +1,6 @@
 package com.example.application.portfolio.service;
 
 import com.example.application.portfolio.models.UserFolioDTO;
-import com.example.application.portfolio.models.UserSchemeDTO;
-import com.example.application.portfolio.models.UserTransactionDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.util.List;
@@ -22,14 +20,9 @@ public class PortfolioServiceHelper {
     }
 
     public long countTransactionsByUserFolioDTOList(List<UserFolioDTO> folios) {
-        int count = 0;
-        for (UserFolioDTO folio : folios) {
-            for (UserSchemeDTO schemeDTO : folio.schemes()) {
-                for (UserTransactionDTO userTransactionDTO : schemeDTO.transactions()) {
-                    count++;
-                }
-            }
-        }
-        return count;
+        return folios.stream()
+                .flatMap(folio -> folio.schemes().stream())
+                .flatMap(scheme -> scheme.transactions().stream())
+                .count();
     }
 }

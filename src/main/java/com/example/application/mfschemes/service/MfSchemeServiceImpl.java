@@ -1,15 +1,17 @@
 package com.example.application.mfschemes.service;
 
-import com.example.application.mfschemes.MFSchemeDTO;
 import com.example.application.mfschemes.SchemeNotFoundException;
 import com.example.application.mfschemes.entities.MFScheme;
 import com.example.application.mfschemes.entities.MFSchemeNav;
 import com.example.application.mfschemes.mapper.MfSchemeEntityToDtoMapper;
 import com.example.application.mfschemes.mapper.SchemeNAVDataDtoToEntityMapper;
-import com.example.application.mfschemes.models.projection.FundDetailProjection;
+import com.example.application.mfschemes.models.response.MFSchemeDTO;
 import com.example.application.mfschemes.models.response.NavResponse;
 import com.example.application.mfschemes.repository.MFSchemeRepository;
 import com.example.application.mfschemes.util.SchemeConstants;
+import com.example.application.shared.FundDetailProjection;
+import com.example.application.shared.MFSchemeProjection;
+import com.example.application.shared.MfSchemeService;
 import java.net.URI;
 import java.time.LocalDate;
 import java.util.List;
@@ -29,9 +31,9 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 @Transactional(readOnly = true)
 @Service
-public class MfSchemeService {
+public class MfSchemeServiceImpl implements MfSchemeService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(MfSchemeService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MfSchemeServiceImpl.class);
 
     private final MFSchemeRepository mFSchemeRepository;
     private final MfSchemeEntityToDtoMapper mfSchemeEntityToDtoMapper;
@@ -39,7 +41,7 @@ public class MfSchemeService {
     private final RestClient restClient;
     private final TransactionTemplate transactionTemplate;
 
-    public MfSchemeService(
+    public MfSchemeServiceImpl(
             MFSchemeRepository mFSchemeRepository,
             MfSchemeEntityToDtoMapper mfSchemeEntityToDtoMapper,
             SchemeNAVDataDtoToEntityMapper schemeNAVDataDtoToEntityMapper,
@@ -51,6 +53,18 @@ public class MfSchemeService {
         this.restClient = restClient;
         transactionTemplate.setPropagationBehaviorName("PROPAGATION_REQUIRES_NEW");
         this.transactionTemplate = transactionTemplate;
+    }
+
+    @Override
+    public List<FundDetailProjection> fetchSchemes(String schemeName) {
+        String sName = "%" + schemeName.strip().replaceAll("\\s", "").toUpperCase(Locale.ROOT) + "%";
+        LOGGER.info("Fetching schemes with :{}", sName);
+        return this.mFSchemeRepository.findBySchemeNameLikeIgnoreCaseOrderBySchemeIdAsc(sName);
+    }
+
+    @Override
+    public Optional<MFSchemeProjection> findByPayOut(String isin) {
+        return mFSchemeRepository.findByPayOut(isin);
     }
 
     public long count() {
@@ -71,12 +85,6 @@ public class MfSchemeService {
         return mFSchemeRepository.save(mfScheme);
     }
 
-    public List<FundDetailProjection> fetchSchemes(String schemeName) {
-        String sName = "%" + schemeName.strip().replaceAll("\\s", "").toUpperCase(Locale.ROOT) + "%";
-        LOGGER.info("Fetching schemes with :{}", sName);
-        return this.mFSchemeRepository.findBySchemeNameLikeIgnoreCaseOrderBySchemeIdAsc(sName);
-    }
-
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Optional<MFSchemeDTO> getMfSchemeDTO(Long schemeCode, LocalDate navDate) {
         return this.mFSchemeRepository
@@ -92,6 +100,10 @@ public class MfSchemeService {
     public void fetchSchemeDetails(String oldSchemeCode, Long newSchemeCode) {
         NavResponse navResponse = getNavResponseResponseEntity(Long.valueOf(oldSchemeCode));
         processResponseEntity(newSchemeCode, navResponse);
+    }
+
+    public Optional<MFScheme> findBySchemeCode(Long schemeCode) {
+        return this.mFSchemeRepository.findBySchemeId(schemeCode);
     }
 
     private void processResponseEntity(Long schemeCode, NavResponse navResponse) {
@@ -150,9 +162,5 @@ public class MfSchemeService {
         return UriComponentsBuilder.fromUriString(SchemeConstants.MFAPI_WEBSITE_BASE_URL + schemeCode)
                 .build()
                 .toUri();
-    }
-
-    public Optional<MFScheme> findBySchemeCode(Long schemeCode) {
-        return this.mFSchemeRepository.findBySchemeId(schemeCode);
     }
 }

@@ -15,7 +15,11 @@ import com.example.application.portfolio.models.response.UploadFileResponse;
 import com.example.application.shared.LocalDateUtility;
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,18 +38,24 @@ public class UserDetailService {
     private final UserCASDetailsService userCASDetailsService;
     private final InvestorInfoService investorInfoService;
     private final UserTransactionDetailsService userTransactionDetailsService;
+    private final UserFolioDetailService userFolioDetailService;
+    private final UserSchemeDetailService userSchemeDetailService;
 
     public UserDetailService(
             PortfolioServiceHelper portfolioServiceHelper,
             CasDetailsMapper casDetailsMapper,
             UserCASDetailsService userCASDetailsService,
             InvestorInfoService investorInfoService,
-            UserTransactionDetailsService userTransactionDetailsService) {
+            UserTransactionDetailsService userTransactionDetailsService,
+            UserFolioDetailService userFolioDetailService,
+            UserSchemeDetailService userSchemeDetailService) {
         this.portfolioServiceHelper = portfolioServiceHelper;
         this.casDetailsMapper = casDetailsMapper;
         this.userCASDetailsService = userCASDetailsService;
         this.investorInfoService = investorInfoService;
         this.userTransactionDetailsService = userTransactionDetailsService;
+        this.userFolioDetailService = userFolioDetailService;
+        this.userSchemeDetailService = userSchemeDetailService;
     }
 
     public UploadFileResponse upload(MultipartFile multipartFile) throws IOException {
@@ -109,7 +119,7 @@ public class UserDetailService {
                 userTransactionFromReqCount,
                 userTransactionFromDBCount);
 
-        return userCASDetailsService.saveEntity(userCASDetails);
+        return getUserCASDetails(userCASDetails);
     }
 
     private void addNewTransactions(
@@ -334,14 +344,16 @@ public class UserDetailService {
         AtomicInteger newFolios = new AtomicInteger();
         AtomicInteger newSchemes = new AtomicInteger();
         UserCASDetails userCASDetails = casDetailsMapper.convert(casDTO, newFolios, newSchemes, newTransactions);
-        UploadFileResponse uploadFileResponse = null;
-        if (userCASDetails != null) {
-            UserCASDetails savedCasDetailsEntity = userCASDetailsService.saveEntity(userCASDetails);
-            uploadFileResponse = new UploadFileResponse(
-                    newFolios.get(), newSchemes.get(), newTransactions.get(), savedCasDetailsEntity.getId());
-        }
+        UserCASDetails savedCasDetailsEntity = getUserCASDetails(userCASDetails);
+        return new UploadFileResponse(
+                newFolios.get(), newSchemes.get(), newTransactions.get(), savedCasDetailsEntity.getId());
+    }
 
-        return uploadFileResponse;
+    private UserCASDetails getUserCASDetails(UserCASDetails userCASDetails) {
+        UserCASDetails savedCasDetailsEntity = userCASDetailsService.saveEntity(userCASDetails);
+        CompletableFuture.runAsync(() -> userFolioDetailService.setPANIfNotSet(savedCasDetailsEntity.getId()));
+        CompletableFuture.runAsync(userSchemeDetailService::setAMFIIfNull);
+        return savedCasDetailsEntity;
     }
 
     private CasDTO parseCasDTO(MultipartFile multipartFile) throws IOException {
