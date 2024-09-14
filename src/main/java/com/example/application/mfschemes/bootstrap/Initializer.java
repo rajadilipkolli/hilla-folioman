@@ -2,9 +2,9 @@ package com.example.application.mfschemes.bootstrap;
 
 import com.example.application.mfschemes.entities.MFScheme;
 import com.example.application.mfschemes.mapper.MfSchemeDtoToEntityMapper;
-import com.example.application.mfschemes.service.MfSchemeServiceImpl;
+import com.example.application.mfschemes.models.response.MFSchemeDTO;
+import com.example.application.mfschemes.service.MfSchemeInternalService;
 import com.example.application.mfschemes.util.SchemeConstants;
-import com.example.application.shared.MFSchemeDTO;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
@@ -31,12 +31,12 @@ public class Initializer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Initializer.class);
     private final RestClient restClient;
-    private final MfSchemeServiceImpl mfSchemeService;
+    private final MfSchemeInternalService mfSchemeService;
     private final MfSchemeDtoToEntityMapper mfSchemeDtoToEntityMapper;
 
     public Initializer(
             RestClient restClient,
-            MfSchemeServiceImpl mfSchemeService,
+            MfSchemeInternalService mfSchemeService,
             MfSchemeDtoToEntityMapper mfSchemeDtoToEntityMapper) {
         this.restClient = restClient;
         this.mfSchemeService = mfSchemeService;
