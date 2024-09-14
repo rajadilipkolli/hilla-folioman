@@ -1,5 +1,6 @@
 package com.example.application.config.redis;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +20,7 @@ public class DefaultPolicy implements CachePolicy {
     }
 
     @Override
-    public void apply(RedisTemplate<String, Object> redisTemplate) {
+    public void apply(RedisTemplate<String, Object> redisTemplate, MeterRegistry meterRegistry) {
         log.info("Applying default cache policy. No action taken.");
     }
 }

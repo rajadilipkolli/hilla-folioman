@@ -1,5 +1,6 @@
 package com.example.application.config.redis;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Duration;
 import java.util.Set;
 import org.slf4j.Logger;
@@ -20,7 +21,7 @@ public class ReduceCacheSizePolicy implements CachePolicy {
     }
 
     @Override
-    public void apply(RedisTemplate<String, Object> redisTemplate) {
+    public void apply(RedisTemplate<String, Object> redisTemplate, MeterRegistry meterRegistry) {
         Set<String> allKeys = redisTemplate.keys("*");
         if (allKeys == null || allKeys.isEmpty()) {
             log.info("Cache is empty, nothing to reduce.");

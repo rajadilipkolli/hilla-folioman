@@ -1,22 +1,24 @@
 package com.example.application.config.redis;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 @Component
-public class CacheAdapter {
+class CacheAdapter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CacheAdapter.class);
 
     private final RedisTemplate<String, Object> redisTemplate;
+    private final MeterRegistry meterRegistry;
+
     private CachePolicy currentPolicy;
 
-    @Autowired
-    public CacheAdapter(RedisTemplate<String, Object> redisTemplate) {
+    CacheAdapter(RedisTemplate<String, Object> redisTemplate, MeterRegistry meterRegistry) {
         this.redisTemplate = redisTemplate;
+        this.meterRegistry = meterRegistry;
     }
 
     /**
@@ -42,7 +44,7 @@ public class CacheAdapter {
         LOGGER.info("Applying cache policy: {}", currentPolicy.getClass().getSimpleName());
 
         // Additional policy-specific behavior can be handled by calling the apply method
-        currentPolicy.apply(redisTemplate);
+        currentPolicy.apply(redisTemplate, meterRegistry);
 
         LOGGER.info("Cache policy applied to all keys.");
     }
