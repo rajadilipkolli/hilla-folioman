@@ -36,14 +36,19 @@ public class UserSchemeDetailService {
         List<UserSchemeDetails> userSchemeDetailsEntities = userSchemeDetailsRepository.findByAmfiIsNull();
         userSchemeDetailsEntities.forEach(userSchemeDetailsEntity -> {
             String scheme = userSchemeDetailsEntity.getScheme();
+            if (scheme == null) {
+                log.warn("Scheme is null for userSchemeDetailsEntity with id: {}", userSchemeDetailsEntity.getId());
+            }
             log.info("amfi is Null for scheme :{}", scheme);
             // attempting to find ISIN
             if (scheme.contains("ISIN:")) {
                 String isin = scheme.substring(scheme.lastIndexOf("ISIN:") + 5).strip();
                 if (StringUtils.hasText(isin)) {
                     Optional<MFSchemeProjection> mfSchemeEntity = mfSchemeService.findByPayOut(isin);
-                    mfSchemeEntity.ifPresent(schemeEntity -> userSchemeDetailsRepository.updateAmfiAndIsinById(
-                            schemeEntity.getSchemeId(), isin, userSchemeDetailsEntity.getId()));
+                    mfSchemeEntity.ifPresent(schemeEntity ->
+                            updateUserSchemeDetails(userSchemeDetailsEntity.getId(), schemeEntity.getSchemeId(), isin));
+                } else {
+                    log.warn("ISIN is null after extraction for scheme: {}", scheme);
                 }
             } else {
                 // case where isin and amfi is null
@@ -51,22 +56,28 @@ public class UserSchemeDetailService {
                 if (!fundDetailProjections.isEmpty()) {
                     Long schemeId = getSchemeId(fundDetailProjections, scheme);
                     if (null != schemeId) {
-                        userSchemeDetailsRepository.updateAmfiAndIsinById(
-                                schemeId, null, userSchemeDetailsEntity.getId());
+                        updateUserSchemeDetails(userSchemeDetailsEntity.getId(), schemeId, null);
                     }
                 }
             }
         });
     }
 
+    private void updateUserSchemeDetails(Long userSchemeId, Long schemeId, String isin) {
+        userSchemeDetailsRepository.updateAmfiAndIsinById(schemeId, isin, userSchemeId);
+    }
+
     private Long getSchemeId(List<FundDetailProjection> fundDetailProjections, String scheme) {
         return fundDetailProjections.stream()
-                .filter(fundDetailProjection -> (scheme.contains("Income")
-                                && fundDetailProjection.schemeName().contains("IDCW"))
-                        || (!scheme.contains("Income")
-                                && !fundDetailProjection.schemeName().contains("IDCW")))
+                .filter(fundDetailProjection -> isMatchingScheme(scheme, fundDetailProjection))
                 .map(FundDetailProjection::schemeId)
                 .findFirst()
                 .orElse(null);
+    }
+
+    private boolean isMatchingScheme(String scheme, FundDetailProjection fundDetailProjection) {
+        return (scheme.contains("Income") && fundDetailProjection.schemeName().contains("IDCW"))
+                || (!scheme.contains("Income")
+                        && !fundDetailProjection.schemeName().contains("IDCW"));
     }
 }
