@@ -10,13 +10,13 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
 
 @Component
-public class SchedulerConfiguration {
+class SchedulerConfiguration {
 
     private static final Logger log = LoggerFactory.getLogger(SchedulerConfiguration.class);
 
     private final UserSchemeDetailService userSchemeDetailService;
 
-    public SchedulerConfiguration(UserSchemeDetailService userSchemeDetailsService) {
+    SchedulerConfiguration(UserSchemeDetailService userSchemeDetailsService) {
         this.userSchemeDetailService = userSchemeDetailsService;
     }
 
