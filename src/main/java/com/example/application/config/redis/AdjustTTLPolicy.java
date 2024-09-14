@@ -10,10 +10,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class AdjustTTLPolicy implements CachePolicy {
 
+    private static final Logger log = LoggerFactory.getLogger(AdjustTTLPolicy.class);
+
     private static final Duration DEFAULT_TTL = Duration.ofMinutes(30);
     private static final Duration MAX_TTL = Duration.ofHours(2);
     private static final Duration MIN_TTL = Duration.ofMinutes(5);
-    private static final Logger log = LoggerFactory.getLogger(AdjustTTLPolicy.class);
+    private static final String ACCESS_COUNT_HASH_KEY = "access_counts";
 
     @Override
     public Duration getExpirationTime() {
@@ -38,7 +40,7 @@ public class AdjustTTLPolicy implements CachePolicy {
     }
 
     private long getAccessCountForKey(RedisTemplate<String, Object> redisTemplate, String key) {
-        Long count = (Long) redisTemplate.opsForValue().get("access_count:" + key);
+        Long count = (Long) redisTemplate.opsForHash().get(ACCESS_COUNT_HASH_KEY, key);
         return count != null ? count : 0;
     }
 
@@ -48,7 +50,11 @@ public class AdjustTTLPolicy implements CachePolicy {
         } else if (accessCount < 10) {
             return MIN_TTL;
         } else {
-            return DEFAULT_TTL;
+            long minTTLSeconds = MIN_TTL.getSeconds();
+            long maxTTLSeconds = MAX_TTL.getSeconds();
+            long defaultTTLSeconds = DEFAULT_TTL.getSeconds();
+            long ttlSeconds = minTTLSeconds + (accessCount - 10) * (maxTTLSeconds - minTTLSeconds) / 40;
+            return Duration.ofSeconds(Math.min(ttlSeconds, defaultTTLSeconds));
         }
     }
 }
