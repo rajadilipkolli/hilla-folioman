@@ -39,7 +39,7 @@ public class UserDetailService {
     private final InvestorInfoService investorInfoService;
     private final UserTransactionDetailsService userTransactionDetailsService;
     private final UserFolioDetailService userFolioDetailService;
-    private final UserSchemeDetailService userSchemeDetailService;
+    private final UserSchemeDetailServiceImpl userSchemeDetailService;
 
     public UserDetailService(
             PortfolioServiceHelper portfolioServiceHelper,
@@ -48,7 +48,7 @@ public class UserDetailService {
             InvestorInfoService investorInfoService,
             UserTransactionDetailsService userTransactionDetailsService,
             UserFolioDetailService userFolioDetailService,
-            UserSchemeDetailService userSchemeDetailService) {
+            UserSchemeDetailServiceImpl userSchemeDetailService) {
         this.portfolioServiceHelper = portfolioServiceHelper;
         this.casDetailsMapper = casDetailsMapper;
         this.userCASDetailsService = userCASDetailsService;

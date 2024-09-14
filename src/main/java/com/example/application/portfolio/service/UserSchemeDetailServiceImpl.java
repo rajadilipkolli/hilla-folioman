@@ -5,6 +5,7 @@ import com.example.application.portfolio.repository.UserSchemeDetailsRepository;
 import com.example.application.shared.FundDetailProjection;
 import com.example.application.shared.MFSchemeProjection;
 import com.example.application.shared.MfSchemeService;
+import com.example.application.shared.UserSchemeDetailsService;
 import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
@@ -15,14 +16,14 @@ import org.springframework.util.StringUtils;
 
 @Service
 @Transactional(readOnly = true)
-public class UserSchemeDetailService {
+public class UserSchemeDetailServiceImpl implements UserSchemeDetailsService {
 
-    private static final Logger log = LoggerFactory.getLogger(UserSchemeDetailService.class);
+    private static final Logger log = LoggerFactory.getLogger(UserSchemeDetailServiceImpl.class);
 
     private final UserSchemeDetailsRepository userSchemeDetailsRepository;
     private final MfSchemeService mfSchemeService;
 
-    public UserSchemeDetailService(
+    public UserSchemeDetailServiceImpl(
             UserSchemeDetailsRepository userSchemeDetailsRepository, MfSchemeService mfSchemeService) {
         this.userSchemeDetailsRepository = userSchemeDetailsRepository;
         this.mfSchemeService = mfSchemeService;
@@ -32,6 +33,7 @@ public class UserSchemeDetailService {
         return userSchemeDetailsRepository.findByUserFolioDetails_SchemesIn(userSchemeDetails);
     }
 
+    @Override
     public void setAMFIIfNull() {
         List<UserSchemeDetails> userSchemeDetailsEntities = userSchemeDetailsRepository.findByAmfiIsNull();
         userSchemeDetailsEntities.forEach(userSchemeDetailsEntity -> {
