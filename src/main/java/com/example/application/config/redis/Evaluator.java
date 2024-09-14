@@ -4,16 +4,16 @@ import java.util.Map;
 import org.springframework.stereotype.Component;
 
 @Component
-public class Evaluator {
+class Evaluator {
 
-    public String evaluate(Map<String, Object> metrics) {
+    String evaluate(Map<String, Object> metrics) {
         long cacheSize = (int) metrics.get("cacheSize");
         double hitRate = (double) metrics.get("hitRate");
         long memoryUsage = (long) metrics.get("memoryUsage");
 
-        if (hitRate < 0.3 && cacheSize > 10000) {
+        if (hitRate < 0.3 && cacheSize > 1000) {
             return "REDUCE_CACHE_SIZE";
-        } else if (hitRate > 0.8 && memoryUsage < 1000000000) {
+        } else if (hitRate > 0.8 && memoryUsage < 10000000) {
             return "INCREASE_CACHE_SIZE";
         } else if (hitRate < 0.5) {
             return "ADJUST_TTL";

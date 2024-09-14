@@ -20,29 +20,6 @@ public class CacheAdapter {
     }
 
     /**
-     * Get a value from the cache.
-     *
-     * @param key The cache key.
-     * @param type The class type of the value.
-     * @param <T> The type parameter.
-     * @return The value from the cache or null if not found.
-     */
-    public <T> T get(String key, Class<T> type) {
-        return (T) redisTemplate.opsForValue().get(key);
-    }
-
-    /**
-     * Put a value into the cache using the current cache policy's expiration time.
-     *
-     * @param key The cache key.
-     * @param value The value to cache.
-     * @param <T> The type parameter.
-     */
-    public <T> void put(String key, T value) {
-        redisTemplate.opsForValue().set(key, value, currentPolicy.getExpirationTime());
-    }
-
-    /**
      * Set the cache policy and apply it to existing keys in the cache.
      *
      * @param policy The cache policy to apply.
