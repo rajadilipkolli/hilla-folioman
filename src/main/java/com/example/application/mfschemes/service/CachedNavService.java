@@ -1,7 +1,7 @@
 package com.example.application.mfschemes.service;
 
-import com.example.application.mfschemes.MFSchemeDTO;
 import com.example.application.mfschemes.NavNotFoundException;
+import com.example.application.mfschemes.models.response.MFSchemeDTO;
 import java.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,9 +13,9 @@ public class CachedNavService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CachedNavService.class);
 
-    private final MfSchemeService mfSchemeService;
+    private final MfSchemeServiceImpl mfSchemeService;
 
-    public CachedNavService(MfSchemeService mfSchemeService) {
+    public CachedNavService(MfSchemeServiceImpl mfSchemeService) {
         this.mfSchemeService = mfSchemeService;
     }
 
