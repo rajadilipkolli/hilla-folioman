@@ -13,6 +13,7 @@ import com.example.application.portfolio.models.UserSchemeDTO;
 import com.example.application.portfolio.models.UserTransactionDTO;
 import com.example.application.portfolio.models.response.UploadFileResponse;
 import com.example.application.shared.LocalDateUtility;
+import com.example.application.shared.UserSchemeDetailsService;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -39,7 +40,7 @@ public class UserDetailService {
     private final InvestorInfoService investorInfoService;
     private final UserTransactionDetailsService userTransactionDetailsService;
     private final UserFolioDetailService userFolioDetailService;
-    private final UserSchemeDetailService userSchemeDetailService;
+    private final UserSchemeDetailsService userSchemeDetailService;
 
     public UserDetailService(
             PortfolioServiceHelper portfolioServiceHelper,
@@ -48,7 +49,7 @@ public class UserDetailService {
             InvestorInfoService investorInfoService,
             UserTransactionDetailsService userTransactionDetailsService,
             UserFolioDetailService userFolioDetailService,
-            UserSchemeDetailService userSchemeDetailService) {
+            UserSchemeDetailsService userSchemeDetailService) {
         this.portfolioServiceHelper = portfolioServiceHelper;
         this.casDetailsMapper = casDetailsMapper;
         this.userCASDetailsService = userCASDetailsService;
@@ -352,7 +353,7 @@ public class UserDetailService {
     private UserCASDetails getUserCASDetails(UserCASDetails userCASDetails) {
         UserCASDetails savedCasDetailsEntity = userCASDetailsService.saveEntity(userCASDetails);
         CompletableFuture.runAsync(() -> userFolioDetailService.setPANIfNotSet(savedCasDetailsEntity.getId()));
-        CompletableFuture.runAsync(userSchemeDetailService::setAMFIIfNull);
+        CompletableFuture.runAsync(userSchemeDetailService::setUserSchemeAMFIIfNull);
         return savedCasDetailsEntity;
     }
 

@@ -80,6 +80,12 @@
         </dependency>
 
         <dependency>
+            <groupId>org.jobrunr</groupId>
+            <artifactId>jobrunr-spring-boot-3-starter</artifactId>
+            <version>7.2.3</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-cache</artifactId>
         </dependency>
