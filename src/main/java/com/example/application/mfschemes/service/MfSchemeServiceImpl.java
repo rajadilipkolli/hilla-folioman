@@ -86,12 +86,14 @@ public class MfSchemeServiceImpl implements MfSchemeService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Override
     public Optional<MFSchemeDTO> getMfSchemeDTO(Long schemeCode, LocalDate navDate) {
         return this.mFSchemeRepository
                 .findBySchemeIdAndMfSchemeNavs_NavDate(schemeCode, navDate)
                 .map(mfSchemeEntityToDtoMapper::convertEntityToDto);
     }
 
+    @Override
     public void fetchSchemeDetails(Long schemeCode) {
         NavResponse navResponse = getNavResponseResponseEntity(schemeCode);
         processResponseEntity(schemeCode, navResponse);

@@ -20,7 +20,4 @@ public final class SchemeConstants {
     public static final int FIRST_RETRY = 1;
     public static final int THIRD_RETRY = 3;
     public static final int MAX_RETRIES = 4;
-    private static final String DATE_PATTERN_DD_MMM_YYYY = "dd-MMM-yyyy";
-    public static final DateTimeFormatter FORMATTER_DD_MMM_YYYY =
-            DateTimeFormatter.ofPattern(DATE_PATTERN_DD_MMM_YYYY, Locale.ENGLISH);
 }

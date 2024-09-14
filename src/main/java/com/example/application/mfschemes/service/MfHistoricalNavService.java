@@ -4,6 +4,7 @@ import com.example.application.mfschemes.NavNotFoundException;
 import com.example.application.mfschemes.entities.MFScheme;
 import com.example.application.mfschemes.mapper.MfSchemeDtoToEntityMapper;
 import com.example.application.mfschemes.util.SchemeConstants;
+import com.example.application.shared.CommonConstants;
 import com.example.application.shared.MFSchemeDTO;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -40,8 +41,8 @@ public class MfHistoricalNavService {
     }
 
     public String getHistoricalNav(Long schemeCode, LocalDate navDate) {
-        String toDate = navDate.format(SchemeConstants.FORMATTER_DD_MMM_YYYY);
-        String fromDate = navDate.minusDays(3).format(SchemeConstants.FORMATTER_DD_MMM_YYYY);
+        String toDate = navDate.format(CommonConstants.FORMATTER_DD_MMM_YYYY);
+        String fromDate = navDate.minusDays(3).format(CommonConstants.FORMATTER_DD_MMM_YYYY);
         URI historicalNavUri = buildHistoricalNavUri(toDate, fromDate);
         Optional<MFScheme> bySchemeCode = this.mfSchemeService.findBySchemeCode(schemeCode);
         if (bySchemeCode.isPresent()) {
