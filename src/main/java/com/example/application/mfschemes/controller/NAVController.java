@@ -22,10 +22,10 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 class NAVController {
 
-    private final MFSchemeNavService navService;
+    private final MFSchemeNavService mFSchemeNavService;
 
-    NAVController(MFSchemeNavService navService) {
-        this.navService = navService;
+    NAVController(MFSchemeNavService mFSchemeNavService) {
+        this.mFSchemeNavService = mFSchemeNavService;
     }
 
     @GetMapping(path = "/{schemeCode}")
@@ -35,7 +35,7 @@ class NAVController {
                     @Max(value = 160000, message = "Max value of schemeCode should be less than 160000")
                     @Valid
                     Long schemeCode) {
-        return navService.getNav(schemeCode);
+        return mFSchemeNavService.getNav(schemeCode);
     }
 
     @GetMapping(path = "/{schemeCode}/{date}")
@@ -46,6 +46,6 @@ class NAVController {
                     @Valid
                     Long schemeCode,
             @PathVariable("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate inputDate) {
-        return navService.getNavOnDate(schemeCode, inputDate);
+        return mFSchemeNavService.getNavOnDate(schemeCode, inputDate);
     }
 }
