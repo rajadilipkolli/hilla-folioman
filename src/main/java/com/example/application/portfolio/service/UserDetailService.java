@@ -353,7 +353,7 @@ public class UserDetailService {
     private UserCASDetails getUserCASDetails(UserCASDetails userCASDetails) {
         UserCASDetails savedCasDetailsEntity = userCASDetailsService.saveEntity(userCASDetails);
         CompletableFuture.runAsync(() -> userFolioDetailService.setPANIfNotSet(savedCasDetailsEntity.getId()));
-        CompletableFuture.runAsync(userSchemeDetailService::setAMFIIfNull);
+        CompletableFuture.runAsync(userSchemeDetailService::setUserSchemeAMFIIfNull);
         return savedCasDetailsEntity;
     }
 

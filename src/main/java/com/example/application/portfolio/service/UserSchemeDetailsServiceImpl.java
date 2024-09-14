@@ -30,7 +30,7 @@ public class UserSchemeDetailsServiceImpl implements UserSchemeDetailsService {
     }
 
     @Override
-    public void setAMFIIfNull() {
+    public void setUserSchemeAMFIIfNull() {
         List<UserSchemeDetails> userSchemeDetailsEntities = userSchemeDetailsRepository.findByAmfiIsNull();
         userSchemeDetailsEntities.forEach(userSchemeDetailsEntity -> {
             String scheme = userSchemeDetailsEntity.getScheme();
