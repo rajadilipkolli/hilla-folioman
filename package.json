@@ -11,7 +11,7 @@
     "@vaadin/hilla-lit-form": "24.4.8",
     "@vaadin/hilla-react-auth": "24.4.8",
     "@vaadin/hilla-react-crud": "24.4.8",
-    "@vaadin/hilla-react-form": "24.4.7",
+    "@vaadin/hilla-react-form": "24.4.8",
     "@vaadin/hilla-react-i18n": "24.4.7",
     "@vaadin/hilla-react-signals": "24.4.7",
     "@vaadin/polymer-legacy-adapter": "24.4.9",
@@ -119,7 +119,7 @@
       "workbox-core": "7.1.0",
       "workbox-precaching": "7.1.0"
     },
-    "hash": "221a41589c5971ab95f1a3642058cf2a27f66808a16ea9d10c822ca28c61da68"
+    "hash": "d3ef19d021612bf11cac446a1a1618a1d115219420bff4d0c172813a83c794dc"
   },
   "overrides": {
     "@vaadin/bundles": "$@vaadin/bundles",
