@@ -10,6 +10,7 @@
             <appender-ref ref="CONSOLE" />
         </root>
     </springProfile>
+    
     <springProfile name="!default">
         <property name="LOG_FILE" value="logs/${appName}.log"/>
         <include resource="org/springframework/boot/logging/logback/file-appender.xml" />
@@ -22,6 +23,7 @@
     <logger name="com.app.folioman" level="DEBUG"/>
     <logger name="org.springframework" level="INFO"/>
     <logger name="org.mapstruct" level="DEBUG" />
-
+    <logger name="datasource-query-logger" level="DEBUG" />
+    <logger name="ds-slow-query-logger" level="WARN" />
 
 </configuration>
