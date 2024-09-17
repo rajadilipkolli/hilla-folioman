@@ -46,11 +46,6 @@
     <dependencies>
 
         <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-actuator</artifactId>
-        </dependency>
-
-        <dependency>
             <groupId>com.vaadin</groupId>
             <artifactId>vaadin</artifactId>
         </dependency>
@@ -100,7 +95,7 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.modulith</groupId>
-            <artifactId>spring-modulith-core</artifactId>
+            <artifactId>spring-modulith-starter-jpa</artifactId>
         </dependency>
         <dependency>
             <groupId>org.mapstruct</groupId>
@@ -108,6 +103,12 @@
             <version>${org.mapstruct.version}</version>
         </dependency>
 
+        <!-- Observability Starts -->
+        <dependency>
+            <groupId>org.springframework.modulith</groupId>
+            <artifactId>spring-modulith-starter-insight</artifactId>
+            <scope>runtime</scope>
+        </dependency>
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-tracing-bridge-otel</artifactId>
@@ -124,6 +125,7 @@
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-registry-prometheus</artifactId>
         </dependency>
+        <!-- Observability Ends -->
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
