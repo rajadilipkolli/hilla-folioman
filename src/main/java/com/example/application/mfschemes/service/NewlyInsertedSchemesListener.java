@@ -1,6 +1,5 @@
 package com.example.application.mfschemes.service;
 
-import com.example.application.mfschemes.models.response.MFSchemeDTO;
 import com.example.application.shared.UploadedSchemesList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -28,10 +27,11 @@ public class NewlyInsertedSchemesListener {
     @ApplicationModuleListener
     void onOrderResponseEvent(UploadedSchemesList uploadedSchemesList) {
         log.info("Received Event :{}", uploadedSchemesList);
-        List<CompletableFuture<MFSchemeDTO>> completableFutureList = uploadedSchemesList.schemesList().stream()
-                .map(schemeId -> CompletableFuture.supplyAsync(() -> mfSchemeNavService.getNav(schemeId), taskExecutor))
+        List<CompletableFuture<Void>> completableFutureList = uploadedSchemesList.schemesList().stream()
+                .map(schemeId -> CompletableFuture.runAsync(() -> mfSchemeNavService.getNav(schemeId), taskExecutor))
                 .toList();
 
-        completableFutureList.stream().map(CompletableFuture::join).forEach(completableFuture -> {});
+        CompletableFuture.allOf(completableFutureList.toArray(new CompletableFuture[0]))
+                .join();
     }
 }
