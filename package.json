@@ -8,7 +8,7 @@
     "@vaadin/common-frontend": "0.0.19",
     "@vaadin/hilla-file-router": "24.4.8",
     "@vaadin/hilla-frontend": "24.4.8",
-    "@vaadin/hilla-lit-form": "24.4.7",
+    "@vaadin/hilla-lit-form": "24.4.8",
     "@vaadin/hilla-react-auth": "24.4.7",
     "@vaadin/hilla-react-crud": "24.4.7",
     "@vaadin/hilla-react-form": "24.4.7",
