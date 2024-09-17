@@ -30,7 +30,7 @@ public class MfSchemeDtoToEntityMapperHelper {
 
     private final MFSchemeTypeRepository mfSchemeTypeRepository;
     private final TransactionTemplate transactionTemplate;
-    private final ReentrantLock lock = new ReentrantLock();
+    private final ReentrantLock reentrantLock = new ReentrantLock();
 
     public MfSchemeDtoToEntityMapperHelper(
             MFSchemeTypeRepository mfSchemeTypeRepository, TransactionTemplate transactionTemplate) {
@@ -72,7 +72,7 @@ public class MfSchemeDtoToEntityMapperHelper {
         MFSchemeType byTypeAndCategoryAndSubCategory =
                 mfSchemeTypeRepository.findByTypeAndCategoryAndSubCategory(type, category, subCategory);
         if (byTypeAndCategoryAndSubCategory == null) {
-            lock.lock(); // Acquiring the lock
+            reentrantLock.lock(); // Acquiring the lock
             try {
                 // Double-check within the locked section
                 byTypeAndCategoryAndSubCategory =
@@ -87,7 +87,7 @@ public class MfSchemeDtoToEntityMapperHelper {
                             transactionTemplate.execute(status -> mfSchemeTypeRepository.save(mfSchemeType));
                 }
             } finally {
-                lock.unlock(); // Ensure the lock is released in the finally block
+                reentrantLock.unlock(); // Ensure the lock is released in the finally block
             }
         }
         return byTypeAndCategoryAndSubCategory;
