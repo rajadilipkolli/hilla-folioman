@@ -3,10 +3,10 @@ import {EmailField} from "@vaadin/react-components/EmailField";
 import {Select, SelectItem} from "@vaadin/react-components/Select";
 import {Button} from "@vaadin/react-components/Button";
 import {useForm} from "@vaadin/hilla-react-form";
-import ContactRecordModel from "Frontend/generated/com/example/application/crm/services/CRMService/ContactRecordModel";
+import ContactRecordModel from "Frontend/generated/com/app/folioman/crm/services/CRMService/ContactRecordModel";
 import {CRMService} from "Frontend/generated/endpoints";
 import {useEffect, useState} from "react";
-import ContactRecord from "Frontend/generated/com/example/application/crm/services/CRMService/ContactRecord";
+import ContactRecord from "Frontend/generated/com/app/folioman/crm/services/CRMService/ContactRecord";
 
 interface ContactFormProps {
     contact?: ContactRecord | null;
