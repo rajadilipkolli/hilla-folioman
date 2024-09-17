@@ -11,12 +11,14 @@ import com.example.application.portfolio.models.UserSchemeDTO;
 import com.example.application.portfolio.models.UserTransactionDTO;
 import com.example.application.portfolio.models.response.UploadFileResponse;
 import com.example.application.shared.LocalDateUtility;
+import com.example.application.shared.UploadedSchemesList;
 import com.example.application.shared.UserSchemeDetailService;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -325,14 +327,15 @@ public class UserDetailService {
         UserCASDetails savedCasDetailsEntity = userCASDetailsService.saveEntity(userCASDetails);
         CompletableFuture.runAsync(() -> userFolioDetailService.setPANIfNotSet(savedCasDetailsEntity.getId()));
         CompletableFuture.runAsync(userSchemeDetailService::setUserSchemeAMFIIfNull);
-        List<String> schemesList = userCASDetails.getFolios().stream()
+        List<Long> schemesList = userCASDetails.getFolios().stream()
                 .map(UserFolioDetails::getSchemes)
                 .flatMap(List::stream)
-                .map(UserSchemeDetails::getScheme)
+                .map(UserSchemeDetails::getAmfi)
+                .filter(Objects::nonNull)
                 .distinct()
                 .toList();
 
-        applicationEventPublisher.publishEvent(schemesList);
+        applicationEventPublisher.publishEvent(new UploadedSchemesList(schemesList));
         return savedCasDetailsEntity;
     }
 
