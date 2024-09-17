@@ -4,3 +4,7 @@ spring:
     url: jdbc:postgresql://aws-0-ap-south-1.pooler.supabase.com:5432/postgres
     username: postgres.aglpynkupeifeizaojwm
     password: foliom4n@123
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      pool-name: supabaseds
