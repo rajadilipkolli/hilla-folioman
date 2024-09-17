@@ -1,6 +1,6 @@
-package com.example.application;
+package com.app.folioman;
 
-import com.example.application.common.AbstractIntegrationTest;
+import com.app.folioman.common.AbstractIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.modulith.core.ApplicationModules;
 import org.springframework.modulith.docs.Documenter;
