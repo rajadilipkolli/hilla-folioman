@@ -197,6 +197,24 @@ public class UserDetailService {
         });
     }
 
+    private Map<String, List<UserTransactionDetails>> groupExistingTransactionsByRtaCode(
+            List<UserSchemeDetails> existingUserSchemeDetailsList) {
+        return existingUserSchemeDetailsList.stream()
+                .collect(Collectors.groupingBy(
+                        UserSchemeDetails::getRtaCode,
+                        Collectors.flatMapping(
+                                userSchemeDetailsEntity -> userSchemeDetailsEntity.getTransactions().stream(),
+                                Collectors.toList())));
+    }
+
+    private Map<String, List<UserTransactionDTO>> groupTransactionBySchemes(List<UserFolioDTO> folios) {
+        return folios.stream()
+                .flatMap(userFolioDTO -> userFolioDTO.schemes().stream())
+                .collect(Collectors.groupingBy(
+                        UserSchemeDTO::rtaCode,
+                        Collectors.flatMapping(schemeDTO -> schemeDTO.transactions().stream(), Collectors.toList())));
+    }
+
     private void processNewSchemesAndTransactions(
             List<UserFolioDTO> folios,
             UserCASDetails userCASDetails,
@@ -236,16 +254,16 @@ public class UserDetailService {
             List<UserSchemeDetails> existingSchemesFromDB =
                     existingFolioSchemesMap.getOrDefault(folioFromRequest, new ArrayList<>());
 
-            Set<String> isInListDB = existingSchemesFromDB.stream()
-                    .map(UserSchemeDetails::getIsin)
+            Set<String> rtaCodeSet = existingSchemesFromDB.stream()
+                    .map(UserSchemeDetails::getRtaCode)
                     .collect(Collectors.toSet());
 
             requestSchemes.stream()
-                    .filter(scheme -> !isInListDB.contains(scheme.isin()))
+                    .filter(scheme -> !rtaCodeSet.contains(scheme.rtaCode()))
                     .forEach(userSchemeDTO -> {
                         log.info(
-                                "New ISIN: {} created for folio : {} that is not present in the database",
-                                userSchemeDTO.isin(),
+                                "New RTACode: {} created for folio : {} that is not present in the database",
+                                userSchemeDTO.rtaCode(),
                                 folioFromRequest);
                         UserSchemeDetails userSchemeDetailsEntity =
                                 casDetailsMapper.schemeDTOToSchemeEntity(userSchemeDTO, newTransactions);
@@ -345,23 +363,5 @@ public class UserDetailService {
         UserCASDetails savedCasDetailsEntity = getUserCASDetails(userCASDetails);
         return new UploadFileResponse(
                 newFolios.get(), newSchemes.get(), newTransactions.get(), savedCasDetailsEntity.getId());
-    }
-
-    private Map<String, List<UserTransactionDetails>> groupExistingTransactionsByRtaCode(
-            List<UserSchemeDetails> existingUserSchemeDetailsList) {
-        return existingUserSchemeDetailsList.stream()
-                .collect(Collectors.groupingBy(
-                        UserSchemeDetails::getRtaCode,
-                        Collectors.flatMapping(
-                                userSchemeDetailsEntity -> userSchemeDetailsEntity.getTransactions().stream(),
-                                Collectors.toList())));
-    }
-
-    private Map<String, List<UserTransactionDTO>> groupTransactionBySchemes(List<UserFolioDTO> folios) {
-        return folios.stream()
-                .flatMap(userFolioDTO -> userFolioDTO.schemes().stream())
-                .collect(Collectors.groupingBy(
-                        UserSchemeDTO::rtaCode,
-                        Collectors.flatMapping(schemeDTO -> schemeDTO.transactions().stream(), Collectors.toList())));
     }
 }
