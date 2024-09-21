@@ -1,4 +1,3 @@
-import ContactsView from 'Frontend/views/contacts/ContactsView.js';
 import MainLayout from 'Frontend/views/MainLayout.js';
 import { lazy } from 'react';
 import { createBrowserRouter, RouteObject } from 'react-router-dom';
@@ -12,10 +11,9 @@ export const routes = [
     element: <MainLayout />,
     handle: { title: 'hilla-folioman' },
     children: [
-      { path: '/', element: <ContactsView />, handle: { title: 'Contacts' } },
       { path: '/userDetails', element: <UserDetailsView />, handle: { title: 'UserDetails' } },
       { path: '/userPortfolio', element: <UserPortfolioView />, handle: { title: 'UserPortfolio' } },
-      { path: '/mfschemes', element: <MfSchemesView />, handle: {title: 'Mutual Fund Schemes'}},
+      { path: '/', element: <MfSchemesView />, handle: {title: 'Mutual Fund Schemes'}},
     ],
   },
 ] as RouteObject[];

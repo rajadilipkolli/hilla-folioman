@@ -17,11 +17,8 @@ export default function MainLayout() {
         <header className="flex flex-col gap-m">
           <h1 className="text-l m-0">My App</h1>
           <nav>
-            <NavLink className={navLinkClasses} to="/">
-              Contacts
-            </NavLink>
             <NavLink className={navLinkClasses} to="/mfschemes">
-              Mutual Funds Schemes
+              Import Mutual Funds
             </NavLink>
             <NavLink className={navLinkClasses} to="/userDetails">
               UserDetails
