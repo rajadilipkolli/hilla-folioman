@@ -1,18 +1,17 @@
 package com.app.folioman.mfschemes.service;
 
 import com.app.folioman.mfschemes.SchemeNotFoundException;
-import com.app.folioman.mfschemes.entities.MFScheme;
 import com.app.folioman.mfschemes.entities.MFSchemeNav;
+import com.app.folioman.mfschemes.entities.MfFundScheme;
 import com.app.folioman.mfschemes.mapper.SchemeNAVDataDtoToEntityMapper;
 import com.app.folioman.mfschemes.models.response.NavResponse;
-import com.app.folioman.mfschemes.repository.MFSchemeRepository;
+import com.app.folioman.mfschemes.repository.MfFundSchemeRepository;
 import com.app.folioman.mfschemes.util.SchemeConstants;
 import com.app.folioman.shared.FundDetailProjection;
 import com.app.folioman.shared.MFSchemeProjection;
 import com.app.folioman.shared.MfSchemeService;
 import java.net.URI;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 import org.hibernate.exception.ConstraintViolationException;
 import org.slf4j.Logger;
@@ -31,13 +30,13 @@ class MfSchemeServiceDelegate implements MfSchemeService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MfSchemeServiceDelegate.class);
 
-    private final MFSchemeRepository mFSchemeRepository;
+    private final MfFundSchemeRepository mFSchemeRepository;
     private final SchemeNAVDataDtoToEntityMapper schemeNAVDataDtoToEntityMapper;
     private final RestClient restClient;
     private final TransactionTemplate transactionTemplate;
 
     MfSchemeServiceDelegate(
-            MFSchemeRepository mFSchemeRepository,
+            MfFundSchemeRepository mFSchemeRepository,
             SchemeNAVDataDtoToEntityMapper schemeNAVDataDtoToEntityMapper,
             RestClient restClient,
             TransactionTemplate transactionTemplate) {
@@ -50,14 +49,14 @@ class MfSchemeServiceDelegate implements MfSchemeService {
 
     @Override
     public Optional<MFSchemeProjection> findByPayOut(String isin) {
-        return mFSchemeRepository.findByPayOut(isin);
+        return mFSchemeRepository.findByIsin(isin);
     }
 
     @Override
     public List<FundDetailProjection> fetchSchemes(String schemeName) {
-        String sName = "%" + schemeName.strip().replaceAll("\\s", "").toUpperCase(Locale.ROOT) + "%";
-        LOGGER.info("Fetching schemes with :{}", sName);
-        return this.mFSchemeRepository.findBySchemeNameLikeIgnoreCaseOrderBySchemeIdAsc(sName);
+        // String sName = "%" + schemeName.strip().replaceAll("\\s", "").toUpperCase(Locale.ROOT) + "%";
+        LOGGER.info("Fetching schemes with :{}", schemeName);
+        return this.mFSchemeRepository.findBySchemeNameLikeIgnoreCaseOrderBySchemeIdAsc(schemeName);
     }
 
     @Override
@@ -72,7 +71,7 @@ class MfSchemeServiceDelegate implements MfSchemeService {
     }
 
     private void processResponseEntity(Long schemeCode, NavResponse navResponse) {
-        Optional<MFScheme> entityBySchemeId = this.mFSchemeRepository.findBySchemeId(schemeCode);
+        Optional<MfFundScheme> entityBySchemeId = this.mFSchemeRepository.findByAmfiCode(schemeCode);
         if (entityBySchemeId.isEmpty()) {
             // Scenario where scheme is discontinued or merged with other
             LOGGER.error("Found Discontinued SchemeCode : {}", schemeCode);
@@ -81,7 +80,7 @@ class MfSchemeServiceDelegate implements MfSchemeService {
         }
     }
 
-    private void mergeList(NavResponse navResponse, MFScheme mfScheme, Long schemeCode) {
+    private void mergeList(NavResponse navResponse, MfFundScheme mfScheme, Long schemeCode) {
         if (navResponse.data().size() != mfScheme.getMfSchemeNavs().size()) {
             List<MFSchemeNav> navList = navResponse.data().stream()
                     .map(navDataDTO -> navDataDTO.withSchemeId(schemeCode))

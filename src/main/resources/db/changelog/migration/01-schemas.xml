@@ -9,4 +9,10 @@
             CREATE SCHEMA IF NOT EXISTS mfschemes;
         </sql>
     </changeSet>
+
+    <changeSet id="1" author="admin">
+        <sql>
+            CREATE SCHEMA IF NOT EXISTS portfolio;
+        </sql>
+    </changeSet>
 </databaseChangeLog>

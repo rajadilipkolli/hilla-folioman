@@ -16,6 +16,6 @@ public interface SchemeNAVDataDtoToEntityMapper {
     @Mapping(target = "createdDate", ignore = true)
     @Mapping(target = "createdBy", ignore = true)
     @Mapping(target = "navDate", source = "date")
-    @Mapping(target = "mfScheme.schemeId", source = "schemeId")
+    @Mapping(target = "mfScheme.amfiCode", source = "schemeId")
     MFSchemeNav schemeNAVDataDTOToEntity(SchemeNAVDataDTO schemeNAVDataDTO);
 }

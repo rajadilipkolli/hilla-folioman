@@ -43,7 +43,7 @@ public class MFSchemeNav extends Auditable<String> implements Serializable {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mf_scheme_id")
-    private MFScheme mfScheme;
+    private MfFundScheme mfScheme;
 
     public Long getId() {
         return id;
@@ -72,11 +72,11 @@ public class MFSchemeNav extends Auditable<String> implements Serializable {
         return this;
     }
 
-    public MFScheme getMfScheme() {
+    public MfFundScheme getMfScheme() {
         return mfScheme;
     }
 
-    public MFSchemeNav setMfScheme(MFScheme mfSchemeEntity) {
+    public MFSchemeNav setMfScheme(MfFundScheme mfSchemeEntity) {
         this.mfScheme = mfSchemeEntity;
         return this;
     }
@@ -95,7 +95,7 @@ public class MFSchemeNav extends Auditable<String> implements Serializable {
         MFSchemeNav that = (MFSchemeNav) o;
         return Objects.equals(getNav(), that.getNav())
                 && Objects.equals(
-                        getMfScheme().getSchemeId(), that.getMfScheme().getSchemeId())
+                        getMfScheme().getAmfiCode(), that.getMfScheme().getAmfiCode())
                 && Objects.equals(getNavDate(), that.getNavDate());
     }
 

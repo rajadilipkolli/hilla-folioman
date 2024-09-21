@@ -1,10 +1,10 @@
 package com.app.folioman.mfschemes.mapper;
 
-import com.app.folioman.mfschemes.entities.MFScheme;
 import com.app.folioman.mfschemes.entities.MFSchemeNav;
 import com.app.folioman.mfschemes.entities.MFSchemeType;
+import com.app.folioman.mfschemes.entities.MfFundScheme;
 import com.app.folioman.mfschemes.models.response.MFSchemeDTO;
-import com.app.folioman.mfschemes.repository.MFSchemeTypeRepository;
+import com.app.folioman.mfschemes.service.MFSchemeTypeService;
 import com.app.folioman.mfschemes.util.SchemeConstants;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -17,7 +17,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.support.TransactionTemplate;
 
 @Component
 public class MfSchemeDtoToEntityMapperHelper {
@@ -28,19 +27,15 @@ public class MfSchemeDtoToEntityMapperHelper {
     private static final Pattern TYPE_CATEGORY_SUBCATEGORY_PATTERN =
             Pattern.compile("^([^()]+)\\(([^()]+)\\s*-\\s*([^()]+)\\)$");
 
-    private final MFSchemeTypeRepository mfSchemeTypeRepository;
-    private final TransactionTemplate transactionTemplate;
+    private final MFSchemeTypeService mFSchemeTypeService;
     private final ReentrantLock reentrantLock = new ReentrantLock();
 
-    public MfSchemeDtoToEntityMapperHelper(
-            MFSchemeTypeRepository mfSchemeTypeRepository, TransactionTemplate transactionTemplate) {
-        this.mfSchemeTypeRepository = mfSchemeTypeRepository;
-        transactionTemplate.setPropagationBehaviorName("PROPAGATION_REQUIRES_NEW");
-        this.transactionTemplate = transactionTemplate;
+    public MfSchemeDtoToEntityMapperHelper(MFSchemeTypeService mFSchemeTypeService) {
+        this.mFSchemeTypeService = mFSchemeTypeService;
     }
 
     @AfterMapping
-    void updateMFScheme(MFSchemeDTO scheme, @MappingTarget MFScheme mfScheme) {
+    void updateMFScheme(MFSchemeDTO scheme, @MappingTarget MfFundScheme mfScheme) {
         MFSchemeNav mfSchemeNav = new MFSchemeNav();
         mfSchemeNav.setNav("N.A.".equals(scheme.nav()) ? BigDecimal.ZERO : new BigDecimal(scheme.nav()));
         // Use the flexible formatter to parse the date
@@ -68,23 +63,22 @@ public class MfSchemeDtoToEntityMapperHelper {
         mfScheme.setMfSchemeType(mfSchemeType);
     }
 
-    MFSchemeType findOrCreateMFSchemeTypeEntity(String type, String category, @Nullable String subCategory) {
+    public MFSchemeType findOrCreateMFSchemeTypeEntity(String type, String category, @Nullable String subCategory) {
         MFSchemeType byTypeAndCategoryAndSubCategory =
-                mfSchemeTypeRepository.findByTypeAndCategoryAndSubCategory(type, category, subCategory);
+                mFSchemeTypeService.findByTypeAndCategoryAndSubCategory(type, category, subCategory);
         if (byTypeAndCategoryAndSubCategory == null) {
             reentrantLock.lock(); // Acquiring the lock
             try {
                 // Double-check within the locked section
                 byTypeAndCategoryAndSubCategory =
-                        mfSchemeTypeRepository.findByTypeAndCategoryAndSubCategory(type, category, subCategory);
+                        mFSchemeTypeService.findByTypeAndCategoryAndSubCategory(type, category, subCategory);
 
                 if (byTypeAndCategoryAndSubCategory == null) {
                     MFSchemeType mfSchemeType = new MFSchemeType();
                     mfSchemeType.setType(type);
                     mfSchemeType.setCategory(category);
                     mfSchemeType.setSubCategory(subCategory);
-                    byTypeAndCategoryAndSubCategory =
-                            transactionTemplate.execute(status -> mfSchemeTypeRepository.save(mfSchemeType));
+                    byTypeAndCategoryAndSubCategory = mFSchemeTypeService.saveCategory(mfSchemeType);
                 }
             } finally {
                 reentrantLock.unlock(); // Ensure the lock is released in the finally block

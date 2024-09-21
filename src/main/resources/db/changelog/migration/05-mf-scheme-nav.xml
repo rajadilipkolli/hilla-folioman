@@ -3,7 +3,7 @@
         xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
-                      http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.27.xsd"
+                      https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.29.xsd"
         objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
 
     <property name="string.type" value="varchar(255)" dbms="!postgresql"/>
@@ -52,7 +52,7 @@
 
         <addForeignKeyConstraint baseColumnNames="mf_scheme_id" baseTableName="mf_scheme_nav"
                                  baseTableSchemaName="mfschemes" constraintName="FK_MF_SCHEME_NAV_ON_MF_SCHEME"
-                                 referencedColumnNames="scheme_id" referencedTableName="mf_scheme"
+                                 referencedColumnNames="amfi_code" referencedTableName="mf_fund_scheme"
                                  referencedTableSchemaName="mfschemes"/>
     </changeSet>
 

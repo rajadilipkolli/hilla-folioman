@@ -1,9 +1,9 @@
 package com.app.folioman.mfschemes.service;
 
-import com.app.folioman.mfschemes.entities.MFScheme;
+import com.app.folioman.mfschemes.entities.MfFundScheme;
 import com.app.folioman.mfschemes.mapper.MfSchemeEntityToDtoMapper;
 import com.app.folioman.mfschemes.models.response.MFSchemeDTO;
-import com.app.folioman.mfschemes.repository.MFSchemeRepository;
+import com.app.folioman.mfschemes.repository.MfFundSchemeRepository;
 import com.app.folioman.shared.FundDetailProjection;
 import com.app.folioman.shared.MFSchemeProjection;
 import java.time.LocalDate;
@@ -17,12 +17,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class MfSchemesService {
 
-    private final MFSchemeRepository mFSchemeRepository;
+    private final MfFundSchemeRepository mFSchemeRepository;
     private final MfSchemeEntityToDtoMapper mfSchemeEntityToDtoMapper;
     private final MfSchemeServiceDelegate mfSchemeServiceDelegate;
 
     MfSchemesService(
-            MFSchemeRepository mFSchemeRepository,
+            MfFundSchemeRepository mFSchemeRepository,
             MfSchemeEntityToDtoMapper mfSchemeEntityToDtoMapper,
             MfSchemeServiceDelegate mfSchemeServiceDelegate) {
         this.mFSchemeRepository = mFSchemeRepository;
@@ -39,17 +39,17 @@ public class MfSchemesService {
     }
 
     @Transactional
-    public List<MFScheme> saveAllEntities(List<MFScheme> list) {
+    public List<MfFundScheme> saveAllEntities(List<MfFundScheme> list) {
         return mFSchemeRepository.saveAll(list);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public MFScheme saveEntity(MFScheme mfScheme) {
+    public MfFundScheme saveEntity(MfFundScheme mfScheme) {
         return mFSchemeRepository.save(mfScheme);
     }
 
-    public Optional<MFScheme> findBySchemeCode(Long schemeCode) {
-        return this.mFSchemeRepository.findBySchemeId(schemeCode);
+    public Optional<MfFundScheme> findBySchemeCode(Long schemeCode) {
+        return this.mFSchemeRepository.findByAmfiCode(schemeCode);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)

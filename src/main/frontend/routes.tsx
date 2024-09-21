@@ -11,7 +11,7 @@ export const routes = [
     element: <MainLayout />,
     handle: { title: 'hilla-folioman' },
     children: [
-      { path: '/userDetails', element: <UserDetailsView />, handle: { title: 'UserDetails' } },
+      { path: '/userDetails', element: <UserDetailsView />, handle: { title: 'Import Mutual Funds' } },
       { path: '/userPortfolio', element: <UserPortfolioView />, handle: { title: 'UserPortfolio' } },
       { path: '/', element: <MfSchemesView />, handle: {title: 'Mutual Fund Schemes'}},
     ],
