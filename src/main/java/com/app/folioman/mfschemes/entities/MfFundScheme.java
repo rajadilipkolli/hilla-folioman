@@ -35,7 +35,7 @@ public class MfFundScheme extends Auditable<String> implements Serializable {
     private String plan;
     private String rtaCode;
     private String amcCode;
-    private String amfiCode;
+    private Long amfiCode;
     private String isin;
     private LocalDate startDate;
     private LocalDate endDate;
@@ -116,11 +116,11 @@ public class MfFundScheme extends Auditable<String> implements Serializable {
         return this;
     }
 
-    public String getAmfiCode() {
+    public Long getAmfiCode() {
         return amfiCode;
     }
 
-    public MfFundScheme setAmfiCode(String amfiCode) {
+    public MfFundScheme setAmfiCode(Long amfiCode) {
         this.amfiCode = amfiCode;
         return this;
     }

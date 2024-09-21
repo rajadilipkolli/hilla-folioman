@@ -16,20 +16,20 @@ public interface MfFundSchemeRepository extends JpaRepository<MfFundScheme, Long
     @Query("select distinct m.isin from MfFundScheme m")
     List<String> findDistinctIsin();
 
-    @Query("select o.schemeId from MFScheme o")
+    @Query("select o.amfiCode from MfFundScheme o")
     List<Long> findAllSchemeIds();
 
     @Query(
             """
-            select new com.app.folioman.shared.FundDetailProjection(m.schemeId, m.schemeName, m.fundHouse) from MFScheme m
-             where m.schemeNameAlias like :schemeName order by m.schemeId
+            select new com.app.folioman.shared.FundDetailProjection(m.amfiCode, m.name, m.amc.name) from MfFundScheme m
+             where m.name like :schemeName order by m.amfiCode
             """)
     List<FundDetailProjection> findBySchemeNameLikeIgnoreCaseOrderBySchemeIdAsc(@Param("schemeName") String schemeName);
 
     @Query(
             """
-            select m from MFScheme m inner join fetch m.mfSchemeNavs mfSchemeNavs
-            where m.schemeId = :schemeCode and mfSchemeNavs.navDate = :date
+            select m from MfFundScheme m inner join fetch m.mfSchemeNavs mfSchemeNavs
+            where m.amfiCode = :schemeCode and mfSchemeNavs.navDate = :date
             """)
     @EntityGraph(attributePaths = {"mfSchemeType"})
     Optional<MfFundScheme> findBySchemeIdAndMfSchemeNavs_NavDate(
@@ -38,5 +38,5 @@ public interface MfFundSchemeRepository extends JpaRepository<MfFundScheme, Long
     @EntityGraph(attributePaths = {"mfSchemeType", "mfSchemeNavs"})
     Optional<MfFundScheme> findByAmfiCode(Long amfiCode);
 
-    Optional<MFSchemeProjection> findByPayOut(String payOut);
+    Optional<MFSchemeProjection> findByIsin(String isin);
 }

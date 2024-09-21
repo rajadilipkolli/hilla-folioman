@@ -46,7 +46,7 @@ class UserSchemeDetailsServiceDelegate implements UserSchemeDetailService {
                     if (StringUtils.hasText(isin)) {
                         Optional<MFSchemeProjection> mfSchemeEntity = mfSchemeService.findByPayOut(isin);
                         mfSchemeEntity.ifPresent(schemeEntity -> updateUserSchemeDetails(
-                                userSchemeDetailsEntity.getId(), schemeEntity.getSchemeId(), isin));
+                                userSchemeDetailsEntity.getId(), schemeEntity.getAmfiCode(), isin));
                     } else {
                         log.warn("ISIN is null after extraction for scheme: {}", scheme);
                     }

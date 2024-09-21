@@ -5,15 +5,15 @@ import com.app.folioman.mfschemes.entities.MfFundScheme;
 import com.app.folioman.mfschemes.mapper.MfSchemeDtoToEntityMapperHelper;
 import com.app.folioman.mfschemes.service.AmfiService;
 import com.app.folioman.mfschemes.service.BSEStarMasterDataService;
-import com.app.folioman.mfschemes.service.MFSchemeTypeService;
 import com.app.folioman.mfschemes.service.MfFundSchemeService;
 import com.app.folioman.mfschemes.util.SchemeConstants;
 import com.app.folioman.shared.LocalDateUtility;
 import com.opencsv.exceptions.CsvException;
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.*;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
@@ -36,24 +36,20 @@ public class Initializer {
     private final AmfiService amfiService;
     private final BSEStarMasterDataService bseStarMasterDataService;
     private final MfFundSchemeService mfFundSchemeService;
-    private final MFSchemeTypeService mFSchemeTypeService;
     private final MfSchemeDtoToEntityMapperHelper mfSchemeDtoToEntityMapperHelper;
 
     private final Pattern schemeCodePattern = Pattern.compile("\\d{6}");
-    private final ReentrantLock reentrantLock = new ReentrantLock();
 
     public Initializer(
             RestClient restClient,
             AmfiService amfiService,
             BSEStarMasterDataService bseStarMasterDataService,
             MfFundSchemeService mfFundSchemeService,
-            MFSchemeTypeService mFSchemeTypeService,
             MfSchemeDtoToEntityMapperHelper mfSchemeDtoToEntityMapperHelper) {
         this.restClient = restClient;
         this.amfiService = amfiService;
         this.bseStarMasterDataService = bseStarMasterDataService;
         this.mfFundSchemeService = mfFundSchemeService;
-        this.mFSchemeTypeService = mFSchemeTypeService;
         this.mfSchemeDtoToEntityMapperHelper = mfSchemeDtoToEntityMapperHelper;
     }
 
@@ -74,6 +70,7 @@ public class Initializer {
         } catch (HttpClientErrorException | ResourceAccessException | IOException httpClientErrorException) {
             LOGGER.error("Failed to load all Funds", httpClientErrorException);
         } catch (CsvException e) {
+            LOGGER.error("Failed to process CSV data", e);
             throw new RuntimeException(e);
         }
     }
@@ -103,12 +100,12 @@ public class Initializer {
                                 }
                             }
                         }
+                        mfFundScheme.setAmfiCode(Long.valueOf(amfiCode));
                     } else {
                         // amfiCode is NUll.
                     }
 
                     // Save or update the fund scheme in the database
-                    mfFundScheme.setAmfiCode(amfiCode);
                     mfFundScheme.setEndDate(schemeEndDate);
                     return mfFundScheme;
                 })

@@ -27,7 +27,9 @@
             <column name="plan" type="${string.type}"/>
             <column name="rta_code" type="${string.type}"/>
             <column name="amc_code" type="${string.type}"/>
-            <column name="amfi_code" type="${string.type}"/>
+            <column name="amfi_code" type="BIGINT">
+                <constraints unique="true" uniqueConstraintName="UK_AMFI_CODE"/>
+            </column>
             <column name="isin" type="${string.type}"/>
             <column name="start_date" type="DATE"/>
             <column name="end_date" type="DATE"/>

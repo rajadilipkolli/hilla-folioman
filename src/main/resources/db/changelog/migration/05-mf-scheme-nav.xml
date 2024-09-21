@@ -52,7 +52,7 @@
 
         <addForeignKeyConstraint baseColumnNames="mf_scheme_id" baseTableName="mf_scheme_nav"
                                  baseTableSchemaName="mfschemes" constraintName="FK_MF_SCHEME_NAV_ON_MF_SCHEME"
-                                 referencedColumnNames="scheme_id" referencedTableName="mf_scheme"
+                                 referencedColumnNames="amfi_code" referencedTableName="mf_fund_scheme"
                                  referencedTableSchemaName="mfschemes"/>
     </changeSet>
 

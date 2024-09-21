@@ -14,7 +14,7 @@ import org.springframework.util.StringUtils;
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface MfSchemeEntityToDtoMapper {
 
-    @Mapping(target = "isin", source = "isin")
+    @Mapping(target = "schemeName", source = "name")
     @Mapping(target = "date", ignore = true)
     @Mapping(target = "nav", ignore = true)
     @Mapping(target = "schemeCode", source = "amfiCode")

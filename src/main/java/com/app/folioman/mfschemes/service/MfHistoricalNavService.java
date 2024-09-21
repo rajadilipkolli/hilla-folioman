@@ -125,7 +125,7 @@ class MfHistoricalNavService {
                 String date = tokenize[7];
                 String schemeName = tokenize[1];
                 MFSchemeDTO mfSchemeDTO = new MFSchemeDTO(amc, schemeCode, payout, schemeName, nav, date, schemeType);
-                MFScheme mfScheme = mfSchemeDtoToEntityMapper.mapMFSchemeDTOToMFSchemeEntity(mfSchemeDTO);
+                MfFundScheme mfScheme = mfSchemeDtoToEntityMapper.mapMFSchemeDTOToMfFundScheme(mfSchemeDTO);
                 mfSchemeService.saveEntity(mfScheme);
             }
         }

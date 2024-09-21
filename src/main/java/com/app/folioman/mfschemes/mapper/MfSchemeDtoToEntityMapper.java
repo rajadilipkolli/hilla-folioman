@@ -16,12 +16,11 @@ public interface MfSchemeDtoToEntityMapper {
     @Mapping(target = "version", ignore = true)
     @Mapping(target = "mfSchemeType", ignore = true)
     @Mapping(target = "mfSchemeNavs", ignore = true)
-    @Mapping(target = "schemeNameAlias", ignore = true)
     @Mapping(target = "lastModifiedDate", ignore = true)
     @Mapping(target = "lastModifiedBy", ignore = true)
     @Mapping(target = "amc.name", source = "amc")
     @Mapping(target = "createdDate", ignore = true)
     @Mapping(target = "createdBy", ignore = true)
     @Mapping(target = "amfiCode", source = "schemeCode")
-    MfFundScheme mapMFSchemeDTOToMFSchemeEntity(MFSchemeDTO mfSchemeDTO);
+    MfFundScheme mapMFSchemeDTOToMfFundScheme(MFSchemeDTO mfSchemeDTO);
 }

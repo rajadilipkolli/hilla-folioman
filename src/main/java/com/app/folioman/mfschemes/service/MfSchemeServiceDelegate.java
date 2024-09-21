@@ -50,7 +50,7 @@ class MfSchemeServiceDelegate implements MfSchemeService {
 
     @Override
     public Optional<MFSchemeProjection> findByPayOut(String isin) {
-        return mFSchemeRepository.findByPayOut(isin);
+        return mFSchemeRepository.findByIsin(isin);
     }
 
     @Override
