@@ -17,7 +17,7 @@ public class MfAmc extends Auditable<String> implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "mf_amc_gen")
-    @SequenceGenerator(name = "mf_amc_gen", sequenceName = "mf_amc_seq", allocationSize = 5, schema = "mfschemes")
+    @SequenceGenerator(name = "mf_amc_gen", sequenceName = "mf_amc_seq", allocationSize = 1, schema = "mfschemes")
     @Column(name = "id", nullable = false)
     private Long id;
 

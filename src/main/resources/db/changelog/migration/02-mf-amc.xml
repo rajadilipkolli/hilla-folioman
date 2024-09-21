@@ -12,7 +12,7 @@
     <property name="timestamp.type" value="timestamptz" dbms="postgresql"/>
 
     <changeSet id="1726868193115-1" author="appUser">
-        <createSequence incrementBy="5" schemaName="mfschemes" sequenceName="mf_amc_seq" startValue="1"/>
+        <createSequence incrementBy="1" schemaName="mfschemes" sequenceName="mf_amc_seq" startValue="1"/>
     </changeSet>
 
     <changeSet id="1726868193115-2" author="appUser">
