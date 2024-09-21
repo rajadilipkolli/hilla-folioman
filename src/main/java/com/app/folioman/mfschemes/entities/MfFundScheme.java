@@ -189,6 +189,9 @@ public class MfFundScheme extends Auditable<String> implements Serializable {
     }
 
     public MfFundScheme addSchemeNav(MFSchemeNav mfSchemeNav) {
+        if (mfSchemeNav == null) {
+            throw new IllegalArgumentException("mfSchemeNav cannot be null");
+        }
         mfSchemeNavs.add(mfSchemeNav);
         mfSchemeNav.setMfScheme(this);
         return this;
