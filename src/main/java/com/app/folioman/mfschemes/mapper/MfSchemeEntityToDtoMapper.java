@@ -1,7 +1,7 @@
 package com.app.folioman.mfschemes.mapper;
 
-import com.app.folioman.mfschemes.entities.MFScheme;
 import com.app.folioman.mfschemes.entities.MFSchemeType;
+import com.app.folioman.mfschemes.entities.MfFundScheme;
 import com.app.folioman.mfschemes.models.response.MFSchemeDTO;
 import java.time.LocalDate;
 import org.mapstruct.AfterMapping;
@@ -14,16 +14,16 @@ import org.springframework.util.StringUtils;
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface MfSchemeEntityToDtoMapper {
 
-    @Mapping(target = "isin", source = "payOut")
+    @Mapping(target = "isin", source = "isin")
     @Mapping(target = "date", ignore = true)
     @Mapping(target = "nav", ignore = true)
-    @Mapping(target = "schemeCode", source = "schemeId")
-    @Mapping(target = "amc", source = "fundHouse")
+    @Mapping(target = "schemeCode", source = "amfiCode")
+    @Mapping(target = "amc", source = "amc.name")
     @Mapping(target = "schemeType", ignore = true)
-    MFSchemeDTO convertEntityToDto(MFScheme mfScheme);
+    MFSchemeDTO convertEntityToDto(MfFundScheme mfScheme);
 
     @AfterMapping
-    default MFSchemeDTO updateMFScheme(MFScheme mfScheme, @MappingTarget MFSchemeDTO mfSchemeDTO) {
+    default MFSchemeDTO updateMFScheme(MfFundScheme mfScheme, @MappingTarget MFSchemeDTO mfSchemeDTO) {
         String date = null;
         String nav = null;
         if (!mfScheme.getMfSchemeNavs().isEmpty()) {

@@ -1,7 +1,7 @@
 package com.app.folioman.mfschemes.service;
 
 import com.app.folioman.mfschemes.NavNotFoundException;
-import com.app.folioman.mfschemes.entities.MFScheme;
+import com.app.folioman.mfschemes.entities.MfFundScheme;
 import com.app.folioman.mfschemes.mapper.MfSchemeDtoToEntityMapper;
 import com.app.folioman.mfschemes.models.response.MFSchemeDTO;
 import com.app.folioman.mfschemes.util.SchemeConstants;
@@ -44,9 +44,9 @@ class MfHistoricalNavService {
         String toDate = navDate.format(CommonConstants.FORMATTER_DD_MMM_YYYY);
         String fromDate = navDate.minusDays(3).format(CommonConstants.FORMATTER_DD_MMM_YYYY);
         URI historicalNavUri = buildHistoricalNavUri(toDate, fromDate);
-        Optional<MFScheme> bySchemeCode = this.mfSchemeService.findBySchemeCode(schemeCode);
+        Optional<MfFundScheme> bySchemeCode = this.mfSchemeService.findBySchemeCode(schemeCode);
         if (bySchemeCode.isPresent()) {
-            return fetchAndProcessNavData(historicalNavUri, bySchemeCode.get().getPayOut(), false, schemeCode, navDate);
+            return fetchAndProcessNavData(historicalNavUri, bySchemeCode.get().getIsin(), false, schemeCode, navDate);
         } else {
             return handleDiscontinuedScheme(schemeCode, historicalNavUri, navDate);
         }

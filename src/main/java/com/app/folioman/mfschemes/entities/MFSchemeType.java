@@ -49,7 +49,7 @@ public class MFSchemeType extends Auditable<String> implements Serializable {
     private Short version;
 
     @OneToMany(mappedBy = "mfSchemeType", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<MFScheme> mfSchemes = new ArrayList<>();
+    private List<MfFundScheme> mfSchemes = new ArrayList<>();
 
     public Integer getSchemeTypeId() {
         return schemeTypeId;
@@ -96,16 +96,16 @@ public class MFSchemeType extends Auditable<String> implements Serializable {
         return this;
     }
 
-    public List<MFScheme> getMfSchemes() {
+    public List<MfFundScheme> getMfSchemes() {
         return mfSchemes;
     }
 
-    public MFSchemeType setMfSchemes(List<MFScheme> mfSchemeEntities) {
+    public MFSchemeType setMfSchemes(List<MfFundScheme> mfSchemeEntities) {
         this.mfSchemes = mfSchemeEntities;
         return this;
     }
 
-    public void addMFScheme(MFScheme mfScheme) {
+    public void addMFScheme(MfFundScheme mfScheme) {
         mfSchemes.add(mfScheme);
         mfScheme.setMfSchemeType(this);
     }

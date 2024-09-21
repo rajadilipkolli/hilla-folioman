@@ -17,7 +17,7 @@
 
     <changeSet id="1726868193115-2" author="appUser">
         <createTable schemaName="mfschemes" tableName="mf_amc">
-            <column name="id" type="BIGINT">
+            <column name="id" type="INT">
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_mf_amc"/>
             </column>
             <column name="name" type="${string.type}"/>

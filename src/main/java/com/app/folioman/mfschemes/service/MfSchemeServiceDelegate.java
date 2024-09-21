@@ -1,11 +1,11 @@
 package com.app.folioman.mfschemes.service;
 
 import com.app.folioman.mfschemes.SchemeNotFoundException;
-import com.app.folioman.mfschemes.entities.MFScheme;
 import com.app.folioman.mfschemes.entities.MFSchemeNav;
+import com.app.folioman.mfschemes.entities.MfFundScheme;
 import com.app.folioman.mfschemes.mapper.SchemeNAVDataDtoToEntityMapper;
 import com.app.folioman.mfschemes.models.response.NavResponse;
-import com.app.folioman.mfschemes.repository.MFSchemeRepository;
+import com.app.folioman.mfschemes.repository.MfFundSchemeRepository;
 import com.app.folioman.mfschemes.util.SchemeConstants;
 import com.app.folioman.shared.FundDetailProjection;
 import com.app.folioman.shared.MFSchemeProjection;
@@ -31,13 +31,13 @@ class MfSchemeServiceDelegate implements MfSchemeService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MfSchemeServiceDelegate.class);
 
-    private final MFSchemeRepository mFSchemeRepository;
+    private final MfFundSchemeRepository mFSchemeRepository;
     private final SchemeNAVDataDtoToEntityMapper schemeNAVDataDtoToEntityMapper;
     private final RestClient restClient;
     private final TransactionTemplate transactionTemplate;
 
     MfSchemeServiceDelegate(
-            MFSchemeRepository mFSchemeRepository,
+            MfFundSchemeRepository mFSchemeRepository,
             SchemeNAVDataDtoToEntityMapper schemeNAVDataDtoToEntityMapper,
             RestClient restClient,
             TransactionTemplate transactionTemplate) {
@@ -72,7 +72,7 @@ class MfSchemeServiceDelegate implements MfSchemeService {
     }
 
     private void processResponseEntity(Long schemeCode, NavResponse navResponse) {
-        Optional<MFScheme> entityBySchemeId = this.mFSchemeRepository.findBySchemeId(schemeCode);
+        Optional<MfFundScheme> entityBySchemeId = this.mFSchemeRepository.findByAmfiCode(schemeCode);
         if (entityBySchemeId.isEmpty()) {
             // Scenario where scheme is discontinued or merged with other
             LOGGER.error("Found Discontinued SchemeCode : {}", schemeCode);
@@ -81,7 +81,7 @@ class MfSchemeServiceDelegate implements MfSchemeService {
         }
     }
 
-    private void mergeList(NavResponse navResponse, MFScheme mfScheme, Long schemeCode) {
+    private void mergeList(NavResponse navResponse, MfFundScheme mfScheme, Long schemeCode) {
         if (navResponse.data().size() != mfScheme.getMfSchemeNavs().size()) {
             List<MFSchemeNav> navList = navResponse.data().stream()
                     .map(navDataDTO -> navDataDTO.withSchemeId(schemeCode))

@@ -6,12 +6,19 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 
 public class LocalDateUtility {
 
     public static LocalDate parse(String from) {
-        return LocalDate.parse(from, FORMATTER_DD_MMM_YYYY);
+        return parse(from, FORMATTER_DD_MMM_YYYY);
+    }
+
+    public static LocalDate parse(String dateString, DateTimeFormatter formatter) {
+        // Remove extra spaces
+        dateString = dateString.trim().replaceAll("\\s+", " ");
+        return LocalDate.parse(dateString, formatter);
     }
 
     public static LocalDate getAdjustedDate() {

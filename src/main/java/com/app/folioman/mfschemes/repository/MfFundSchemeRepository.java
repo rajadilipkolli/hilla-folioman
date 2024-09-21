@@ -1,6 +1,6 @@
 package com.app.folioman.mfschemes.repository;
 
-import com.app.folioman.mfschemes.entities.MFScheme;
+import com.app.folioman.mfschemes.entities.MfFundScheme;
 import com.app.folioman.shared.FundDetailProjection;
 import com.app.folioman.shared.MFSchemeProjection;
 import java.time.LocalDate;
@@ -11,7 +11,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-public interface MFSchemeRepository extends JpaRepository<MFScheme, Long> {
+public interface MfFundSchemeRepository extends JpaRepository<MfFundScheme, Long> {
+
+    @Query("select distinct m.isin from MfFundScheme m")
+    List<String> findDistinctIsin();
 
     @Query("select o.schemeId from MFScheme o")
     List<Long> findAllSchemeIds();
@@ -29,11 +32,11 @@ public interface MFSchemeRepository extends JpaRepository<MFScheme, Long> {
             where m.schemeId = :schemeCode and mfSchemeNavs.navDate = :date
             """)
     @EntityGraph(attributePaths = {"mfSchemeType"})
-    Optional<MFScheme> findBySchemeIdAndMfSchemeNavs_NavDate(
+    Optional<MfFundScheme> findBySchemeIdAndMfSchemeNavs_NavDate(
             @Param("schemeCode") Long schemeCode, @Param("date") LocalDate navDate);
 
     @EntityGraph(attributePaths = {"mfSchemeType", "mfSchemeNavs"})
-    Optional<MFScheme> findBySchemeId(@Param("schemeId") Long schemeId);
+    Optional<MfFundScheme> findByAmfiCode(Long amfiCode);
 
     Optional<MFSchemeProjection> findByPayOut(String payOut);
 }
