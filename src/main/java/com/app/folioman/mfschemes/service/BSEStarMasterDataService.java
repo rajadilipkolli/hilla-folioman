@@ -11,7 +11,9 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -40,7 +42,7 @@ public class BSEStarMasterDataService {
         this.mfAmcRepository = mfAmcRepository;
     }
 
-    public Map<String, MfFundScheme> fetchBseStarMasterData() throws IOException {
+    public Map<String, MfFundScheme> fetchBseStarMasterData() throws IOException, CsvException {
         log.info("BSE Master data Downloading...");
 
         // Step 1: Initial GET request to download the page
@@ -70,7 +72,7 @@ public class BSEStarMasterDataService {
         return parseResponseText(bseMasterData);
     }
 
-    private Map<String, MfFundScheme> parseResponseText(String bseMasterData) {
+    private Map<String, MfFundScheme> parseResponseText(String bseMasterData) throws IOException, CsvException {
         Map<String, MfFundScheme> masterData = new HashMap<>();
 
         try (StringReader stringReader = new StringReader(bseMasterData);
@@ -120,8 +122,6 @@ public class BSEStarMasterDataService {
                 // Find or create AMC
                 masterData.put(isin, scheme);
             }
-        } catch (IOException | CsvException e) {
-            throw new RuntimeException(e);
         }
         return masterData;
     }
@@ -152,7 +152,7 @@ public class BSEStarMasterDataService {
         }
 
         // Step 3: Extract hidden form fields and their values
-        Map<String, String> formData = new LinkedHashMap<>();
+        Map<String, String> formData = new HashMap<>();
         formData.put("ddlTypeOption", "SCHEMEMASTERPHYSICAL"); // Form dropdown value
 
         // Include any other hidden input fields

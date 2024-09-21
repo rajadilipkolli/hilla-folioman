@@ -64,7 +64,7 @@ public class Initializer {
             LocalDate endDateCutoff = LocalDate.now().minusWeeks(1);
 
             long totalCount = mfFundSchemeService.getTotalCount();
-            if (bseStarMasterDataMap.size() > totalCount) {
+            if (amfiDataMap.size() > totalCount) {
                 processMasterData(bseStarMasterDataMap, amfiCodeIsinMapping, amfiDataMap, endDateCutoff);
             }
         } catch (HttpClientErrorException | ResourceAccessException | IOException httpClientErrorException) {
@@ -82,6 +82,7 @@ public class Initializer {
             LocalDate endDateCutoff) {
         List<String> distinctIsinFromDB = this.mfFundSchemeService.findDistinctIsin();
         List<MfFundScheme> mfFundSchemeList = bseStarMasterDataMap.keySet().stream()
+                .filter(amfiCodeIsinMapping::containsValue)
                 .filter(s -> !distinctIsinFromDB.contains(s))
                 .map(isinFromBSE -> {
                     MfFundScheme mfFundScheme = bseStarMasterDataMap.get(isinFromBSE);
@@ -103,6 +104,7 @@ public class Initializer {
                         mfFundScheme.setAmfiCode(Long.valueOf(amfiCode));
                     } else {
                         // amfiCode is NUll.
+                        LOGGER.warn("No AMFI code found for ISIN: {}", isinFromBSE);
                     }
 
                     // Save or update the fund scheme in the database

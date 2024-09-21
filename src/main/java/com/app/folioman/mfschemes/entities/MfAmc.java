@@ -1,7 +1,16 @@
 package com.app.folioman.mfschemes.entities;
 
 import com.app.folioman.shared.Auditable;
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.SequenceGenerator;
+import jakarta.persistence.Table;
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -10,6 +19,9 @@ import java.util.StringJoiner;
 @Table(name = "mf_amc", schema = "mfschemes")
 @Entity
 public class MfAmc extends Auditable<String> implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "mf_amc_gen")

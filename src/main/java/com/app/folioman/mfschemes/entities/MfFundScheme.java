@@ -14,14 +14,18 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
+import java.io.Serial;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Table(name = "mf_fund_scheme", schema = "mfschemes")
 @Entity
 public class MfFundScheme extends Auditable<String> implements Serializable {
+    @Serial
+    private static final long serialVersionUID = 1L;
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "mf_fund_scheme_gen")
@@ -35,7 +39,10 @@ public class MfFundScheme extends Auditable<String> implements Serializable {
     private String plan;
     private String rtaCode;
     private String amcCode;
+
+    @Column(unique = true)
     private Long amfiCode;
+
     private String isin;
     private LocalDate startDate;
     private LocalDate endDate;
@@ -195,5 +202,18 @@ public class MfFundScheme extends Auditable<String> implements Serializable {
         mfSchemeNavs.add(mfSchemeNav);
         mfSchemeNav.setMfScheme(this);
         return this;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof MfFundScheme)) return false;
+        MfFundScheme that = (MfFundScheme) o;
+        return Objects.equals(id, that.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
 }
