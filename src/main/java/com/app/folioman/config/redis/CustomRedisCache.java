@@ -35,7 +35,11 @@ public class CustomRedisCache extends RedisCache {
 
         // Additional custom steps can be added here
         // For example, send a notification, update logs, etc.
-        monitor.recordUpdate(((SimpleKey) key).toString());
+        if (key instanceof SimpleKey) {
+            monitor.recordUpdate(((SimpleKey) key).toString());
+        } else {
+            monitor.recordUpdate(key.toString());
+        }
     }
 
     @Override
@@ -44,7 +48,11 @@ public class CustomRedisCache extends RedisCache {
 
         // Custom behavior after a get operation
         log.info("Retrieved from cache for key: {}", key);
-        monitor.recordAccess(((SimpleKey) key).toString());
+        if (key instanceof SimpleKey) {
+            monitor.recordAccess(((SimpleKey) key).toString());
+        } else {
+            monitor.recordAccess(key.toString());
+        }
         return valueWrapper;
     }
 }

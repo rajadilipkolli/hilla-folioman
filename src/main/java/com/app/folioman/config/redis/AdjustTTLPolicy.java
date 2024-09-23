@@ -35,14 +35,17 @@ public class AdjustTTLPolicy implements CachePolicy {
             double accessCount = getAccessCountForKey(meterRegistry, key);
             Duration newTTL = determineNewTTL(accessCount);
             redisTemplate.expire(key, newTTL);
-            log.info("Adjusted TTL for key: {} to {} minutes.", key, newTTL.toMinutes());
+            log.debug("Adjusted TTL for key: {} to {} minutes.", key, newTTL.toMinutes());
         }
     }
 
     private double getAccessCountForKey(MeterRegistry meterRegistry, String key) {
-        return meterRegistry
-                .counter("cache.access", "key", key.substring(key.indexOf("SimpleKey")))
-                .count();
+        if (key.indexOf("SimpleKey") > 0) {
+            key = key.substring(key.indexOf("SimpleKey"));
+        } else if (key.indexOf("::") > 0) {
+            key = key.substring(key.indexOf("::") + 2);
+        }
+        return meterRegistry.counter("cache.access", "key", key).count();
     }
 
     private Duration determineNewTTL(double accessCount) {

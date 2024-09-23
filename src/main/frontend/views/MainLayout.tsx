@@ -18,16 +18,13 @@ export default function MainLayout() {
           <h1 className="text-l m-0">My App</h1>
           <nav>
             <NavLink className={navLinkClasses} to="/">
-              Contacts
-            </NavLink>
-            <NavLink className={navLinkClasses} to="/mfschemes">
-              Mutual Funds Schemes
+                Mutual Fund Schemes
             </NavLink>
             <NavLink className={navLinkClasses} to="/userDetails">
-              UserDetails
+                Import Mutual Funds
             </NavLink>
             <NavLink className={navLinkClasses} to="/userPortfolio">
-              UserPortfolio
+                UserPortfolio
             </NavLink>
           </nav>
         </header>

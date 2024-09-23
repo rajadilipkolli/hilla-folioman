@@ -7,3 +7,4 @@ vite.generated.ts
 
 .idea/
 *.iml
+logs/
