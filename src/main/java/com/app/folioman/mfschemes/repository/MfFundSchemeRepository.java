@@ -39,4 +39,7 @@ public interface MfFundSchemeRepository extends JpaRepository<MfFundScheme, Long
     Optional<MfFundScheme> findByAmfiCode(Long amfiCode);
 
     Optional<MFSchemeProjection> findByIsin(String isin);
+
+    @Query("select distinct m.amfiCode from MfFundScheme m")
+    List<String> findDistinctAmfiCode();
 }
