@@ -7,7 +7,7 @@ const layoutSteps: FormLayoutResponsiveStep[] = [
     {minWidth: '520px', columns: 2, labelsPosition: 'top'},
 ];
 
-export default function UserDetailsView() {
+export default function ImportMutualFundsView() {
 
     const maxFilesReached = useRef(false);
 
