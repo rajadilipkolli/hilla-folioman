@@ -22,7 +22,7 @@ public interface MfFundSchemeRepository extends JpaRepository<MfFundScheme, Long
     @Query(
             """
             select new com.app.folioman.shared.FundDetailProjection(m.amfiCode, m.name, m.amc.name) from MfFundScheme m
-             where m.name like :schemeName order by m.amfiCode
+             where upper(m.name) like :schemeName order by m.amfiCode
             """)
     List<FundDetailProjection> findBySchemeNameLikeIgnoreCaseOrderBySchemeIdAsc(@Param("schemeName") String schemeName);
 
