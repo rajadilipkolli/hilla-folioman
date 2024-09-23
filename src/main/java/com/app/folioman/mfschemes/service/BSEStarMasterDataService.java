@@ -110,15 +110,20 @@ public class BSEStarMasterDataService {
                     String[] row = getDataAsArray(rows);
                     // Submit each task as a CompletableFuture for parallel execution
                     CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
-                        String isin = row[headerIndexKeyMap.get("ISIN")].strip();
-                        String amfiCode = amfiCodeIsinMapping.get(isin);
+                                String isin = row[headerIndexKeyMap.get("ISIN")].strip();
+                                String amfiCode = amfiCodeIsinMapping.get(isin);
 
-                        if (amfiCode != null) {
-                            // Ensure processSchemeData is thread-safe or synchronized if required
-                            processSchemeData(
-                                    row, headerIndexKeyMap, masterData, isinMasterData, amfiDataMap, amfiCode);
-                        }
-                    });
+                                if (amfiCode != null) {
+                                    // Ensure processSchemeData is thread-safe or synchronized if required
+                                    processSchemeData(
+                                            row, headerIndexKeyMap, masterData, isinMasterData, amfiDataMap, amfiCode);
+                                }
+                            })
+                            .exceptionally(ex -> {
+                                log.error("Error processing scheme data: ", ex);
+                                return null;
+                            });
+                    ;
 
                     // Add the future to the list
                     futures.add(future);
@@ -137,11 +142,15 @@ public class BSEStarMasterDataService {
         for (Map.Entry<String, Map<String, String>> amfiEntry : amfiDataMap.entrySet()) {
             // Submit each task as a CompletableFuture for parallel execution
             CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
-                String amfiCode = amfiEntry.getKey();
-                if (!masterData.containsKey(amfiCode)) {
-                    processAmfiFallback(amfiCode, amfiEntry.getValue(), masterData, amfiCodeIsinMapping);
-                }
-            });
+                        String amfiCode = amfiEntry.getKey();
+                        if (!masterData.containsKey(amfiCode)) {
+                            processAmfiFallback(amfiCode, amfiEntry.getValue(), masterData, amfiCodeIsinMapping);
+                        }
+                    })
+                    .exceptionally(ex -> {
+                        log.error("Error processing scheme data: ", ex);
+                        return null;
+                    });
             futures.add(future);
         }
         // Wait for all tasks to complete by combining all CompletableFutures
@@ -166,10 +175,18 @@ public class BSEStarMasterDataService {
             String amcName = amfiSchemeData.get("AMC").strip();
             MfAmc amc = mfAmcService.findByName(amcName);
             if (amc == null) {
-                amc = new MfAmc();
-                amc.setName(amcName);
-                amc.setCode(amcName);
-                amc = mfAmcService.saveMfAmc(amc);
+                reentrantLock.lock();
+                try {
+                    amc = mfAmcService.findByName(amcName);
+                    if (amc == null) {
+                        amc = new MfAmc();
+                        amc.setName(amcName);
+                        amc.setCode(amcName);
+                        amc = mfAmcService.saveMfAmc(amc);
+                    }
+                } finally {
+                    reentrantLock.unlock();
+                }
             }
             fallbackScheme.setAmc(amc);
             setMfSchemeCategory(amfiSchemeData, fallbackScheme);
@@ -200,6 +217,15 @@ public class BSEStarMasterDataService {
 
         // Process AMC
         String amcCode = row[headerIndexKeyMap.get("AMC Code")].strip();
+        MfAmc amc = getOrCreateAmc(amcCode, amfiDataMap.get(amfiCode).get("AMC"));
+        scheme.setAmc(amc);
+
+        // Add to masterData and isinMasterData
+        masterData.put(amfiCode, scheme);
+        isinMasterData.put(isin, scheme);
+    }
+
+    private MfAmc getOrCreateAmc(String amcCode, String amcName) {
         MfAmc amc = mfAmcService.findByCode(amcCode);
         if (amc == null) {
             reentrantLock.lock(); // Acquiring the lock
@@ -208,7 +234,7 @@ public class BSEStarMasterDataService {
                 amc = mfAmcService.findByCode(amcCode);
                 if (amc == null) {
                     amc = new MfAmc();
-                    amc.setName(amfiDataMap.get(amfiCode).get("AMC"));
+                    amc.setName(amcName);
                     amc.setCode(amcCode);
                     amc = mfAmcService.saveMfAmc(amc);
                 }
@@ -216,11 +242,7 @@ public class BSEStarMasterDataService {
                 reentrantLock.unlock(); // Ensure the lock is released in the finally block
             }
         }
-        scheme.setAmc(amc);
-
-        // Add to masterData and isinMasterData
-        masterData.put(amfiCode, scheme);
-        isinMasterData.put(isin, scheme);
+        return amc;
     }
 
     private MfFundScheme createMfFundScheme(

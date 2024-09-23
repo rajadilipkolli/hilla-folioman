@@ -8,8 +8,10 @@ import com.app.folioman.mfschemes.util.SchemeConstants;
 import com.opencsv.exceptions.CsvException;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
@@ -105,7 +107,7 @@ public class Initializer {
     private void processMasterData(
             Map<String, MfFundScheme> bseStarMasterDataMap, Map<String, String> amfiCodeIsinMapping) {
 
-        List<String> distinctAmfiCodeFromDB = this.mfFundSchemeService.findDistinctAmfiCode();
+        Set<String> distinctAmfiCodeFromDB = new HashSet<>(this.mfFundSchemeService.findDistinctAmfiCode());
         List<MfFundScheme> mfFundSchemeList = bseStarMasterDataMap.keySet().parallelStream() // use parallel stream
                 .filter(amfiCodeIsinMapping::containsValue)
                 .filter(s -> !distinctAmfiCodeFromDB.contains(s))
