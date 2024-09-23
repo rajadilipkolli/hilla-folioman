@@ -15,7 +15,7 @@ public class AdjustTTLPolicy implements CachePolicy {
 
     private static final Duration DEFAULT_TTL = Duration.ofMinutes(30);
     private static final Duration MAX_TTL = Duration.ofHours(2);
-    private static final Duration MIN_TTL = Duration.ofMinutes(5);
+    private static final Duration MIN_TTL = Duration.ofMinutes(15);
 
     @Override
     public Duration getExpirationTime() {

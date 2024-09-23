@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -89,8 +90,8 @@ public class BSEStarMasterDataService {
     private Map<String, MfFundScheme> parseResponseText(
             String bseMasterData, Map<String, Map<String, String>> amfiDataMap, Map<String, String> amfiCodeIsinMapping)
             throws IOException, CsvException {
-        Map<String, MfFundScheme> masterData = new HashMap<>();
-        Map<String, MfFundScheme> isinMasterData = new HashMap<>();
+        Map<String, MfFundScheme> masterData = new ConcurrentHashMap<>();
+        Map<String, MfFundScheme> isinMasterData = new ConcurrentHashMap<>();
 
         // Process BSE Master Data
         if (bseMasterData != null && !bseMasterData.isEmpty()) {
@@ -132,24 +133,33 @@ public class BSEStarMasterDataService {
         }
 
         // Fill remaining data from amfiCodeIsinMapping if not present in BSE Master Data
-        for (Map.Entry<String, String> amfiEntry : amfiCodeIsinMapping.entrySet()) {
-            String amfiCode = amfiEntry.getValue();
-            if (!masterData.containsKey(amfiCode)) {
-                processAmfiFallback(amfiCode, amfiEntry.getKey(), masterData, amfiDataMap);
-            }
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
+        for (Map.Entry<String, Map<String, String>> amfiEntry : amfiDataMap.entrySet()) {
+            // Submit each task as a CompletableFuture for parallel execution
+            CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+                String amfiCode = amfiEntry.getKey();
+                if (!masterData.containsKey(amfiCode)) {
+                    processAmfiFallback(amfiCode, amfiEntry.getValue(), masterData, amfiCodeIsinMapping);
+                }
+            });
+            futures.add(future);
         }
+        // Wait for all tasks to complete by combining all CompletableFutures
+        CompletableFuture<Void> allOf = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+
+        // This ensures that the code waits for all parallel tasks to finish
+        allOf.join();
         return masterData;
     }
 
     private void processAmfiFallback(
             String amfiCode,
-            String isin,
+            Map<String, String> amfiSchemeData,
             Map<String, MfFundScheme> masterData,
-            Map<String, Map<String, String>> amfiDataMap) {
+            Map<String, String> amfiCodeIsinMapping) {
         MfFundScheme fallbackScheme = new MfFundScheme();
         fallbackScheme.setAmfiCode(Long.valueOf(amfiCode));
-        fallbackScheme.setIsin(isin);
-        Map<String, String> amfiSchemeData = amfiDataMap.get(amfiCode);
+        fallbackScheme.setIsin(amfiCodeIsinMapping.get(amfiCode));
         if (amfiSchemeData != null) {
             fallbackScheme.setName(amfiSchemeData.get("Scheme Name"));
             // Process AMC

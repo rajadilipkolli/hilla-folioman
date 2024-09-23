@@ -5,4 +5,6 @@ package com.app.folioman.shared;
  */
 public interface MFSchemeProjection {
     Long getAmfiCode();
+
+    String getIsin();
 }
