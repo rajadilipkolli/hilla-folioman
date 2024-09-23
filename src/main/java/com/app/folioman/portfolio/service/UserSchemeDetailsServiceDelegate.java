@@ -34,29 +34,45 @@ class UserSchemeDetailsServiceDelegate implements UserSchemeDetailService {
     public void setUserSchemeAMFIIfNull() {
         List<UserSchemeDetails> userSchemeDetailsEntities = userSchemeDetailsRepository.findByAmfiIsNull();
         userSchemeDetailsEntities.forEach(userSchemeDetailsEntity -> {
-            String scheme = userSchemeDetailsEntity.getScheme();
-            if (scheme == null) {
-                log.warn("Scheme is null for userSchemeDetailsEntity with id: {}", userSchemeDetailsEntity.getId());
-            } else {
-                log.info("amfi is Null for scheme :{}", scheme);
-                // attempting to find ISIN
-                if (scheme.contains("ISIN:")) {
-                    String isin =
-                            scheme.substring(scheme.lastIndexOf("ISIN:") + 5).strip();
-                    if (StringUtils.hasText(isin)) {
-                        Optional<MFSchemeProjection> mfSchemeEntity = mfSchemeService.findByPayOut(isin);
-                        mfSchemeEntity.ifPresent(schemeEntity -> updateUserSchemeDetails(
-                                userSchemeDetailsEntity.getId(), schemeEntity.getAmfiCode(), isin));
-                    } else {
-                        log.warn("ISIN is null after extraction for scheme: {}", scheme);
-                    }
+            String rtaCode = userSchemeDetailsEntity.getRtaCode();
+            if (StringUtils.hasText(rtaCode)) {
+                log.debug(
+                        "RTA code for userSchemeDetailsEntity with id: {} is {}",
+                        userSchemeDetailsEntity.getId(),
+                        rtaCode);
+                Optional<MFSchemeProjection> mfSchemeEntity =
+                        mfSchemeService.fetchSchemesByRtaCode(rtaCode.substring(0, rtaCode.length() - 1));
+                if (mfSchemeEntity.isPresent()) {
+                    mfSchemeEntity.ifPresent(schemeEntity -> updateUserSchemeDetails(
+                            userSchemeDetailsEntity.getId(), schemeEntity.getAmfiCode(), schemeEntity.getIsin()));
                 } else {
-                    // case where isin and amfi is null
-                    List<FundDetailProjection> fundDetailProjections = mfSchemeService.fetchSchemes(scheme);
-                    if (!fundDetailProjections.isEmpty()) {
-                        Long schemeId = getSchemeId(fundDetailProjections, scheme);
-                        if (null != schemeId) {
-                            updateUserSchemeDetails(userSchemeDetailsEntity.getId(), schemeId, null);
+                    String scheme = userSchemeDetailsEntity.getScheme();
+                    if (scheme == null) {
+                        log.warn(
+                                "Scheme is null for userSchemeDetailsEntity with id: {}",
+                                userSchemeDetailsEntity.getId());
+                    } else {
+                        log.info("amfi is Null for scheme :{}", scheme);
+                        // attempting to find ISIN
+                        if (scheme.contains("ISIN:")) {
+                            String isin = scheme.substring(scheme.lastIndexOf("ISIN:") + 5)
+                                    .strip();
+                            if (StringUtils.hasText(isin)) {
+                                mfSchemeEntity = mfSchemeService.findByPayOut(isin);
+                                mfSchemeEntity.ifPresent(schemeEntity -> updateUserSchemeDetails(
+                                        userSchemeDetailsEntity.getId(), schemeEntity.getAmfiCode(), isin));
+                            } else {
+                                log.warn("ISIN is null after extraction for scheme: {}", scheme);
+                            }
+                        } else {
+                            // case where isin and amfi is null
+                            List<FundDetailProjection> fundDetailProjections = mfSchemeService.fetchSchemes(scheme);
+                            if (!fundDetailProjections.isEmpty()) {
+                                Long schemeId = getSchemeId(fundDetailProjections, scheme);
+                                if (null != schemeId) {
+                                    updateUserSchemeDetails(userSchemeDetailsEntity.getId(), schemeId, null);
+                                }
+                            }
                         }
                     }
                 }

@@ -4,14 +4,14 @@ import { createBrowserRouter, RouteObject } from 'react-router-dom';
 import UserPortfolioView from "Frontend/views/userPortfolio/UserPortfolioView";
 import MfSchemesView from './views/mfschemes/MfSchemesView';
 
-const UserDetailsView = lazy(async () => import('Frontend/views/userdetails/UserDetailsView.js'));
+const ImportMutualFundsView = lazy(async () => import('Frontend/views/importmutualfunds/ImportMutualFundsView'));
 
 export const routes = [
   {
     element: <MainLayout />,
     handle: { title: 'hilla-folioman' },
     children: [
-      { path: '/userDetails', element: <UserDetailsView />, handle: { title: 'Import Mutual Funds' } },
+      { path: '/importmutualfunds', element: <ImportMutualFundsView />, handle: { title: 'Import Mutual Funds' } },
       { path: '/userPortfolio', element: <UserPortfolioView />, handle: { title: 'UserPortfolio' } },
       { path: '/', element: <MfSchemesView />, handle: {title: 'Mutual Fund Schemes'}},
     ],

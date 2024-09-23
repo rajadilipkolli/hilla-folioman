@@ -10,4 +10,6 @@ public interface MfSchemeService {
     List<FundDetailProjection> fetchSchemes(String scheme);
 
     void fetchSchemeDetails(Long schemeId);
+
+    Optional<MFSchemeProjection> fetchSchemesByRtaCode(String substring);
 }
