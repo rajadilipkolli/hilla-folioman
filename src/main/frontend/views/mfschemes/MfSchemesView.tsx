@@ -62,7 +62,7 @@ export default function MfSchemesView() {
                                     }}
                                     onClick={(e) => {
                                         e.preventDefault(); // Prevent the default anchor behavior
-                                        fetch(`/api/nav/${item.schemeId}`, { method: 'GET' })
+                                        fetch(`/api/nav/${item.amfiCode}`, { method: 'GET' })
                                             .then(response => {
                                                 if (response.ok) {
                                                     return response.json();
@@ -87,7 +87,7 @@ export default function MfSchemesView() {
                 <GridColumn path="fundHouse" header="AMC"
                             renderer={({ item }) => (
                                 <span style={{ whiteSpace: 'normal', overflow: 'visible' }}>
-                                    {item.fundHouse}
+                                    {item.amcName}
                                 </span>
                             )}
                 />

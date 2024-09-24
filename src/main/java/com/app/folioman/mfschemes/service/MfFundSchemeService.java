@@ -25,7 +25,7 @@ public class MfFundSchemeService {
         return mfFundSchemeRepository.count();
     }
 
-    public List<String> findDistinctIsin() {
-        return mfFundSchemeRepository.findDistinctIsin();
+    public List<String> findDistinctAmfiCode() {
+        return mfFundSchemeRepository.findDistinctAmfiCode();
     }
 }

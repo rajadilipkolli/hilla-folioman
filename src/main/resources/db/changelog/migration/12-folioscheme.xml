@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.29.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+
+    <changeSet id="1726852187214-1" author="appUser">
+        <createSequence incrementBy="50" schemaName="portfolio" sequenceName="folio_scheme_seq" startValue="1"/>
+    </changeSet>
+    <changeSet id="1726852187214-2" author="appUser">
+        <createTable schemaName="portfolio" tableName="folioscheme">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_folioscheme"/>
+            </column>
+            <column name="valuation" type="DECIMAL(20, 2)"/>
+            <column name="xirr" type="DECIMAL(20, 3)"/>
+            <column name="valuation_date" type="DATE"/>
+            <column name="user_folio_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_scheme_detail_id" type="BIGINT">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+    </changeSet>
+    <changeSet id="1726852187214-3" author="appUser">
+        <addForeignKeyConstraint baseColumnNames="user_folio_id" baseTableName="folioscheme"
+                                 baseTableSchemaName="portfolio" constraintName="FK_FOLIOSCHEME_ON_USER_FOLIO"
+                                 referencedColumnNames="id" referencedTableName="user_folio_details"
+                                 referencedTableSchemaName="portfolio"/>
+    </changeSet>
+    <changeSet id="1726852187214-4" author="appUser">
+        <addForeignKeyConstraint baseColumnNames="user_scheme_detail_id" baseTableName="folioscheme"
+                                 baseTableSchemaName="portfolio" constraintName="FK_FOLIOSCHEME_ON_USER_SCHEME_DETAIL"
+                                 referencedColumnNames="id" referencedTableName="user_scheme_details"
+                                 referencedTableSchemaName="portfolio"/>
+    </changeSet>
+
+</databaseChangeLog>

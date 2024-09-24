@@ -1,19 +1,17 @@
 package com.app.folioman.mfschemes.bootstrap;
 
-import com.app.folioman.mfschemes.entities.MFSchemeType;
 import com.app.folioman.mfschemes.entities.MfFundScheme;
-import com.app.folioman.mfschemes.mapper.MfSchemeDtoToEntityMapperHelper;
 import com.app.folioman.mfschemes.service.AmfiService;
 import com.app.folioman.mfschemes.service.BSEStarMasterDataService;
 import com.app.folioman.mfschemes.service.MfFundSchemeService;
 import com.app.folioman.mfschemes.util.SchemeConstants;
-import com.app.folioman.shared.LocalDateUtility;
 import com.opencsv.exceptions.CsvException;
 import java.io.IOException;
-import java.time.LocalDate;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
@@ -21,22 +19,23 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
 
 @Component
 public class Initializer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Initializer.class);
+    public static final String ISIN_KEY = "ISIN Div Payout/ ISIN GrowthISIN Div Reinvestment";
 
     private final RestClient restClient;
     private final AmfiService amfiService;
     private final BSEStarMasterDataService bseStarMasterDataService;
     private final MfFundSchemeService mfFundSchemeService;
-    private final MfSchemeDtoToEntityMapperHelper mfSchemeDtoToEntityMapperHelper;
 
     private final Pattern schemeCodePattern = Pattern.compile("\\d{6}");
 
@@ -44,30 +43,33 @@ public class Initializer {
             RestClient restClient,
             AmfiService amfiService,
             BSEStarMasterDataService bseStarMasterDataService,
-            MfFundSchemeService mfFundSchemeService,
-            MfSchemeDtoToEntityMapperHelper mfSchemeDtoToEntityMapperHelper) {
+            MfFundSchemeService mfFundSchemeService) {
         this.restClient = restClient;
         this.amfiService = amfiService;
         this.bseStarMasterDataService = bseStarMasterDataService;
         this.mfFundSchemeService = mfFundSchemeService;
-        this.mfSchemeDtoToEntityMapperHelper = mfSchemeDtoToEntityMapperHelper;
     }
 
     @EventListener(ApplicationStartedEvent.class)
     public void handleApplicationStartedEvent() {
         LOGGER.info("Loading all Mutual Funds on StartUp");
         try {
-            Map<String, MfFundScheme> bseStarMasterDataMap = bseStarMasterDataService.fetchBseStarMasterData();
             Map<String, Map<String, String>> amfiDataMap = amfiService.fetchAmfiSchemeData();
-            Map<String, String> amfiCodeIsinMapping = getAMFICodeISINMap();
-
-            LocalDate endDateCutoff = LocalDate.now().minusWeeks(1);
-
             long totalCount = mfFundSchemeService.getTotalCount();
+
+            // Only proceed if there's more data to load
             if (amfiDataMap.size() > totalCount) {
-                processMasterData(bseStarMasterDataMap, amfiCodeIsinMapping, amfiDataMap, endDateCutoff);
+
+                Map<String, String> amfiCodeIsinMapping = getAmfiCodeISINMapping(amfiDataMap);
+
+                Map<String, MfFundScheme> bseStarMasterDataMap =
+                        bseStarMasterDataService.fetchBseStarMasterData(amfiDataMap, amfiCodeIsinMapping);
+
+                // Process data
+                processMasterData(bseStarMasterDataMap, amfiDataMap.keySet());
+                LOGGER.debug("Completed loading initial data.");
             }
-        } catch (HttpClientErrorException | ResourceAccessException | IOException httpClientErrorException) {
+        } catch (HttpClientErrorException | IOException httpClientErrorException) {
             LOGGER.error("Failed to load all Funds", httpClientErrorException);
         } catch (CsvException e) {
             LOGGER.error("Failed to process CSV data", e);
@@ -75,89 +77,83 @@ public class Initializer {
         }
     }
 
-    private void processMasterData(
-            Map<String, MfFundScheme> bseStarMasterDataMap,
-            Map<String, String> amfiCodeIsinMapping,
-            Map<String, Map<String, String>> amfiDataMap,
-            LocalDate endDateCutoff) {
-        List<String> distinctIsinFromDB = this.mfFundSchemeService.findDistinctIsin();
+    private Map<String, String> getAmfiCodeISINMapping(Map<String, Map<String, String>> amfiDataMap) {
+        Map<String, String> amfiCodeIsinMapping = getAMFICodeISINMap();
+
+        // Only proceed if the mapping is empty
+        if (amfiCodeIsinMapping.isEmpty()) {
+            // Traverse the amfiService to create a map of amfiCode and ISIN
+            for (Map.Entry<String, Map<String, String>> outerEntry : amfiDataMap.entrySet()) {
+                String amfiCode = outerEntry.getKey(); // The AMFI code
+                Map<String, String> schemeData = outerEntry.getValue(); // Inner map with scheme details
+
+                // Retrieve ISIN value directly, avoiding redundant containsKey check
+                String isin = schemeData.get(ISIN_KEY);
+
+                // Proceed only if ISIN is not null
+                if (isin != null) {
+                    // Optimize the length check and substring operation
+                    String processedIsin = (isin.length() > 12) ? isin.substring(0, 12) : isin;
+
+                    // Map ISIN to AMFI code
+                    amfiCodeIsinMapping.putIfAbsent(processedIsin, amfiCode);
+                }
+            }
+        }
+        return amfiCodeIsinMapping;
+    }
+
+    // Parallel processing for better performance
+    private void processMasterData(Map<String, MfFundScheme> bseStarMasterDataMap, Set<String> amfiCodeSet) {
+
+        Set<String> distinctAmfiCodeFromDB = new HashSet<>(this.mfFundSchemeService.findDistinctAmfiCode());
         List<MfFundScheme> mfFundSchemeList = bseStarMasterDataMap.keySet().stream()
-                .filter(amfiCodeIsinMapping::containsValue)
-                .filter(s -> !distinctIsinFromDB.contains(s))
-                .map(isinFromBSE -> {
-                    MfFundScheme mfFundScheme = bseStarMasterDataMap.get(isinFromBSE);
-                    String amfiCode = amfiCodeIsinMapping.get(isinFromBSE);
-                    LocalDate schemeEndDate = null;
-
-                    if (amfiCode != null) {
-                        Map<String, String> amfiSchemeData = amfiDataMap.get(amfiCode);
-                        if (amfiSchemeData != null) {
-                            setMfSchemeCategory(amfiSchemeData, mfFundScheme);
-                            String endDate = amfiSchemeData.get("Closure Date");
-                            if (endDate != null && !endDate.isBlank()) {
-                                LocalDate closureDate = LocalDateUtility.parse(endDate);
-                                if (closureDate.isBefore(endDateCutoff)) {
-                                    schemeEndDate = closureDate;
-                                }
-                            }
-                        }
-                        mfFundScheme.setAmfiCode(Long.valueOf(amfiCode));
-                    } else {
-                        // amfiCode is NUll.
-                        LOGGER.warn("No AMFI code found for ISIN: {}", isinFromBSE);
-                    }
-
-                    // Save or update the fund scheme in the database
-                    mfFundScheme.setEndDate(schemeEndDate);
-                    return mfFundScheme;
-                })
+                .filter(amfiCodeSet::contains)
+                .filter(s -> !distinctAmfiCodeFromDB.contains(s))
+                .distinct()
+                .map(bseStarMasterDataMap::get)
                 .toList();
+
+        // Batch insert instead of inserting individually
         if (!mfFundSchemeList.isEmpty()) {
             mfFundSchemeService.saveData(mfFundSchemeList);
         }
     }
 
-    private void setMfSchemeCategory(Map<String, String> amfiSchemeData, MfFundScheme mfFundScheme) {
-        String catStr = amfiSchemeData.get("Scheme Category");
-        String catSchemeType = amfiSchemeData.get("Scheme Type");
-        String category;
-        String subcategory;
-        if (catStr.contains("-")) {
-            category = catStr.substring(0, catStr.indexOf("-")).strip();
-            subcategory = catStr.substring(catStr.indexOf("-") + 1).strip();
-        } else {
-            category = catStr;
-            subcategory = null;
-        }
-        MFSchemeType mfSchemeTypeEntity =
-                mfSchemeDtoToEntityMapperHelper.findOrCreateMFSchemeTypeEntity(catSchemeType, category, subcategory);
-        mfFundScheme.getAmc().setName(amfiSchemeData.get("AMC"));
-        mfFundScheme.setMfSchemeType(mfSchemeTypeEntity);
-    }
-
     private Map<String, String> getAMFICodeISINMap() {
         LOGGER.info("Downloading NAVAll from AMFI");
-        String allNAVs = restClient
-                .get()
-                .uri(SchemeConstants.AMFI_WEBSITE_LINK)
-                .headers(HttpHeaders::clearContentHeaders)
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE)
-                .retrieve()
-                .body(String.class);
+        String allNAVs = null;
+        try {
+            allNAVs = restClient
+                    .get()
+                    .uri(SchemeConstants.AMFI_WEBSITE_LINK)
+                    .headers(HttpHeaders::clearContentHeaders)
+                    .header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE)
+                    .retrieve()
+                    .onStatus(
+                            HttpStatusCode::is4xxClientError,
+                            (request, response) ->
+                                    LOGGER.error("Failed to retrieve AMFI codes {}", response.getStatusCode()))
+                    .body(String.class);
+        } catch (RestClientException e) {
+            LOGGER.error("Failed to retrieve AMFI codes ", e);
+        }
         return getAmfiCodeIsinMap(allNAVs);
     }
 
     private Map<String, String> getAmfiCodeIsinMap(String allNAVs) {
         Map<String, String> amfiCodeIsinMap = new HashMap<>();
-        for (String row : allNAVs.split("\n")) {
-            Matcher matcher = schemeCodePattern.matcher(row);
-            if (matcher.find()) {
-                String[] rowParts = row.split(";");
-                if (rowParts.length >= 3 && !rowParts[1].equals("-")) {
-                    amfiCodeIsinMap.put(rowParts[1].trim(), rowParts[0].trim());
-                }
-                if (rowParts.length >= 4 && !rowParts[2].equals("-")) {
-                    amfiCodeIsinMap.put(rowParts[2].trim(), rowParts[0].trim());
+        if (allNAVs != null && !allNAVs.isEmpty()) {
+            for (String row : allNAVs.split("\n")) {
+                Matcher matcher = schemeCodePattern.matcher(row);
+                if (matcher.find()) {
+                    String[] rowParts = row.split(";");
+                    if (rowParts.length >= 3 && !rowParts[1].equals("-")) {
+                        amfiCodeIsinMap.put(rowParts[1].trim(), rowParts[0].trim());
+                    }
+                    if (rowParts.length >= 4 && !rowParts[2].equals("-")) {
+                        amfiCodeIsinMap.put(rowParts[2].trim(), rowParts[0].trim());
+                    }
                 }
             }
         }

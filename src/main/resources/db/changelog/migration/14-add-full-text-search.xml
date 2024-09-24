@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.29.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+
+    <!-- Step A: Add tsvector column -->
+    <changeSet id="add-name-tsv-column" author="appUser">
+        <sql>
+            ALTER TABLE mfschemes.mf_fund_scheme
+                ADD COLUMN name_tsv tsvector
+                    GENERATED ALWAYS AS (to_tsvector('english', name)) STORED;
+        </sql>
+    </changeSet>
+
+    <!-- Step B: Create GIN index -->
+    <changeSet id="4" author="appUser">
+        <sql>
+            CREATE INDEX IF NOT EXISTS idx_name_tsv ON mfschemes.mf_fund_scheme USING GIN (name_tsv);
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>
