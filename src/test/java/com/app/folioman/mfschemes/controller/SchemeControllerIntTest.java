@@ -1,6 +1,8 @@
 package com.app.folioman.mfschemes.controller;
 
 import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -21,6 +23,7 @@ class SchemeControllerIntTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, is(MediaType.APPLICATION_JSON_VALUE)))
                 .andExpect(jsonPath("$.size()", is(4)))
-                .andExpect(jsonPath("$[*].amfiCode", contains(125494, 125495, 125496, 125497)));
+                .andExpect(jsonPath("$[*].amfiCode", contains(125494, 125495, 125496, 125497)))
+                .andExpect(jsonPath("$[*].amcName", everyItem(equalTo("SBI Funds Management Limited"))));
     }
 }
