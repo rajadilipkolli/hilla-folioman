@@ -21,6 +21,6 @@ class SchemeControllerIntTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, is(MediaType.APPLICATION_JSON_VALUE)))
                 .andExpect(jsonPath("$.size()", is(4)))
-                .andExpect(jsonPath("$[*].schemeId", contains(125494, 125495, 125496, 125497)));
+                .andExpect(jsonPath("$[*].amfiCode", contains(125494, 125495, 125496, 125497)));
     }
 }
