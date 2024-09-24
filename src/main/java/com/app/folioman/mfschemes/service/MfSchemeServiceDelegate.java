@@ -10,7 +10,6 @@ import com.app.folioman.mfschemes.util.SchemeConstants;
 import com.app.folioman.shared.FundDetailProjection;
 import com.app.folioman.shared.MFSchemeProjection;
 import com.app.folioman.shared.MfSchemeService;
-import jakarta.persistence.Tuple;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
@@ -67,13 +66,7 @@ class MfSchemeServiceDelegate implements MfSchemeService {
             sName = Arrays.stream(keywords).map(keyword -> "'" + keyword + "'").collect(Collectors.joining(" & "));
         }
         LOGGER.info("Fetching schemes with :{}", sName);
-        List<Tuple> objects = this.mFSchemeRepository.searchByFullText(sName);
-        return objects.stream()
-                .map(tuple -> new FundDetailProjection(
-                        tuple.get("amfiCode", Long.class),
-                        tuple.get("schemeName", String.class),
-                        tuple.get("amcName", String.class)))
-                .toList();
+        return this.mFSchemeRepository.searchByFullText(sName);
     }
 
     @Override
