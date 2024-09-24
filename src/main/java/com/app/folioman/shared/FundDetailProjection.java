@@ -1,6 +1,9 @@
 package com.app.folioman.shared;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+public interface FundDetailProjection {
+    String getSchemeName();
 
-public record FundDetailProjection(@NotNull Long schemeId, @NotBlank String schemeName, String fundHouse) {}
+    Long getAmfiCode();
+
+    String getAmcName();
+}

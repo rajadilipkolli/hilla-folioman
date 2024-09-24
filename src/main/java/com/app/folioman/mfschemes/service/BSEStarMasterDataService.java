@@ -214,6 +214,7 @@ public class BSEStarMasterDataService {
         }
 
         MfFundScheme scheme = createMfFundScheme(row, headerIndexKeyMap, amfiDataMap.get(amfiCode));
+        scheme.setAmfiCode(Long.valueOf(amfiCode));
 
         // Process AMC
         String amcCode = row[headerIndexKeyMap.get("AMC Code")].strip();

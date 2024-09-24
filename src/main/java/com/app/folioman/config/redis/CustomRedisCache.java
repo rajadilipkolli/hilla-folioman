@@ -31,7 +31,7 @@ public class CustomRedisCache extends RedisCache {
         super.put(key, value);
 
         // Custom logic after the put operation
-        log.info("Put operation completed for key: {}, value: {}", key, value);
+        log.debug("Put operation completed for key: {}, value: {}", key, value);
 
         // Additional custom steps can be added here
         // For example, send a notification, update logs, etc.
@@ -47,7 +47,7 @@ public class CustomRedisCache extends RedisCache {
         Cache.ValueWrapper valueWrapper = super.get(key);
 
         // Custom behavior after a get operation
-        log.info("Retrieved from cache for key: {}", key);
+        log.debug("Retrieved from cache for key: {}", key);
         if (key instanceof SimpleKey) {
             monitor.recordAccess(((SimpleKey) key).toString());
         } else {

@@ -11,8 +11,10 @@ import com.app.folioman.shared.FundDetailProjection;
 import com.app.folioman.shared.MFSchemeProjection;
 import com.app.folioman.shared.MfSchemeService;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.hibernate.exception.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,9 +56,17 @@ class MfSchemeServiceDelegate implements MfSchemeService {
 
     @Override
     public List<FundDetailProjection> fetchSchemes(String schemeName) {
-        // String sName = "%" + schemeName.strip().replaceAll("\\s", "").toUpperCase(Locale.ROOT) + "%";
-        LOGGER.info("Fetching schemes with :{}", schemeName.toUpperCase());
-        return this.mFSchemeRepository.findBySchemeNameLikeIgnoreCaseOrderBySchemeIdAsc(schemeName.toUpperCase());
+        String[] keywords = schemeName.strip().split("\\s");
+
+        // Join the keywords with " & " and wrap each with single quotes
+        String sName;
+        if (keywords.length < 2) {
+            sName = schemeName;
+        } else {
+            sName = Arrays.stream(keywords).map(keyword -> "'" + keyword + "'").collect(Collectors.joining(" & "));
+        }
+        LOGGER.info("Fetching schemes with :{}", sName);
+        return this.mFSchemeRepository.searchByFullText(sName);
     }
 
     @Override

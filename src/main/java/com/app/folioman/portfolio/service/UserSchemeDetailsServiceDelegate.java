@@ -103,14 +103,15 @@ class UserSchemeDetailsServiceDelegate implements UserSchemeDetailService {
     private Long getSchemeId(List<FundDetailProjection> fundDetailProjections, String scheme) {
         return fundDetailProjections.stream()
                 .filter(fundDetailProjection -> isMatchingScheme(scheme, fundDetailProjection))
-                .map(FundDetailProjection::schemeId)
+                .map(FundDetailProjection::getAmfiCode)
                 .findFirst()
                 .orElse(null);
     }
 
     private boolean isMatchingScheme(String scheme, FundDetailProjection fundDetailProjection) {
-        return (scheme.contains("Income") && fundDetailProjection.schemeName().contains("IDCW"))
+        return (scheme.contains("Income")
+                        && fundDetailProjection.getSchemeName().contains("IDCW"))
                 || (!scheme.contains("Income")
-                        && !fundDetailProjection.schemeName().contains("IDCW"));
+                        && !fundDetailProjection.getSchemeName().contains("IDCW"));
     }
 }
