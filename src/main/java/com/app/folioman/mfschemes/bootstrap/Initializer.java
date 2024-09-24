@@ -66,7 +66,7 @@ public class Initializer {
                         bseStarMasterDataService.fetchBseStarMasterData(amfiDataMap, amfiCodeIsinMapping);
 
                 // Process data
-                processMasterData(bseStarMasterDataMap, amfiCodeIsinMapping);
+                processMasterData(bseStarMasterDataMap, amfiDataMap);
                 LOGGER.debug("Completed loading initial data.");
             }
         } catch (HttpClientErrorException | IOException httpClientErrorException) {
@@ -105,11 +105,11 @@ public class Initializer {
 
     // Parallel processing for better performance
     private void processMasterData(
-            Map<String, MfFundScheme> bseStarMasterDataMap, Map<String, String> amfiCodeIsinMapping) {
+            Map<String, MfFundScheme> bseStarMasterDataMap, Map<String, Map<String, String>> amfiDataMap) {
 
         Set<String> distinctAmfiCodeFromDB = new HashSet<>(this.mfFundSchemeService.findDistinctAmfiCode());
-        List<MfFundScheme> mfFundSchemeList = bseStarMasterDataMap.keySet().parallelStream() // use parallel stream
-                .filter(amfiCodeIsinMapping::containsValue)
+        List<MfFundScheme> mfFundSchemeList = bseStarMasterDataMap.keySet().stream()
+                .filter(amfiDataMap::containsKey)
                 .filter(s -> !distinctAmfiCodeFromDB.contains(s))
                 .distinct()
                 .map(bseStarMasterDataMap::get)

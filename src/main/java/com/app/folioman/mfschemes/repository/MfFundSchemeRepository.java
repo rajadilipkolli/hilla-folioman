@@ -1,8 +1,8 @@
 package com.app.folioman.mfschemes.repository;
 
 import com.app.folioman.mfschemes.entities.MfFundScheme;
-import com.app.folioman.shared.FundDetailProjection;
 import com.app.folioman.shared.MFSchemeProjection;
+import jakarta.persistence.Tuple;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -13,18 +13,18 @@ import org.springframework.data.repository.query.Param;
 
 public interface MfFundSchemeRepository extends JpaRepository<MfFundScheme, Long> {
 
-    @Query("select distinct m.isin from MfFundScheme m")
-    List<String> findDistinctIsin();
-
     @Query("select o.amfiCode from MfFundScheme o")
     List<Long> findAllSchemeIds();
 
     @Query(
-            """
-            select new com.app.folioman.shared.FundDetailProjection(m.amfiCode, m.name, m.amc.name) from MfFundScheme m
-             where upper(m.name) like :schemeName order by m.amfiCode
-            """)
-    List<FundDetailProjection> findBySchemeNameLikeIgnoreCaseOrderBySchemeIdAsc(@Param("schemeName") String schemeName);
+            value =
+                    """
+            SELECT m.name as schemeName, m.amfi_code as amfiCode, a.name as amcName FROM mfschemes.mf_fund_scheme m
+            JOIN mfschemes.mf_amc a ON m.mf_amc_id = a.id
+            WHERE m.name_tsv @@ to_tsquery('english', :query)
+            """,
+            nativeQuery = true)
+    List<Tuple> searchByFullText(@Param("query") String query);
 
     @Query(
             """
