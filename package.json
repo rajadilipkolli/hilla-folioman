@@ -46,7 +46,7 @@
     "@vaadin/hilla-generator-plugin-push": "24.4.8",
     "@vaadin/hilla-generator-plugin-subtypes": "24.4.8",
     "@vaadin/hilla-generator-utils": "24.4.8",
-    "@vitejs/plugin-react": "4.3.1",
+    "@vitejs/plugin-react": "4.3.2",
     "async": "3.2.6",
     "glob": "11.0.0",
     "rollup-plugin-brotli": "3.1.0",
