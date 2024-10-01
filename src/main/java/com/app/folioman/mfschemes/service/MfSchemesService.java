@@ -52,7 +52,6 @@ public class MfSchemesService {
         return this.mFSchemeRepository.findByAmfiCode(schemeCode);
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Optional<MFSchemeDTO> getMfSchemeDTO(Long schemeCode, LocalDate navDate) {
         return this.mFSchemeRepository
                 .findBySchemeIdAndMfSchemeNavs_NavDate(schemeCode, navDate)
