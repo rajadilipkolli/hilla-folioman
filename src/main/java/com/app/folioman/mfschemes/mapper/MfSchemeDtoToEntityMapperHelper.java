@@ -75,7 +75,7 @@ public class MfSchemeDtoToEntityMapperHelper {
             }
         }
         mfScheme.setMfSchemeType(mfSchemeType);
-        if (mfScheme.getAmc() == null) {
+        if (mfScheme.getAmc().getId() == null) {
             mfScheme.setAmc(findOrCreateAmcEntity(mfSchemeDTO.amc()));
         }
     }
