@@ -2,6 +2,7 @@ package com.app.folioman.mfschemes.service;
 
 import com.app.folioman.mfschemes.entities.MfAmc;
 import com.app.folioman.mfschemes.repository.MfAmcRepository;
+import java.util.List;
 import java.util.Locale;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
@@ -31,5 +32,9 @@ class MfAmcCacheService {
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public MfAmc saveMfAmc(MfAmc amc) {
         return mfAmcRepository.save(amc);
+    }
+
+    public List<MfAmc> findAllAmcs() {
+        return this.mfAmcRepository.findAll();
     }
 }

@@ -1,7 +1,6 @@
 package com.app.folioman.mfschemes.service;
 
 import com.app.folioman.mfschemes.entities.MfAmc;
-import com.app.folioman.mfschemes.repository.MfAmcRepository;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
@@ -14,14 +13,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class MfAmcService {
 
-    private final MfAmcRepository mfAmcRepository;
-
     private final MfAmcCacheService mfAmcCacheService;
 
     private final ReentrantLock reentrantLock = new ReentrantLock();
 
-    public MfAmcService(MfAmcRepository mfAmcRepository, MfAmcCacheService mfAmcCacheService) {
-        this.mfAmcRepository = mfAmcRepository;
+    public MfAmcService(MfAmcCacheService mfAmcCacheService) {
         this.mfAmcCacheService = mfAmcCacheService;
     }
 
@@ -39,7 +35,7 @@ public class MfAmcService {
     }
 
     private MfAmc findClosestMatch(String amcName) {
-        List<MfAmc> mfAmcList = mfAmcRepository.findAll();
+        List<MfAmc> mfAmcList = mfAmcCacheService.findAllAmcs();
         FuzzyScore fuzzyScore = new FuzzyScore(Locale.ENGLISH);
         return mfAmcList.stream()
                 .max(Comparator.comparingInt(entry -> fuzzyScore.fuzzyScore(amcName, entry.getName())))

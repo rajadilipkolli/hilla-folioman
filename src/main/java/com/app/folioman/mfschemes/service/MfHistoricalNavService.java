@@ -53,6 +53,7 @@ class MfHistoricalNavService {
     }
 
     private String handleDiscontinuedScheme(Long schemeCode, URI historicalNavUri, LocalDate navDate) {
+        // TODO handle scenario where schemes are merged using ISIN
         return fetchAndProcessNavData(historicalNavUri, null, true, schemeCode, navDate);
     }
 
