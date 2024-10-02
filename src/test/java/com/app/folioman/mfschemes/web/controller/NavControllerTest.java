@@ -1,11 +1,10 @@
-package com.app.folioman.mfschemes.controller;
+package com.app.folioman.mfschemes.web.controller;
 
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.app.folioman.mfschemes.service.MFSchemeNavService;
-import com.app.folioman.mfschemes.web.controller.NAVController;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
