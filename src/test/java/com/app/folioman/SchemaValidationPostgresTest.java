@@ -37,11 +37,10 @@ class SchemaValidationPostgresTest {
             String entityName = entity.getName();
             // Example assertion: Check if the table exists in the database
             // You can execute a query to check if the table exists
-            boolean tableExists = entityManager
-                            .createQuery("SELECT count (1) FROM " + entityName)
-                            .getResultList()
-                            .size()
-                    >= 0;
+            boolean tableExists = !entityManager
+                    .createQuery("SELECT count (1) FROM " + entityName)
+                    .getResultList()
+                    .isEmpty();
             assertThat(tableExists).isTrue();
         }
     }
