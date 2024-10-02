@@ -1,2 +1,0 @@
-10038
-/usr/lib/jvm/msopenjdk-current/bin/java -jar /workspaces/hilla-folioman/target/surefire/surefirebooter-20241002195924725_3.jar /workspaces/hilla-folioman/target/surefire 2024-10-02T19-59-24_665-jvmRun1 surefire-20241002195924725_1tmp surefire_0-20241002195924725_2tmp

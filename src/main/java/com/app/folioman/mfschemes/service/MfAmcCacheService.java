@@ -5,15 +5,16 @@ import com.app.folioman.mfschemes.repository.MfAmcRepository;
 import java.util.Locale;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional(readOnly = true)
-public class MfAmcCacheService {
+class MfAmcCacheService {
 
     private final MfAmcRepository mfAmcRepository;
 
-    public MfAmcCacheService(MfAmcRepository mfAmcRepository) {
+    MfAmcCacheService(MfAmcRepository mfAmcRepository) {
         this.mfAmcRepository = mfAmcRepository;
     }
 
@@ -22,7 +23,7 @@ public class MfAmcCacheService {
         return mfAmcRepository.findByNameIgnoreCase(amcName.toUpperCase(Locale.ENGLISH));
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public MfAmc saveMfAmc(MfAmc amc) {
         return mfAmcRepository.save(amc);
     }
