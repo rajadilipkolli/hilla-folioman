@@ -8,3 +8,4 @@ vite.generated.ts
 .idea/
 *.iml
 logs/
+.vaadin-node-tasks.lock

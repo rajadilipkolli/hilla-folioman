@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.locks.ReentrantLock;
 import org.apache.commons.text.similarity.FuzzyScore;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,9 +25,8 @@ public class MfAmcService {
         this.mfAmcCacheService = mfAmcCacheService;
     }
 
-    @Cacheable(value = "findByAMCCode", key = "#code", unless = "#result == null")
     public MfAmc findByCode(String code) {
-        return this.mfAmcRepository.findByCode(code);
+        return this.mfAmcCacheService.findByCode(code);
     }
 
     public MfAmc saveMfAmc(MfAmc amc) {

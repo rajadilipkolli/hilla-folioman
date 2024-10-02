@@ -23,6 +23,11 @@ class MfAmcCacheService {
         return mfAmcRepository.findByNameIgnoreCase(amcName.toUpperCase(Locale.ENGLISH));
     }
 
+    @Cacheable(value = "findByAMCCode", key = "#code", unless = "#result == null")
+    public MfAmc findByCode(String code) {
+        return this.mfAmcRepository.findByCode(code);
+    }
+
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public MfAmc saveMfAmc(MfAmc amc) {
         return mfAmcRepository.save(amc);
