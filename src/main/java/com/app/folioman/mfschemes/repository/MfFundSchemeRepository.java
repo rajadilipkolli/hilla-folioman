@@ -33,7 +33,7 @@ public interface MfFundSchemeRepository extends JpaRepository<MfFundScheme, Long
             select m from MfFundScheme m inner join fetch m.mfSchemeNavs mfSchemeNavs
             where m.amfiCode = :schemeCode and mfSchemeNavs.navDate = :date
             """)
-    @EntityGraph(attributePaths = {"mfSchemeType"})
+    @EntityGraph(attributePaths = {"amc", "mfSchemeType"})
     Optional<MfFundScheme> findBySchemeIdAndMfSchemeNavs_NavDate(
             @Param("schemeCode") Long schemeCode, @Param("date") LocalDate navDate);
 
