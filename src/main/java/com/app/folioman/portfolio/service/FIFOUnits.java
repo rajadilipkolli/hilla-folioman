@@ -14,6 +14,8 @@ public class FIFOUnits {
     private BigDecimal pnl = BigDecimal.ZERO;
     private BigDecimal average = BigDecimal.ZERO;
 
+    private static final BigDecimal BALANCE_THRESHOLD = new BigDecimal("0.01");
+
     private final Deque<TransactionRecord> transactions = new LinkedList<>(); // FIFO Queue
 
     public void addTransaction(UserTransactionDetails txn) {
@@ -65,7 +67,7 @@ public class FIFOUnits {
         balance = balance.subtract(originalQuantity);
         pnl = pnl.add(originalQuantity.multiply(nav).subtract(costPrice).setScale(2, RoundingMode.HALF_UP));
 
-        if (balance.abs().compareTo(new BigDecimal("0.01")) > 0) {
+        if (balance.abs().compareTo(BALANCE_THRESHOLD) > 0) {
             average = invested.divide(balance, 4, RoundingMode.HALF_UP);
         }
     }
@@ -77,7 +79,7 @@ public class FIFOUnits {
             invested = invested.add(BigDecimal.valueOf(amount));
         }
 
-        if (balance.abs().compareTo(new BigDecimal("0.01")) > 0) {
+        if (balance.abs().compareTo(BALANCE_THRESHOLD) > 0) {
             average = invested.divide(balance, 4, RoundingMode.HALF_UP);
         }
 

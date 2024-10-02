@@ -1,6 +1,6 @@
 package com.app.folioman.mfschemes.web.controller;
 
-import com.app.folioman.mfschemes.models.response.MFSchemeDTO;
+import com.app.folioman.mfschemes.MFSchemeDTO;
 import com.app.folioman.mfschemes.service.MFSchemeNavService;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.Endpoint;

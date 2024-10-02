@@ -1,6 +1,6 @@
 package com.app.folioman.shared;
 
-import com.app.folioman.mfschemes.models.response.MFSchemeDTO;
+import com.app.folioman.mfschemes.MFSchemeDTO;
 import java.util.Optional;
 
 public interface MFNavService {

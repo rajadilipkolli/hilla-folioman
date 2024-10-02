@@ -1,8 +1,8 @@
 package com.app.folioman.mfschemes.service;
 
+import com.app.folioman.mfschemes.MFSchemeDTO;
 import com.app.folioman.mfschemes.entities.MfFundScheme;
 import com.app.folioman.mfschemes.mapper.MfSchemeEntityToDtoMapper;
-import com.app.folioman.mfschemes.models.response.MFSchemeDTO;
 import com.app.folioman.mfschemes.repository.MfFundSchemeRepository;
 import com.app.folioman.shared.FundDetailProjection;
 import com.app.folioman.shared.MFSchemeProjection;
