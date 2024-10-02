@@ -22,7 +22,7 @@ class AdaptiveStrategyScheduler {
         this.policyRepository = policyRepository;
     }
 
-    @Scheduled(fixedRate = 60000) // Run every minute
+    @Scheduled(fixedRate = 180_000) // Run every 3 minutes
     void adaptStrategy() {
         Map<String, Object> metrics = monitor.getMetrics();
         String newStrategy = evaluator.evaluate(metrics);

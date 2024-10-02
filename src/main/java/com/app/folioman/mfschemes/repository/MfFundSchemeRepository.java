@@ -19,7 +19,8 @@ public interface MfFundSchemeRepository extends JpaRepository<MfFundScheme, Long
     @Query(
             value =
                     """
-            SELECT m.name as schemeName, m.amfi_code as amfiCode, a.name as amcName FROM mfschemes.mf_fund_scheme m
+            SELECT m.name as schemeName, m.amfi_code as amfiCode, a.name as amcName
+            FROM mfschemes.mf_fund_scheme m
             JOIN mfschemes.mf_amc a ON m.mf_amc_id = a.id
             WHERE m.name_tsv @@ plainto_tsquery('english', :query)
             order by m.amfi_code
