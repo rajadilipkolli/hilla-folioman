@@ -1,9 +1,9 @@
 package com.app.folioman.mfschemes.service;
 
-import com.app.folioman.mfschemes.MFSchemeDTO;
 import com.app.folioman.mfschemes.NavNotFoundException;
 import com.app.folioman.mfschemes.util.SchemeConstants;
 import com.app.folioman.shared.LocalDateUtility;
+import com.app.folioman.shared.MFSchemeDTO;
 import java.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
