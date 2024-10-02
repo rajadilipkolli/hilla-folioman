@@ -8,7 +8,7 @@
       "type": "java",
       "name": "Launch Application",
       "request": "launch",
-      "mainClass": "com.example.application.Application"
+      "mainClass": "com.app.folioman.Application"
     },
     {
       "type": "java",
@@ -22,7 +22,7 @@
       "name": "Spring Boot-Application<hilla-folioman>",
       "request": "launch",
       "cwd": "${workspaceFolder}",
-      "mainClass": "com.example.application.Application",
+      "mainClass": "com.app.folioman.Application",
       "projectName": "hilla-folioman",
       "args": "--spring.profiles.active=supabase",
       "envFile": "${workspaceFolder}/.env"
@@ -32,7 +32,7 @@
       "name": "Spring Boot-TestApplication<hilla-folioman>",
       "request": "launch",
       "cwd": "${workspaceFolder}",
-      "mainClass": "com.example.application.TestApplication",
+      "mainClass": "com.app.folioman.TestApplication",
       "projectName": "hilla-folioman",
       "args": "",
       "envFile": "${workspaceFolder}/.env"

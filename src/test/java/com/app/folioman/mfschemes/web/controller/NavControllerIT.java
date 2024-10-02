@@ -54,7 +54,6 @@ class NavControllerIT extends AbstractIntegrationTest {
     }
 
     @Test
-    @Disabled("will be fixed once -ve case is fixed in historical data")
     void shouldLoadDataWhenSchemeNotFoundAndLoadHistoricalData() throws Exception {
 
         this.mockMvc
@@ -65,13 +64,13 @@ class NavControllerIT extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.schemeCode", is(119578L), Long.class))
                 .andExpect(jsonPath("$.isin", is("INF903J01MV8")))
                 .andExpect(jsonPath("$.schemeName", is("Sundaram Select Focus Direct Plan - Growth")))
-                .andExpect(jsonPath("$.nav", is("176.6091")))
+                .andExpect(jsonPath("$.nav", is("176.60910")))
+                .andExpect(jsonPath("$.amc", is("Sundaram Asset Management Company Ltd")))
                 .andExpect(jsonPath("$.date", is("2018-12-20")))
-                .andExpect(jsonPath("$.schemeType", is("Open Ended Schemes(Equity Scheme - Focused Fund)")));
+                .andExpect(jsonPath("$.schemeType", is("Open Ended(Equity Scheme - Focused Fund)")));
     }
 
     @Test
-    @Disabled("will be fixed after handling lapsed schemes")
     void shouldNotLoadHistoricalDataWhenSchemeNotFound() throws Exception {
         this.mockMvc
                 .perform(get("/api/nav/{schemeCode}/{date}", 144610L, "2023-07-12")
@@ -79,7 +78,7 @@ class NavControllerIT extends AbstractIntegrationTest {
                 .andExpect(status().isNotFound())
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, is(MediaType.APPLICATION_PROBLEM_JSON_VALUE)))
                 .andExpect(jsonPath("$.type", is("about:blank")))
-                .andExpect(jsonPath("$.title", is("Scheme NotFound")))
+                .andExpect(jsonPath("$.title", is("NAV Not Found")))
                 .andExpect(jsonPath("$.status", is(404)))
                 .andExpect(jsonPath("$.detail", is("Nav Not Found for schemeCode - 144610 on 2023-07-06")))
                 .andExpect(jsonPath("$.instance", is("/api/nav/144610/2023-07-12")));
@@ -112,6 +111,6 @@ class NavControllerIT extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.schemeName", is("HSBC Value Fund - Direct Growth")))
                 .andExpect(jsonPath("$.nav", is("63.1620")))
                 .andExpect(jsonPath("$.date", is("2022-10-20")))
-                .andExpect(jsonPath("$.schemeType", is("Open Ended Schemes(Equity Scheme - Value Fund)")));
+                .andExpect(jsonPath("$.schemeType", is("Open Ended(Equity Scheme - Value Fund)")));
     }
 }

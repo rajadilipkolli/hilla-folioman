@@ -2,12 +2,15 @@ package com.app.folioman.mfschemes.mapper;
 
 import com.app.folioman.mfschemes.entities.MFSchemeNav;
 import com.app.folioman.mfschemes.entities.MFSchemeType;
+import com.app.folioman.mfschemes.entities.MfAmc;
 import com.app.folioman.mfschemes.entities.MfFundScheme;
 import com.app.folioman.mfschemes.service.MFSchemeTypeService;
+import com.app.folioman.mfschemes.service.MfAmcService;
 import com.app.folioman.mfschemes.util.SchemeConstants;
 import com.app.folioman.shared.MFSchemeDTO;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -28,26 +31,37 @@ public class MfSchemeDtoToEntityMapperHelper {
             Pattern.compile("^([^()]+)\\(([^()]+)\\s*-\\s*([^()]+)\\)$");
 
     private final MFSchemeTypeService mFSchemeTypeService;
+    private final MfAmcService mfAmcService;
     private final ReentrantLock reentrantLock = new ReentrantLock();
 
-    public MfSchemeDtoToEntityMapperHelper(MFSchemeTypeService mFSchemeTypeService) {
+    public MfSchemeDtoToEntityMapperHelper(MFSchemeTypeService mFSchemeTypeService, MfAmcService mfAmcService) {
         this.mFSchemeTypeService = mFSchemeTypeService;
+        this.mfAmcService = mfAmcService;
     }
 
     @AfterMapping
-    void updateMFScheme(MFSchemeDTO scheme, @MappingTarget MfFundScheme mfScheme) {
+    void updateMFScheme(MFSchemeDTO mfSchemeDTO, @MappingTarget MfFundScheme mfScheme) {
         MFSchemeNav mfSchemeNav = new MFSchemeNav();
-        mfSchemeNav.setNav("N.A.".equals(scheme.nav()) ? BigDecimal.ZERO : new BigDecimal(scheme.nav()));
+        mfSchemeNav.setNav("N.A.".equals(mfSchemeDTO.nav()) ? BigDecimal.ZERO : new BigDecimal(mfSchemeDTO.nav()));
         // Use the flexible formatter to parse the date
-        LocalDate parsedDate = LocalDate.parse(scheme.date(), SchemeConstants.FLEXIBLE_DATE_FORMATTER);
+        LocalDate parsedDate = LocalDate.parse(mfSchemeDTO.date(), SchemeConstants.FLEXIBLE_DATE_FORMATTER);
         mfSchemeNav.setNavDate(parsedDate);
         mfScheme.addSchemeNav(mfSchemeNav);
 
         MFSchemeType mfSchemeType = null;
-        String schemeType = scheme.schemeType();
+        String schemeType = mfSchemeDTO.schemeType();
         Matcher matcher = TYPE_CATEGORY_SUBCATEGORY_PATTERN.matcher(schemeType);
         if (matcher.find()) {
             String type = matcher.group(1).strip();
+
+            // Split only once, store the result in an array
+            String[] splitArray = type.split("\\s+");
+
+            // Check if there are more than 2 elements
+            if (splitArray.length > 2) {
+                // Join all elements except the last one using a space
+                type = String.join(" ", Arrays.copyOf(splitArray, splitArray.length - 1));
+            }
             String category = matcher.group(2).strip();
             String subCategory = matcher.group(3).strip();
             mfSchemeType = findOrCreateMFSchemeTypeEntity(type, category, subCategory);
@@ -61,6 +75,13 @@ public class MfSchemeDtoToEntityMapperHelper {
             }
         }
         mfScheme.setMfSchemeType(mfSchemeType);
+        if (mfScheme.getAmc().getId() == null) {
+            mfScheme.setAmc(findOrCreateAmcEntity(mfSchemeDTO.amc()));
+        }
+    }
+
+    private MfAmc findOrCreateAmcEntity(String amc) {
+        return mfAmcService.findOrCreateByName(amc);
     }
 
     public MFSchemeType findOrCreateMFSchemeTypeEntity(String type, String category, @Nullable String subCategory) {

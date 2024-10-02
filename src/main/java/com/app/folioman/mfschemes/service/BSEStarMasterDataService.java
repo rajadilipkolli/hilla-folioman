@@ -173,21 +173,7 @@ public class BSEStarMasterDataService {
             fallbackScheme.setName(amfiSchemeData.get("Scheme Name"));
             // Process AMC
             String amcName = amfiSchemeData.get("AMC").strip();
-            MfAmc amc = mfAmcService.findByName(amcName);
-            if (amc == null) {
-                reentrantLock.lock();
-                try {
-                    amc = mfAmcService.findByName(amcName);
-                    if (amc == null) {
-                        amc = new MfAmc();
-                        amc.setName(amcName);
-                        amc.setCode(amcName);
-                        amc = mfAmcService.saveMfAmc(amc);
-                    }
-                } finally {
-                    reentrantLock.unlock();
-                }
-            }
+            MfAmc amc = mfAmcService.findOrCreateByName(amcName);
             fallbackScheme.setAmc(amc);
             setMfSchemeCategory(amfiSchemeData, fallbackScheme);
         } else {

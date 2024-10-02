@@ -1,12 +1,11 @@
 package com.app.folioman.mfschemes.service;
 
 import com.app.folioman.mfschemes.entities.MfAmc;
-import com.app.folioman.mfschemes.repository.MfAmcRepository;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.concurrent.locks.ReentrantLock;
 import org.apache.commons.text.similarity.FuzzyScore;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,33 +13,52 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 public class MfAmcService {
 
-    private final MfAmcRepository mfAmcRepository;
+    private final MfAmcCacheService mfAmcCacheService;
 
-    public MfAmcService(MfAmcRepository mfAmcRepository) {
-        this.mfAmcRepository = mfAmcRepository;
+    private final ReentrantLock reentrantLock = new ReentrantLock();
+
+    public MfAmcService(MfAmcCacheService mfAmcCacheService) {
+        this.mfAmcCacheService = mfAmcCacheService;
     }
 
-    @Cacheable(value = "findByAMCCode", key = "#code", unless = "#result == null")
     public MfAmc findByCode(String code) {
-        return this.mfAmcRepository.findByCode(code);
+        return this.mfAmcCacheService.findByCode(code);
     }
 
-    @Transactional
     public MfAmc saveMfAmc(MfAmc amc) {
-        return this.mfAmcRepository.save(amc);
+        return this.mfAmcCacheService.saveMfAmc(amc);
     }
 
-    @Cacheable(value = "findByAMCName", key = "#amcName", unless = "#result == null")
     public MfAmc findByName(String amcName) {
-        MfAmc byNameIgnoreCase = mfAmcRepository.findByNameIgnoreCase(amcName.toUpperCase(Locale.ENGLISH));
+        MfAmc byNameIgnoreCase = mfAmcCacheService.findByName(amcName);
         return byNameIgnoreCase != null ? byNameIgnoreCase : findClosestMatch(amcName);
     }
 
     private MfAmc findClosestMatch(String amcName) {
-        List<MfAmc> mfAmcList = mfAmcRepository.findAll();
+        List<MfAmc> mfAmcList = mfAmcCacheService.findAllAmcs();
         FuzzyScore fuzzyScore = new FuzzyScore(Locale.ENGLISH);
         return mfAmcList.stream()
                 .max(Comparator.comparingInt(entry -> fuzzyScore.fuzzyScore(amcName, entry.getName())))
                 .orElse(null);
+    }
+
+    public MfAmc findOrCreateByName(String amcName) {
+        MfAmc amc = findByName(amcName);
+        if (amc == null) {
+            reentrantLock.lock();
+            try {
+                // Recheck cache after acquiring the lock
+                amc = mfAmcCacheService.findByName(amcName);
+                if (amc == null) {
+                    amc = new MfAmc();
+                    amc.setName(amcName);
+                    amc.setCode(amcName);
+                    amc = mfAmcCacheService.saveMfAmc(amc);
+                }
+            } finally {
+                reentrantLock.unlock();
+            }
+        }
+        return amc;
     }
 }

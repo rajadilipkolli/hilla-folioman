@@ -22,5 +22,6 @@ public interface MfSchemeDtoToEntityMapper {
     @Mapping(target = "createdDate", ignore = true)
     @Mapping(target = "createdBy", ignore = true)
     @Mapping(target = "amfiCode", source = "schemeCode")
+    @Mapping(target = "name", source = "schemeName")
     MfFundScheme mapMFSchemeDTOToMfFundScheme(MFSchemeDTO mfSchemeDTO);
 }
