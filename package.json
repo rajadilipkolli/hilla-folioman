@@ -63,7 +63,7 @@
   "vaadin": {
     "dependencies": {
       "@polymer/polymer": "3.5.1",
-      "@vaadin/bundles": "24.4.9",
+      "@vaadin/bundles": "24.4.10",
       "@vaadin/common-frontend": "0.0.19",
       "@vaadin/hilla-file-router": "24.4.9",
       "@vaadin/hilla-frontend": "24.4.9",
@@ -73,14 +73,14 @@
       "@vaadin/hilla-react-form": "24.4.9",
       "@vaadin/hilla-react-i18n": "24.4.9",
       "@vaadin/hilla-react-signals": "24.4.9",
-      "@vaadin/polymer-legacy-adapter": "24.4.9",
+      "@vaadin/polymer-legacy-adapter": "24.4.10",
       "@vaadin/react-components": "24.4.5",
       "@vaadin/react-components-pro": "24.4.4",
       "@vaadin/router": "1.7.5",
       "@vaadin/vaadin-development-mode-detector": "2.0.7",
-      "@vaadin/vaadin-lumo-styles": "24.4.9",
-      "@vaadin/vaadin-material-styles": "24.4.9",
-      "@vaadin/vaadin-themable-mixin": "24.4.9",
+      "@vaadin/vaadin-lumo-styles": "24.4.10",
+      "@vaadin/vaadin-material-styles": "24.4.10",
+      "@vaadin/vaadin-themable-mixin": "24.4.10",
       "@vaadin/vaadin-usage-statistics": "2.1.2",
       "construct-style-sheets-polyfill": "3.1.0",
       "date-fns": "2.29.3",
@@ -119,7 +119,7 @@
       "workbox-core": "7.1.0",
       "workbox-precaching": "7.1.0"
     },
-    "hash": "08af2853baaa7a429ae5eae75ebbe37b8a5bd6b0296a7ef8e9bec7cf0284266c"
+    "hash": "554494997e5281f8aa24774a696658d8d8a02b93ca4a1363607268918c232a7a"
   },
   "overrides": {
     "@vaadin/bundles": "$@vaadin/bundles",
