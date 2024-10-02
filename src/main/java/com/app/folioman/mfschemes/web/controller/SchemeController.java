@@ -1,4 +1,4 @@
-package com.app.folioman.mfschemes.controller;
+package com.app.folioman.mfschemes.web.controller;
 
 import com.app.folioman.shared.FundDetailProjection;
 import com.app.folioman.shared.MfSchemeService;
