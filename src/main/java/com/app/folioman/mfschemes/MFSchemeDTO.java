@@ -1,4 +1,4 @@
-package com.app.folioman.mfschemes.models.response;
+package com.app.folioman.mfschemes;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;

@@ -1,9 +1,9 @@
 package com.app.folioman.mfschemes.mapper;
 
+import com.app.folioman.mfschemes.MFSchemeDTO;
 import com.app.folioman.mfschemes.entities.MFSchemeNav;
 import com.app.folioman.mfschemes.entities.MFSchemeType;
 import com.app.folioman.mfschemes.entities.MfFundScheme;
-import com.app.folioman.mfschemes.models.response.MFSchemeDTO;
 import com.app.folioman.mfschemes.service.MFSchemeTypeService;
 import com.app.folioman.mfschemes.util.SchemeConstants;
 import java.math.BigDecimal;
