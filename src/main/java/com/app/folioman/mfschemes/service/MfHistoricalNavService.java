@@ -53,8 +53,7 @@ class MfHistoricalNavService {
     }
 
     private String handleDiscontinuedScheme(Long schemeCode, URI historicalNavUri, LocalDate navDate) {
-        // TODO
-        return null;
+        return fetchAndProcessNavData(historicalNavUri, null, true, schemeCode, navDate);
     }
 
     private String fetchAndProcessNavData(

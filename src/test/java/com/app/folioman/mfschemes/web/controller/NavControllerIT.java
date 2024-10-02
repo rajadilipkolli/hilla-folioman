@@ -54,7 +54,6 @@ class NavControllerIT extends AbstractIntegrationTest {
     }
 
     @Test
-    @Disabled("will be fixed once -ve case is fixed in historical data")
     void shouldLoadDataWhenSchemeNotFoundAndLoadHistoricalData() throws Exception {
 
         this.mockMvc
@@ -67,7 +66,7 @@ class NavControllerIT extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.schemeName", is("Sundaram Select Focus Direct Plan - Growth")))
                 .andExpect(jsonPath("$.nav", is("176.6091")))
                 .andExpect(jsonPath("$.date", is("2018-12-20")))
-                .andExpect(jsonPath("$.schemeType", is("Open Ended Schemes(Equity Scheme - Focused Fund)")));
+                .andExpect(jsonPath("$.schemeType", is("Open Ended (Equity Scheme - Focused Fund)")));
     }
 
     @Test
