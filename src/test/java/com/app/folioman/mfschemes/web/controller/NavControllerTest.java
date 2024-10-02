@@ -1,4 +1,4 @@
-package com.app.folioman.mfschemes.controller;
+package com.app.folioman.mfschemes.web.controller;
 
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
