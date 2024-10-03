@@ -15,7 +15,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.time.LocalDate;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -348,7 +347,6 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
 
     @Test
     @Order(101)
-    @Disabled
     void getPortfolio() throws Exception {
         this.mockMvc
                 .perform(get("/api/portfolio/{pan}", "ABCDE1234F")
@@ -356,17 +354,16 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, is(MediaType.APPLICATION_JSON_VALUE)))
-                .andExpect(jsonPath("$.portfolioDetailsDTOS.size()", is(4)));
+                .andExpect(jsonPath("$.portfolioDetailsDTOS.size()", is(5)));
     }
 
     @Test
     @Order(102)
-    @Disabled
     void getPortfolioWithOutDate() throws Exception {
         this.mockMvc
                 .perform(get("/api/portfolio/{pan}", "ABCDE1234F").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, is(MediaType.APPLICATION_JSON_VALUE)))
-                .andExpect(jsonPath("$.portfolioDetailsDTOS.size()", is(4)));
+                .andExpect(jsonPath("$.portfolioDetailsDTOS.size()", is(5)));
     }
 }
