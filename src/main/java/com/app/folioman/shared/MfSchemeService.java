@@ -11,5 +11,5 @@ public interface MfSchemeService {
 
     void fetchSchemeDetails(Long schemeId);
 
-    Optional<MFSchemeProjection> fetchSchemesByRtaCode(String substring);
+    List<MFSchemeProjection> fetchSchemesByRtaCode(String substring);
 }

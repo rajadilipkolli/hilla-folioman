@@ -45,5 +45,5 @@ public interface MfFundSchemeRepository extends JpaRepository<MfFundScheme, Long
     @Query("select distinct m.amfiCode from MfFundScheme m")
     List<String> findDistinctAmfiCode();
 
-    Optional<MFSchemeProjection> findByRtaCodeStartsWith(String rtaCode);
+    List<MFSchemeProjection> findByRtaCodeStartsWith(String rtaCode);
 }

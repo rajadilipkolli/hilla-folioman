@@ -40,11 +40,26 @@ class UserSchemeDetailsServiceDelegate implements UserSchemeDetailService {
                         "RTA code for userSchemeDetailsEntity with id: {} is {}",
                         userSchemeDetailsEntity.getId(),
                         rtaCode);
-                Optional<MFSchemeProjection> mfSchemeEntity =
+                List<MFSchemeProjection> mfSchemeEntityList =
                         mfSchemeService.fetchSchemesByRtaCode(rtaCode.substring(0, rtaCode.length() - 1));
-                if (mfSchemeEntity.isPresent()) {
-                    mfSchemeEntity.ifPresent(schemeEntity -> updateUserSchemeDetails(
-                            userSchemeDetailsEntity.getId(), schemeEntity.getAmfiCode(), schemeEntity.getIsin()));
+                if (!mfSchemeEntityList.isEmpty()) {
+                    if (userSchemeDetailsEntity.getIsin() != null) {
+                        for (MFSchemeProjection mfSchemeProjection : mfSchemeEntityList) {
+                            if (mfSchemeProjection.getIsin().equals(userSchemeDetailsEntity.getIsin())) {
+                                updateUserSchemeDetails(
+                                        userSchemeDetailsEntity.getId(),
+                                        mfSchemeProjection.getAmfiCode(),
+                                        mfSchemeProjection.getIsin());
+                                break;
+                            }
+                        }
+                    } else {
+                        log.debug("ISIN as well missing from user scheme details");
+                        updateUserSchemeDetails(
+                                userSchemeDetailsEntity.getId(),
+                                mfSchemeEntityList.getFirst().getAmfiCode(),
+                                mfSchemeEntityList.getFirst().getIsin());
+                    }
                 } else {
                     String scheme = userSchemeDetailsEntity.getScheme();
                     if (scheme == null) {
@@ -58,7 +73,7 @@ class UserSchemeDetailsServiceDelegate implements UserSchemeDetailService {
                             String isin = scheme.substring(scheme.lastIndexOf("ISIN:") + 5)
                                     .strip();
                             if (StringUtils.hasText(isin)) {
-                                mfSchemeEntity = mfSchemeService.findByPayOut(isin);
+                                Optional<MFSchemeProjection> mfSchemeEntity = mfSchemeService.findByPayOut(isin);
                                 mfSchemeEntity.ifPresent(schemeEntity -> updateUserSchemeDetails(
                                         userSchemeDetailsEntity.getId(), schemeEntity.getAmfiCode(), isin));
                             } else {
