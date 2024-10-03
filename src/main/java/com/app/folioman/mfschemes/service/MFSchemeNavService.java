@@ -6,6 +6,7 @@ import com.app.folioman.shared.LocalDateUtility;
 import com.app.folioman.shared.MFNavService;
 import com.app.folioman.shared.MFSchemeDTO;
 import java.time.LocalDate;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -75,5 +76,10 @@ public class MFSchemeNavService implements MFNavService {
             }
         }
         return mfSchemeDTO;
+    }
+
+    @Override
+    public Optional<MFSchemeDTO> findTopBySchemeIdOrderByDateDesc(Long schemeId) {
+        return Optional.ofNullable(getNav(schemeId));
     }
 }
