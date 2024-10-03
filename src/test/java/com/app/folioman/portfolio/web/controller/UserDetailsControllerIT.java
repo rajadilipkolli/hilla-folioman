@@ -1,4 +1,4 @@
-package com.app.folioman.portfolio.controller;
+package com.app.folioman.portfolio.web.controller;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
@@ -18,7 +18,7 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
-class UserDetailsControllerIT extends AbstractIntegrationTest {
+class ImportMutualFundControllerIT extends AbstractIntegrationTest {
 
     @Test
     @Order(1)

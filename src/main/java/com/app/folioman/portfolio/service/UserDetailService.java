@@ -9,6 +9,8 @@ import com.app.folioman.portfolio.models.CasDTO;
 import com.app.folioman.portfolio.models.UserFolioDTO;
 import com.app.folioman.portfolio.models.UserSchemeDTO;
 import com.app.folioman.portfolio.models.UserTransactionDTO;
+import com.app.folioman.portfolio.models.response.PortfolioDetailsDTO;
+import com.app.folioman.portfolio.models.response.PortfolioResponse;
 import com.app.folioman.portfolio.models.response.UploadFileResponse;
 import com.app.folioman.shared.LocalDateUtility;
 import com.app.folioman.shared.UploadedSchemesList;
@@ -366,5 +368,14 @@ public class UserDetailService {
         UserCASDetails savedCasDetailsEntity = getUserCASDetails(userCASDetails);
         return new UploadFileResponse(
                 newFolios.get(), newSchemes.get(), newTransactions.get(), savedCasDetailsEntity.getId());
+    }
+
+    public PortfolioResponse getPortfolioByPAN(String panNumber, LocalDate evaluationDate) {
+        List<PortfolioDetailsDTO> portfolioDetailsDTOList = portfolioServiceHelper.getPortfolioDetailsByPANAndAsOfDate(
+                panNumber, LocalDateUtility.getAdjustedDateOrDefault(evaluationDate));
+        Double totalPortfolioValue = portfolioDetailsDTOList.stream()
+                .map(PortfolioDetailsDTO::totalValue)
+                .reduce((double) 0, Double::sum);
+        return new PortfolioResponse(Math.round(totalPortfolioValue * 100.0) / 100.0, portfolioDetailsDTOList);
     }
 }

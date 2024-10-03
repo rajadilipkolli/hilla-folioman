@@ -3,6 +3,7 @@ package com.app.folioman.mfschemes.service;
 import com.app.folioman.mfschemes.NavNotFoundException;
 import com.app.folioman.mfschemes.util.SchemeConstants;
 import com.app.folioman.shared.LocalDateUtility;
+import com.app.folioman.shared.MFNavService;
 import com.app.folioman.shared.MFSchemeDTO;
 import java.time.LocalDate;
 import org.slf4j.Logger;
@@ -13,7 +14,7 @@ import org.springframework.util.StringUtils;
 
 @Service
 @Transactional(readOnly = true)
-public class MFSchemeNavService {
+public class MFSchemeNavService implements MFNavService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MFSchemeNavService.class);
     private final CachedNavService cachedNavService;
@@ -38,6 +39,7 @@ public class MFSchemeNavService {
         return getNavByDateWithRetry(schemeCode, adjustedDate);
     }
 
+    @Override
     public MFSchemeDTO getNavByDateWithRetry(Long schemeCode, LocalDate navDate) {
         LOGGER.info("Fetching Nav for AMFISchemeCode: {} for date: {} from Cache", schemeCode, navDate);
         MFSchemeDTO mfSchemeDTO;
