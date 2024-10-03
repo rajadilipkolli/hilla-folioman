@@ -49,6 +49,7 @@ public class UserDetailService {
     private final UserFolioDetailService userFolioDetailService;
     private final UserSchemeDetailService userSchemeDetailService;
     private final ApplicationEventPublisher applicationEventPublisher;
+    private final PortfolioValueUpdateService portfolioValueUpdateService;
 
     UserDetailService(
             PortfolioServiceHelper portfolioServiceHelper,
@@ -58,7 +59,8 @@ public class UserDetailService {
             UserTransactionDetailsService userTransactionDetailsService,
             UserFolioDetailService userFolioDetailService,
             UserSchemeDetailService userSchemeDetailService,
-            ApplicationEventPublisher applicationEventPublisher) {
+            ApplicationEventPublisher applicationEventPublisher,
+            PortfolioValueUpdateService portfolioValueUpdateService) {
         this.portfolioServiceHelper = portfolioServiceHelper;
         this.casDetailsMapper = casDetailsMapper;
         this.userCASDetailsService = userCASDetailsService;
@@ -67,6 +69,7 @@ public class UserDetailService {
         this.userFolioDetailService = userFolioDetailService;
         this.userSchemeDetailService = userSchemeDetailService;
         this.applicationEventPublisher = applicationEventPublisher;
+        this.portfolioValueUpdateService = portfolioValueUpdateService;
     }
 
     public UploadFileResponse upload(MultipartFile multipartFile) throws IOException {
@@ -339,6 +342,7 @@ public class UserDetailService {
                 .toList();
 
         applicationEventPublisher.publishEvent(new UploadedSchemesList(schemesList));
+        portfolioValueUpdateService.updatePortfolioValue(savedCasDetailsEntity);
         return savedCasDetailsEntity;
     }
 
