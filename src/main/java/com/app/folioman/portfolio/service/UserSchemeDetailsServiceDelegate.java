@@ -7,6 +7,7 @@ import com.app.folioman.shared.MFSchemeProjection;
 import com.app.folioman.shared.MfSchemeService;
 import com.app.folioman.shared.UserSchemeDetailService;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
@@ -40,11 +41,23 @@ class UserSchemeDetailsServiceDelegate implements UserSchemeDetailService {
                         "RTA code for userSchemeDetailsEntity with id: {} is {}",
                         userSchemeDetailsEntity.getId(),
                         rtaCode);
-                Optional<MFSchemeProjection> mfSchemeEntity =
+                List<MFSchemeProjection> mfSchemeEntityList =
                         mfSchemeService.fetchSchemesByRtaCode(rtaCode.substring(0, rtaCode.length() - 1));
-                if (mfSchemeEntity.isPresent()) {
-                    mfSchemeEntity.ifPresent(schemeEntity -> updateUserSchemeDetails(
-                            userSchemeDetailsEntity.getId(), schemeEntity.getAmfiCode(), schemeEntity.getIsin()));
+                if (!mfSchemeEntityList.isEmpty()) {
+                    Optional<MFSchemeProjection> matchingScheme = mfSchemeEntityList.stream()
+                            .filter(scheme -> Objects.equals(scheme.getIsin(), userSchemeDetailsEntity.getIsin()))
+                            .findFirst();
+
+                    if (matchingScheme.isPresent()) {
+                        MFSchemeProjection scheme = matchingScheme.get();
+                        updateUserSchemeDetails(
+                                userSchemeDetailsEntity.getId(), scheme.getAmfiCode(), scheme.getIsin());
+                    } else {
+                        log.debug("ISIN not found in the list of schemes");
+                        MFSchemeProjection firstScheme = mfSchemeEntityList.get(0);
+                        updateUserSchemeDetails(
+                                userSchemeDetailsEntity.getId(), firstScheme.getAmfiCode(), firstScheme.getIsin());
+                    }
                 } else {
                     String scheme = userSchemeDetailsEntity.getScheme();
                     if (scheme == null) {
@@ -58,7 +71,7 @@ class UserSchemeDetailsServiceDelegate implements UserSchemeDetailService {
                             String isin = scheme.substring(scheme.lastIndexOf("ISIN:") + 5)
                                     .strip();
                             if (StringUtils.hasText(isin)) {
-                                mfSchemeEntity = mfSchemeService.findByPayOut(isin);
+                                Optional<MFSchemeProjection> mfSchemeEntity = mfSchemeService.findByPayOut(isin);
                                 mfSchemeEntity.ifPresent(schemeEntity -> updateUserSchemeDetails(
                                         userSchemeDetailsEntity.getId(), schemeEntity.getAmfiCode(), isin));
                             } else {

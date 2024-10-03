@@ -13,14 +13,22 @@ import org.mapstruct.MappingConstants;
         injectionStrategy = InjectionStrategy.CONSTRUCTOR)
 public interface MfSchemeDtoToEntityMapper {
 
+    @Mapping(target = "startDate", ignore = true)
+    @Mapping(target = "sid", ignore = true)
+    @Mapping(target = "rtaCode", ignore = true)
+    @Mapping(target = "rta", ignore = true)
+    @Mapping(target = "plan", ignore = true)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "endDate", ignore = true)
+    @Mapping(target = "amcCode", ignore = true)
     @Mapping(target = "version", ignore = true)
     @Mapping(target = "mfSchemeType", ignore = true)
     @Mapping(target = "mfSchemeNavs", ignore = true)
     @Mapping(target = "lastModifiedDate", ignore = true)
     @Mapping(target = "lastModifiedBy", ignore = true)
-    @Mapping(target = "amc.name", source = "amc")
     @Mapping(target = "createdDate", ignore = true)
     @Mapping(target = "createdBy", ignore = true)
+    @Mapping(target = "amc.name", source = "amc")
     @Mapping(target = "amfiCode", source = "schemeCode")
     @Mapping(target = "name", source = "schemeName")
     MfFundScheme mapMFSchemeDTOToMfFundScheme(MFSchemeDTO mfSchemeDTO);

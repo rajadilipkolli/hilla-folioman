@@ -9,11 +9,14 @@ import com.app.folioman.portfolio.models.CasDTO;
 import com.app.folioman.portfolio.models.UserFolioDTO;
 import com.app.folioman.portfolio.models.UserSchemeDTO;
 import com.app.folioman.portfolio.models.UserTransactionDTO;
+import com.app.folioman.portfolio.models.response.PortfolioDetailsDTO;
+import com.app.folioman.portfolio.models.response.PortfolioResponse;
 import com.app.folioman.portfolio.models.response.UploadFileResponse;
 import com.app.folioman.shared.LocalDateUtility;
 import com.app.folioman.shared.UploadedSchemesList;
 import com.app.folioman.shared.UserSchemeDetailService;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -370,5 +373,14 @@ public class UserDetailService {
         UserCASDetails savedCasDetailsEntity = getUserCASDetails(userCASDetails);
         return new UploadFileResponse(
                 newFolios.get(), newSchemes.get(), newTransactions.get(), savedCasDetailsEntity.getId());
+    }
+
+    public PortfolioResponse getPortfolioByPAN(String panNumber, LocalDate evaluationDate) {
+        List<PortfolioDetailsDTO> portfolioDetailsDTOList = portfolioServiceHelper.getPortfolioDetailsByPANAndAsOfDate(
+                panNumber, LocalDateUtility.getAdjustedDateOrDefault(evaluationDate));
+        BigDecimal totalPortfolioValue = portfolioDetailsDTOList.stream()
+                .map(PortfolioDetailsDTO::totalValue)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        return new PortfolioResponse(totalPortfolioValue, portfolioDetailsDTOList);
     }
 }
