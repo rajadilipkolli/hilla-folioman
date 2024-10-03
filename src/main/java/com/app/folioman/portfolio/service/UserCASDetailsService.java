@@ -3,7 +3,9 @@ package com.app.folioman.portfolio.service;
 import com.app.folioman.portfolio.entities.UserCASDetails;
 import com.app.folioman.portfolio.entities.UserFolioDetails;
 import com.app.folioman.portfolio.entities.UserSchemeDetails;
+import com.app.folioman.portfolio.models.projection.PortfolioDetailsProjection;
 import com.app.folioman.portfolio.repository.UserCASDetailsRepository;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -57,5 +59,9 @@ class UserCASDetailsService {
         // Update the folios for the casDetails
         byInvestorEmailAndName.setFolios(byFoliosIn);
         return byInvestorEmailAndName;
+    }
+
+    public List<PortfolioDetailsProjection> getPortfolioDetailsByPanAndAsOfDate(String panNumber, LocalDate asOfDate) {
+        return userCASDetailsRepository.getPortfolioDetails(panNumber, asOfDate);
     }
 }
