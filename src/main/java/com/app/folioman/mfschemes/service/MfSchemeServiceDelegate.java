@@ -76,7 +76,7 @@ class MfSchemeServiceDelegate implements MfSchemeService {
     }
 
     @Override
-    public Optional<MFSchemeProjection> fetchSchemesByRtaCode(String rtaCode) {
+    public List<MFSchemeProjection> fetchSchemesByRtaCode(String rtaCode) {
         return this.mFSchemeRepository.findByRtaCodeStartsWith(rtaCode);
     }
 
