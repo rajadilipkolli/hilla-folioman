@@ -20,7 +20,7 @@ export default function UserPortfolioView() {
             const response = await getPortfolio(pan, asOfDate ?? undefined);
             setPortfolio(response || null);
         } catch (e) {
-            setError('Failed to fetch portfolio');
+            setError('Failed to fetch portfolio: ${e.message}');
         }
     };
 
@@ -31,7 +31,7 @@ export default function UserPortfolioView() {
                 <TextField
                     label="PAN"
                     value={pan}
-                    onInput={(e: any) => setPan(e.target.value)}
+                    onValueChanged={(e: any) => setPan(e.target.value)}
                     required
                 />
             </div>
@@ -39,7 +39,7 @@ export default function UserPortfolioView() {
                 <DatePicker
                     label="As of Date (optional)"
                     value={asOfDate ?? ''}
-                    onChange={(e: any) => setAsOfDate(e.target.value)}
+                    onValueChanged={(e: any) => setAsOfDate(e.target.value)}
                     placeholder="YYYY-MM-DD"
                 />
             </div>

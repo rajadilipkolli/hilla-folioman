@@ -16,6 +16,7 @@ import com.app.folioman.shared.LocalDateUtility;
 import com.app.folioman.shared.UploadedSchemesList;
 import com.app.folioman.shared.UserSchemeDetailService;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -376,6 +377,6 @@ public class UserDetailService {
         Double totalPortfolioValue = portfolioDetailsDTOList.stream()
                 .map(PortfolioDetailsDTO::totalValue)
                 .reduce((double) 0, Double::sum);
-        return new PortfolioResponse(Math.round(totalPortfolioValue * 100.0) / 100.0, portfolioDetailsDTOList);
+        return new PortfolioResponse(BigDecimal.valueOf(totalPortfolioValue), portfolioDetailsDTOList);
     }
 }
