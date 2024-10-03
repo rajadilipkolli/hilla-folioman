@@ -2,11 +2,13 @@ package com.app.folioman.portfolio.service;
 
 import com.app.folioman.mfschemes.NavNotFoundException;
 import com.app.folioman.portfolio.models.UserFolioDTO;
+import com.app.folioman.portfolio.models.projection.PortfolioDetailsProjection;
 import com.app.folioman.portfolio.models.response.PortfolioDetailsDTO;
 import com.app.folioman.shared.MFNavService;
 import com.app.folioman.shared.MFSchemeDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -52,30 +54,42 @@ class PortfolioServiceHelper {
     }
 
     public List<PortfolioDetailsDTO> getPortfolioDetailsByPANAndAsOfDate(String panNumber, LocalDate asOfDate) {
-        return joinFutures(userCASDetailsService.getPortfolioDetailsByPanAndAsOfDate(panNumber, asOfDate).stream()
-                .map(portfolioDetails -> CompletableFuture.supplyAsync(
-                        () -> {
-                            MFSchemeDTO scheme;
-                            try {
-                                scheme = mfNavService.getNavByDateWithRetry(portfolioDetails.getSchemeId(), asOfDate);
-                            } catch (NavNotFoundException navNotFoundException) {
-                                // Will happen in case of NFO where units are allocated but not ready for subscription
-                                LOGGER.error(
-                                        "NavNotFoundException occurred for scheme : {} on adjusted date :{}",
-                                        portfolioDetails.getSchemeId(),
-                                        asOfDate,
-                                        navNotFoundException);
-                                scheme = new MFSchemeDTO(null, null, null, null, "10", asOfDate.toString(), null);
-                            }
-                            double totalValue = portfolioDetails.getBalanceUnits() * Double.parseDouble(scheme.nav());
-                            return new PortfolioDetailsDTO(
-                                    Math.round(totalValue * 100.0) / 100.0,
-                                    portfolioDetails.getSchemeName(),
-                                    portfolioDetails.getFolioNumber(),
-                                    scheme.date(),
-                                    0.0);
-                        },
-                        taskExecutor))
-                .toList());
+        List<CompletableFuture<PortfolioDetailsDTO>> completableFutureList =
+                userCASDetailsService.getPortfolioDetailsByPanAndAsOfDate(panNumber, asOfDate).stream()
+                        .map(portfolioDetails -> CompletableFuture.supplyAsync(
+                                () -> createPortfolioDetailsDTO(portfolioDetails, asOfDate), taskExecutor))
+                        .toList();
+        return joinFutures(completableFutureList);
+    }
+
+    private PortfolioDetailsDTO createPortfolioDetailsDTO(
+            PortfolioDetailsProjection portfolioDetails, LocalDate asOfDate) {
+        MFSchemeDTO scheme;
+        try {
+            scheme = mfNavService.getNavByDateWithRetry(portfolioDetails.getSchemeId(), asOfDate);
+            double totalValue = portfolioDetails.getBalanceUnits() * Double.parseDouble(scheme.nav());
+            return new PortfolioDetailsDTO(
+                    BigDecimal.valueOf(totalValue),
+                    portfolioDetails.getSchemeName(),
+                    portfolioDetails.getFolioNumber(),
+                    scheme.date(),
+                    0.0);
+        } catch (NavNotFoundException navNotFoundException) {
+            // Will happen in case of NFO where units are allocated but not ready for subscription
+            LOGGER.error(
+                    "NavNotFoundException occurred for scheme : {} on adjusted date :{}",
+                    portfolioDetails.getSchemeId(),
+                    asOfDate,
+                    navNotFoundException);
+            // Use a default NAV value or handle as needed
+            double defaultNav = 10.0;
+            double totalValue = portfolioDetails.getBalanceUnits() * defaultNav;
+            return new PortfolioDetailsDTO(
+                    BigDecimal.valueOf(totalValue),
+                    portfolioDetails.getSchemeName(),
+                    portfolioDetails.getFolioNumber(),
+                    asOfDate.toString(),
+                    0.0);
+        }
     }
 }

@@ -374,9 +374,9 @@ public class UserDetailService {
     public PortfolioResponse getPortfolioByPAN(String panNumber, LocalDate evaluationDate) {
         List<PortfolioDetailsDTO> portfolioDetailsDTOList = portfolioServiceHelper.getPortfolioDetailsByPANAndAsOfDate(
                 panNumber, LocalDateUtility.getAdjustedDateOrDefault(evaluationDate));
-        Double totalPortfolioValue = portfolioDetailsDTOList.stream()
+        BigDecimal totalPortfolioValue = portfolioDetailsDTOList.stream()
                 .map(PortfolioDetailsDTO::totalValue)
-                .reduce((double) 0, Double::sum);
-        return new PortfolioResponse(BigDecimal.valueOf(totalPortfolioValue), portfolioDetailsDTOList);
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        return new PortfolioResponse(totalPortfolioValue, portfolioDetailsDTOList);
     }
 }

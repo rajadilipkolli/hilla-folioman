@@ -6,6 +6,7 @@ import com.app.folioman.portfolio.service.UserDetailService;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.Endpoint;
 import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Pattern;
 import java.io.IOException;
 import java.time.LocalDate;
 import org.slf4j.Logger;
@@ -43,7 +44,8 @@ public class ImportMutualFundController {
 
     @GetMapping("/api/portfolio/{pan}")
     public PortfolioResponse getPortfolio(
-            @PathVariable("pan") String panNumber,
+            @PathVariable("pan") @Pattern(regexp = "[A-Z]{5}[0-9]{4}[A-Z]", message = "Invalid PAN number format")
+                    String panNumber,
             @RequestParam(required = false)
                     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
                     @PastOrPresent(message = "Date should be past or today")
