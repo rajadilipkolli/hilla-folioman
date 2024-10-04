@@ -1,11 +1,11 @@
 package com.app.folioman.portfolio.service;
 
+import com.app.folioman.mfschemes.MFNavService;
+import com.app.folioman.mfschemes.MFSchemeDTO;
 import com.app.folioman.mfschemes.NavNotFoundException;
 import com.app.folioman.portfolio.models.UserFolioDTO;
 import com.app.folioman.portfolio.models.projection.PortfolioDetailsProjection;
 import com.app.folioman.portfolio.models.response.PortfolioDetailsDTO;
-import com.app.folioman.shared.MFNavService;
-import com.app.folioman.shared.MFSchemeDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.math.BigDecimal;

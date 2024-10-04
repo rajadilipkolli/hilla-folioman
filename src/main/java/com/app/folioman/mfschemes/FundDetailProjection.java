@@ -1,4 +1,4 @@
-package com.app.folioman.shared;
+package com.app.folioman.mfschemes;
 
 public interface FundDetailProjection {
     String getSchemeName();

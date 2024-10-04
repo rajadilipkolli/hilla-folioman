@@ -1,5 +1,8 @@
 package com.app.folioman.mfschemes.service;
 
+import com.app.folioman.mfschemes.FundDetailProjection;
+import com.app.folioman.mfschemes.MFSchemeProjection;
+import com.app.folioman.mfschemes.MfSchemeService;
 import com.app.folioman.mfschemes.SchemeNotFoundException;
 import com.app.folioman.mfschemes.entities.MFSchemeNav;
 import com.app.folioman.mfschemes.entities.MfFundScheme;
@@ -7,9 +10,6 @@ import com.app.folioman.mfschemes.mapper.SchemeNAVDataDtoToEntityMapper;
 import com.app.folioman.mfschemes.models.response.NavResponse;
 import com.app.folioman.mfschemes.repository.MfFundSchemeRepository;
 import com.app.folioman.mfschemes.util.SchemeConstants;
-import com.app.folioman.shared.FundDetailProjection;
-import com.app.folioman.shared.MFSchemeProjection;
-import com.app.folioman.shared.MfSchemeService;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;

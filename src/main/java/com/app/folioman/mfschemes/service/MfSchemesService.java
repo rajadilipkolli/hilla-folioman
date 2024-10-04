@@ -1,11 +1,11 @@
 package com.app.folioman.mfschemes.service;
 
+import com.app.folioman.mfschemes.FundDetailProjection;
+import com.app.folioman.mfschemes.MFSchemeDTO;
+import com.app.folioman.mfschemes.MFSchemeProjection;
 import com.app.folioman.mfschemes.entities.MfFundScheme;
 import com.app.folioman.mfschemes.mapper.MfSchemeEntityToDtoMapper;
 import com.app.folioman.mfschemes.repository.MfFundSchemeRepository;
-import com.app.folioman.shared.FundDetailProjection;
-import com.app.folioman.shared.MFSchemeDTO;
-import com.app.folioman.shared.MFSchemeProjection;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;

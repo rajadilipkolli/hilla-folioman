@@ -1,5 +1,6 @@
 package com.app.folioman.portfolio.service;
 
+import com.app.folioman.portfolio.UserSchemeDetailService;
 import com.app.folioman.portfolio.entities.UserCASDetails;
 import com.app.folioman.portfolio.entities.UserFolioDetails;
 import com.app.folioman.portfolio.entities.UserSchemeDetails;
@@ -14,7 +15,6 @@ import com.app.folioman.portfolio.models.response.PortfolioResponse;
 import com.app.folioman.portfolio.models.response.UploadFileResponse;
 import com.app.folioman.shared.LocalDateUtility;
 import com.app.folioman.shared.UploadedSchemesList;
-import com.app.folioman.shared.UserSchemeDetailService;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;

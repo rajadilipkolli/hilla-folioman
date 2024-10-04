@@ -1,12 +1,12 @@
 package com.app.folioman.portfolio.service;
 
+import com.app.folioman.mfschemes.FundDetailProjection;
+import com.app.folioman.mfschemes.MFNavService;
+import com.app.folioman.mfschemes.MFSchemeProjection;
+import com.app.folioman.mfschemes.MfSchemeService;
+import com.app.folioman.portfolio.UserSchemeDetailService;
 import com.app.folioman.portfolio.entities.UserSchemeDetails;
 import com.app.folioman.portfolio.repository.UserSchemeDetailsRepository;
-import com.app.folioman.shared.FundDetailProjection;
-import com.app.folioman.shared.MFNavService;
-import com.app.folioman.shared.MFSchemeProjection;
-import com.app.folioman.shared.MfSchemeService;
-import com.app.folioman.shared.UserSchemeDetailService;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -21,16 +21,16 @@ import org.springframework.util.StringUtils;
 
 @Service
 @Transactional(readOnly = true)
-class UserSchemeDetailsService implements UserSchemeDetailService {
+class UserSchemeDetailServiceImpl implements UserSchemeDetailService {
 
-    private static final Logger log = LoggerFactory.getLogger(UserSchemeDetailsService.class);
+    private static final Logger log = LoggerFactory.getLogger(UserSchemeDetailServiceImpl.class);
 
     private final UserSchemeDetailsRepository userSchemeDetailsRepository;
     private final MfSchemeService mfSchemeService;
     private final MFNavService mfNavService;
     private final TaskExecutor taskExecutor;
 
-    UserSchemeDetailsService(
+    UserSchemeDetailServiceImpl(
             UserSchemeDetailsRepository userSchemeDetailsRepository,
             MfSchemeService mfSchemeService,
             MFNavService mfNavService,

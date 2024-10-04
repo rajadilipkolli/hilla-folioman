@@ -1,7 +1,7 @@
 package com.app.folioman.mfschemes.web.controller;
 
+import com.app.folioman.mfschemes.MFSchemeDTO;
 import com.app.folioman.mfschemes.service.MFSchemeNavService;
-import com.app.folioman.shared.MFSchemeDTO;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.Endpoint;
 import jakarta.validation.Valid;

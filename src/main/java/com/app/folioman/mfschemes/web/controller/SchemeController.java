@@ -1,7 +1,7 @@
 package com.app.folioman.mfschemes.web.controller;
 
-import com.app.folioman.shared.FundDetailProjection;
-import com.app.folioman.shared.MfSchemeService;
+import com.app.folioman.mfschemes.FundDetailProjection;
+import com.app.folioman.mfschemes.MfSchemeService;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.Endpoint;
 import java.util.List;
