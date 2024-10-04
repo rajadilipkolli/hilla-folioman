@@ -1,6 +1,6 @@
 package com.app.folioman.config;
 
-import com.app.folioman.shared.UserSchemeDetailService;
+import com.app.folioman.portfolio.UserSchemeDetailService;
 import org.jobrunr.scheduling.BackgroundJob;
 import org.jobrunr.scheduling.cron.Cron;
 import org.slf4j.Logger;

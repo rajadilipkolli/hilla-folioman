@@ -19,12 +19,12 @@ class UserCASDetailsService {
 
     private final UserCASDetailsRepository userCASDetailsRepository;
     private final UserFolioDetailService userFolioDetailService;
-    private final UserSchemeDetailsService userSchemeDetailService;
+    private final UserSchemeDetailServiceImpl userSchemeDetailService;
 
     UserCASDetailsService(
             UserCASDetailsRepository userCASDetailsRepository,
             UserFolioDetailService userFolioDetailService,
-            UserSchemeDetailsService userSchemeDetailService) {
+            UserSchemeDetailServiceImpl userSchemeDetailService) {
         this.userCASDetailsRepository = userCASDetailsRepository;
         this.userFolioDetailService = userFolioDetailService;
         this.userSchemeDetailService = userSchemeDetailService;
