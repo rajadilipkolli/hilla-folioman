@@ -1,16 +1,19 @@
 package com.app.folioman.mfschemes.service;
 
 import com.app.folioman.mfschemes.FundDetailProjection;
+import com.app.folioman.mfschemes.MFSchemeDTO;
 import com.app.folioman.mfschemes.MFSchemeProjection;
 import com.app.folioman.mfschemes.MfSchemeService;
 import com.app.folioman.mfschemes.SchemeNotFoundException;
 import com.app.folioman.mfschemes.entities.MFSchemeNav;
 import com.app.folioman.mfschemes.entities.MfFundScheme;
+import com.app.folioman.mfschemes.mapper.MfSchemeEntityToDtoMapper;
 import com.app.folioman.mfschemes.mapper.SchemeNAVDataDtoToEntityMapper;
 import com.app.folioman.mfschemes.models.response.NavResponse;
 import com.app.folioman.mfschemes.repository.MfFundSchemeRepository;
 import com.app.folioman.mfschemes.util.SchemeConstants;
 import java.net.URI;
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -21,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.web.client.RestClient;
@@ -28,25 +32,57 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 @Transactional(readOnly = true)
 @Service
-class MfSchemeServiceDelegate implements MfSchemeService {
+public class MfSchemeServiceImpl implements MfSchemeService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(MfSchemeServiceDelegate.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MfSchemeServiceImpl.class);
 
-    private final MfFundSchemeRepository mFSchemeRepository;
-    private final SchemeNAVDataDtoToEntityMapper schemeNAVDataDtoToEntityMapper;
     private final RestClient restClient;
+    private final MfFundSchemeRepository mFSchemeRepository;
+    private final MfSchemeEntityToDtoMapper mfSchemeEntityToDtoMapper;
+    private final SchemeNAVDataDtoToEntityMapper schemeNAVDataDtoToEntityMapper;
     private final TransactionTemplate transactionTemplate;
 
-    MfSchemeServiceDelegate(
-            MfFundSchemeRepository mFSchemeRepository,
-            SchemeNAVDataDtoToEntityMapper schemeNAVDataDtoToEntityMapper,
+    public MfSchemeServiceImpl(
             RestClient restClient,
+            MfFundSchemeRepository mFSchemeRepository,
+            MfSchemeEntityToDtoMapper mfSchemeEntityToDtoMapper,
+            SchemeNAVDataDtoToEntityMapper schemeNAVDataDtoToEntityMapper,
             TransactionTemplate transactionTemplate) {
-        this.mFSchemeRepository = mFSchemeRepository;
-        this.schemeNAVDataDtoToEntityMapper = schemeNAVDataDtoToEntityMapper;
         this.restClient = restClient;
+        this.mFSchemeRepository = mFSchemeRepository;
+        this.mfSchemeEntityToDtoMapper = mfSchemeEntityToDtoMapper;
+        this.schemeNAVDataDtoToEntityMapper = schemeNAVDataDtoToEntityMapper;
         transactionTemplate.setPropagationBehaviorName("PROPAGATION_REQUIRES_NEW");
         this.transactionTemplate = transactionTemplate;
+    }
+
+    public long count() {
+        return mFSchemeRepository.count();
+    }
+
+    public List<Long> findAllSchemeIds() {
+        return mFSchemeRepository.findAllSchemeIds();
+    }
+
+    @Transactional
+    public List<MfFundScheme> saveAllEntities(List<MfFundScheme> list) {
+        return mFSchemeRepository.saveAll(list);
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public MfFundScheme saveEntity(MfFundScheme mfScheme) {
+        return mFSchemeRepository.save(mfScheme);
+    }
+
+    public Optional<MfFundScheme> findBySchemeCode(Long schemeCode) {
+        return this.mFSchemeRepository.findByAmfiCode(schemeCode);
+    }
+
+    @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
+    public Optional<MFSchemeDTO> getMfSchemeDTO(Long schemeCode, LocalDate navDate) {
+        return this.mFSchemeRepository
+                .findBySchemeIdAndMfSchemeNavs_NavDate(schemeCode, navDate)
+                .map(mfSchemeEntityToDtoMapper::convertEntityToDto);
     }
 
     @Override
@@ -70,9 +106,9 @@ class MfSchemeServiceDelegate implements MfSchemeService {
     }
 
     @Override
-    public void fetchSchemeDetails(Long schemeCode) {
-        NavResponse navResponse = getNavResponseResponseEntity(schemeCode);
-        processResponseEntity(schemeCode, navResponse);
+    public void fetchSchemeDetails(Long schemeId) {
+        NavResponse navResponse = getNavResponseResponseEntity(schemeId);
+        processResponseEntity(schemeId, navResponse);
     }
 
     @Override

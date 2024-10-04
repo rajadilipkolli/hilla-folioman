@@ -20,13 +20,13 @@ public class MFSchemeNavService implements MFNavService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MFSchemeNavService.class);
     private final CachedNavService cachedNavService;
-    private final MfSchemesService mfSchemeService;
+    private final MfSchemeServiceImpl mfSchemeService;
     private final MfHistoricalNavService historicalNavService;
     private final MFSchemeNavRepository mfSchemeNavRepository;
 
     MFSchemeNavService(
             CachedNavService cachedNavService,
-            MfSchemesService mfSchemeService,
+            MfSchemeServiceImpl mfSchemeService,
             MfHistoricalNavService historicalNavService,
             MFSchemeNavRepository mfSchemeNavRepository) {
         this.cachedNavService = cachedNavService;
