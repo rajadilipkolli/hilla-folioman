@@ -1,8 +1,8 @@
 package com.app.folioman.mfschemes.mapper;
 
+import com.app.folioman.mfschemes.MFSchemeDTO;
 import com.app.folioman.mfschemes.entities.MFSchemeType;
 import com.app.folioman.mfschemes.entities.MfFundScheme;
-import com.app.folioman.shared.MFSchemeDTO;
 import java.time.LocalDate;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;

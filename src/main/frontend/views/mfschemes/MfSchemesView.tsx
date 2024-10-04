@@ -1,6 +1,6 @@
 import FundDetailProjection
     from "Frontend/generated/com/app/folioman/shared/FundDetailProjection";
-import MFSchemeDTO from "Frontend/generated/com/app/folioman/shared/MFSchemeDTO";
+import MFSchemeDTO from "Frontend/generated/com/app/folioman/mfschemes/MFSchemeDTO";
 import React, { useEffect, useState } from "react";
 import { SchemeController } from "Frontend/generated/endpoints";
 import { Grid, GridColumn, Icon, TextField, Dialog, Button } from "@vaadin/react-components";

@@ -1,4 +1,4 @@
-package com.app.folioman.shared;
+package com.app.folioman.mfschemes;
 
 import java.time.LocalDate;
 import java.util.List;
