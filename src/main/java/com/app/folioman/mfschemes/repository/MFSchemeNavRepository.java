@@ -11,21 +11,23 @@ public interface MFSchemeNavRepository extends JpaRepository<MFSchemeNav, Long> 
 
     @Query(
             """
-            SELECT DISTINCT
-              ms1.amfiCode
-            FROM
-              MFSchemeNav mn1
-              JOIN mn1.mfScheme ms1
-            WHERE
-              NOT EXISTS (
-                SELECT
-                  1
-                FROM
-                  MFSchemeNav mn2
-                WHERE
-                  mn2.mfScheme.id = mn1.mfScheme.id
-                  AND mn2.navDate >=:asOfDate
-              )
-            """)
+      -- Select distinct AMFI codes for schemes without recent NAV entries
+      SELECT DISTINCT
+        ms1.amfiCode
+      FROM
+        MFSchemeNav mn1
+        JOIN mn1.mfScheme ms1
+      WHERE
+        -- Subquery to check if there are no NAV entries on or after the specified date
+        NOT EXISTS (
+          SELECT
+            1
+          FROM
+            MFSchemeNav mn2
+          WHERE
+            mn2.mfScheme.id = mn1.mfScheme.id
+            AND mn2.navDate >=:asOfDate
+        )
+      """)
     List<Long> findMFSchemeNavsByNavNotLoaded(@Param("asOfDate") LocalDate asOfDate);
 }

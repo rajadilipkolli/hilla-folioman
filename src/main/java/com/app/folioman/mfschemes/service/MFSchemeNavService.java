@@ -84,7 +84,7 @@ public class MFSchemeNavService implements MFNavService {
 
     @Override
     public List<Long> getHistoricalDataNotLoadedSchemeIdList() {
-        return mfSchemeNavRepository.findMFSchemeNavsByNavNotLoaded(
-                LocalDate.now().minusDays(1));
+        LocalDate yesterday = LocalDateUtility.getYesterday();
+        return mfSchemeNavRepository.findMFSchemeNavsByNavNotLoaded(yesterday);
     }
 }

@@ -40,4 +40,8 @@ public class LocalDateUtility {
     public static LocalDate getAdjustedDateOrDefault(LocalDate asOfDate) {
         return asOfDate == null ? getAdjustedDate() : getAdjustedDate(asOfDate);
     }
+
+    public static LocalDate getYesterday() {
+        return LocalDate.now().minusDays(1);
+    }
 }
