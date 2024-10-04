@@ -1,9 +1,11 @@
 package com.app.folioman.portfolio.web.controller;
 
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.matchesPattern;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.app.folioman.portfolio.service.UserDetailService;
 import org.junit.jupiter.api.Test;
@@ -69,8 +71,8 @@ class ImportMutualFundControllerTest {
                 .andExpect(
                         jsonPath(
                                 "$.detail",
-                                is(
-                                        "getPortfolio.asOfDate: Date should be past or today, getPortfolio.panNumber: Invalid PAN number format")))
+                                matchesPattern(
+                                        "getPortfolio\\.asOfDate: Date should be past or today, getPortfolio\\.panNumber: Invalid PAN number format|getPortfolio\\.panNumber: Invalid PAN number format, getPortfolio\\.asOfDate: Date should be past or today")))
                 .andExpect(jsonPath("$.instance", is("/api/portfolio/ABCD1234EF")));
     }
 }
