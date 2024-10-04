@@ -32,9 +32,9 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 @Transactional(readOnly = true)
 @Service
-public class MfSchemesService implements MfSchemeService {
+public class MfSchemeServiceImpl implements MfSchemeService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(MfSchemesService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MfSchemeServiceImpl.class);
 
     private final RestClient restClient;
     private final MfFundSchemeRepository mFSchemeRepository;
@@ -42,7 +42,7 @@ public class MfSchemesService implements MfSchemeService {
     private final SchemeNAVDataDtoToEntityMapper schemeNAVDataDtoToEntityMapper;
     private final TransactionTemplate transactionTemplate;
 
-    public MfSchemesService(
+    public MfSchemeServiceImpl(
             RestClient restClient,
             MfFundSchemeRepository mFSchemeRepository,
             MfSchemeEntityToDtoMapper mfSchemeEntityToDtoMapper,
