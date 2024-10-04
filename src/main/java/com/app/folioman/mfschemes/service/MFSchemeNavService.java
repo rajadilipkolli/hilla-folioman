@@ -1,11 +1,13 @@
 package com.app.folioman.mfschemes.service;
 
 import com.app.folioman.mfschemes.NavNotFoundException;
+import com.app.folioman.mfschemes.repository.MFSchemeNavRepository;
 import com.app.folioman.mfschemes.util.SchemeConstants;
 import com.app.folioman.shared.LocalDateUtility;
 import com.app.folioman.shared.MFNavService;
 import com.app.folioman.shared.MFSchemeDTO;
 import java.time.LocalDate;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -20,14 +22,17 @@ public class MFSchemeNavService implements MFNavService {
     private final CachedNavService cachedNavService;
     private final MfSchemesService mfSchemeService;
     private final MfHistoricalNavService historicalNavService;
+    private final MFSchemeNavRepository mfSchemeNavRepository;
 
     MFSchemeNavService(
             CachedNavService cachedNavService,
             MfSchemesService mfSchemeService,
-            MfHistoricalNavService historicalNavService) {
+            MfHistoricalNavService historicalNavService,
+            MFSchemeNavRepository mfSchemeNavRepository) {
         this.cachedNavService = cachedNavService;
         this.mfSchemeService = mfSchemeService;
         this.historicalNavService = historicalNavService;
+        this.mfSchemeNavRepository = mfSchemeNavRepository;
     }
 
     public MFSchemeDTO getNav(Long schemeCode) {
@@ -75,5 +80,11 @@ public class MFSchemeNavService implements MFNavService {
             }
         }
         return mfSchemeDTO;
+    }
+
+    @Override
+    public List<Long> getHistoricalDataNotLoadedSchemeIdList() {
+        return mfSchemeNavRepository.findMFSchemeNavsByNavNotLoaded(
+                LocalDate.now().minusDays(1));
     }
 }

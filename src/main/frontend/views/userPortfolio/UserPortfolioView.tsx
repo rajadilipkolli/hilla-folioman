@@ -20,7 +20,7 @@ export default function UserPortfolioView() {
             const response = await getPortfolio(pan, asOfDate ?? undefined);
             setPortfolio(response || null);
         } catch (e) {
-            setError('Failed to fetch portfolio: ${e.message}');
+            setError(`Failed to fetch portfolio: ${(e as Error).message}`);
         }
     };
 

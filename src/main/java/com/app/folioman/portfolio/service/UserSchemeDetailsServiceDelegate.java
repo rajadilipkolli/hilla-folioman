@@ -3,6 +3,7 @@ package com.app.folioman.portfolio.service;
 import com.app.folioman.portfolio.entities.UserSchemeDetails;
 import com.app.folioman.portfolio.repository.UserSchemeDetailsRepository;
 import com.app.folioman.shared.FundDetailProjection;
+import com.app.folioman.shared.MFNavService;
 import com.app.folioman.shared.MFSchemeProjection;
 import com.app.folioman.shared.MfSchemeService;
 import com.app.folioman.shared.UserSchemeDetailService;
@@ -24,11 +25,15 @@ class UserSchemeDetailsServiceDelegate implements UserSchemeDetailService {
 
     private final UserSchemeDetailsRepository userSchemeDetailsRepository;
     private final MfSchemeService mfSchemeService;
+    private final MFNavService mfNavService;
 
     UserSchemeDetailsServiceDelegate(
-            UserSchemeDetailsRepository userSchemeDetailsRepository, MfSchemeService mfSchemeService) {
+            UserSchemeDetailsRepository userSchemeDetailsRepository,
+            MfSchemeService mfSchemeService,
+            MFNavService mfNavService) {
         this.userSchemeDetailsRepository = userSchemeDetailsRepository;
         this.mfSchemeService = mfSchemeService;
+        this.mfNavService = mfNavService;
     }
 
     @Override
@@ -48,16 +53,19 @@ class UserSchemeDetailsServiceDelegate implements UserSchemeDetailService {
                             .filter(scheme -> Objects.equals(scheme.getIsin(), userSchemeDetailsEntity.getIsin()))
                             .findFirst();
 
-                    if (matchingScheme.isPresent()) {
-                        MFSchemeProjection scheme = matchingScheme.get();
-                        updateUserSchemeDetails(
-                                userSchemeDetailsEntity.getId(), scheme.getAmfiCode(), scheme.getIsin());
-                    } else {
-                        log.debug("ISIN not found in the list of schemes");
-                        MFSchemeProjection firstScheme = mfSchemeEntityList.get(0);
-                        updateUserSchemeDetails(
-                                userSchemeDetailsEntity.getId(), firstScheme.getAmfiCode(), firstScheme.getIsin());
-                    }
+                    matchingScheme.ifPresentOrElse(
+                            mfSchemeProjection -> updateUserSchemeDetails(
+                                    userSchemeDetailsEntity.getId(),
+                                    mfSchemeProjection.getAmfiCode(),
+                                    mfSchemeProjection.getIsin()),
+                            () -> {
+                                log.debug("ISIN not found in the list of schemes");
+                                MFSchemeProjection firstScheme = mfSchemeEntityList.getFirst();
+                                updateUserSchemeDetails(
+                                        userSchemeDetailsEntity.getId(),
+                                        firstScheme.getAmfiCode(),
+                                        firstScheme.getIsin());
+                            });
                 } else {
                     String scheme = userSchemeDetailsEntity.getScheme();
                     if (scheme == null) {
@@ -95,8 +103,7 @@ class UserSchemeDetailsServiceDelegate implements UserSchemeDetailService {
 
     @Override
     public void loadHistoricalDataIfNotExists() {
-        List<Long> historicalDataNotLoadedSchemeIdList =
-                userSchemeDetailsRepository.getHistoricalDataNotLoadedSchemeIdList();
+        List<Long> historicalDataNotLoadedSchemeIdList = mfNavService.getHistoricalDataNotLoadedSchemeIdList();
         if (!historicalDataNotLoadedSchemeIdList.isEmpty()) {
             List<CompletableFuture<Void>> allSchemesWhereHistoricalDetailsNotLoadedCf =
                     historicalDataNotLoadedSchemeIdList.stream()
