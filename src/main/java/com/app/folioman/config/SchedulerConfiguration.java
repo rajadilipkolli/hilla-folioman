@@ -29,8 +29,8 @@ class SchedulerConfiguration {
 
     @EventListener(ApplicationStartedEvent.class)
     void scheduleLoadHistoricalNavJob() {
-        log.info("Scheduling loadHistoricalNavJob to run every 5 minutes");
-        BackgroundJob.scheduleRecurrently(Cron.every5minutes(), userSchemeDetailService::loadHistoricalDataIfNotExists);
+        log.info("Scheduling loadHistoricalNavJob to run every 30 minutes");
+        BackgroundJob.scheduleRecurrently(Cron.everyHalfHour(), userSchemeDetailService::loadHistoricalDataIfNotExists);
         log.info("loadHistoricalNavJob scheduled successfully");
     }
 }

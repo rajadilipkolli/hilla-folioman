@@ -19,8 +19,9 @@ export default function UserPortfolioView() {
             // Call the getPortfolio function with pan as path parameter and asOfDate as query parameter
             const response = await getPortfolio(pan, asOfDate ?? undefined);
             setPortfolio(response || null);
+            setError(null);
         } catch (e) {
-            setError('Failed to fetch portfolio: ${e.message}');
+            setError(`Failed to fetch portfolio: ${(e as Error).message}`);
         }
     };
 
