@@ -1,12 +1,12 @@
 package com.app.folioman.portfolio.service;
 
+import com.app.folioman.mfschemes.FundDetailProjection;
 import com.app.folioman.mfschemes.MFNavService;
+import com.app.folioman.mfschemes.MFSchemeProjection;
+import com.app.folioman.mfschemes.MfSchemeService;
 import com.app.folioman.portfolio.UserSchemeDetailService;
 import com.app.folioman.portfolio.entities.UserSchemeDetails;
 import com.app.folioman.portfolio.repository.UserSchemeDetailsRepository;
-import com.app.folioman.shared.FundDetailProjection;
-import com.app.folioman.shared.MFSchemeProjection;
-import com.app.folioman.shared.MfSchemeService;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
