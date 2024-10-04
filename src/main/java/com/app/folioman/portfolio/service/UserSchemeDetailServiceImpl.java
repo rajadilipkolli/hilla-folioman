@@ -44,66 +44,7 @@ class UserSchemeDetailServiceImpl implements UserSchemeDetailService {
     @Override
     public void setUserSchemeAMFIIfNull() {
         List<UserSchemeDetails> userSchemeDetailsEntities = userSchemeDetailsRepository.findByAmfiIsNull();
-        userSchemeDetailsEntities.forEach(userSchemeDetailsEntity -> {
-            String rtaCode = userSchemeDetailsEntity.getRtaCode();
-            if (StringUtils.hasText(rtaCode)) {
-                log.debug(
-                        "RTA code for userSchemeDetailsEntity with id: {} is {}",
-                        userSchemeDetailsEntity.getId(),
-                        rtaCode);
-                List<MFSchemeProjection> mfSchemeEntityList =
-                        mfSchemeService.fetchSchemesByRtaCode(rtaCode.substring(0, rtaCode.length() - 1));
-                if (!mfSchemeEntityList.isEmpty()) {
-                    Optional<MFSchemeProjection> matchingScheme = mfSchemeEntityList.stream()
-                            .filter(scheme -> Objects.equals(scheme.getIsin(), userSchemeDetailsEntity.getIsin()))
-                            .findFirst();
-
-                    matchingScheme.ifPresentOrElse(
-                            mfSchemeProjection -> updateUserSchemeDetails(
-                                    userSchemeDetailsEntity.getId(),
-                                    mfSchemeProjection.getAmfiCode(),
-                                    mfSchemeProjection.getIsin()),
-                            () -> {
-                                log.debug("ISIN not found in the list of schemes");
-                                MFSchemeProjection firstScheme = mfSchemeEntityList.getFirst();
-                                updateUserSchemeDetails(
-                                        userSchemeDetailsEntity.getId(),
-                                        firstScheme.getAmfiCode(),
-                                        firstScheme.getIsin());
-                            });
-                } else {
-                    String scheme = userSchemeDetailsEntity.getScheme();
-                    if (scheme == null) {
-                        log.warn(
-                                "Scheme is null for userSchemeDetailsEntity with id: {}",
-                                userSchemeDetailsEntity.getId());
-                    } else {
-                        log.info("amfi is Null for scheme :{}", scheme);
-                        // attempting to find ISIN
-                        if (scheme.contains("ISIN:")) {
-                            String isin = scheme.substring(scheme.lastIndexOf("ISIN:") + 5)
-                                    .strip();
-                            if (StringUtils.hasText(isin)) {
-                                Optional<MFSchemeProjection> mfSchemeEntity = mfSchemeService.findByPayOut(isin);
-                                mfSchemeEntity.ifPresent(schemeEntity -> updateUserSchemeDetails(
-                                        userSchemeDetailsEntity.getId(), schemeEntity.getAmfiCode(), isin));
-                            } else {
-                                log.warn("ISIN is null after extraction for scheme: {}", scheme);
-                            }
-                        } else {
-                            // case where isin and amfi is null
-                            List<FundDetailProjection> fundDetailProjections = mfSchemeService.fetchSchemes(scheme);
-                            if (!fundDetailProjections.isEmpty()) {
-                                Long schemeId = getSchemeId(fundDetailProjections, scheme);
-                                if (null != schemeId) {
-                                    updateUserSchemeDetails(userSchemeDetailsEntity.getId(), schemeId, null);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        });
+        userSchemeDetailsEntities.forEach(this::processUserSchemeDetails);
     }
 
     @Override
@@ -125,6 +66,78 @@ class UserSchemeDetailServiceImpl implements UserSchemeDetailService {
         return userSchemeDetailsRepository.findByUserFolioDetails_SchemesIn(userSchemeDetails);
     }
 
+    private void processUserSchemeDetails(UserSchemeDetails userSchemeDetails) {
+        String rtaCode = userSchemeDetails.getRtaCode();
+        if (StringUtils.hasText(rtaCode) && rtaCode.length() > 1) {
+            String trimmedRtaCode = rtaCode.substring(0, rtaCode.length() - 1);
+            processRtaCode(userSchemeDetails, trimmedRtaCode);
+        } else {
+            log.warn("rtaCode is too short: {}", rtaCode);
+        }
+    }
+
+    private void processRtaCode(UserSchemeDetails userSchemeDetails, String rtaCode) {
+        log.debug("RTA code for userSchemeDetailsEntity with id: {} is {}", userSchemeDetails.getId(), rtaCode);
+        List<MFSchemeProjection> mfSchemeEntityList = mfSchemeService.fetchSchemesByRtaCode(rtaCode);
+        if (!mfSchemeEntityList.isEmpty()) {
+            handleNonEmptyMfSchemeList(userSchemeDetails, mfSchemeEntityList);
+        } else {
+            handleEmptyMfSchemeList(userSchemeDetails);
+        }
+    }
+
+    private void handleEmptyMfSchemeList(UserSchemeDetails userSchemeDetails) {
+        String scheme = userSchemeDetails.getScheme();
+        if (scheme == null) {
+            log.warn("Scheme is null for userSchemeDetailsEntity with id: {}", userSchemeDetails.getId());
+        } else {
+            log.info("AMFI is null for scheme: {}", scheme);
+            if (scheme.contains("ISIN:")) {
+                extractAndProcessIsin(userSchemeDetails, scheme);
+            } else {
+                processSchemeWithoutIsin(userSchemeDetails, scheme);
+            }
+        }
+    }
+
+    private void processSchemeWithoutIsin(UserSchemeDetails userSchemeDetails, String scheme) {
+        List<FundDetailProjection> fundDetailProjections = mfSchemeService.fetchSchemes(scheme);
+        if (!fundDetailProjections.isEmpty()) {
+            Long schemeId = getSchemeId(fundDetailProjections, scheme);
+            if (schemeId != null) {
+                updateUserSchemeDetails(userSchemeDetails.getId(), schemeId, null);
+            }
+        }
+    }
+
+    private void extractAndProcessIsin(UserSchemeDetails userSchemeDetails, String scheme) {
+        String isin = scheme.substring(scheme.lastIndexOf("ISIN:") + 5).strip();
+        if (StringUtils.hasText(isin)) {
+            Optional<MFSchemeProjection> mfSchemeEntity = mfSchemeService.findByPayOut(isin);
+            mfSchemeEntity.ifPresent(schemeEntity ->
+                    updateUserSchemeDetails(userSchemeDetails.getId(), schemeEntity.getAmfiCode(), isin));
+        } else {
+            log.warn("ISIN is null after extraction for scheme: {}", scheme);
+        }
+    }
+
+    private void handleNonEmptyMfSchemeList(
+            UserSchemeDetails userSchemeDetails, List<MFSchemeProjection> mfSchemeEntityList) {
+        Optional<MFSchemeProjection> matchingScheme = mfSchemeEntityList.stream()
+                .filter(scheme -> Objects.equals(scheme.getIsin(), userSchemeDetails.getIsin()))
+                .findFirst();
+
+        matchingScheme.ifPresentOrElse(
+                mfSchemeProjection -> updateUserSchemeDetails(
+                        userSchemeDetails.getId(), mfSchemeProjection.getAmfiCode(), mfSchemeProjection.getIsin()),
+                () -> {
+                    log.debug("ISIN not found in the list of schemes");
+                    MFSchemeProjection firstScheme = mfSchemeEntityList.getFirst();
+                    updateUserSchemeDetails(
+                            userSchemeDetails.getId(), firstScheme.getAmfiCode(), firstScheme.getIsin());
+                });
+    }
+
     private void updateUserSchemeDetails(Long userSchemeId, Long schemeId, String isin) {
         userSchemeDetailsRepository.updateAmfiAndIsinById(schemeId, isin, userSchemeId);
     }
@@ -138,9 +151,6 @@ class UserSchemeDetailServiceImpl implements UserSchemeDetailService {
     }
 
     private boolean isMatchingScheme(String scheme, FundDetailProjection fundDetailProjection) {
-        return (scheme.contains("Income")
-                        && fundDetailProjection.getSchemeName().contains("IDCW"))
-                || (!scheme.contains("Income")
-                        && !fundDetailProjection.getSchemeName().contains("IDCW"));
+        return scheme.contains("Income") == fundDetailProjection.getSchemeName().contains("IDCW");
     }
 }
