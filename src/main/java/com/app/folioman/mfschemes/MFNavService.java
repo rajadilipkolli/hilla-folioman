@@ -1,16 +1,18 @@
 package com.app.folioman.mfschemes;
 
 import java.time.LocalDate;
-import java.util.List;
 
 public interface MFNavService {
 
+    MFSchemeDTO getNav(Long schemeCode);
+
+    MFSchemeDTO getNavOnDate(Long schemeCode, LocalDate inputDate);
+
     MFSchemeDTO getNavByDateWithRetry(Long schemeId, LocalDate asOfDate);
 
-    /**
-     * Retrieves a list of scheme IDs for which historical data has not been loaded.
-     *
-     * @return A List of Long values representing the scheme IDs without loaded historical data.
-     */
-    List<Long> getHistoricalDataNotLoadedSchemeIdList();
+    void loadLastDayDataNav();
+
+    void loadHistoricalDataIfNotExists();
+
+    String downloadAllNAVs();
 }

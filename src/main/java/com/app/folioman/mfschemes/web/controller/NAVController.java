@@ -1,7 +1,7 @@
 package com.app.folioman.mfschemes.web.controller;
 
 import com.app.folioman.mfschemes.MFSchemeDTO;
-import com.app.folioman.mfschemes.service.MFSchemeNavService;
+import com.app.folioman.mfschemes.service.MFNavServiceImpl;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.Endpoint;
 import jakarta.validation.Valid;
@@ -22,9 +22,9 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 class NAVController {
 
-    private final MFSchemeNavService mFSchemeNavService;
+    private final MFNavServiceImpl mFSchemeNavService;
 
-    NAVController(MFSchemeNavService mFSchemeNavService) {
+    NAVController(MFNavServiceImpl mFSchemeNavService) {
         this.mFSchemeNavService = mFSchemeNavService;
     }
 

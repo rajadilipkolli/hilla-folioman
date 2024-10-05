@@ -1,5 +1,6 @@
 package com.app.folioman.mfschemes.bootstrap;
 
+import com.app.folioman.mfschemes.MFNavService;
 import com.app.folioman.mfschemes.entities.MfFundScheme;
 import com.app.folioman.mfschemes.service.AmfiService;
 import com.app.folioman.mfschemes.service.BSEStarMasterDataService;
@@ -18,13 +19,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.event.EventListener;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestClient;
-import org.springframework.web.client.RestClientException;
 
 @Component
 public class Initializer {
@@ -32,22 +28,22 @@ public class Initializer {
     private static final Logger LOGGER = LoggerFactory.getLogger(Initializer.class);
     public static final String ISIN_KEY = "ISIN Div Payout/ ISIN GrowthISIN Div Reinvestment";
 
-    private final RestClient restClient;
     private final AmfiService amfiService;
     private final BSEStarMasterDataService bseStarMasterDataService;
     private final MfFundSchemeService mfFundSchemeService;
+    private final MFNavService mfNavService;
 
     private final Pattern schemeCodePattern = Pattern.compile("\\d{6}");
 
     public Initializer(
-            RestClient restClient,
             AmfiService amfiService,
             BSEStarMasterDataService bseStarMasterDataService,
-            MfFundSchemeService mfFundSchemeService) {
-        this.restClient = restClient;
+            MfFundSchemeService mfFundSchemeService,
+            MFNavService mfNavService) {
         this.amfiService = amfiService;
         this.bseStarMasterDataService = bseStarMasterDataService;
         this.mfFundSchemeService = mfFundSchemeService;
+        this.mfNavService = mfNavService;
     }
 
     @EventListener(ApplicationStartedEvent.class)
@@ -78,7 +74,7 @@ public class Initializer {
     }
 
     private Map<String, String> getAmfiCodeISINMapping(Map<String, Map<String, String>> amfiDataMap) {
-        Map<String, String> amfiCodeIsinMapping = getAMFICodeISINMap();
+        Map<String, String> amfiCodeIsinMapping = getAMFIDataAndMapISIN();
 
         // Only proceed if the mapping is empty
         if (amfiCodeIsinMapping.isEmpty()) {
@@ -120,24 +116,8 @@ public class Initializer {
         }
     }
 
-    private Map<String, String> getAMFICodeISINMap() {
-        LOGGER.info("Downloading NAVAll from AMFI");
-        String allNAVs = null;
-        try {
-            allNAVs = restClient
-                    .get()
-                    .uri(SchemeConstants.AMFI_WEBSITE_LINK)
-                    .headers(HttpHeaders::clearContentHeaders)
-                    .header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE)
-                    .retrieve()
-                    .onStatus(
-                            HttpStatusCode::is4xxClientError,
-                            (request, response) ->
-                                    LOGGER.error("Failed to retrieve AMFI codes {}", response.getStatusCode()))
-                    .body(String.class);
-        } catch (RestClientException e) {
-            LOGGER.error("Failed to retrieve AMFI codes ", e);
-        }
+    private Map<String, String> getAMFIDataAndMapISIN() {
+        String allNAVs = mfNavService.downloadAllNAVs();
         return getAmfiCodeIsinMap(allNAVs);
     }
 
@@ -147,7 +127,7 @@ public class Initializer {
             for (String row : allNAVs.split("\n")) {
                 Matcher matcher = schemeCodePattern.matcher(row);
                 if (matcher.find()) {
-                    String[] rowParts = row.split(";");
+                    String[] rowParts = row.split(SchemeConstants.NAV_SEPARATOR);
                     if (rowParts.length >= 3 && !rowParts[1].equals("-")) {
                         amfiCodeIsinMap.put(rowParts[1].trim(), rowParts[0].trim());
                     }

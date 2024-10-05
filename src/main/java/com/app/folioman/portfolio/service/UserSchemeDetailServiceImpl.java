@@ -1,7 +1,6 @@
 package com.app.folioman.portfolio.service;
 
 import com.app.folioman.mfschemes.FundDetailProjection;
-import com.app.folioman.mfschemes.MFNavService;
 import com.app.folioman.mfschemes.MFSchemeProjection;
 import com.app.folioman.mfschemes.MfSchemeService;
 import com.app.folioman.portfolio.UserSchemeDetailService;
@@ -10,11 +9,8 @@ import com.app.folioman.portfolio.repository.UserSchemeDetailsRepository;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -27,39 +23,17 @@ class UserSchemeDetailServiceImpl implements UserSchemeDetailService {
 
     private final UserSchemeDetailsRepository userSchemeDetailsRepository;
     private final MfSchemeService mfSchemeService;
-    private final MFNavService mfNavService;
-    private final TaskExecutor taskExecutor;
 
     UserSchemeDetailServiceImpl(
-            UserSchemeDetailsRepository userSchemeDetailsRepository,
-            MfSchemeService mfSchemeService,
-            MFNavService mfNavService,
-            @Qualifier("taskExecutor") TaskExecutor taskExecutor) {
+            UserSchemeDetailsRepository userSchemeDetailsRepository, MfSchemeService mfSchemeService) {
         this.userSchemeDetailsRepository = userSchemeDetailsRepository;
         this.mfSchemeService = mfSchemeService;
-        this.mfNavService = mfNavService;
-        this.taskExecutor = taskExecutor;
     }
 
     @Override
     public void setUserSchemeAMFIIfNull() {
         List<UserSchemeDetails> userSchemeDetailsEntities = userSchemeDetailsRepository.findByAmfiIsNull();
         userSchemeDetailsEntities.forEach(this::processUserSchemeDetails);
-    }
-
-    @Override
-    public void loadHistoricalDataIfNotExists() {
-        List<Long> historicalDataNotLoadedSchemeIdList = mfNavService.getHistoricalDataNotLoadedSchemeIdList();
-        if (!historicalDataNotLoadedSchemeIdList.isEmpty()) {
-            List<CompletableFuture<Void>> allSchemesWhereHistoricalDetailsNotLoadedCf =
-                    historicalDataNotLoadedSchemeIdList.stream()
-                            .map(schemeId -> CompletableFuture.runAsync(
-                                    () -> mfSchemeService.fetchSchemeDetails(schemeId), taskExecutor))
-                            .toList();
-            CompletableFuture.allOf(allSchemesWhereHistoricalDetailsNotLoadedCf.toArray(new CompletableFuture<?>[0]))
-                    .join();
-            log.info("Completed loading HistoricalData for schemes that don't exist");
-        }
     }
 
     public List<UserSchemeDetails> findBySchemesIn(List<UserSchemeDetails> userSchemeDetails) {

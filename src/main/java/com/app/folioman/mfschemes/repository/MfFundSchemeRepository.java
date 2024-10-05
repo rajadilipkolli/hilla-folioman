@@ -46,4 +46,6 @@ public interface MfFundSchemeRepository extends JpaRepository<MfFundScheme, Long
     List<String> findDistinctAmfiCode();
 
     List<MFSchemeProjection> findByRtaCodeStartsWith(String rtaCode);
+
+    MfFundScheme getReferenceByAmfiCode(Long amfiCode);
 }
