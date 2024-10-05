@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import {Button, DatePicker, Grid, GridColumn, TextField} from "@vaadin/react-components";
+import {Button, DatePicker, Grid, GridSortColumn, TextField} from "@vaadin/react-components";
 import PortfolioResponse from "Frontend/generated/com/app/folioman/portfolio/models/response/PortfolioResponse";
 import {getPortfolio} from "Frontend/generated/ImportMutualFundController";
 
@@ -51,18 +51,22 @@ export default function UserPortfolioView() {
             {error && <div style={{color: 'red'}}>{error}</div>}
 
             {portfolio && (
-                <Grid items={portfolio.portfolioDetailsDTOS}>
-                    <GridColumn path="schemeName" header="Scheme Name"
-                                renderer={({ item }) => (
-                                    <span style={{ whiteSpace: 'normal', overflow: 'visible' }}>
-                                    {item.schemeName}
-                                </span>
-                                )}
-                    />
-                    <GridColumn path="folioNumber" header="Folio Number"/>
-                    <GridColumn path="totalValue" header="Total Value"/>
-                    <GridColumn path="date" header="As of Date"/>
-                </Grid>
+                <>
+                    <p><strong>Total Value:</strong> {portfolio.totalPortfolioValue}</p>
+
+                    <Grid items={portfolio.portfolioDetailsDTOS}>
+                        <GridSortColumn path="schemeName" header="Scheme Name"
+                                    renderer={({ item }) => (
+                                        <span style={{ whiteSpace: 'normal', overflow: 'visible' }}>
+                                        {item.schemeName}
+                                    </span>
+                                    )}
+                        />
+                        <GridSortColumn path="folioNumber" header="Folio Number"/>
+                        <GridSortColumn path="totalValue" header="Total Value"/>
+                        <GridSortColumn path="date" header="As of Date"/>
+                    </Grid>
+                </>
             )}
         </div>
     );

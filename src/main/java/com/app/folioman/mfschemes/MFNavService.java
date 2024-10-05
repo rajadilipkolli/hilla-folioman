@@ -1,6 +1,7 @@
 package com.app.folioman.mfschemes;
 
 import java.time.LocalDate;
+import java.util.Map;
 
 public interface MFNavService {
 
@@ -14,5 +15,5 @@ public interface MFNavService {
 
     void loadHistoricalDataIfNotExists();
 
-    String downloadAllNAVs();
+    Map<String, String> getAmfiCodeIsinMap();
 }
