@@ -116,6 +116,7 @@ public class MfSchemeServiceImpl implements MfSchemeService {
         return this.mFSchemeRepository.findByRtaCodeStartsWith(rtaCode);
     }
 
+    @Override
     public void fetchSchemeDetails(String oldSchemeCode, Long newSchemeCode) {
         NavResponse navResponse = getNavResponseResponseEntity(Long.valueOf(oldSchemeCode));
         processResponseEntity(newSchemeCode, navResponse);

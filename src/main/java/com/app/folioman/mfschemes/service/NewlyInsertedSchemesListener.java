@@ -1,5 +1,6 @@
 package com.app.folioman.mfschemes.service;
 
+import com.app.folioman.mfschemes.MFNavService;
 import com.app.folioman.shared.UploadedSchemesList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -15,12 +16,12 @@ public class NewlyInsertedSchemesListener {
 
     private static final Logger log = LoggerFactory.getLogger(NewlyInsertedSchemesListener.class);
 
-    private final MFSchemeNavService mfSchemeNavService;
+    private final MFNavService mfNavService;
     private final TaskExecutor taskExecutor;
 
     public NewlyInsertedSchemesListener(
-            MFSchemeNavService mfSchemeNavService, @Qualifier("taskExecutor") TaskExecutor taskExecutor) {
-        this.mfSchemeNavService = mfSchemeNavService;
+            MFNavService mfNavService, @Qualifier("taskExecutor") TaskExecutor taskExecutor) {
+        this.mfNavService = mfNavService;
         this.taskExecutor = taskExecutor;
     }
 
@@ -28,7 +29,7 @@ public class NewlyInsertedSchemesListener {
     void onOrderResponseEvent(UploadedSchemesList uploadedSchemesList) {
         log.info("Received Event :{}", uploadedSchemesList);
         List<CompletableFuture<Void>> completableFutureList = uploadedSchemesList.schemesList().stream()
-                .map(schemeId -> CompletableFuture.runAsync(() -> mfSchemeNavService.getNav(schemeId), taskExecutor))
+                .map(schemeId -> CompletableFuture.runAsync(() -> mfNavService.getNav(schemeId), taskExecutor))
                 .toList();
 
         CompletableFuture.allOf(completableFutureList.toArray(new CompletableFuture[0]))
