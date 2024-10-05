@@ -5,16 +5,12 @@ import com.app.folioman.mfschemes.entities.MfFundScheme;
 import com.app.folioman.mfschemes.service.AmfiService;
 import com.app.folioman.mfschemes.service.BSEStarMasterDataService;
 import com.app.folioman.mfschemes.service.MfFundSchemeService;
-import com.app.folioman.mfschemes.util.SchemeConstants;
 import com.opencsv.exceptions.CsvException;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
@@ -32,8 +28,6 @@ public class Initializer {
     private final BSEStarMasterDataService bseStarMasterDataService;
     private final MfFundSchemeService mfFundSchemeService;
     private final MFNavService mfNavService;
-
-    private final Pattern schemeCodePattern = Pattern.compile("\\d{6}");
 
     public Initializer(
             AmfiService amfiService,
@@ -74,7 +68,7 @@ public class Initializer {
     }
 
     private Map<String, String> getAmfiCodeISINMapping(Map<String, Map<String, String>> amfiDataMap) {
-        Map<String, String> amfiCodeIsinMapping = getAMFIDataAndMapISIN();
+        Map<String, String> amfiCodeIsinMapping = mfNavService.getAmfiCodeIsinMap();
 
         // Only proceed if the mapping is empty
         if (amfiCodeIsinMapping.isEmpty()) {
@@ -114,29 +108,5 @@ public class Initializer {
         if (!mfFundSchemeList.isEmpty()) {
             mfFundSchemeService.saveData(mfFundSchemeList);
         }
-    }
-
-    private Map<String, String> getAMFIDataAndMapISIN() {
-        String allNAVs = mfNavService.downloadAllNAVs();
-        return getAmfiCodeIsinMap(allNAVs);
-    }
-
-    private Map<String, String> getAmfiCodeIsinMap(String allNAVs) {
-        Map<String, String> amfiCodeIsinMap = new HashMap<>();
-        if (allNAVs != null && !allNAVs.isEmpty()) {
-            for (String row : allNAVs.split("\n")) {
-                Matcher matcher = schemeCodePattern.matcher(row);
-                if (matcher.find()) {
-                    String[] rowParts = row.split(SchemeConstants.NAV_SEPARATOR);
-                    if (rowParts.length >= 3 && !rowParts[1].equals("-")) {
-                        amfiCodeIsinMap.put(rowParts[1].trim(), rowParts[0].trim());
-                    }
-                    if (rowParts.length >= 4 && !rowParts[2].equals("-")) {
-                        amfiCodeIsinMap.put(rowParts[2].trim(), rowParts[0].trim());
-                    }
-                }
-            }
-        }
-        return amfiCodeIsinMap;
     }
 }

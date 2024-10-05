@@ -27,6 +27,8 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.StringUtils;
@@ -58,7 +60,7 @@ public class MFNavServiceImpl implements MFNavService {
             MfFundSchemeRepository mFSchemeRepository,
             @Qualifier("taskExecutor") TaskExecutor taskExecutor,
             RestClient restClient,
-            TransactionTemplate transactionTemplate) {
+            PlatformTransactionManager transactionManager) {
         this.cachedNavService = cachedNavService;
         this.mfSchemeService = mfSchemeService;
         this.historicalNavService = historicalNavService;
@@ -66,8 +68,9 @@ public class MFNavServiceImpl implements MFNavService {
         this.mFSchemeRepository = mFSchemeRepository;
         this.taskExecutor = taskExecutor;
         this.restClient = restClient;
-        transactionTemplate.setPropagationBehaviorName("PROPAGATION_REQUIRES_NEW");
-        this.transactionTemplate = transactionTemplate;
+        // Create a new TransactionTemplate with the desired propagation behavior
+        this.transactionTemplate = new TransactionTemplate(transactionManager);
+        this.transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
     }
 
     @Override
@@ -144,7 +147,46 @@ public class MFNavServiceImpl implements MFNavService {
     }
 
     @Override
-    public String downloadAllNAVs() {
+    public void loadHistoricalDataIfNotExists() {
+        List<Long> historicalDataNotLoadedSchemeIdList = getHistoricalDataNotLoadedSchemeIdList();
+        if (!historicalDataNotLoadedSchemeIdList.isEmpty()) {
+            List<CompletableFuture<Void>> allSchemesWhereHistoricalDetailsNotLoadedCf =
+                    historicalDataNotLoadedSchemeIdList.stream()
+                            .map(schemeId -> CompletableFuture.runAsync(
+                                    () -> mfSchemeService.fetchSchemeDetails(schemeId), taskExecutor))
+                            .toList();
+            CompletableFuture.allOf(allSchemesWhereHistoricalDetailsNotLoadedCf.toArray(new CompletableFuture<?>[0]))
+                    .join();
+            LOGGER.info("Completed loading HistoricalData for schemes that don't exist");
+        }
+    }
+
+    @Override
+    public Map<String, String> getAmfiCodeIsinMap() {
+        String downloadedAllNAVs = downloadAllNAVs();
+        return getAmfiCodeIsinMap(downloadedAllNAVs);
+    }
+
+    private Map<String, String> getAmfiCodeIsinMap(String allNAVs) {
+        Map<String, String> amfiCodeIsinMap = new HashMap<>();
+        if (allNAVs != null && !allNAVs.isEmpty()) {
+            for (String row : allNAVs.split("\n")) {
+                Matcher matcher = schemeCodePattern.matcher(row);
+                if (matcher.find()) {
+                    String[] rowParts = row.split(SchemeConstants.NAV_SEPARATOR);
+                    if (rowParts.length >= 3 && !rowParts[1].equals("-")) {
+                        amfiCodeIsinMap.put(rowParts[1].trim(), rowParts[0].trim());
+                    }
+                    if (rowParts.length >= 4 && !rowParts[2].equals("-")) {
+                        amfiCodeIsinMap.put(rowParts[2].trim(), rowParts[0].trim());
+                    }
+                }
+            }
+        }
+        return amfiCodeIsinMap;
+    }
+
+    private String downloadAllNAVs() {
         LOGGER.info("Downloading NAVAll from AMFI");
         String allNAVs = null;
         try {
@@ -163,21 +205,6 @@ public class MFNavServiceImpl implements MFNavService {
             LOGGER.error("Failed to retrieve AMFI codes ", e);
         }
         return allNAVs;
-    }
-
-    @Override
-    public void loadHistoricalDataIfNotExists() {
-        List<Long> historicalDataNotLoadedSchemeIdList = getHistoricalDataNotLoadedSchemeIdList();
-        if (!historicalDataNotLoadedSchemeIdList.isEmpty()) {
-            List<CompletableFuture<Void>> allSchemesWhereHistoricalDetailsNotLoadedCf =
-                    historicalDataNotLoadedSchemeIdList.stream()
-                            .map(schemeId -> CompletableFuture.runAsync(
-                                    () -> mfSchemeService.fetchSchemeDetails(schemeId), taskExecutor))
-                            .toList();
-            CompletableFuture.allOf(allSchemesWhereHistoricalDetailsNotLoadedCf.toArray(new CompletableFuture<?>[0]))
-                    .join();
-            LOGGER.info("Completed loading HistoricalData for schemes that don't exist");
-        }
     }
 
     private Map<Long, NavHolder> getAmfiCodeNavMap(String allNAVs) {
