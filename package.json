@@ -3,7 +3,7 @@
   "license": "UNLICENSED",
   "type": "module",
   "dependencies": {
-    "@polymer/polymer": "3.5.1",
+    "@polymer/polymer": "3.5.2",
     "@vaadin/bundles": "24.4.11",
     "@vaadin/common-frontend": "0.0.19",
     "@vaadin/hilla-file-router": "24.4.9",
