@@ -14,7 +14,7 @@ export const routes = [
     children: [
       { path: '/importmutualfunds', element: <ImportMutualFundsView />, handle: { title: 'Import Mutual Funds' } },
       { path: '/userPortfolio', element: <UserPortfolioView />, handle: { title: 'UserPortfolio' } },
-      { path: '/rebalance', element: <ReBalanceView />, handle: { title: 'ReBalance Portfolio' } },
+      { path: '/rebalance', element: <ReBalanceView />, handle: { title: 'ReBalance Calculator' } },
       { path: '/', element: <MfSchemesView />, handle: {title: 'Mutual Fund Schemes'}},
     ],
   },
