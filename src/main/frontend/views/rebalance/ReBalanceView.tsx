@@ -24,6 +24,16 @@ export default function ReBalanceView() {
     };
 
     const handleReBalance = async () => {
+        if (funds.some(fund => fund.value < 0 || fund.ratio < 0 || fund.ratio > 100)) {
+            setResult('Invalid fund values or ratios. Please check your inputs.');
+            return;
+        }
+
+        if (Number(amountToInvest) <= 0) {
+            setResult('Amount to invest must be greater than zero.');
+            return;
+        }
+
         try {
             const fundsData = funds.map(fund => ({
                 value: fund.value,
@@ -54,14 +64,14 @@ export default function ReBalanceView() {
             }
         } catch (error) {
             console.error('Error calculating rebalance:', error);
-            setResult(error instanceof Error ? error.message : 'Error calculating rebalance');
+            setResult(error instanceof Error ? error.message : 'An unknown error occurred during rebalance calculation');
         }
     };
 
 
     return (
         <div className="App">
-            <h1>Investment ReBalancing</h1>
+            <h1>Investment ReBalancing Calculator</h1>
 
             {funds.map((fund, index) => (
                 <div key={index}>
