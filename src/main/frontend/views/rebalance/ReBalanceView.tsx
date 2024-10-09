@@ -108,11 +108,12 @@ export default function ReBalanceView() {
                         value={amountToInvest}
                         onChange={(e) => setAmountToInvest(e.target.value)}
                         placeholder="Enter amount to invest"
+                        aria-label="Amount to invest"
                     />
                 </label>
             </div>
 
-            <button onClick={handleReBalance}>Calculate Rebalance</button>
+            <button onClick={handleReBalance} aria-label="Calculate Rebalance">Calculate Rebalance</button>
 
             {result && (
                 <div id="result">
