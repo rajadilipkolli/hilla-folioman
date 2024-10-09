@@ -1,6 +1,9 @@
 package com.app.folioman.portfolio.web.controller;
 
+import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.app.folioman.portfolio.models.request.Fund;
@@ -28,9 +31,12 @@ class ReBalanceControllerTest {
     void testReBalance() throws Exception {
         this.mockMvc
                 .perform(post("/api/portfolio/rebalance")
+                        .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(new InvestmentRequest(
                                 List.of(new Fund(7000, 70), new Fund(3000, 25), new Fund(500, 5)), 1000)))
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.investments.size()", is(3)));
     }
 }

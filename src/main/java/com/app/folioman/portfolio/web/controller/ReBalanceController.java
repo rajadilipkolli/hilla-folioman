@@ -5,8 +5,10 @@ import com.app.folioman.portfolio.models.request.InvestmentRequest;
 import com.app.folioman.portfolio.models.response.InvestmentResponse;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.Endpoint;
+import jakarta.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -14,12 +16,13 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/portfolio")
+@Validated
 @Endpoint
 @AnonymousAllowed // Allow anonymous access for this endpoint
 public class ReBalanceController {
 
     @PostMapping("/rebalance")
-    public InvestmentResponse reBalance(@RequestBody InvestmentRequest investmentRequest) {
+    public InvestmentResponse reBalance(@RequestBody @Valid InvestmentRequest investmentRequest) {
         List<Double> investments = new ArrayList<>();
 
         // Calculate the total current value of all funds

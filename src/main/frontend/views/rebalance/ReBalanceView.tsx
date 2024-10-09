@@ -54,7 +54,7 @@ export default function ReBalanceView() {
             }
         } catch (error) {
             console.error('Error calculating rebalance:', error);
-            setResult('Error calculating rebalance');
+            setResult(error instanceof Error ? error.message : 'Error calculating rebalance');
         }
     };
 
