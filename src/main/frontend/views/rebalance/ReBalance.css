@@ -1,0 +1,105 @@
+/* Center the form and give it a clean, sleek look */
+.ReBalance {
+    text-align: center;
+    margin: 0 auto;
+    padding: 20px;
+    max-width: 450px;
+    background-color: #f4f6f9;
+    border-radius: 12px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+    font-family: 'Arial', Helvetica, sans-serif;
+}
+
+/* Form title */
+h1 {
+    color: #2c3e50;
+    font-size: 22px;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+/* Styling for labels */
+label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #34495e;
+}
+
+/* Styling for input fields */
+input[type="number"] {
+    width: calc(100% - 16px);
+    padding: 8px 12px;
+    margin-bottom: 15px;
+    border: 1px solid #bdc3c7;
+    border-radius: 6px;
+    font-size: 15px;
+    box-sizing: border-box;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* Input field hover/focus effect */
+input[type="number"]:focus {
+    border-color: #3498db;
+    box-shadow: 0 0 5px rgba(52, 152, 219, 0.3);
+    outline: none;
+}
+
+input[type="number"]:hover {
+    border-color: #7f8c8d;
+}
+
+/* Button styling */
+button {
+    padding: 10px 18px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+button:hover {
+    background-color: #2980b9;
+    box-shadow: 0 4px 8px rgba(41, 128, 185, 0.2);
+}
+
+button:focus {
+    background-color: #2980b9;
+    box-shadow: 0 4px 8px rgba(41, 128, 185, 0.2);
+    outline: 2px solid #3498db;
+    outline-offset: 2px;
+}
+
+/* Result display styling */
+#result {
+    margin-top: 20px;
+    padding: 12px;
+    background-color: #ecf0f1;
+    border-radius: 6px;
+    font-size: 15px;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+/* Responsive design for smaller screens */
+@media (max-width: 600px) {
+    .ReBalance {
+        max-width: 90%;
+        padding: 15px;
+    }
+
+    input[type="number"] {
+        font-size: 14px;
+        padding: 8px;
+    }
+
+    button {
+        padding: 8px 16px;
+        font-size: 14px;
+    }
+}
