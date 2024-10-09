@@ -34,7 +34,7 @@ class ReBalanceControllerTest {
                 .perform(post("/api/portfolio/rebalance")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(new InvestmentRequest(
-                                List.of(new Fund(7000, 70), new Fund(3000, 25), new Fund(500, 5)), 1000)))
+                                List.of(new Fund(7000, 0.7), new Fund(3000, 0.25), new Fund(500, 0.05)), 1000)))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -101,15 +101,15 @@ class ReBalanceControllerTest {
                 .andExpect(jsonPath("$.violations[0].message", is("Amount to invest cannot be negative")))
                 .andExpect(jsonPath("$.violations[1].field", is("funds")))
                 .andExpect(jsonPath(
-                        "$.violations[1].message", is("The sum of fund ratios must be 100%. Current sum: 0.50")));
+                        "$.violations[1].message", is("The sum of fund ratios must be 1%. Current sum: 0.50")));
     }
 
     @Test
     void testReBalanceWithInvalidFundRatios() throws Exception {
         InvestmentRequest investmentRequest = new InvestmentRequest(
                 List.of(
-                        new Fund(10000, 50), new Fund(10000, 30)
-                        // Sum of ratios is 80, not 100
+                        new Fund(10000, 0.50), new Fund(10000, 0.30)
+                        // Sum of ratios is 0.80, not 1.00
                         ),
                 1000);
 
@@ -126,7 +126,7 @@ class ReBalanceControllerTest {
                 .andExpect(jsonPath("$.violations", hasSize(1)))
                 .andExpect(jsonPath("$.violations[0].field", is("funds")))
                 .andExpect(jsonPath(
-                        "$.violations[0].message", is("The sum of fund ratios must be 100%. Current sum: 80.00")));
+                        "$.violations[0].message", is("The sum of fund ratios must be 1%. Current sum: 0.80")));
     }
 
     @Test
@@ -147,8 +147,8 @@ class ReBalanceControllerTest {
                 .andExpect(jsonPath("$.instance", is("/api/portfolio/rebalance")))
                 .andExpect(jsonPath("$.violations", hasSize(2)))
                 .andExpect(jsonPath("$.violations[0].field", is("funds")))
-                .andExpect(jsonPath(
-                        "$.violations[0].message", is("The sum of fund ratios must be 100%. Current sum: 0.50")))
+                .andExpect(
+                        jsonPath("$.violations[0].message", is("The sum of fund ratios must be 1%. Current sum: 0.50")))
                 .andExpect(jsonPath("$.violations[1].field", is("funds[0].value")))
                 .andExpect(jsonPath("$.violations[1].message", is("Fund value cannot be negative")));
     }
@@ -156,7 +156,7 @@ class ReBalanceControllerTest {
     @Test
     void testReBalanceWithInvalidFundRatio() throws Exception {
         InvestmentRequest investmentRequest = new InvestmentRequest(
-                List.of(new Fund(10000, 150)), // Ratio greater than 100
+                List.of(new Fund(10000, 1.50)), // Ratio greater than 100
                 1000);
 
         mockMvc.perform(post("/api/portfolio/rebalance")
@@ -171,9 +171,9 @@ class ReBalanceControllerTest {
                 .andExpect(jsonPath("$.instance", is("/api/portfolio/rebalance")))
                 .andExpect(jsonPath("$.violations", hasSize(2)))
                 .andExpect(jsonPath("$.violations[0].field", is("funds")))
-                .andExpect(jsonPath(
-                        "$.violations[0].message", is("The sum of fund ratios must be 100%. Current sum: 150.00")))
+                .andExpect(
+                        jsonPath("$.violations[0].message", is("The sum of fund ratios must be 1%. Current sum: 1.50")))
                 .andExpect(jsonPath("$.violations[1].field", is("funds[0].ratio")))
-                .andExpect(jsonPath("$.violations[1].message", is("Fund ratio must be between 0 and 100")));
+                .andExpect(jsonPath("$.violations[1].message", is("Fund ratio must be between 0 and 1")));
     }
 }

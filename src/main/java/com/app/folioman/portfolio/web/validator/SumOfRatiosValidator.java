@@ -15,13 +15,13 @@ public class SumOfRatiosValidator implements ConstraintValidator<ValidSumOfRatio
 
         double totalRatio = funds.stream().mapToDouble(Fund::ratio).sum();
 
-        // Check if the sum of ratios is approximately 100
-        boolean isValid = Math.abs(totalRatio - 100.0) < 0.001; // Allowing a small margin for floating-point errors
+        // Check if the sum of ratios is approximately 1
+        boolean isValid = Math.abs(totalRatio - 1.00) < 0.001; // Allowing a small margin for floating-point errors
 
         if (!isValid) {
             context.disableDefaultConstraintViolation();
             context.buildConstraintViolationWithTemplate(
-                            "The sum of fund ratios must be 100%. Current sum: " + String.format("%.2f", totalRatio))
+                            "The sum of fund ratios must be 1%. Current sum: " + String.format("%.2f", totalRatio))
                     .addConstraintViolation();
         }
 

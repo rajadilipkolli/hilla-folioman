@@ -11,6 +11,7 @@ export default function ReBalanceView() {
     ]);
     const [amountToInvest, setAmountToInvest] = useState('');
     const [result, setResult] = useState('');
+    const isValidForm = funds.reduce((sum, fund) => sum + fund.ratio, 0) === 100;
 
     const handleAddFund = () => {
         setFunds([...funds, {value: 0, ratio: 0}]);
@@ -64,7 +65,11 @@ export default function ReBalanceView() {
             }
         } catch (error) {
             console.error('Error calculating rebalance:', error);
-            setResult(error instanceof Error ? error.message : 'An unknown error occurred during rebalance calculation');
+            if (error instanceof TypeError) {
+                setResult('There was a problem with the data types in the calculation.');
+            } else {
+                setResult(error instanceof Error ? error.message : 'An unknown error occurred during rebalance calculation');
+            }
         }
     };
 
@@ -113,7 +118,8 @@ export default function ReBalanceView() {
                 </label>
             </div>
 
-            <button onClick={handleReBalance} aria-label="Calculate Rebalance">Calculate Rebalance</button>
+            <button onClick={handleReBalance} disabled={!isValidForm} aria-label="Calculate Rebalance">Calculate Rebalance</button>
+            {!isValidForm && <p>The sum of fund ratios must equal 100%</p>}
 
             {result && (
                 <div id="result">

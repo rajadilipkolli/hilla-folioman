@@ -7,7 +7,7 @@
     background-color: #f4f6f9;
     border-radius: 12px;
     box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
-    font-family: 'Arial', sans-serif;
+    font-family: 'Arial', Helvetica, sans-serif;
 }
 
 /* Form title */
@@ -46,6 +46,10 @@ input[type="number"]:focus {
     outline: none;
 }
 
+input[type="number"]:hover {
+    border-color: #7f8c8d;
+}
+
 /* Button styling */
 button {
     padding: 10px 18px;
@@ -62,6 +66,13 @@ button {
 button:hover {
     background-color: #2980b9;
     box-shadow: 0 4px 8px rgba(41, 128, 185, 0.2);
+}
+
+button:focus {
+    background-color: #2980b9;
+    box-shadow: 0 4px 8px rgba(41, 128, 185, 0.2);
+    outline: 2px solid #3498db;
+    outline-offset: 2px;
 }
 
 /* Result display styling */

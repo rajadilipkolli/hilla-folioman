@@ -4,9 +4,13 @@ import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Positive;
 
-// Fund class to hold individual fund details
+/**
+ * Represents an individual fund in an investment portfolio.
+ * This record encapsulates the value and ratio of a fund,
+ * with built-in validation constraints.
+ */
 public record Fund(
         @Positive(message = "Fund value cannot be negative") double value,
-        @DecimalMin(value = "0.0", message = "Fund ratio must be between 0 and 100")
-                @DecimalMax(value = "100.0", message = "Fund ratio must be between 0 and 100")
+        @DecimalMin(value = "0.0", message = "Fund ratio must be between 0 and 1")
+                @DecimalMax(value = "1.0", message = "Fund ratio must be between 0 and 1")
                 double ratio) {}
