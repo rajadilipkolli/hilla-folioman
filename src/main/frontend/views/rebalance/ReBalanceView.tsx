@@ -17,7 +17,7 @@ export default function ReBalanceView() {
     };
 
     // Modified handleFundChange to accept value as a number
-    const handleFundChange = (index: number, field: "value" | "ratio", value: number) => {
+    const handleFundChange = (index: number, field: keyof Fund, value: number) => {
         const updatedFunds = [...funds];
         updatedFunds[index][field] = value;
         setFunds(updatedFunds);
@@ -82,6 +82,7 @@ export default function ReBalanceView() {
                             value={fund.value}
                             onChange={(e) => handleFundChange(index, 'value', Number(e.target.value))}
                             placeholder={`Enter current value of Fund ${index + 1}`}
+                            aria-label={`Current value of Fund ${index + 1}`}
                         />
                     </label>
                     <label>
@@ -91,12 +92,13 @@ export default function ReBalanceView() {
                             value={fund.ratio}
                             onChange={(e) => handleFundChange(index, 'ratio', Number(e.target.value))}
                             placeholder={`Enter desired ratio of Fund ${index + 1}`}
+                            aria-label={`Current desired ratio of Fund ${index + 1}`}
                         />
                     </label>
                 </div>
             ))}
 
-            <button onClick={handleAddFund}>Add Another Fund</button>
+            <button onClick={handleAddFund} aria-label="Add Another Fund">Add Another Fund</button>
 
             <div>
                 <label>

@@ -1,6 +1,6 @@
 package com.app.folioman.portfolio.web.controller;
 
-import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -45,8 +45,18 @@ class ReBalanceControllerTest {
     void testReBalanceWithNullInvestmentRequest() throws Exception {
         mockMvc.perform(post("/api/portfolio/rebalance").content("{}").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
-                .andExpect(
-                        content().string(containsString("Investment request and funds list cannot be null or empty")));
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
+                .andExpect(jsonPath("$.type", is("about:blank")))
+                .andExpect(jsonPath("$.title", is("Constraint Violation")))
+                .andExpect(jsonPath("$.status", is(400)))
+                .andExpect(jsonPath("$.detail", is("Invalid request content.")))
+                .andExpect(jsonPath("$.instance", is("/api/portfolio/rebalance")))
+                .andExpect(jsonPath("$.violations", hasSize(2)))
+                .andExpect(jsonPath("$.violations[0].field", is("amountToInvest")))
+                .andExpect(jsonPath("$.violations[0].message", is("Amount to invest cannot be negative")))
+                .andExpect(jsonPath("$.violations[1].field", is("funds")))
+                .andExpect(jsonPath(
+                        "$.violations[1].message", is("Investment request and funds list cannot be null or empty")));
     }
 
     @Test
@@ -59,8 +69,16 @@ class ReBalanceControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(investmentRequest)))
                 .andExpect(status().isBadRequest())
-                .andExpect(
-                        content().string(containsString("Investment request and funds list cannot be null or empty")));
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
+                .andExpect(jsonPath("$.type", is("about:blank")))
+                .andExpect(jsonPath("$.title", is("Constraint Violation")))
+                .andExpect(jsonPath("$.status", is(400)))
+                .andExpect(jsonPath("$.detail", is("Invalid request content.")))
+                .andExpect(jsonPath("$.instance", is("/api/portfolio/rebalance")))
+                .andExpect(jsonPath("$.violations", hasSize(1)))
+                .andExpect(jsonPath("$.violations[0].field", is("funds")))
+                .andExpect(jsonPath(
+                        "$.violations[0].message", is("Investment request and funds list cannot be null or empty")));
     }
 
     @Test
@@ -72,7 +90,18 @@ class ReBalanceControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(investmentRequest)))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string(containsString("Amount to invest cannot be negative")));
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
+                .andExpect(jsonPath("$.type", is("about:blank")))
+                .andExpect(jsonPath("$.title", is("Constraint Violation")))
+                .andExpect(jsonPath("$.status", is(400)))
+                .andExpect(jsonPath("$.detail", is("Invalid request content.")))
+                .andExpect(jsonPath("$.instance", is("/api/portfolio/rebalance")))
+                .andExpect(jsonPath("$.violations", hasSize(2)))
+                .andExpect(jsonPath("$.violations[0].field", is("amountToInvest")))
+                .andExpect(jsonPath("$.violations[0].message", is("Amount to invest cannot be negative")))
+                .andExpect(jsonPath("$.violations[1].field", is("funds")))
+                .andExpect(jsonPath(
+                        "$.violations[1].message", is("The sum of fund ratios must be 100%. Current sum: 0.50")));
     }
 
     @Test
@@ -88,7 +117,16 @@ class ReBalanceControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(investmentRequest)))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string(containsString("Sum of fund ratios must equal 1")));
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
+                .andExpect(jsonPath("$.type", is("about:blank")))
+                .andExpect(jsonPath("$.title", is("Constraint Violation")))
+                .andExpect(jsonPath("$.status", is(400)))
+                .andExpect(jsonPath("$.detail", is("Invalid request content.")))
+                .andExpect(jsonPath("$.instance", is("/api/portfolio/rebalance")))
+                .andExpect(jsonPath("$.violations", hasSize(1)))
+                .andExpect(jsonPath("$.violations[0].field", is("funds")))
+                .andExpect(jsonPath(
+                        "$.violations[0].message", is("The sum of fund ratios must be 100%. Current sum: 80.00")));
     }
 
     @Test
@@ -101,7 +139,18 @@ class ReBalanceControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(investmentRequest)))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string(containsString("Fund value cannot be negative")));
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
+                .andExpect(jsonPath("$.type", is("about:blank")))
+                .andExpect(jsonPath("$.title", is("Constraint Violation")))
+                .andExpect(jsonPath("$.status", is(400)))
+                .andExpect(jsonPath("$.detail", is("Invalid request content.")))
+                .andExpect(jsonPath("$.instance", is("/api/portfolio/rebalance")))
+                .andExpect(jsonPath("$.violations", hasSize(2)))
+                .andExpect(jsonPath("$.violations[0].field", is("funds")))
+                .andExpect(jsonPath(
+                        "$.violations[0].message", is("The sum of fund ratios must be 100%. Current sum: 0.50")))
+                .andExpect(jsonPath("$.violations[1].field", is("funds[0].value")))
+                .andExpect(jsonPath("$.violations[1].message", is("Fund value cannot be negative")));
     }
 
     @Test
@@ -114,6 +163,17 @@ class ReBalanceControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(investmentRequest)))
                 .andExpect(status().isBadRequest())
-                .andExpect(content().string(containsString("Fund ratio must be between 0 and 1")));
+                .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
+                .andExpect(jsonPath("$.type", is("about:blank")))
+                .andExpect(jsonPath("$.title", is("Constraint Violation")))
+                .andExpect(jsonPath("$.status", is(400)))
+                .andExpect(jsonPath("$.detail", is("Invalid request content.")))
+                .andExpect(jsonPath("$.instance", is("/api/portfolio/rebalance")))
+                .andExpect(jsonPath("$.violations", hasSize(2)))
+                .andExpect(jsonPath("$.violations[0].field", is("funds")))
+                .andExpect(jsonPath(
+                        "$.violations[0].message", is("The sum of fund ratios must be 100%. Current sum: 150.00")))
+                .andExpect(jsonPath("$.violations[1].field", is("funds[0].ratio")))
+                .andExpect(jsonPath("$.violations[1].message", is("Fund ratio must be between 0 and 100")));
     }
 }
