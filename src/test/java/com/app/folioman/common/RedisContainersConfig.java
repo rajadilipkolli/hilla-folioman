@@ -13,6 +13,7 @@ public class RedisContainersConfig {
     @ServiceConnection(name = "redis")
     @RestartScope
     RedisStackContainer redisStackContainer() {
-        return new RedisStackContainer(RedisStackContainer.DEFAULT_IMAGE_NAME.withTag(RedisStackContainer.DEFAULT_TAG));
+        return new RedisStackContainer(RedisStackContainer.DEFAULT_IMAGE_NAME.withTag(RedisStackContainer.DEFAULT_TAG))
+                .withReuse(true);
     }
 }

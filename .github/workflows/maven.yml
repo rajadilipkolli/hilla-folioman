@@ -37,6 +37,15 @@ jobs:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
+      
+      - name: Create and populate ~/.testcontainers.properties
+        run: |
+          cat <<EOF > ~/.testcontainers.properties
+          testcontainers.reuse.enable=true
+          EOF
+
+          echo "cat ~/.testcontainers.properties"
+          cat ~/.testcontainers.properties
 
       - if: ${{ github.ref != 'refs/heads/main' }}
         name: Build and analyze
