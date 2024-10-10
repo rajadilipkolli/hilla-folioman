@@ -11,7 +11,7 @@ export default function ReBalanceView() {
     ]);
     const [amountToInvest, setAmountToInvest] = useState('');
     const [result, setResult] = useState('');
-    const isValidForm = funds.reduce((sum, fund) => sum + fund.ratio, 0) === 100;
+    const isValidForm: boolean = funds.reduce((sum, fund) => sum + fund.ratio, 0) === 100;
 
     const handleAddFund = () => {
         setFunds([...funds, {value: 0, ratio: 0}]);
@@ -63,12 +63,14 @@ export default function ReBalanceView() {
             } else {
                 setResult('No investments data available');
             }
-        } catch (error) {
+        } catch (error: unknown) {
             console.error('Error calculating rebalance:', error);
             if (error instanceof TypeError) {
                 setResult('There was a problem with the data types in the calculation.');
+            } else if (error instanceof Error) {
+                setResult(error.message);
             } else {
-                setResult(error instanceof Error ? error.message : 'An unknown error occurred during rebalance calculation');
+                setResult('An unknown error occurred during rebalance calculation');
             }
         }
     };
@@ -118,8 +120,12 @@ export default function ReBalanceView() {
                 </label>
             </div>
 
-            <button onClick={handleReBalance} disabled={!isValidForm} aria-label="Calculate Rebalance">Calculate Rebalance</button>
-            {!isValidForm && <p>The sum of fund ratios must equal 100%</p>}
+            {!isValidForm && (
+                <p className="error-message">The sum of fund ratios must equal 100%</p>
+            )}
+            <button onClick={handleReBalance}  disabled={!isValidForm} aria-label="Calculate Rebalance">
+                Calculate Rebalance
+            </button>
 
             {result && (
                 <div id="result">

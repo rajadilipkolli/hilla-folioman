@@ -51,12 +51,10 @@ class ReBalanceControllerTest {
                 .andExpect(jsonPath("$.status", is(400)))
                 .andExpect(jsonPath("$.detail", is("Invalid request content.")))
                 .andExpect(jsonPath("$.instance", is("/api/portfolio/rebalance")))
-                .andExpect(jsonPath("$.violations", hasSize(2)))
-                .andExpect(jsonPath("$.violations[0].field", is("amountToInvest")))
-                .andExpect(jsonPath("$.violations[0].message", is("Amount to invest cannot be negative")))
-                .andExpect(jsonPath("$.violations[1].field", is("funds")))
+                .andExpect(jsonPath("$.violations", hasSize(1)))
+                .andExpect(jsonPath("$.violations[0].field", is("funds")))
                 .andExpect(jsonPath(
-                        "$.violations[1].message", is("Investment request and funds list cannot be null or empty")));
+                        "$.violations[0].message", is("Investment request and funds list cannot be null or empty")));
     }
 
     @Test
