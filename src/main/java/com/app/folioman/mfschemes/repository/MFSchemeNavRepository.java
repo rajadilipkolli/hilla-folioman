@@ -32,7 +32,11 @@ public interface MFSchemeNavRepository extends JpaRepository<MFSchemeNav, Long> 
     List<Long> findMFSchemeNavsByNavNotLoaded(@Param("asOfDate") LocalDate asOfDate);
 
     @Query(
-            "select new com.app.folioman.mfschemes.MFSchemeNavProjection(m.nav, m.navDate, m.mfScheme.amfiCode) from MFSchemeNav m where m.mfScheme.amfiCode in :amfiCodes and m.navDate >= :startNavDate and m.navDate <= :endNavDate")
+            """
+            select new com.app.folioman.mfschemes.MFSchemeNavProjection(m.nav, m.navDate, m.mfScheme.amfiCode)
+            from MFSchemeNav m
+            where m.mfScheme.amfiCode in :amfiCodes and m.navDate >= :startNavDate and m.navDate <= :endNavDate
+            """)
     List<MFSchemeNavProjection> findByMfScheme_AmfiCodeInAndNavDateGreaterThanEqualAndNavDateLessThanEqual(
             @Param("amfiCodes") Set<Long> amfiCodes,
             @Param("startNavDate") LocalDate startNavDate,

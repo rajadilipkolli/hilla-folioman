@@ -176,7 +176,7 @@ public class MFNavServiceImpl implements MFNavService {
             Set<Long> schemeCodes, LocalDate startDate, LocalDate endDate) {
         schemeCodes.forEach(this::getNav);
         // Fetch NAVs in bulk for all schemes and dates
-        LOGGER.info("Fetching Nav for amfiCodes :{}", schemeCodes);
+        LOGGER.info("Fetching Nav for amfiCodes: {} from {} to {}", schemeCodes, startDate, endDate);
         return mfSchemeNavRepository
                 .findByMfScheme_AmfiCodeInAndNavDateGreaterThanEqualAndNavDateLessThanEqual(
                         schemeCodes, startDate, endDate)
