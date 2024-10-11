@@ -1,4 +1,4 @@
-package com.app.folioman.portfolio.models;
+package com.app.folioman.portfolio.models.request;
 
 public enum TransactionType {
     PURCHASE,

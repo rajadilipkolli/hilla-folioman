@@ -1,5 +1,5 @@
 /* Licensed under Apache-2.0 2022. */
-package com.app.folioman.portfolio.models;
+package com.app.folioman.portfolio.models.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;

@@ -1,7 +1,7 @@
 package com.app.folioman.mfschemes.service;
 
+import com.app.folioman.mfschemes.MFSchemeDTO;
 import com.app.folioman.mfschemes.NavNotFoundException;
-import com.app.folioman.shared.MFSchemeDTO;
 import java.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,9 +13,9 @@ class CachedNavService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CachedNavService.class);
 
-    private final MfSchemesService mfSchemeService;
+    private final MfSchemeServiceImpl mfSchemeService;
 
-    CachedNavService(MfSchemesService mfSchemeService) {
+    CachedNavService(MfSchemeServiceImpl mfSchemeService) {
         this.mfSchemeService = mfSchemeService;
     }
 

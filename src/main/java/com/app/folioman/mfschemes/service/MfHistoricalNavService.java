@@ -1,11 +1,11 @@
 package com.app.folioman.mfschemes.service;
 
+import com.app.folioman.mfschemes.MFSchemeDTO;
 import com.app.folioman.mfschemes.NavNotFoundException;
 import com.app.folioman.mfschemes.entities.MfFundScheme;
 import com.app.folioman.mfschemes.mapper.MfSchemeDtoToEntityMapper;
 import com.app.folioman.mfschemes.util.SchemeConstants;
 import com.app.folioman.shared.CommonConstants;
-import com.app.folioman.shared.MFSchemeDTO;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
@@ -27,12 +27,12 @@ class MfHistoricalNavService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MfHistoricalNavService.class);
 
-    private final MfSchemesService mfSchemeService;
+    private final MfSchemeServiceImpl mfSchemeService;
     private final RestClient restClient;
     private final MfSchemeDtoToEntityMapper mfSchemeDtoToEntityMapper;
 
     MfHistoricalNavService(
-            MfSchemesService mfSchemeService,
+            MfSchemeServiceImpl mfSchemeService,
             RestClient restClient,
             MfSchemeDtoToEntityMapper mfSchemeDtoToEntityMapper) {
         this.mfSchemeService = mfSchemeService;

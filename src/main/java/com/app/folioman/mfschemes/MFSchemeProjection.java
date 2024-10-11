@@ -1,4 +1,4 @@
-package com.app.folioman.shared;
+package com.app.folioman.mfschemes;
 
 /**
  * Projection for {@link com.app.folioman.mfschemes.entities.MfFundScheme}

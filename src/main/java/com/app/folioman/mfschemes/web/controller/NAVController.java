@@ -1,7 +1,7 @@
 package com.app.folioman.mfschemes.web.controller;
 
-import com.app.folioman.mfschemes.service.MFSchemeNavService;
-import com.app.folioman.shared.MFSchemeDTO;
+import com.app.folioman.mfschemes.MFNavService;
+import com.app.folioman.mfschemes.MFSchemeDTO;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.Endpoint;
 import jakarta.validation.Valid;
@@ -22,10 +22,10 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 class NAVController {
 
-    private final MFSchemeNavService mFSchemeNavService;
+    private final MFNavService mfNavService;
 
-    NAVController(MFSchemeNavService mFSchemeNavService) {
-        this.mFSchemeNavService = mFSchemeNavService;
+    public NAVController(MFNavService mfNavService) {
+        this.mfNavService = mfNavService;
     }
 
     @GetMapping(path = "/{schemeCode}")
@@ -35,7 +35,7 @@ class NAVController {
                     @Max(value = 160000, message = "Max value of schemeCode should be less than 160000")
                     @Valid
                     Long schemeCode) {
-        return mFSchemeNavService.getNav(schemeCode);
+        return mfNavService.getNav(schemeCode);
     }
 
     @GetMapping(path = "/{schemeCode}/{date}")
@@ -46,6 +46,6 @@ class NAVController {
                     @Valid
                     Long schemeCode,
             @PathVariable("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate inputDate) {
-        return mFSchemeNavService.getNavOnDate(schemeCode, inputDate);
+        return mfNavService.getNavOnDate(schemeCode, inputDate);
     }
 }

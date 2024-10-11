@@ -1,8 +1,8 @@
 package com.app.folioman.mfschemes.repository;
 
+import com.app.folioman.mfschemes.FundDetailProjection;
+import com.app.folioman.mfschemes.MFSchemeProjection;
 import com.app.folioman.mfschemes.entities.MfFundScheme;
-import com.app.folioman.shared.FundDetailProjection;
-import com.app.folioman.shared.MFSchemeProjection;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -46,4 +46,6 @@ public interface MfFundSchemeRepository extends JpaRepository<MfFundScheme, Long
     List<String> findDistinctAmfiCode();
 
     List<MFSchemeProjection> findByRtaCodeStartsWith(String rtaCode);
+
+    MfFundScheme getReferenceByAmfiCode(Long amfiCode);
 }

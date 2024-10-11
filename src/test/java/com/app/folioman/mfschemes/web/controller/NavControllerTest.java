@@ -2,9 +2,11 @@ package com.app.folioman.mfschemes.web.controller;
 
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.app.folioman.mfschemes.service.MFSchemeNavService;
+import com.app.folioman.mfschemes.MFNavService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -20,7 +22,7 @@ class NavControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private MFSchemeNavService navService;
+    private MFNavService navService;
 
     @Test
     void shouldThrowBadRequestWhenSchemeCodeIsNotInMaxRange() throws Exception {

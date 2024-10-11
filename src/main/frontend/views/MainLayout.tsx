@@ -26,6 +26,9 @@ export default function MainLayout() {
                         <NavLink className={navLinkClasses} to="/userPortfolio">
                             UserPortfolio
                         </NavLink>
+                        <NavLink className={navLinkClasses} to="/rebalance">
+                            ReBalance Calculator
+                        </NavLink>
                     </nav>
                 </header>
             </div>

@@ -1,22 +1,23 @@
 package com.app.folioman.portfolio.service;
 
+import com.app.folioman.portfolio.UserSchemeDetailService;
 import com.app.folioman.portfolio.entities.UserCASDetails;
 import com.app.folioman.portfolio.entities.UserFolioDetails;
 import com.app.folioman.portfolio.entities.UserSchemeDetails;
 import com.app.folioman.portfolio.entities.UserTransactionDetails;
 import com.app.folioman.portfolio.mapper.CasDetailsMapper;
-import com.app.folioman.portfolio.models.CasDTO;
-import com.app.folioman.portfolio.models.UserFolioDTO;
-import com.app.folioman.portfolio.models.UserSchemeDTO;
-import com.app.folioman.portfolio.models.UserTransactionDTO;
+import com.app.folioman.portfolio.models.request.CasDTO;
+import com.app.folioman.portfolio.models.request.UserFolioDTO;
+import com.app.folioman.portfolio.models.request.UserSchemeDTO;
+import com.app.folioman.portfolio.models.request.UserTransactionDTO;
 import com.app.folioman.portfolio.models.response.PortfolioDetailsDTO;
 import com.app.folioman.portfolio.models.response.PortfolioResponse;
 import com.app.folioman.portfolio.models.response.UploadFileResponse;
 import com.app.folioman.shared.LocalDateUtility;
 import com.app.folioman.shared.UploadedSchemesList;
-import com.app.folioman.shared.UserSchemeDetailService;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -381,6 +382,6 @@ public class UserDetailService {
         BigDecimal totalPortfolioValue = portfolioDetailsDTOList.stream()
                 .map(PortfolioDetailsDTO::totalValue)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-        return new PortfolioResponse(totalPortfolioValue, portfolioDetailsDTOList);
+        return new PortfolioResponse(totalPortfolioValue.setScale(4, RoundingMode.HALF_UP), portfolioDetailsDTOList);
     }
 }

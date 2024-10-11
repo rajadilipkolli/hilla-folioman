@@ -1,4 +1,4 @@
-package com.app.folioman.shared;
+package com.app.folioman.mfschemes;
 
 import java.util.List;
 import java.util.Optional;
@@ -11,5 +11,7 @@ public interface MfSchemeService {
 
     void fetchSchemeDetails(Long schemeId);
 
-    List<MFSchemeProjection> fetchSchemesByRtaCode(String substring);
+    void fetchSchemeDetails(String oldSchemeCode, Long newSchemeCode);
+
+    List<MFSchemeProjection> fetchSchemesByRtaCode(String rtaCode);
 }

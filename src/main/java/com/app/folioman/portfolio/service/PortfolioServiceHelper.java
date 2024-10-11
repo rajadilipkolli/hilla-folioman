@@ -1,14 +1,15 @@
 package com.app.folioman.portfolio.service;
 
+import com.app.folioman.mfschemes.MFNavService;
+import com.app.folioman.mfschemes.MFSchemeDTO;
 import com.app.folioman.mfschemes.NavNotFoundException;
-import com.app.folioman.portfolio.models.UserFolioDTO;
 import com.app.folioman.portfolio.models.projection.PortfolioDetailsProjection;
+import com.app.folioman.portfolio.models.request.UserFolioDTO;
 import com.app.folioman.portfolio.models.response.PortfolioDetailsDTO;
-import com.app.folioman.shared.MFNavService;
-import com.app.folioman.shared.MFSchemeDTO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -69,7 +70,7 @@ class PortfolioServiceHelper {
             scheme = mfNavService.getNavByDateWithRetry(portfolioDetails.getSchemeId(), asOfDate);
             double totalValue = portfolioDetails.getBalanceUnits() * Double.parseDouble(scheme.nav());
             return new PortfolioDetailsDTO(
-                    BigDecimal.valueOf(totalValue),
+                    BigDecimal.valueOf(totalValue).setScale(4, RoundingMode.HALF_UP),
                     portfolioDetails.getSchemeName(),
                     portfolioDetails.getFolioNumber(),
                     scheme.date(),
