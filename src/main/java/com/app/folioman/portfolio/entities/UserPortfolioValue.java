@@ -19,13 +19,13 @@ public class UserPortfolioValue {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_portfolio_value_seq")
     @SequenceGenerator(
-        name = "user_portfolio_value_seq",
-        sequenceName = "user_portfolio_value_seq",
-        schema = "portfolio"
-    )
+            name = "user_portfolio_value_seq",
+            sequenceName = "user_portfolio_value_seq",
+            schema = "portfolio")
     @Column(name = "id", nullable = false)
     private Long id;
 
+    @Column(nullable = false)
     private LocalDate date;
 
     @Column(precision = 30, scale = 2)
