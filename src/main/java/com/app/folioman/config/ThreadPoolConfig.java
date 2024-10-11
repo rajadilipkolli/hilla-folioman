@@ -14,7 +14,7 @@ public class ThreadPoolConfig {
         executor.setCorePoolSize(5); // Initial number of threads
         executor.setMaxPoolSize(10); // Maximum number of threads
         executor.setQueueCapacity(25); // Queue capacity for waiting tasks
-        executor.setThreadNamePrefix("AsyncSupabase-");
+        executor.setThreadNamePrefix("AsyncFolioman-");
         executor.initialize();
         return executor;
     }

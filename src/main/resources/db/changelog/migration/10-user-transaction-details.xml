@@ -34,7 +34,7 @@
             </column>
             <column name="transaction_date" type="DATE"/>
             <column name="description" type="${string.type}"/>
-            <column name="amount" type="FLOAT(4)"/>
+            <column name="amount" type="DECIMAL(30, 2)"/>
             <column name="units" type="FLOAT(4)"/>
             <column name="nav" type="FLOAT(4)"/>
             <column name="balance" type="FLOAT(4)"/>

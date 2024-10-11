@@ -1,5 +1,7 @@
 package com.app.folioman.portfolio.web.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -14,6 +16,7 @@ import com.app.folioman.portfolio.TestData;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
+import java.time.Duration;
 import java.time.LocalDate;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -30,6 +33,7 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
     @Order(1)
     void uploadFile() throws Exception {
 
+        long countBeforeInsert = userPortfolioValueRepository.count();
         File tempFile = File.createTempFile("file", ".json");
         try (FileWriter fileWriter = new FileWriter(tempFile)) {
             fileWriter.write(
@@ -55,7 +59,7 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
                     				{
                     					"scheme": "ICICI Prudential Nifty Next 50 Index Fund - Direct Plan - Growth (Non-Demat) - ISIN: INF109K01Y80",
                     					"isin": "INF109K01Y80",
-                    					"amfi": null,
+                    					"amfi": 120684,
                     					"advisor": "INA200005166",
                     					"type": "EQUITY",
                     					"rta": "CAMS",
@@ -151,6 +155,11 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
         } finally {
             tempFile.deleteOnExit();
         }
+
+        await().atMost(Duration.ofSeconds(45)).pollDelay(Duration.ofSeconds(1)).untilAsserted(() -> {
+            long countAfterInsert = userPortfolioValueRepository.count();
+            assertThat(countAfterInsert).isGreaterThan(countBeforeInsert);
+        });
     }
 
     @Test
@@ -219,6 +228,8 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
     @Order(4)
     void uploadFileWithNewScheme() throws Exception {
 
+        long countBeforeProcessing = mfSchemeNavRepository.count();
+
         File tempFile = File.createTempFile("file", ".json");
         try (FileWriter fileWriter = new FileWriter(tempFile)) {
             fileWriter.write(objectMapper.writeValueAsString(TestData.getCasDTO(true, true, false)));
@@ -244,6 +255,11 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
         } finally {
             tempFile.deleteOnExit();
         }
+
+        await().atMost(Duration.ofSeconds(45)).pollDelay(Duration.ofSeconds(1)).untilAsserted(() -> {
+            long countAfterInsert = mfSchemeNavRepository.count();
+            assertThat(countAfterInsert).isGreaterThan(countBeforeProcessing);
+        });
     }
 
     @Test
@@ -271,7 +287,6 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
                     .andExpect(jsonPath("$.newSchemes", is(0)))
                     .andExpect(jsonPath("$.newTransactions", is(1)))
                     .andExpect(jsonPath("$.casId", notNullValue()));
-            ;
         } finally {
             tempFile.deleteOnExit();
         }
@@ -280,6 +295,8 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
     @Test
     @Order(6)
     void uploadFileWithNewFolioAndSchemeAndTransaction() throws Exception {
+
+        long countBeforeProcessing = mfSchemeNavRepository.count();
 
         File tempFile = File.createTempFile("file", ".json");
         try (FileWriter fileWriter = new FileWriter(tempFile)) {
@@ -306,11 +323,17 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
         } finally {
             tempFile.deleteOnExit();
         }
+
+        await().atMost(Duration.ofSeconds(45)).pollDelay(Duration.ofSeconds(1)).untilAsserted(() -> {
+            long countAfterInsert = mfSchemeNavRepository.count();
+            assertThat(countAfterInsert).isGreaterThan(countBeforeProcessing);
+        });
     }
 
     @Test
     @Order(7)
     void addMultipleSchemesAndTransactions() throws Exception {
+        long countBeforeProcessing = mfSchemeNavRepository.count();
         File tempFile = File.createTempFile("file", ".json");
         try (FileWriter fileWriter = new FileWriter(tempFile)) {
             fileWriter.write(getUploadJson());
@@ -333,10 +356,14 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
                     .andExpect(jsonPath("$.newSchemes", is(3)))
                     .andExpect(jsonPath("$.newTransactions", is(59)))
                     .andExpect(jsonPath("$.casId", notNullValue()));
-            ;
         } finally {
             tempFile.deleteOnExit();
         }
+
+        await().atMost(Duration.ofSeconds(45)).pollDelay(Duration.ofSeconds(1)).untilAsserted(() -> {
+            long countAfterInsert = mfSchemeNavRepository.count();
+            assertThat(countAfterInsert).isGreaterThan(countBeforeProcessing);
+        });
     }
 
     private String getUploadJson() {

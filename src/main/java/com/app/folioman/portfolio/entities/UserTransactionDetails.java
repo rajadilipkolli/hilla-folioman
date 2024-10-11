@@ -1,8 +1,11 @@
 package com.app.folioman.portfolio.entities;
 
+import com.app.folioman.portfolio.models.request.TransactionType;
 import com.app.folioman.shared.Auditable;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -12,6 +15,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Objects;
 import org.hibernate.Hibernate;
@@ -30,11 +34,15 @@ public class UserTransactionDetails extends Auditable<String> implements Seriali
 
     private LocalDate transactionDate;
     private String description;
-    private Double amount;
+    private BigDecimal amount;
     private Double units;
     private Double nav;
     private Double balance;
-    private String type;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type", nullable = false)
+    private TransactionType type;
+
     private String dividendRate;
 
     @ManyToOne
@@ -68,11 +76,11 @@ public class UserTransactionDetails extends Auditable<String> implements Seriali
         return this;
     }
 
-    public Double getAmount() {
+    public BigDecimal getAmount() {
         return amount;
     }
 
-    public UserTransactionDetails setAmount(Double amount) {
+    public UserTransactionDetails setAmount(BigDecimal amount) {
         this.amount = amount;
         return this;
     }
@@ -104,11 +112,11 @@ public class UserTransactionDetails extends Auditable<String> implements Seriali
         return this;
     }
 
-    public String getType() {
+    public TransactionType getType() {
         return type;
     }
 
-    public UserTransactionDetails setType(String type) {
+    public UserTransactionDetails setType(TransactionType type) {
         this.type = type;
         return this;
     }
