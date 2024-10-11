@@ -2,6 +2,7 @@ package com.app.folioman.mfschemes;
 
 import java.time.LocalDate;
 import java.util.Map;
+import java.util.Set;
 
 public interface MFNavService {
 
@@ -16,4 +17,7 @@ public interface MFNavService {
     void loadHistoricalDataIfNotExists();
 
     Map<String, String> getAmfiCodeIsinMap();
+
+    Map<Long, Map<LocalDate, MFSchemeNavProjection>> getNavsForSchemesAndDates(
+            Set<Long> schemeCodes, LocalDate startDate, LocalDate endDate);
 }

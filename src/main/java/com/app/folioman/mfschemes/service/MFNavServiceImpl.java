@@ -4,6 +4,7 @@ import static com.app.folioman.mfschemes.util.SchemeConstants.FLEXIBLE_DATE_FORM
 
 import com.app.folioman.mfschemes.MFNavService;
 import com.app.folioman.mfschemes.MFSchemeDTO;
+import com.app.folioman.mfschemes.MFSchemeNavProjection;
 import com.app.folioman.mfschemes.MfSchemeService;
 import com.app.folioman.mfschemes.NavNotFoundException;
 import com.app.folioman.mfschemes.entities.MFSchemeNav;
@@ -16,9 +17,12 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -165,6 +169,21 @@ public class MFNavServiceImpl implements MFNavService {
     public Map<String, String> getAmfiCodeIsinMap() {
         String downloadedAllNAVs = downloadAllNAVs();
         return getAmfiCodeIsinMap(downloadedAllNAVs);
+    }
+
+    @Override
+    public Map<Long, Map<LocalDate, MFSchemeNavProjection>> getNavsForSchemesAndDates(
+            Set<Long> schemeCodes, LocalDate startDate, LocalDate endDate) {
+        schemeCodes.forEach(this::getNav);
+        // Fetch NAVs in bulk for all schemes and dates
+        LOGGER.info("Fetching Nav for amfiCodes :{}", schemeCodes);
+        return mfSchemeNavRepository
+                .findByMfScheme_AmfiCodeInAndNavDateGreaterThanEqualAndNavDateLessThanEqual(
+                        schemeCodes, startDate, endDate)
+                .stream()
+                .collect(Collectors.groupingBy(
+                        MFSchemeNavProjection::amfiCode,
+                        Collectors.toMap(MFSchemeNavProjection::navDate, Function.identity())));
     }
 
     private Map<String, String> getAmfiCodeIsinMap(String allNAVs) {

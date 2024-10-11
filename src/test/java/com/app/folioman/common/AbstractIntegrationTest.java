@@ -2,6 +2,8 @@ package com.app.folioman.common;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
+import com.app.folioman.mfschemes.repository.MFSchemeNavRepository;
+import com.app.folioman.portfolio.repository.UserPortfolioValueRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -19,4 +21,10 @@ public abstract class AbstractIntegrationTest {
 
     @Autowired
     protected ObjectMapper objectMapper;
+
+    @Autowired
+    protected UserPortfolioValueRepository userPortfolioValueRepository;
+
+    @Autowired
+    protected MFSchemeNavRepository mfSchemeNavRepository;
 }
