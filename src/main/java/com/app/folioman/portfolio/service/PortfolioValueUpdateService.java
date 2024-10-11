@@ -1,5 +1,6 @@
 package com.app.folioman.portfolio.service;
 
+import com.app.folioman.mfschemes.MFNavService;
 import com.app.folioman.portfolio.entities.FolioScheme;
 import com.app.folioman.portfolio.entities.SchemeValue;
 import com.app.folioman.portfolio.entities.UserCASDetails;
@@ -8,7 +9,6 @@ import com.app.folioman.portfolio.entities.UserTransactionDetails;
 import com.app.folioman.portfolio.repository.FolioSchemeRepository;
 import com.app.folioman.portfolio.repository.SchemeValueRepository;
 import com.app.folioman.portfolio.repository.UserTransactionDetailsRepository;
-import com.app.folioman.shared.MFNavService;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.ZoneId;
