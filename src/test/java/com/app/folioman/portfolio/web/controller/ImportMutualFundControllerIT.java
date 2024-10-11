@@ -228,6 +228,8 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
     @Order(4)
     void uploadFileWithNewScheme() throws Exception {
 
+        long countBeforeProcessing = mfSchemeNavRepository.count();
+
         File tempFile = File.createTempFile("file", ".json");
         try (FileWriter fileWriter = new FileWriter(tempFile)) {
             fileWriter.write(objectMapper.writeValueAsString(TestData.getCasDTO(true, true, false)));
@@ -253,6 +255,11 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
         } finally {
             tempFile.deleteOnExit();
         }
+
+        await().atMost(Duration.ofSeconds(45)).pollDelay(Duration.ofSeconds(1)).untilAsserted(() -> {
+            long countAfterInsert = mfSchemeNavRepository.count();
+            assertThat(countAfterInsert).isGreaterThan(countBeforeProcessing);
+        });
     }
 
     @Test
@@ -280,7 +287,6 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
                     .andExpect(jsonPath("$.newSchemes", is(0)))
                     .andExpect(jsonPath("$.newTransactions", is(1)))
                     .andExpect(jsonPath("$.casId", notNullValue()));
-            ;
         } finally {
             tempFile.deleteOnExit();
         }
@@ -289,6 +295,8 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
     @Test
     @Order(6)
     void uploadFileWithNewFolioAndSchemeAndTransaction() throws Exception {
+
+        long countBeforeProcessing = mfSchemeNavRepository.count();
 
         File tempFile = File.createTempFile("file", ".json");
         try (FileWriter fileWriter = new FileWriter(tempFile)) {
@@ -315,6 +323,11 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
         } finally {
             tempFile.deleteOnExit();
         }
+
+        await().atMost(Duration.ofSeconds(45)).pollDelay(Duration.ofSeconds(1)).untilAsserted(() -> {
+            long countAfterInsert = mfSchemeNavRepository.count();
+            assertThat(countAfterInsert).isGreaterThan(countBeforeProcessing);
+        });
     }
 
     @Test
