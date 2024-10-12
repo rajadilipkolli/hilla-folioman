@@ -17,6 +17,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.hibernate.proxy.HibernateProxy;
 
 @Entity
@@ -48,6 +50,7 @@ public class UserFolioDetails extends Auditable<String> implements Serializable 
     private String panKyc;
 
     @OneToMany(mappedBy = "userFolioDetails", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Fetch(FetchMode.SUBSELECT)
     private List<UserSchemeDetails> schemes = new ArrayList<>();
 
     @ManyToOne

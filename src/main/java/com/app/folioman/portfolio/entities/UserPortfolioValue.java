@@ -9,11 +9,19 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "user_portfolio_value", schema = "portfolio")
+@Table(
+        name = "user_portfolio_value",
+        schema = "portfolio",
+        uniqueConstraints = {
+            @UniqueConstraint(
+                    name = "uc_userportfoliovalue_date",
+                    columnNames = {"date", "user_cas_details_id"})
+        })
 public class UserPortfolioValue {
 
     @Id
@@ -28,10 +36,10 @@ public class UserPortfolioValue {
     @Column(nullable = false)
     private LocalDate date;
 
-    @Column(precision = 30, scale = 2)
+    @Column(precision = 30, scale = 2, nullable = false)
     private BigDecimal invested;
 
-    @Column(precision = 30, scale = 2)
+    @Column(precision = 30, scale = 2, nullable = false)
     private BigDecimal value;
 
     @Column(precision = 30, scale = 2)
