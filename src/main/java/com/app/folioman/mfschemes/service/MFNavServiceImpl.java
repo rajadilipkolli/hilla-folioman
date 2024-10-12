@@ -18,7 +18,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.regex.Matcher;
@@ -184,12 +183,7 @@ public class MFNavServiceImpl implements MFNavService {
                 .stream()
                 .collect(Collectors.groupingBy(
                         MFSchemeNavProjection::amfiCode,
-                        Collectors.toMap(
-                                MFSchemeNavProjection::navDate,
-                                Function.identity(),
-                                (existing, replacement) -> existing, // In case of duplicate dates, keep existing entry
-                                TreeMap::new // Sort navDate (LocalDate) with TreeMap
-                                )));
+                        Collectors.toMap(MFSchemeNavProjection::navDate, Function.identity())));
     }
 
     private Map<String, String> getAmfiCodeIsinMap(String allNAVs) {

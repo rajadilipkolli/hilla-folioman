@@ -103,14 +103,14 @@ public class PortfolioValueUpdateService {
             // Step 8: Calculate the portfolio value by fetching NAVs in bulk for the day
             LocalDate adjustedDate = LocalDateUtility.getAdjustedDate(currentDate);
             for (Long schemeCode : cumulativeUnitsByScheme.keySet()) {
+                int attempts = 0;
+                int maxAttempts = 3;
                 MFSchemeNavProjection navOnCurrentDate =
                         navsBySchemeAndDate.get(schemeCode).get(adjustedDate);
-                if (navOnCurrentDate == null) {
+                while (navOnCurrentDate == null && attempts <= maxAttempts) {
                     adjustedDate = LocalDateUtility.getAdjustedDate(adjustedDate.minusDays(1));
                     navOnCurrentDate = navsBySchemeAndDate.get(schemeCode).get(adjustedDate);
-                    if (navOnCurrentDate == null) {
-                        navOnCurrentDate = navsBySchemeAndDate.get(schemeCode).get(adjustedDate.minusDays(1));
-                    }
+                    attempts++;
                 }
                 if (navOnCurrentDate != null) {
                     BigDecimal navValue = navOnCurrentDate.nav();
