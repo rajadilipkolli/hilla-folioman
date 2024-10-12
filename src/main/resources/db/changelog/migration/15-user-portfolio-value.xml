@@ -18,8 +18,12 @@
             <column name="date" type="DATE">
                 <constraints nullable="false"/>
             </column>
-            <column name="invested" type="DECIMAL(30, 2)"/>
-            <column name="value" type="DECIMAL(30, 2)"/>
+            <column name="invested" type="DECIMAL(30, 2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="value" type="DECIMAL(30, 2)">
+                <constraints nullable="false"/>
+            </column>
             <column name="xirr" type="DECIMAL(30, 2)"/>
             <column name="live_xirr" type="DECIMAL(30, 2)"/>
             <column name="user_cas_details_id" type="BIGINT">
@@ -34,6 +38,11 @@
                                  constraintName="FK_USER_PORTFOLIO_VALUE_ON_USER_CAS_DETAILS" referencedColumnNames="id"
                                  referencedTableName="user_cas_details" referencedTableSchemaName="portfolio"
                                  onDelete="CASCADE" onUpdate="RESTRICT"/>
+    </changeSet>
+
+    <changeSet id="1728670369775-4" author="appUser">
+        <addUniqueConstraint columnNames="date, user_cas_details_id" constraintName="uc_userportfoliovalue_date"
+                             schemaName="portfolio" tableName="user_portfolio_value"/>
     </changeSet>
 
 </databaseChangeLog>

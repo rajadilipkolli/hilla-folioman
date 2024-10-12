@@ -36,6 +36,7 @@ public interface MFSchemeNavRepository extends JpaRepository<MFSchemeNav, Long> 
             select new com.app.folioman.mfschemes.MFSchemeNavProjection(m.nav, m.navDate, m.mfScheme.amfiCode)
             from MFSchemeNav m
             where m.mfScheme.amfiCode in :amfiCodes and m.navDate >= :startNavDate and m.navDate <= :endNavDate
+            order by m.mfScheme.amfiCode , m.navDate
             """)
     List<MFSchemeNavProjection> findByMfScheme_AmfiCodeInAndNavDateGreaterThanEqualAndNavDateLessThanEqual(
             @Param("amfiCodes") Set<Long> amfiCodes,

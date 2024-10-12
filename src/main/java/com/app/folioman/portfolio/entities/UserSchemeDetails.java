@@ -19,6 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import org.hibernate.Hibernate;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 @Entity
 @Table(
@@ -68,6 +70,7 @@ public class UserSchemeDetails extends Auditable<String> implements Serializable
     private UserFolioDetails userFolioDetails;
 
     @OneToMany(mappedBy = "userSchemeDetails", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Fetch(FetchMode.SUBSELECT)
     private List<UserTransactionDetails> transactions = new ArrayList<>();
 
     public Long getId() {

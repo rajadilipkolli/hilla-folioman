@@ -18,13 +18,17 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 @Service
 public class PortfolioValueUpdateService {
 
+    private static final Logger log = LoggerFactory.getLogger(PortfolioValueUpdateService.class);
     private final UserPortfolioValueRepository userPortfolioValueRepository;
     private final MFNavService mfNavService;
 
@@ -41,7 +45,10 @@ public class PortfolioValueUpdateService {
                 .flatMap(folio -> folio.getSchemes().stream())
                 .flatMap(scheme -> scheme.getTransactions().stream())
                 .filter(transaction -> !EnumSet.of(
-                                TransactionType.STAMP_DUTY_TAX, TransactionType.TDS_TAX, TransactionType.STT_TAX)
+                                TransactionType.STAMP_DUTY_TAX,
+                                TransactionType.TDS_TAX,
+                                TransactionType.STT_TAX,
+                                TransactionType.MISC)
                         .contains(transaction.getType()))
                 .sorted(Comparator.comparing(UserTransactionDetails::getTransactionDate))
                 .toList();
@@ -57,8 +64,9 @@ public class PortfolioValueUpdateService {
         LocalDate endDate = LocalDateUtility.getYesterday();
 
         // Step 3: Group transactions by date for efficient lookup
-        Map<LocalDate, List<UserTransactionDetails>> transactionsByDate =
-                transactionList.stream().collect(Collectors.groupingBy(UserTransactionDetails::getTransactionDate));
+        Map<LocalDate, List<UserTransactionDetails>> transactionsByDate = transactionList.stream()
+                .collect(Collectors.groupingBy(
+                        UserTransactionDetails::getTransactionDate, TreeMap::new, Collectors.toList()));
 
         // Step 4: Pre-fetch NAVs in bulk for all schemes and dates in one go
         Set<Long> schemeCodes = transactionList.stream()
@@ -83,20 +91,33 @@ public class PortfolioValueUpdateService {
                 Long amfiCode = transaction.getUserSchemeDetails().getAmfi();
                 BigDecimal transactionAmount = transaction.getAmount();
                 double transactionUnits = transaction.getUnits();
-
+                if (transactionAmount == null) {
+                    // happens when type is purchase and additional allotment
+                    transactionAmount = BigDecimal.valueOf(0.0001);
+                }
                 // Update cumulative invested amount and units for the scheme
                 cumulativeInvestedAmountByScheme.merge(amfiCode, transactionAmount, BigDecimal::add);
                 cumulativeUnitsByScheme.merge(amfiCode, transactionUnits, Double::sum);
             });
 
             // Step 8: Calculate the portfolio value by fetching NAVs in bulk for the day
+            LocalDate adjustedDate = LocalDateUtility.getAdjustedDate(currentDate);
             for (Long schemeCode : cumulativeUnitsByScheme.keySet()) {
+                int attempts = 0;
+                int maxAttempts = 3;
                 MFSchemeNavProjection navOnCurrentDate =
-                        navsBySchemeAndDate.get(schemeCode).get(currentDate);
+                        navsBySchemeAndDate.get(schemeCode).get(adjustedDate);
+                while (navOnCurrentDate == null && attempts <= maxAttempts) {
+                    adjustedDate = LocalDateUtility.getAdjustedDate(adjustedDate.minusDays(1));
+                    navOnCurrentDate = navsBySchemeAndDate.get(schemeCode).get(adjustedDate);
+                    attempts++;
+                }
                 if (navOnCurrentDate != null) {
                     BigDecimal navValue = navOnCurrentDate.nav();
                     double units = cumulativeUnitsByScheme.get(schemeCode);
                     totalPortfolioValue = totalPortfolioValue.add(navValue.multiply(BigDecimal.valueOf(units)));
+                } else {
+                    log.info("Nav Not found for scheme : {} on date : {}", schemeCode, adjustedDate.minusDays(1));
                 }
             }
 
