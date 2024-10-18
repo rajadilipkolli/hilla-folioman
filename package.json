@@ -9,7 +9,7 @@
     "@vaadin/hilla-file-router": "24.5.0",
     "@vaadin/hilla-frontend": "24.5.0",
     "@vaadin/hilla-lit-form": "24.5.0",
-    "@vaadin/hilla-react-auth": "24.4.9",
+    "@vaadin/hilla-react-auth": "24.5.0",
     "@vaadin/hilla-react-crud": "24.5.0",
     "@vaadin/hilla-react-form": "24.5.0",
     "@vaadin/hilla-react-i18n": "24.4.9",
