@@ -56,7 +56,7 @@ services:
       - folioman-network
 
   grafanalgtm:
-    image: grafana/otel-lgtm:0.7.5
+    image: grafana/otel-lgtm:0.7.6
     extra_hosts: [ 'host.docker.internal:host-gateway' ]
     container_name: grafanalgtm
     environment:
