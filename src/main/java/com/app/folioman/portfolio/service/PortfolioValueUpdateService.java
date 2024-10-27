@@ -117,7 +117,11 @@ public class PortfolioValueUpdateService {
                     double units = cumulativeUnitsByScheme.get(schemeCode);
                     totalPortfolioValue = totalPortfolioValue.add(navValue.multiply(BigDecimal.valueOf(units)));
                 } else {
-                    log.info("Nav Not found for scheme : {} on date : {}", schemeCode, adjustedDate.minusDays(1));
+                    log.warn(
+                            "NAV not found for scheme {} on date {} after {} attempts",
+                            schemeCode,
+                            adjustedDate,
+                            maxAttempts);
                 }
             }
 
