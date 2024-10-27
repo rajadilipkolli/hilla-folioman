@@ -5,12 +5,23 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
  * Configuration properties for AMFI (Association of Mutual Funds in India) related settings.
+ *
+ * Example configuration:
+ * <pre>
+ * app.amfi:
+ *   data-url: https://www.amfiindia.com/data
+ *   scheme:
+ *     # scheme properties here
+ * </pre>
+ *
+ * @property dataUrl The URL to fetch AMFI data
+ * @property scheme Configuration for scheme-related settings
  */
 @ConfigurationProperties(prefix = "app.amfi")
-public class Amfi {
+public class AmfiProperties {
 
     @Valid
-    private Scheme scheme;
+    private SchemeProperties scheme;
 
     private String dataUrl;
 
@@ -22,11 +33,11 @@ public class Amfi {
         this.dataUrl = dataUrl;
     }
 
-    public Scheme getScheme() {
+    public SchemeProperties getScheme() {
         return scheme;
     }
 
-    public void setScheme(Scheme scheme) {
+    public void setScheme(SchemeProperties scheme) {
         this.scheme = scheme;
     }
 }

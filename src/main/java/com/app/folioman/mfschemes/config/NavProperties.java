@@ -4,26 +4,26 @@ import jakarta.validation.Valid;
 import org.springframework.validation.annotation.Validated;
 
 @Validated
-public class Nav {
+public class NavProperties {
 
-    private Amfi amfi;
+    private AmfiProperties amfi;
 
     @Valid
-    private MfApi mfApi;
+    private MfApiProperties mfApi;
 
-    public Amfi getAmfi() {
+    public AmfiProperties getAmfi() {
         return amfi;
     }
 
-    public void setAmfi(Amfi amfi) {
+    public void setAmfi(AmfiProperties amfi) {
         this.amfi = amfi;
     }
 
-    public MfApi getMfApi() {
+    public MfApiProperties getMfApi() {
         return mfApi;
     }
 
-    public void setMfApi(MfApi mfApi) {
+    public void setMfApi(MfApiProperties mfApi) {
         this.mfApi = mfApi;
     }
 }

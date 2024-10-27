@@ -5,10 +5,12 @@ import jakarta.validation.constraints.Pattern;
 import org.springframework.validation.annotation.Validated;
 
 @Validated
-public class MfApi {
+public class MfApiProperties {
 
     @NotBlank(message = "Data URL must not be blank")
-    @Pattern(regexp = "^https?://.*", message = "Data URL must be a valid HTTP(S) URL")
+    @Pattern(
+            regexp = "^https?://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]",
+            message = "Data URL must be a valid HTTP(S) URL")
     private String dataUrl;
 
     public String getDataUrl() {

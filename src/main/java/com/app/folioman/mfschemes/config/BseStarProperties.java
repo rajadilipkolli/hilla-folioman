@@ -4,18 +4,28 @@ import jakarta.validation.Valid;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
+/**
+ * Configuration properties for BSE Star integration.
+ *
+ * Example configuration:
+ * ```
+ * app.bsestar:
+ *   scheme:
+ *     data-url: https://example.com/bse/schemes
+ * ```
+ */
 @Validated
 @ConfigurationProperties(prefix = "app.bsestar")
-public class BseStar {
+public class BseStarProperties {
 
     @Valid
-    private Scheme scheme;
+    private SchemeProperties scheme;
 
-    public Scheme getScheme() {
+    public SchemeProperties getScheme() {
         return scheme;
     }
 
-    public void setScheme(Scheme scheme) {
+    public void setScheme(SchemeProperties scheme) {
         this.scheme = scheme;
     }
 }
