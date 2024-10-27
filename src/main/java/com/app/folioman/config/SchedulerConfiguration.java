@@ -24,14 +24,14 @@ class SchedulerConfiguration {
     }
 
     @EventListener(ApplicationStartedEvent.class)
-    void scheduleSetAMFIIfNullJob() {
+    void scheduleSetAMFIIfNullJob(ApplicationStartedEvent event) {
         log.info("Scheduling setAMFIIfNull job to run every 5 minutes");
         BackgroundJob.scheduleRecurrently(Cron.every5minutes(), userSchemeDetailService::setUserSchemeAMFIIfNull);
         log.info("setAMFIIfNull job scheduled successfully");
     }
 
     @EventListener(ApplicationStartedEvent.class)
-    void scheduleLoadHistoricalNavJob() {
+    void scheduleLoadHistoricalNavJob(ApplicationStartedEvent event) {
         log.info("Scheduling loadHistoricalNavJob to run every 30 minutes");
         BackgroundJob.scheduleRecurrently(Cron.everyHalfHour(), mfNavService::loadHistoricalDataIfNotExists);
         log.info("loadHistoricalNavJob scheduled successfully");

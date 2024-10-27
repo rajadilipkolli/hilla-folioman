@@ -41,7 +41,7 @@ public class Initializer {
     }
 
     @EventListener(ApplicationStartedEvent.class)
-    public void handleApplicationStartedEvent() {
+    public void handleApplicationStartedEvent(ApplicationStartedEvent event) {
         LOGGER.info("Loading all Mutual Funds on StartUp");
         try {
             Map<String, Map<String, String>> amfiDataMap = amfiService.fetchAmfiSchemeData();
