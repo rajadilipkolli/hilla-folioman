@@ -1,5 +1,6 @@
 package com.app.folioman.mfschemes.service;
 
+import com.app.folioman.config.ApplicationProperties;
 import com.app.folioman.mfschemes.FundDetailProjection;
 import com.app.folioman.mfschemes.MFSchemeDTO;
 import com.app.folioman.mfschemes.MFSchemeProjection;
@@ -11,7 +12,6 @@ import com.app.folioman.mfschemes.mapper.MfSchemeEntityToDtoMapper;
 import com.app.folioman.mfschemes.mapper.SchemeNAVDataDtoToEntityMapper;
 import com.app.folioman.mfschemes.models.response.NavResponse;
 import com.app.folioman.mfschemes.repository.MfFundSchemeRepository;
-import com.app.folioman.mfschemes.util.SchemeConstants;
 import java.net.URI;
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -43,13 +43,15 @@ public class MfSchemeServiceImpl implements MfSchemeService {
     private final MfSchemeEntityToDtoMapper mfSchemeEntityToDtoMapper;
     private final SchemeNAVDataDtoToEntityMapper schemeNAVDataDtoToEntityMapper;
     private final TransactionTemplate transactionTemplate;
+    private final ApplicationProperties applicationProperties;
 
     public MfSchemeServiceImpl(
             RestClient restClient,
             MfFundSchemeRepository mFSchemeRepository,
             MfSchemeEntityToDtoMapper mfSchemeEntityToDtoMapper,
             SchemeNAVDataDtoToEntityMapper schemeNAVDataDtoToEntityMapper,
-            PlatformTransactionManager transactionManager) {
+            PlatformTransactionManager transactionManager,
+            ApplicationProperties applicationProperties) {
         this.restClient = restClient;
         this.mFSchemeRepository = mFSchemeRepository;
         this.mfSchemeEntityToDtoMapper = mfSchemeEntityToDtoMapper;
@@ -57,6 +59,7 @@ public class MfSchemeServiceImpl implements MfSchemeService {
         // Create a new TransactionTemplate with the desired propagation behavior
         this.transactionTemplate = new TransactionTemplate(transactionManager);
         this.transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+        this.applicationProperties = applicationProperties;
     }
 
     public long count() {
@@ -177,9 +180,10 @@ public class MfSchemeServiceImpl implements MfSchemeService {
     }
 
     private URI getUri(Long schemeCode) {
-        LOGGER.info("Fetching SchemeDetails for AMFISchemeCode :{} ", schemeCode);
-        return UriComponentsBuilder.fromUriString(SchemeConstants.MFAPI_WEBSITE_BASE_URL + schemeCode)
-                .build()
+        LOGGER.info("Fetching SchemeDetails for AMFISchemeCode: {}", schemeCode);
+        return UriComponentsBuilder.fromUriString(
+                        applicationProperties.getNav().getMfApi().getDataUrl())
+                .buildAndExpand(schemeCode)
                 .toUri();
     }
 }

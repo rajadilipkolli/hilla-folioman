@@ -2,6 +2,7 @@ package com.app.folioman.mfschemes.service;
 
 import static com.app.folioman.mfschemes.util.SchemeConstants.FLEXIBLE_DATE_FORMATTER;
 
+import com.app.folioman.config.ApplicationProperties;
 import com.app.folioman.mfschemes.MFNavService;
 import com.app.folioman.mfschemes.MFSchemeDTO;
 import com.app.folioman.mfschemes.MFSchemeNavProjection;
@@ -55,6 +56,7 @@ public class MFNavServiceImpl implements MFNavService {
     private final TransactionTemplate transactionTemplate;
 
     private final Pattern schemeCodePattern = Pattern.compile("\\d{6}");
+    private final ApplicationProperties applicationProperties;
 
     MFNavServiceImpl(
             CachedNavService cachedNavService,
@@ -64,7 +66,8 @@ public class MFNavServiceImpl implements MFNavService {
             MfFundSchemeRepository mFSchemeRepository,
             @Qualifier("taskExecutor") TaskExecutor taskExecutor,
             RestClient restClient,
-            PlatformTransactionManager transactionManager) {
+            PlatformTransactionManager transactionManager,
+            ApplicationProperties applicationProperties) {
         this.cachedNavService = cachedNavService;
         this.mfSchemeService = mfSchemeService;
         this.historicalNavService = historicalNavService;
@@ -75,6 +78,7 @@ public class MFNavServiceImpl implements MFNavService {
         // Create a new TransactionTemplate with the desired propagation behavior
         this.transactionTemplate = new TransactionTemplate(transactionManager);
         this.transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+        this.applicationProperties = applicationProperties;
     }
 
     @Override
@@ -211,7 +215,7 @@ public class MFNavServiceImpl implements MFNavService {
         try {
             allNAVs = restClient
                     .get()
-                    .uri(SchemeConstants.AMFI_WEBSITE_LINK)
+                    .uri(applicationProperties.getNav().getAmfi().getDataUrl())
                     .headers(HttpHeaders::clearContentHeaders)
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE)
                     .retrieve()

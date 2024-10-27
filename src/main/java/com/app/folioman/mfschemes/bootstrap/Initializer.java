@@ -40,7 +40,7 @@ public class Initializer {
         this.mfNavService = mfNavService;
     }
 
-    @EventListener(ApplicationStartedEvent.class)
+    @EventListener
     public void handleApplicationStartedEvent(ApplicationStartedEvent event) {
         LOGGER.info("Loading all Mutual Funds on StartUp");
         try {
