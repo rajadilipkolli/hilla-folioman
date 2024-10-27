@@ -1,6 +1,6 @@
 package com.app.folioman.mfschemes.service;
 
-import com.app.folioman.config.ApplicationProperties;
+import com.app.folioman.mfschemes.config.ApplicationProperties;
 import com.app.folioman.mfschemes.entities.MFSchemeType;
 import com.app.folioman.mfschemes.entities.MfAmc;
 import com.app.folioman.mfschemes.entities.MfFundScheme;

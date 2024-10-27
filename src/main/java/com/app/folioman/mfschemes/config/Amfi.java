@@ -1,7 +1,15 @@
-package com.app.folioman.config;
+package com.app.folioman.mfschemes.config;
 
+import jakarta.validation.Valid;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+
+/**
+ * Configuration properties for AMFI (Association of Mutual Funds in India) related settings.
+ */
+@ConfigurationProperties(prefix = "app.amfi")
 public class Amfi {
 
+    @Valid
     private Scheme scheme;
 
     private String dataUrl;

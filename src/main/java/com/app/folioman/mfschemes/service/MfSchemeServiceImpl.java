@@ -1,11 +1,11 @@
 package com.app.folioman.mfschemes.service;
 
-import com.app.folioman.config.ApplicationProperties;
 import com.app.folioman.mfschemes.FundDetailProjection;
 import com.app.folioman.mfschemes.MFSchemeDTO;
 import com.app.folioman.mfschemes.MFSchemeProjection;
 import com.app.folioman.mfschemes.MfSchemeService;
 import com.app.folioman.mfschemes.SchemeNotFoundException;
+import com.app.folioman.mfschemes.config.ApplicationProperties;
 import com.app.folioman.mfschemes.entities.MFSchemeNav;
 import com.app.folioman.mfschemes.entities.MfFundScheme;
 import com.app.folioman.mfschemes.mapper.MfSchemeEntityToDtoMapper;

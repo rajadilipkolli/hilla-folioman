@@ -1,6 +1,6 @@
 package com.app.folioman;
 
-import com.app.folioman.config.ApplicationProperties;
+import com.app.folioman.mfschemes.config.ApplicationProperties;
 import com.vaadin.flow.component.page.AppShellConfigurator;
 import com.vaadin.flow.theme.Theme;
 import org.springframework.boot.SpringApplication;
