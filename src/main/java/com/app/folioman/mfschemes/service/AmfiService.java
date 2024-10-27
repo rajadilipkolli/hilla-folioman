@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
@@ -27,20 +28,29 @@ public class AmfiService {
 
     public Map<String, Map<String, String>> fetchAmfiSchemeData() throws IOException, CsvException {
         logger.info("Downloading AMFI scheme data...");
+        // Prepare a Map to store the scheme data
+        Map<String, Map<String, String>> data = new HashMap<>();
 
         // Fetch the CSV content from the remote server
-        String csvContent = restClient
-                .get()
-                .uri("https://portal.amfiindia.com/DownloadSchemeData_Po.aspx?mf=0")
-                .retrieve()
-                .body(String.class);
+        String csvContent;
+        try {
+            csvContent = restClient
+                    .get()
+                    .uri("https://portal.amfiindia.com/DownloadSchemeData_Po.aspx?mf=0")
+                    .retrieve()
+                    .onStatus(HttpStatusCode::isError, (request, response) -> {
+                        logger.error("Failed to retrieve data. Status: {} ", response.getStatusCode());
+                    })
+                    .body(String.class);
+        } catch (Exception e) {
+            // website down scenario
+            logger.error("Unable to download data", e);
+            return data;
+        }
 
         if (csvContent == null || csvContent.isBlank()) {
             throw new IllegalStateException("Invalid response! No data received.");
         }
-
-        // Prepare a Map to store the scheme data
-        Map<String, Map<String, String>> data = new HashMap<>();
 
         // Read the CSV data using OpenCSV's CSVReader
         try (StringReader stringReader = new StringReader(csvContent);

@@ -45,19 +45,21 @@ public class Initializer {
         LOGGER.info("Loading all Mutual Funds on StartUp");
         try {
             Map<String, Map<String, String>> amfiDataMap = amfiService.fetchAmfiSchemeData();
-            long totalCount = mfFundSchemeService.getTotalCount();
+            if (!amfiDataMap.isEmpty()) {
+                long totalCount = mfFundSchemeService.getTotalCount();
 
-            // Only proceed if there's more data to load
-            if (amfiDataMap.size() > totalCount) {
+                // Only proceed if there's more data to load
+                if (amfiDataMap.size() > totalCount) {
 
-                Map<String, String> amfiCodeIsinMapping = getAmfiCodeISINMapping(amfiDataMap);
+                    Map<String, String> amfiCodeIsinMapping = getAmfiCodeISINMapping(amfiDataMap);
 
-                Map<String, MfFundScheme> bseStarMasterDataMap =
-                        bseStarMasterDataService.fetchBseStarMasterData(amfiDataMap, amfiCodeIsinMapping);
+                    Map<String, MfFundScheme> bseStarMasterDataMap =
+                            bseStarMasterDataService.fetchBseStarMasterData(amfiDataMap, amfiCodeIsinMapping);
 
-                // Process data
-                processMasterData(bseStarMasterDataMap, amfiDataMap.keySet());
-                LOGGER.debug("Completed loading initial data.");
+                    // Process data
+                    processMasterData(bseStarMasterDataMap, amfiDataMap.keySet());
+                    LOGGER.debug("Completed loading initial data.");
+                }
             }
         } catch (HttpClientErrorException | IOException httpClientErrorException) {
             LOGGER.error("Failed to load all Funds", httpClientErrorException);
