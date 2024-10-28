@@ -6,10 +6,14 @@
         "description": "AMFI related configuration properties."
       },
       {
-        "name": "app.nav.mf-api",
+        "name": "app.nav.mfapi",
         "type": "com.app.folioman.mfschemes.config.MfApiProperties",
         "description": "Mutual Fund API related configuration properties."
+      },
+      {
+        "name": "app.bsestar",
+        "type": "com.app.folioman.mfschemes.config.BseStarProperties",
+        "description": "BSE Star API related configuration properties." 
       }
     ]
   }
-  

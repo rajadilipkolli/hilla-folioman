@@ -38,6 +38,17 @@ public class ApplicationPropertiesTest {
         });
     }
 
+    @Test
+    void whenPropertiesAreMissing_thenBindingFails() {
+        new ApplicationContextRunner()
+                .withUserConfiguration(TestConfig.class)
+                // Omit some required properties
+                .withPropertyValues("app.amfi.scheme.data-url=https://example.com/amfi/scheme")
+                .run(context -> {
+                    assertThrows(Exception.class, () -> context.getBean(ApplicationProperties.class));
+                });
+    }
+
     @EnableConfigurationProperties({ApplicationProperties.class, BseStarProperties.class, MfApiProperties.class})
     static class TestConfig {
         // This class enables the ApplicationProperties to be loaded into the context

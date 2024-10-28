@@ -7,16 +7,23 @@ import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import jakarta.validation.ValidatorFactory;
 import java.util.Set;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 class SchemePropertiesTest {
     private static Validator validator;
+    private static ValidatorFactory factory;
 
     @BeforeAll
     public static void setupValidatorInstance() {
-        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+        factory = Validation.buildDefaultValidatorFactory();
         validator = factory.getValidator();
+    }
+
+    @AfterAll
+    public static void cleanupValidatorFactory() {
+        factory.close();
     }
 
     @Test

@@ -10,9 +10,7 @@ import org.springframework.validation.annotation.Validated;
 public class MfApiProperties {
 
     @NotBlank(message = "Data URL must not be blank")
-    @Pattern(
-            regexp = "^https?://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]",
-            message = "Data URL must be a valid HTTP(S) URL")
+    @Pattern(regexp = "^https?://.*", message = "Data URL must be a valid HTTP(S) URL")
     private String dataUrl;
 
     public String getDataUrl() {
