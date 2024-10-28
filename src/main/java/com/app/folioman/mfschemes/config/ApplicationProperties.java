@@ -1,7 +1,6 @@
 package com.app.folioman.mfschemes.config;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.validation.annotation.Validated;
@@ -16,15 +15,12 @@ import org.springframework.validation.annotation.Validated;
 public class ApplicationProperties {
 
     @Valid
-    @NotBlank(message = "AMFI configuration is required")
     private AmfiProperties amfi;
 
     @Valid
-    @NotBlank(message = "BSE Star configuration is required")
     private BseStarProperties bseStar;
 
     @Valid
-    @NotBlank(message = "NAV configuration is required")
     private NavProperties nav;
 
     public AmfiProperties getAmfi() {

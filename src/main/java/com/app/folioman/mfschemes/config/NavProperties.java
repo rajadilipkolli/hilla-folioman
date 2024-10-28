@@ -3,9 +3,13 @@ package com.app.folioman.mfschemes.config;
 import jakarta.validation.Valid;
 import org.springframework.validation.annotation.Validated;
 
+/**
+ * Configuration properties for NAV (Net Asset Value) related settings.
+ */
 @Validated
 public class NavProperties {
 
+    @Valid
     private AmfiProperties amfi;
 
     @Valid

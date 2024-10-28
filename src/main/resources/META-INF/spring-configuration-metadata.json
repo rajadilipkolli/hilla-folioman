@@ -1,0 +1,15 @@
+{
+    "properties": [
+      {
+        "name": "app.nav.amfi",
+        "type": "com.app.folioman.mfschemes.config.AmfiProperties",
+        "description": "AMFI related configuration properties."
+      },
+      {
+        "name": "app.nav.mf-api",
+        "type": "com.app.folioman.mfschemes.config.MfApiProperties",
+        "description": "Mutual Fund API related configuration properties."
+      }
+    ]
+  }
+  

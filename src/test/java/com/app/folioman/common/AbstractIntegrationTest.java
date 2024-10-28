@@ -2,6 +2,7 @@ package com.app.folioman.common;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
+import com.app.folioman.mfschemes.config.ApplicationProperties;
 import com.app.folioman.mfschemes.repository.MFSchemeNavRepository;
 import com.app.folioman.portfolio.repository.UserPortfolioValueRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,4 +28,7 @@ public abstract class AbstractIntegrationTest {
 
     @Autowired
     protected MFSchemeNavRepository mfSchemeNavRepository;
+
+    @Autowired
+    protected ApplicationProperties properties;
 }
