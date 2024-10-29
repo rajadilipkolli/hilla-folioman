@@ -52,14 +52,14 @@ class MfApiPropertiesTest {
     @Test
     void whenDataUrlIsInvalid_thenValidationFails() {
         MfApiProperties mfApi = new MfApiProperties();
-        mfApi.setDataUrl("invalid-url");
+        mfApi.setDataUrl("");
 
         Set<ConstraintViolation<MfApiProperties>> violations = validator.validate(mfApi);
         assertFalse(violations.isEmpty());
     }
 
     @ParameterizedTest
-    @ValueSource(strings = {"invalid-url", "ftp://example.com", "not_a_url", ""})
+    @ValueSource(strings = {"invalid-url", "ftp://example.com", "not_a_url"})
     void whenDataUrlIsInvalid_thenValidationFails(String invalidUrl) {
         MfApiProperties mfApi = new MfApiProperties();
         mfApi.setDataUrl(invalidUrl);

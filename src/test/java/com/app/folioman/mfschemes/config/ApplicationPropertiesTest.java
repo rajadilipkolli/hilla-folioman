@@ -4,9 +4,12 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
+import org.springframework.context.annotation.Bean;
+import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
-public class ApplicationPropertiesTest {
+class ApplicationPropertiesTest {
 
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
             .withUserConfiguration(TestConfig.class)
@@ -45,12 +48,21 @@ public class ApplicationPropertiesTest {
                 // Omit some required properties
                 .withPropertyValues("app.amfi.scheme.data-url=https://example.com/amfi/scheme")
                 .run(context -> {
-                    assertThrows(Exception.class, () -> context.getBean(ApplicationProperties.class));
+                    var ex = assertThrows(Exception.class, () -> context.getBean(ApplicationProperties.class));
+                    assertTrue(
+                            ex.getMessage()
+                                    .contains(
+                                            "startupFailure=org.springframework.boot.context.properties.ConfigurationPropertiesBindException"));
                 });
     }
 
     @EnableConfigurationProperties({ApplicationProperties.class, BseStarProperties.class, MfApiProperties.class})
+    @TestConfiguration
     static class TestConfig {
         // This class enables the ApplicationProperties to be loaded into the context
+        @Bean
+        LocalValidatorFactoryBean validator() {
+            return new LocalValidatorFactoryBean();
+        }
     }
 }
