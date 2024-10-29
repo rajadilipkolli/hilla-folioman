@@ -1,5 +1,6 @@
 package com.app.folioman.mfschemes.service;
 
+import com.app.folioman.mfschemes.config.ApplicationProperties;
 import com.app.folioman.mfschemes.entities.MFSchemeType;
 import com.app.folioman.mfschemes.entities.MfAmc;
 import com.app.folioman.mfschemes.entities.MfFundScheme;
@@ -45,14 +46,17 @@ public class BSEStarMasterDataService {
     private final MfSchemeDtoToEntityMapperHelper mfSchemeDtoToEntityMapperHelper;
 
     private final ReentrantLock reentrantLock = new ReentrantLock();
+    private final ApplicationProperties applicationProperties;
 
     public BSEStarMasterDataService(
             RestClient restClient,
             MfAmcService mfAmcService,
-            MfSchemeDtoToEntityMapperHelper mfSchemeDtoToEntityMapperHelper) {
+            MfSchemeDtoToEntityMapperHelper mfSchemeDtoToEntityMapperHelper,
+            ApplicationProperties applicationProperties) {
         this.restClient = restClient;
         this.mfAmcService = mfAmcService;
         this.mfSchemeDtoToEntityMapperHelper = mfSchemeDtoToEntityMapperHelper;
+        this.applicationProperties = applicationProperties;
     }
 
     public Map<String, MfFundScheme> fetchBseStarMasterData(
@@ -63,7 +67,7 @@ public class BSEStarMasterDataService {
         // Step 1: Initial GET request to download the page
         String response = restClient
                 .get()
-                .uri("https://bsestarmf.in/RptSchemeMaster.aspx")
+                .uri(applicationProperties.getBseStar().getScheme().getDataUrl())
                 .header(HttpHeaders.USER_AGENT, "folioman-java-httpclient/0.0.1")
                 .retrieve()
                 .body(String.class);

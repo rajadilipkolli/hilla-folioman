@@ -1,5 +1,6 @@
 package com.app.folioman.mfschemes.service;
 
+import com.app.folioman.mfschemes.config.ApplicationProperties;
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvException;
 import java.io.IOException;
@@ -21,9 +22,11 @@ public class AmfiService {
     private static final Logger logger = LoggerFactory.getLogger(AmfiService.class);
 
     private final RestClient restClient;
+    private final ApplicationProperties applicationProperties;
 
-    public AmfiService(RestClient restClient) {
+    public AmfiService(RestClient restClient, ApplicationProperties applicationProperties) {
         this.restClient = restClient;
+        this.applicationProperties = applicationProperties;
     }
 
     public Map<String, Map<String, String>> fetchAmfiSchemeData() throws IOException, CsvException {
@@ -36,7 +39,7 @@ public class AmfiService {
         try {
             csvContent = restClient
                     .get()
-                    .uri("https://portal.amfiindia.com/DownloadSchemeData_Po.aspx?mf=0")
+                    .uri(applicationProperties.getAmfi().getScheme().getDataUrl())
                     .retrieve()
                     .onStatus(HttpStatusCode::isError, (request, response) -> {
                         logger.error("Failed to retrieve data. Status: {} ", response.getStatusCode());
