@@ -95,15 +95,15 @@ export default function UserPortfolioView() {
 
                     <Grid items={portfolio.portfolioDetailsDTOS}>
                         <GridSortColumn path="schemeName" header="Scheme Name"
-                                        renderer={({item}) => (
-                                            <span style={{whiteSpace: 'normal', overflow: 'visible'}}>
-                                                {item.schemeName}
-                                            </span>
-                                        )}
+                            renderer={({ item }) => (
+                                <span style={{ whiteSpace: 'normal', overflow: 'visible' }}>
+                                    {item.schemeName}
+                                </span>
+                            )}
                         />
-                        <GridSortColumn path="folioNumber" header="Folio Number"/>
-                        <GridSortColumn path="totalValue" header="Total Value"/>
-                        <GridSortColumn path="date" header="As of Date"/>
+                        <GridSortColumn path="folioNumber" header="Folio Number" />
+                        <GridSortColumn path="totalValue" header="Total Value" />
+                        <GridSortColumn path="date" header="As of Date" />
                     </Grid>
                 </div>
             )}
@@ -111,15 +111,15 @@ export default function UserPortfolioView() {
             {monthlyInvestments && (
                 <div>
                     <h3>Monthly Investments</h3>
-                    <Grid items={monthlyInvestments} className="header-wrap">
+                    <Grid items={monthlyInvestments} className="header-wrap" aria-label="Monthly Investment Summary">
                         <GridSortColumn
                             path="year"
                             header="Year"
                             onDirectionChanged={(e) => sortMonthlyInvestments(e.detail.value)}
                         />
                         <GridColumn path="monthNumber" header="Month" />
-                        <GridSortColumn path="investmentPerMonth" header="Amount Invested In current Month"/>
-                        <GridColumn path="cumulativeInvestment" header="Total Cumulative Investment"/>
+                        <GridSortColumn path="investmentPerMonth" header="Amount Invested In current Month" />
+                        <GridColumn path="cumulativeInvestment" header="Total Cumulative Investment" />
                     </Grid>
                 </div>
             )}
