@@ -1,6 +1,7 @@
 package com.app.folioman.portfolio.repository;
 
 import com.app.folioman.portfolio.entities.UserTransactionDetails;
+import com.app.folioman.portfolio.models.response.MonthlyInvestmentResponse;
 import java.time.LocalDate;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -24,4 +25,30 @@ public interface UserTransactionDetailsRepository extends JpaRepository<UserTran
 
     List<UserTransactionDetails> findByUserSchemeDetails_IdAndTransactionDateGreaterThanEqual(
             Long id, LocalDate schemeFromDate);
+
+    @Query(
+            nativeQuery = true,
+            value =
+                    """
+                    WITH monthly_totals AS (
+                        SELECT DATE_TRUNC('month', transaction_date) AS month,
+                               EXTRACT(YEAR FROM transaction_date) AS year,
+                               EXTRACT(MONTH FROM transaction_date) AS month_number,
+                               SUM(amount) AS total_invested
+                        FROM portfolio.user_transaction_details utd
+                        JOIN portfolio.user_scheme_details usd ON utd.user_scheme_detail_id = usd.id
+                        JOIN portfolio.user_folio_details ufd ON ufd.id = usd.user_folio_id
+                        WHERE ufd.pan = ?1
+                        GROUP BY DATE_TRUNC('month', transaction_date),
+                                 EXTRACT(YEAR FROM transaction_date),
+                                 EXTRACT(MONTH FROM transaction_date)
+                    )
+                    SELECT year,
+                           month_number,
+                           total_invested AS investmentPerMonth,
+                           SUM(total_invested) OVER (ORDER BY month) AS cumulativeInvestment
+                    FROM monthly_totals
+                    ORDER BY year, month_number
+                    """)
+    List<MonthlyInvestmentResponse> findMonthlyInvestmentsByPan(String pan);
 }
