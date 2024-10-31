@@ -1,0 +1,5 @@
+{"properties": [{
+  "name": "app.amfi.scheme.data-url",
+  "type": "java.lang.String",
+  "description": "AMFI Url for downloading scheme Data"
+}]}
