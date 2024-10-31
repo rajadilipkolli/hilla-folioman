@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Button, DatePicker, Grid, GridColumn, GridSortColumn, TextField } from "@vaadin/react-components";
+import { Button, DatePicker, Grid, GridColumn, GridSortColumn, GridSorterDirection, TextField } from "@vaadin/react-components";
 import PortfolioResponse from "Frontend/generated/com/app/folioman/portfolio/models/response/PortfolioResponse";
 import MonthlyInvestmentResponse from "Frontend/generated/com/app/folioman/portfolio/models/response/MonthlyInvestmentResponse";
 import { getPortfolio } from "Frontend/generated/ImportMutualFundController";
@@ -47,19 +47,20 @@ export default function UserPortfolioView() {
         }
     };
 
+    const DEFAULT_YEAR = 0;
+    const DEFAULT_MONTH = 0;
     // Custom sort handler for client-side sorting by Year and Month
-    const sortMonthlyInvestments = (direction: SortDirection) => {
-        const sortedData = [...(monthlyInvestments || [])].sort((a, b) => {
-            const aMonth = a.monthNumber ?? 0; // Use 0 or a default value if undefined
-            const bMonth = b.monthNumber ?? 0; // Use 0 or a default value if undefined
-            const aYear = a.year ?? 0; // Use 0 or a default value if undefined
-            const bYear = b.year ?? 0; // Use 0 or a default value if undefined
-
-            if (aYear === bYear) {
-                return direction === 'asc' ? aMonth - bMonth : bMonth - aMonth;
-            }
-            return direction === 'asc' ? aYear - bYear : bYear - aYear;
-        });
+    const sortMonthlyInvestments = (direction: GridSorterDirection) => {
+        const sortedData = monthlyInvestments?.map(item => ({
+                    ...item,
+                    monthNumber: item.monthNumber ?? DEFAULT_MONTH,
+                    year: item.year ?? DEFAULT_YEAR
+            })).sort((a, b) => {
+                    if (a.year === b.year) {
+                            return direction === 'asc' ? a.monthNumber - b.monthNumber : b.monthNumber - a.monthNumber;
+                        }
+                    return direction === 'asc' ? a.year - b.year : b.year - a.year;
+                }) ?? [];
         setMonthlyInvestments(sortedData);
     };
 
