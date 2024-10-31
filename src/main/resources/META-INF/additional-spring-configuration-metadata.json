@@ -1,0 +1,36 @@
+{
+  "properties": [
+    {
+      "name": "app.amfi.scheme.data-url",
+      "type": "java.lang.String",
+      "description": "URL endpoint for downloading AMFI (Association of Mutual Funds in India) scheme data. Must be a valid HTTPS URL.",
+      "hints": {
+        "pattern": "^https://.*"
+      }
+    },
+    {
+      "name": "app.nav.amfi",
+      "type": "com.app.folioman.mfschemes.config.AmfiProperties",
+      "description": "AMFI related configuration properties.",
+      "hints": {
+        "pattern": "^https://.*"
+      }
+    },
+    {
+      "name": "app.nav.mfapi",
+      "type": "com.app.folioman.mfschemes.config.MfApiProperties",
+      "description": "Mutual Fund API related configuration properties.",
+      "hints": {
+        "pattern": "^https://.*"
+      }
+    },
+    {
+      "name": "app.bsestar",
+      "type": "com.app.folioman.mfschemes.config.BseStarProperties",
+      "description": "BSE Star API related configuration properties.",
+      "hints": {
+        "pattern": "^https://.*"
+      }
+    }
+  ]
+}

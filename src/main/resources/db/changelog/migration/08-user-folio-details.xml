@@ -70,4 +70,10 @@
         </createIndex>
     </changeSet>
 
+    <changeSet id="1725375997422-4" author="appAdmin">
+        <createIndex tableName="user_folio_details" schemaName="portfolio" indexName="user_details_idx_pan">
+            <column name="pan"/>
+        </createIndex>
+    </changeSet>
+
 </databaseChangeLog>

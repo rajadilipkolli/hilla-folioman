@@ -74,4 +74,21 @@
                                  referencedTableSchemaName="portfolio"/>
     </changeSet>
 
+    <changeSet id="1725378154309-5" author="appUser">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists schemaName="portfolio" indexName="user_details_idx_transaction_date" tableName="user_transaction_details"/>
+                <indexExists schemaName="portfolio" indexName="user_details_idx_user_scheme_detail_id" tableName="user_transaction_details"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="user_details_idx_transaction_date" schemaName="portfolio"
+                     tableName="user_transaction_details">
+            <column name="transaction_date"/>
+        </createIndex>
+        <createIndex indexName="user_details_idx_user_scheme_detail_id" schemaName="portfolio"
+                     tableName="user_transaction_details">
+            <column name="user_scheme_detail_id"/>
+        </createIndex>
+    </changeSet>
+
 </databaseChangeLog>

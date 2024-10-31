@@ -82,4 +82,11 @@
                                  referencedTableSchemaName="portfolio"/>
     </changeSet>
 
+    <changeSet id="1725378154309-5" author="appUser">
+        <createIndex indexName="user_scheme_idx_user_folio_id" schemaName="portfolio"
+                     tableName="user_scheme_details">
+            <column name="user_folio_id"/>
+        </createIndex>
+    </changeSet>
+
 </databaseChangeLog>
