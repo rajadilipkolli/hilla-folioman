@@ -5,9 +5,6 @@ import MonthlyInvestmentResponse from "Frontend/generated/com/app/folioman/portf
 import { getPortfolio } from "Frontend/generated/ImportMutualFundController";
 import { getTotalInvestmentsByPanPerMonth } from "Frontend/generated/UserTransactionsController";
 
-// Define the SortDirection type manually as a union of possible values.
-type SortDirection = 'asc' | 'desc' | null;
-
 export default function UserPortfolioView() {
     const [pan, setPan] = useState<string>('');
     const [asOfDate, setAsOfDate] = useState<string | null>(null);
