@@ -5,7 +5,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.app.folioman.common.AbstractIntegrationTest;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -99,7 +98,6 @@ class NavControllerIT extends AbstractIntegrationTest {
     }
 
     @Test
-    @Disabled
     void shouldLoadDataWhenSchemeMergedWithOtherFundHouse() throws Exception {
         this.mockMvc
                 .perform(get("/api/nav/{schemeCode}/{date}", 151113, "2022-10-20")
@@ -108,8 +106,8 @@ class NavControllerIT extends AbstractIntegrationTest {
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, is(MediaType.APPLICATION_JSON_VALUE)))
                 .andExpect(jsonPath("$.schemeCode", is(151113L), Long.class))
                 .andExpect(jsonPath("$.isin", is("INF917K01HD4")))
-                .andExpect(jsonPath("$.schemeName", is("HSBC Value Fund - Direct Growth")))
-                .andExpect(jsonPath("$.nav", is("63.1620")))
+                .andExpect(jsonPath("$.schemeName", is("HSBC VALUE FUND DIRECT PLAN - GROWTH")))
+                .andExpect(jsonPath("$.nav", is("63.16200")))
                 .andExpect(jsonPath("$.date", is("2022-10-20")))
                 .andExpect(jsonPath("$.schemeType", is("Open Ended(Equity Scheme - Value Fund)")));
     }
