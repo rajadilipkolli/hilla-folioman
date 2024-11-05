@@ -19,15 +19,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
@@ -51,7 +48,6 @@ public class MFNavServiceImpl implements MFNavService {
     private final MfHistoricalNavService historicalNavService;
     private final MFSchemeNavRepository mfSchemeNavRepository;
     private final MfFundSchemeRepository mFSchemeRepository;
-    private final TaskExecutor taskExecutor;
     private final RestClient restClient;
     private final TransactionTemplate transactionTemplate;
 
@@ -64,7 +60,6 @@ public class MFNavServiceImpl implements MFNavService {
             MfHistoricalNavService historicalNavService,
             MFSchemeNavRepository mfSchemeNavRepository,
             MfFundSchemeRepository mFSchemeRepository,
-            @Qualifier("taskExecutor") TaskExecutor taskExecutor,
             RestClient restClient,
             PlatformTransactionManager transactionManager,
             ApplicationProperties applicationProperties) {
@@ -73,7 +68,6 @@ public class MFNavServiceImpl implements MFNavService {
         this.historicalNavService = historicalNavService;
         this.mfSchemeNavRepository = mfSchemeNavRepository;
         this.mFSchemeRepository = mFSchemeRepository;
-        this.taskExecutor = taskExecutor;
         this.restClient = restClient;
         // Create a new TransactionTemplate with the desired propagation behavior
         this.transactionTemplate = new TransactionTemplate(transactionManager);
@@ -158,13 +152,9 @@ public class MFNavServiceImpl implements MFNavService {
     public void loadHistoricalDataIfNotExists() {
         List<Long> historicalDataNotLoadedSchemeIdList = getHistoricalDataNotLoadedSchemeIdList();
         if (!historicalDataNotLoadedSchemeIdList.isEmpty()) {
-            List<CompletableFuture<Void>> allSchemesWhereHistoricalDetailsNotLoadedCf =
-                    historicalDataNotLoadedSchemeIdList.stream()
-                            .map(schemeId -> CompletableFuture.runAsync(
-                                    () -> mfSchemeService.fetchSchemeDetails(schemeId), taskExecutor))
-                            .toList();
-            CompletableFuture.allOf(allSchemesWhereHistoricalDetailsNotLoadedCf.toArray(new CompletableFuture<?>[0]))
-                    .join();
+            for (Long schemeId : historicalDataNotLoadedSchemeIdList) {
+                mfSchemeService.fetchSchemeDetails(schemeId);
+            }
             LOGGER.info("Completed loading HistoricalData for schemes that don't exist");
         }
     }
