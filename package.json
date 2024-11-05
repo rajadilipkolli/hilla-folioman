@@ -44,7 +44,7 @@
     "@vaadin/hilla-generator-plugin-barrel": "24.5.3",
     "@vaadin/hilla-generator-plugin-client": "24.5.3",
     "@vaadin/hilla-generator-plugin-model": "24.5.3",
-    "@vaadin/hilla-generator-plugin-push": "24.5.2",
+    "@vaadin/hilla-generator-plugin-push": "24.5.3",
     "@vaadin/hilla-generator-plugin-signals": "24.5.2",
     "@vaadin/hilla-generator-plugin-subtypes": "24.5.2",
     "@vaadin/hilla-generator-utils": "24.5.2",
