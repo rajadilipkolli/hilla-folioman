@@ -10,7 +10,7 @@
     "@vaadin/hilla-frontend": "24.5.3",
     "@vaadin/hilla-lit-form": "24.5.3",
     "@vaadin/hilla-react-auth": "24.5.3",
-    "@vaadin/hilla-react-crud": "24.5.2",
+    "@vaadin/hilla-react-crud": "24.5.3",
     "@vaadin/hilla-react-form": "24.5.3",
     "@vaadin/hilla-react-i18n": "24.5.2",
     "@vaadin/hilla-react-signals": "24.5.2",
