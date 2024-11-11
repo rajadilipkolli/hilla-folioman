@@ -14,6 +14,8 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.jdbc.datasource.LazyConnectionDataSourceProxy;
 
 /**
@@ -29,8 +31,17 @@ import org.springframework.jdbc.datasource.LazyConnectionDataSourceProxy;
 class LazyConnectionDataSourceProxyConfig implements BeanFactoryPostProcessor {
 
     @Bean
-    static LazyConnectionDataSourceProxyBeanPostProcessor lazyConnectionDataSourceProxy() {
-        return new LazyConnectionDataSourceProxyBeanPostProcessor();
+    @Order(Ordered.LOWEST_PRECEDENCE - 1)
+    static BeanPostProcessor lazyConnectionDataSourceProxyBeanPostProcessor() {
+        return new BeanPostProcessor() {
+            @Override
+            public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+                if (bean instanceof ProxyDataSource proxyDataSource && !ScopedProxyUtils.isScopedTarget(beanName)) {
+                    return new LazyConnectionDataSourceProxy(proxyDataSource);
+                }
+                return bean;
+            }
+        };
     }
 
     @Override
@@ -51,17 +62,6 @@ class LazyConnectionDataSourceProxyConfig implements BeanFactoryPostProcessor {
         } else {
             throw new IllegalStateException(
                     "Bean definition for 'dataSource' is not an instance of AbstractBeanDefinition");
-        }
-    }
-
-    private static class LazyConnectionDataSourceProxyBeanPostProcessor implements BeanPostProcessor {
-
-        @Override
-        public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-            if (bean instanceof ProxyDataSource proxyDataSource && !ScopedProxyUtils.isScopedTarget(beanName)) {
-                return new LazyConnectionDataSourceProxy(proxyDataSource);
-            }
-            return bean;
         }
     }
 }

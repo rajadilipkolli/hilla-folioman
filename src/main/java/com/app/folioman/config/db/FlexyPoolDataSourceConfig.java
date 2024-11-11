@@ -21,6 +21,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 
 @AutoConfiguration(
         after = {DataSourceAutoConfiguration.class},
@@ -29,40 +31,41 @@ import org.springframework.context.annotation.Bean;
 @ConditionalOnBean(DataSource.class)
 public class FlexyPoolDataSourceConfig {
 
-    private static int maxOverflowPoolSize = 5;
-    private static int connectionAcquisitionThresholdMillis = 50;
+    private static final int maxOverflowPoolSize = 5;
+    private static final int connectionAcquisitionThresholdMillis = 50;
 
     @Bean
-    static FlexyPoolDataSourceBeanPostProcessor flexyPoolDataSourceBeanPostProcessor() {
-        return new FlexyPoolDataSourceBeanPostProcessor(maxOverflowPoolSize, connectionAcquisitionThresholdMillis);
-    }
+    @Order(Ordered.LOWEST_PRECEDENCE - 2)
+    static BeanPostProcessor flexyPoolDataSourceBeanPostProcessor() {
+        return new BeanPostProcessor() {
+            @Override
+            public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
+                if (bean instanceof DataSource dataSource && !ScopedProxyUtils.isScopedTarget(beanName)) {
+                    FlexyPoolConfiguration<HikariDataSource> flexyPoolConfiguration =
+                            new FlexyPoolConfiguration.Builder<>(
+                                            getClass().getSimpleName(),
+                                            (HikariDataSource) dataSource,
+                                            HikariCPPoolAdapter.FACTORY)
+                                    .setMetricsFactory(MetricsFactoryResolver.INSTANCE.resolve())
+                                    .setConnectionProxyFactory(ConnectionDecoratorFactoryResolver.INSTANCE.resolve())
+                                    .setMetricLogReporterMillis(TimeUnit.SECONDS.toMillis(5))
+                                    .setMetricNamingUniqueName(UniqueNamingStrategy.INSTANCE)
+                                    .setJmxEnabled(false)
+                                    .setJmxAutoStart(false)
+                                    .setConnectionAcquisitionTimeThresholdMillis(50L)
+                                    .setConnectionLeaseTimeThresholdMillis(250L)
+                                    .setEventListenerResolver(
+                                            () -> List.of(new ConnectionAcquisitionTimeoutEventListener()))
+                                    .build();
 
-    private record FlexyPoolDataSourceBeanPostProcessor(
-            int maxOverflowPoolSize, int connectionAcquisitionThresholdMillis) implements BeanPostProcessor {
-
-        @Override
-        public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-            if (bean instanceof DataSource dataSource && !ScopedProxyUtils.isScopedTarget(beanName)) {
-                FlexyPoolConfiguration<HikariDataSource> flexyPoolConfiguration = new FlexyPoolConfiguration.Builder<>(
-                                getClass().getSimpleName(), (HikariDataSource) dataSource, HikariCPPoolAdapter.FACTORY)
-                        .setMetricsFactory(MetricsFactoryResolver.INSTANCE.resolve())
-                        .setConnectionProxyFactory(ConnectionDecoratorFactoryResolver.INSTANCE.resolve())
-                        .setMetricLogReporterMillis(TimeUnit.SECONDS.toMillis(5))
-                        .setMetricNamingUniqueName(UniqueNamingStrategy.INSTANCE)
-                        .setJmxEnabled(false)
-                        .setJmxAutoStart(false)
-                        .setConnectionAcquisitionTimeThresholdMillis(50L)
-                        .setConnectionLeaseTimeThresholdMillis(250L)
-                        .setEventListenerResolver(() -> List.of(new ConnectionAcquisitionTimeoutEventListener()))
-                        .build();
-
-                return new FlexyPoolDataSource<>(
-                        flexyPoolConfiguration,
-                        new IncrementPoolOnTimeoutConnectionAcquisitionStrategy.Factory<>(
-                                maxOverflowPoolSize, connectionAcquisitionThresholdMillis),
-                        new RetryConnectionAcquisitionStrategy.Factory<>(2));
+                    return new FlexyPoolDataSource<>(
+                            flexyPoolConfiguration,
+                            new IncrementPoolOnTimeoutConnectionAcquisitionStrategy.Factory<>(
+                                    maxOverflowPoolSize, connectionAcquisitionThresholdMillis),
+                            new RetryConnectionAcquisitionStrategy.Factory<>(2));
+                }
+                return bean;
             }
-            return bean;
-        }
+        };
     }
 }
