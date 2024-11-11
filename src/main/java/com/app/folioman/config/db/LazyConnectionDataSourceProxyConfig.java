@@ -50,8 +50,7 @@ class LazyConnectionDataSourceProxyConfig implements BeanFactoryPostProcessor {
         BeanDefinition originalBeanDefinition = beanFactory.getBeanDefinition("dataSource");
 
         // Check if the bean definition is an instance of AbstractBeanDefinition
-        if (originalBeanDefinition instanceof AbstractBeanDefinition) {
-            AbstractBeanDefinition originalAbstractBeanDefinition = (AbstractBeanDefinition) originalBeanDefinition;
+        if (originalBeanDefinition instanceof AbstractBeanDefinition originalAbstractBeanDefinition) {
             // Clone the bean definition
             AbstractBeanDefinition clonedBeanDefinition = originalAbstractBeanDefinition.cloneBeanDefinition();
             // Modify the cloned bean definition
