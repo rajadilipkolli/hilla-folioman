@@ -1,5 +1,8 @@
 package com.app.folioman.config.db;
 
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Positive;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.validation.annotation.Validated;
@@ -9,8 +12,14 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 public class AppDataSourceProperties {
 
-    private int leaseTimeThreshold;
+    @Positive(message = "Lease time threshold must be non-negative") private int leaseTimeThreshold;
+
+    @Min(value = 50, message = "Acquisition timeout must be at least 100ms")
     private int acquisitionTimeout;
+
+    @Min(value = 2, message = "Min OverFlow size should be 2")
+    private int maxOverflowPoolSize;
+
     private AcquisitionStrategy acquisitionStrategy;
 
     public int getLeaseTimeThreshold() {
@@ -29,6 +38,14 @@ public class AppDataSourceProperties {
         this.acquisitionTimeout = acquisitionTimeout;
     }
 
+    public int getMaxOverflowPoolSize() {
+        return maxOverflowPoolSize;
+    }
+
+    public void setMaxOverflowPoolSize(int maxOverflowPoolSize) {
+        this.maxOverflowPoolSize = maxOverflowPoolSize;
+    }
+
     public AcquisitionStrategy getAcquisitionStrategy() {
         return acquisitionStrategy;
     }
@@ -38,7 +55,14 @@ public class AppDataSourceProperties {
     }
 
     private class AcquisitionStrategy {
+
+        /** Number of retry attempts for connection acquisition */
+        @Min(value = 1, message = "At least one retry must be configured")
+        @Max(value = 10, message = "Maximum 10 retries allowed")
         private int retries;
+
+        /** Timeout increment in milliseconds between retries */
+        @Min(value = 50, message = "Increment timeout must be at least 50ms")
         private int incrementTimeout;
 
         public int getRetries() {

@@ -8,6 +8,7 @@ import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
+import org.springframework.beans.factory.support.AbstractBeanDefinition;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -34,11 +35,23 @@ class LazyConnectionDataSourceProxyConfig implements BeanFactoryPostProcessor {
 
     @Override
     public void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
-        // Update existing dataSource bean definition
-        BeanDefinition beanDefinition = beanFactory.getBeanDefinition("dataSource");
-        beanDefinition.getPropertyValues().add("poolName", "jobrunr");
-        DefaultListableBeanFactory listableBeanFactory = (DefaultListableBeanFactory) beanFactory;
-        listableBeanFactory.registerBeanDefinition("jobrunrDataSource", beanDefinition);
+        // Retrieve the existing dataSource bean definition
+        BeanDefinition originalBeanDefinition = beanFactory.getBeanDefinition("dataSource");
+
+        // Check if the bean definition is an instance of AbstractBeanDefinition
+        if (originalBeanDefinition instanceof AbstractBeanDefinition) {
+            AbstractBeanDefinition originalAbstractBeanDefinition = (AbstractBeanDefinition) originalBeanDefinition;
+            // Clone the bean definition
+            AbstractBeanDefinition clonedBeanDefinition = originalAbstractBeanDefinition.cloneBeanDefinition();
+            // Modify the cloned bean definition
+            clonedBeanDefinition.getPropertyValues().add("poolName", "jobrunr");
+            // Register the cloned bean definition with a new name
+            DefaultListableBeanFactory listableBeanFactory = (DefaultListableBeanFactory) beanFactory;
+            listableBeanFactory.registerBeanDefinition("jobrunrDataSource", clonedBeanDefinition);
+        } else {
+            throw new IllegalStateException(
+                    "Bean definition for 'dataSource' is not an instance of AbstractBeanDefinition");
+        }
     }
 
     private static class LazyConnectionDataSourceProxyBeanPostProcessor implements BeanPostProcessor {

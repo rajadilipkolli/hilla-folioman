@@ -15,7 +15,8 @@ public class ConnectionAcquisitionTimeoutEventListener extends EventListener<Con
 
     @Override
     public void on(ConnectionAcquisitionTimeoutEvent event) {
-        LOGGER.warn("Connection acquisition timeout occurred for pool '{}'. This may indicate connection pool saturation.", 
-            event.getUniqueName());
+        LOGGER.warn(
+                "Connection acquisition timeout occurred for pool '{}'. This may indicate connection pool saturation.",
+                event.getUniqueName());
     }
 }
