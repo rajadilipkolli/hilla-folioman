@@ -1,0 +1,2 @@
+com.app.folioman.config.db.LazyConnectionDataSourceProxyConfig
+com.app.folioman.config.db.FlexyPoolDataSourceConfig
