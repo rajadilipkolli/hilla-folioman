@@ -15,8 +15,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -26,17 +24,12 @@ class PortfolioServiceHelper {
     private final ObjectMapper mapper;
     private final UserCASDetailsService userCASDetailsService;
     private final MFNavService mfNavService;
-    private final TaskExecutor taskExecutor;
 
     PortfolioServiceHelper(
-            ObjectMapper mapper,
-            UserCASDetailsService userCASDetailsService,
-            MFNavService mfNavService,
-            @Qualifier("taskExecutor") TaskExecutor taskExecutor) {
+            ObjectMapper mapper, UserCASDetailsService userCASDetailsService, MFNavService mfNavService) {
         this.mapper = mapper;
         this.userCASDetailsService = userCASDetailsService;
         this.mfNavService = mfNavService;
-        this.taskExecutor = taskExecutor;
     }
 
     public <T> T readValue(byte[] bytes, Class<T> responseClassType) throws IOException {
@@ -58,7 +51,7 @@ class PortfolioServiceHelper {
         List<CompletableFuture<PortfolioDetailsDTO>> completableFutureList =
                 userCASDetailsService.getPortfolioDetailsByPanAndAsOfDate(panNumber, asOfDate).stream()
                         .map(portfolioDetails -> CompletableFuture.supplyAsync(
-                                () -> createPortfolioDetailsDTO(portfolioDetails, asOfDate), taskExecutor))
+                                () -> createPortfolioDetailsDTO(portfolioDetails, asOfDate)))
                         .toList();
         return joinFutures(completableFutureList);
     }

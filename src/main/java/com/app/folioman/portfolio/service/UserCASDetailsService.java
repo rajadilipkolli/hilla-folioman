@@ -14,16 +14,9 @@ import org.springframework.transaction.annotation.Transactional;
 class UserCASDetailsService {
 
     private final UserCASDetailsRepository userCASDetailsRepository;
-    private final UserFolioDetailService userFolioDetailService;
-    private final UserSchemeDetailServiceImpl userSchemeDetailService;
 
-    UserCASDetailsService(
-            UserCASDetailsRepository userCASDetailsRepository,
-            UserFolioDetailService userFolioDetailService,
-            UserSchemeDetailServiceImpl userSchemeDetailService) {
+    UserCASDetailsService(UserCASDetailsRepository userCASDetailsRepository) {
         this.userCASDetailsRepository = userCASDetailsRepository;
-        this.userFolioDetailService = userFolioDetailService;
-        this.userSchemeDetailService = userSchemeDetailService;
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
