@@ -46,6 +46,11 @@ public class FlexyPoolDataSourceConfig {
         public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
             if (bean instanceof DataSource dataSource && !ScopedProxyUtils.isScopedTarget(beanName)) {
                 HikariDataSource hikariDataSource = getHikariDataSource(dataSource);
+                if (hikariDataSource == null) {
+                    // HikariDataSource is not available; return the original bean
+                    return bean;
+                }
+                AppDataSourceProperties appDataSourceProperties = getAppDataSourceProperties();
                 FlexyPoolConfiguration<HikariDataSource> flexyPoolConfiguration = new FlexyPoolConfiguration.Builder<>(
                                 getClass().getSimpleName(), hikariDataSource, HikariCPPoolAdapter.FACTORY)
                         .setMetricsFactory(MetricsFactoryResolver.INSTANCE.resolve())
@@ -54,23 +59,20 @@ public class FlexyPoolDataSourceConfig {
                         .setMetricNamingUniqueName(UniqueNamingStrategy.INSTANCE)
                         .setJmxEnabled(false)
                         .setJmxAutoStart(false)
-                        .setConnectionAcquisitionTimeThresholdMillis(getAppDataSourceProperties()
-                                .getAcquisitionStrategy()
-                                .getAcquisitionTimeout())
-                        .setConnectionLeaseTimeThresholdMillis(getAppDataSourceProperties()
-                                .getAcquisitionStrategy()
-                                .getLeaseTimeThreshold())
+                        .setConnectionAcquisitionTimeThresholdMillis(
+                                appDataSourceProperties.getAcquisitionStrategy().getAcquisitionTimeout())
+                        .setConnectionLeaseTimeThresholdMillis(
+                                appDataSourceProperties.getAcquisitionStrategy().getLeaseTimeThreshold())
                         .setEventListenerResolver(() -> List.of(new ConnectionAcquisitionTimeoutEventListener()))
                         .build();
 
                 return new FlexyPoolDataSource<>(
                         flexyPoolConfiguration,
                         new IncrementPoolOnTimeoutConnectionAcquisitionStrategy.Factory<>(
-                                getAppDataSourceProperties().getMaxOvergrowPoolSize(),
-                                getAppDataSourceProperties().getTimeoutMillis()),
-                        new RetryConnectionAcquisitionStrategy.Factory<>(getAppDataSourceProperties()
-                                .getAcquisitionStrategy()
-                                .getRetries()));
+                                appDataSourceProperties.getMaxOvergrowPoolSize(),
+                                appDataSourceProperties.getAcquisitionStrategy().getIncrementTimeout()),
+                        new RetryConnectionAcquisitionStrategy.Factory<>(
+                                appDataSourceProperties.getAcquisitionStrategy().getRetries()));
             }
             return bean;
         }

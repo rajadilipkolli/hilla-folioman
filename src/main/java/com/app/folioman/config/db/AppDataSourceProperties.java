@@ -12,10 +12,8 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 public class AppDataSourceProperties {
 
-    @Min(value = 5, message = "Min OverGrow size should be 2")
+    @Min(value = 5, message = "Min OverGrow size should be 5")
     private int maxOvergrowPoolSize;
-
-    private int timeoutMillis;
 
     private AcquisitionStrategy acquisitionStrategy;
 
@@ -25,14 +23,6 @@ public class AppDataSourceProperties {
 
     public void setMaxOvergrowPoolSize(int maxOvergrowPoolSize) {
         this.maxOvergrowPoolSize = maxOvergrowPoolSize;
-    }
-
-    public int getTimeoutMillis() {
-        return timeoutMillis;
-    }
-
-    public void setTimeoutMillis(int timeoutMillis) {
-        this.timeoutMillis = timeoutMillis;
     }
 
     public AcquisitionStrategy getAcquisitionStrategy() {
@@ -56,7 +46,7 @@ public class AppDataSourceProperties {
 
         @Positive(message = "Lease time threshold must be non-negative") private long leaseTimeThreshold;
 
-        @Min(value = 50, message = "Acquisition timeout must be at least 50ms")
+        @Min(value = 100, message = "Acquisition timeout must be at least 100ms")
         private long acquisitionTimeout;
 
         public int getRetries() {
