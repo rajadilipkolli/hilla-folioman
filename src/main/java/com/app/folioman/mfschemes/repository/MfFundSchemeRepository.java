@@ -37,8 +37,10 @@ public interface MfFundSchemeRepository extends JpaRepository<MfFundScheme, Long
     Optional<MfFundScheme> findBySchemeIdAndMfSchemeNavs_NavDate(
             @Param("schemeCode") Long schemeCode, @Param("date") LocalDate navDate);
 
-    @EntityGraph(attributePaths = {"mfSchemeType", "mfSchemeNavs"})
-    Optional<MfFundScheme> findByAmfiCode(Long amfiCode);
+    @EntityGraph(attributePaths = {"amc", "mfSchemeType", "mfSchemeNavs"})
+    MfFundScheme findByAmfiCode(@Param("amfiCode") Long amfiCode);
+
+    boolean existsByAmfiCode(Long amfiCode);
 
     Optional<MFSchemeProjection> findByIsin(String isin);
 
