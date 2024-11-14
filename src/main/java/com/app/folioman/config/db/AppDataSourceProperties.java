@@ -12,38 +12,17 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 public class AppDataSourceProperties {
 
-    @Positive(message = "Lease time threshold must be non-negative") private int leaseTimeThreshold;
-
-    @Min(value = 50, message = "Acquisition timeout must be at least 100ms")
-    private int acquisitionTimeout;
-
-    @Min(value = 2, message = "Min OverFlow size should be 2")
-    private int maxOverflowPoolSize;
+    @Min(value = 5, message = "Min OverGrow size should be 5")
+    private int maxOvergrowPoolSize;
 
     private AcquisitionStrategy acquisitionStrategy;
 
-    public int getLeaseTimeThreshold() {
-        return leaseTimeThreshold;
+    public int getMaxOvergrowPoolSize() {
+        return maxOvergrowPoolSize;
     }
 
-    public void setLeaseTimeThreshold(int leaseTimeThreshold) {
-        this.leaseTimeThreshold = leaseTimeThreshold;
-    }
-
-    public int getAcquisitionTimeout() {
-        return acquisitionTimeout;
-    }
-
-    public void setAcquisitionTimeout(int acquisitionTimeout) {
-        this.acquisitionTimeout = acquisitionTimeout;
-    }
-
-    public int getMaxOverflowPoolSize() {
-        return maxOverflowPoolSize;
-    }
-
-    public void setMaxOverflowPoolSize(int maxOverflowPoolSize) {
-        this.maxOverflowPoolSize = maxOverflowPoolSize;
+    public void setMaxOvergrowPoolSize(int maxOvergrowPoolSize) {
+        this.maxOvergrowPoolSize = maxOvergrowPoolSize;
     }
 
     public AcquisitionStrategy getAcquisitionStrategy() {
@@ -54,7 +33,7 @@ public class AppDataSourceProperties {
         this.acquisitionStrategy = acquisitionStrategy;
     }
 
-    private class AcquisitionStrategy {
+    public static class AcquisitionStrategy {
 
         /** Number of retry attempts for connection acquisition */
         @Min(value = 1, message = "At least one retry must be configured")
@@ -64,6 +43,11 @@ public class AppDataSourceProperties {
         /** Timeout increment in milliseconds between retries */
         @Min(value = 50, message = "Increment timeout must be at least 50ms")
         private int incrementTimeout;
+
+        @Positive(message = "Lease time threshold must be non-negative") private long leaseTimeThreshold;
+
+        @Min(value = 100, message = "Acquisition timeout must be at least 100ms")
+        private long acquisitionTimeout;
 
         public int getRetries() {
             return retries;
@@ -79,6 +63,22 @@ public class AppDataSourceProperties {
 
         public void setIncrementTimeout(int incrementTimeout) {
             this.incrementTimeout = incrementTimeout;
+        }
+
+        public long getLeaseTimeThreshold() {
+            return leaseTimeThreshold;
+        }
+
+        public void setLeaseTimeThreshold(long leaseTimeThreshold) {
+            this.leaseTimeThreshold = leaseTimeThreshold;
+        }
+
+        public long getAcquisitionTimeout() {
+            return acquisitionTimeout;
+        }
+
+        public void setAcquisitionTimeout(long acquisitionTimeout) {
+            this.acquisitionTimeout = acquisitionTimeout;
         }
     }
 }
