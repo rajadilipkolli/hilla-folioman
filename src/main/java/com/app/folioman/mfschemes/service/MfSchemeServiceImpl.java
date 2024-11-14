@@ -26,6 +26,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
@@ -84,11 +85,11 @@ public class MfSchemeServiceImpl implements MfSchemeService {
         return this.mFSchemeRepository.findByAmfiCode(schemeCode);
     }
 
-    @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW)
+    @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW, isolation = Isolation.SERIALIZABLE)
     public Optional<MFSchemeDTO> getMfSchemeDTO(Long schemeCode, LocalDate navDate) {
-        return this.mFSchemeRepository
-                .findBySchemeIdAndMfSchemeNavs_NavDate(schemeCode, navDate)
-                .map(mfSchemeEntityToDtoMapper::convertEntityToDto);
+        Optional<MfFundScheme> bySchemeIdAndMfSchemeNavsNavDate =
+                this.mFSchemeRepository.findBySchemeIdAndMfSchemeNavs_NavDate(schemeCode, navDate);
+        return bySchemeIdAndMfSchemeNavsNavDate.map(mfSchemeEntityToDtoMapper::convertEntityToDto);
     }
 
     @Override
