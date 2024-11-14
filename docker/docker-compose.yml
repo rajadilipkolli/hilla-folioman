@@ -56,9 +56,11 @@ services:
       - folioman-network
 
   grafanalgtm:
-    image: grafana/otel-lgtm:0.7.6
+    image: grafana/otel-lgtm:0.7.8
     extra_hosts: [ 'host.docker.internal:host-gateway' ]
     container_name: grafanalgtm
+    networks:
+      - folioman-network
     environment:
       - OTEL_METRIC_EXPORT_INTERVAL=500
       - ENABLE_LOGS_ALL=true
@@ -68,8 +70,29 @@ services:
       - "4318:4318"
       - "9090:9090"
 
+  mongodb:
+    hostname: mongodb
+    container_name: mongodb
+    image: mongo:8.0.3
+    restart: unless-stopped
+    volumes:
+      - mongodb:/data/db
+    ports:
+      - "27017:27017"
+    networks:
+      - folioman-network
+    healthcheck:
+      test: |
+        mongosh --eval "try { rs.status().ok } catch (e) { rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'localhost:27017' }] }).ok }"
+      interval: 10s
+      start_period: 30s
+      timeout: 5s
+      retries: 3
+    command: [ "/usr/bin/mongod", "--replSet", "rs0", "--bind_ip_all" ]
+
 networks:
   folioman-network:
     driver: bridge
 volumes:
   redis_data:
+  mongodb:
