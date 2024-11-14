@@ -1,7 +1,7 @@
 services:
 
   postgresqldb:
-    image: postgres:15.8-alpine
+    image: postgres:15.9-alpine
     hostname: postgresqldb
     container_name: postgresqldb
     extra_hosts: [ 'host.docker.internal:host-gateway' ]
