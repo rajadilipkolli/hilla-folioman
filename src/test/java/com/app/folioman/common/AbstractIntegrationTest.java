@@ -12,6 +12,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
+/**
+ * Base class for integration tests using a hybrid database approach:
+ * - NoSQL (MongoDB) for JobRunr and related operations
+ * - SQL for core application data
+ */
 @SpringBootTest(
         webEnvironment = RANDOM_PORT,
         classes = {NoSQLContainersConfig.class, SQLContainersConfig.class})
