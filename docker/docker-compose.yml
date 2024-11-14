@@ -68,8 +68,24 @@ services:
       - "4318:4318"
       - "9090:9090"
 
+  mongodb:
+    hostname: mongodb
+    container_name: mongodb
+    image: mongo:8.0.3
+    volumes:
+      - mongodb:/data/db
+    ports:
+      - "27017:27017"
+    healthcheck:
+      test: |
+        mongosh --eval "try { rs.status().ok } catch (e) { rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'localhost:27017' }] }).ok }"
+      interval: 10s
+      start_period: 30s
+    command: [ "/usr/bin/mongod", "--replSet", "rs0", "--bind_ip_all" ]
+
 networks:
   folioman-network:
     driver: bridge
 volumes:
   redis_data:
+  mongodb:
