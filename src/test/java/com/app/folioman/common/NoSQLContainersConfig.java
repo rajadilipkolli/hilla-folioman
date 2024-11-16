@@ -9,6 +9,18 @@ import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.grafana.LgtmStackContainer;
 import org.testcontainers.utility.DockerImageName;
 
+/**
+ * Test configuration for NoSQL and observability containers.
+ * <p>
+ * Manages the following test containers:
+ * <ul>
+ *   <li>Redis Stack - For caching and data structure operations</li>
+ *   <li>MongoDB - Primary data store for event publications</li>
+ *   <li>LGTM Stack - Observability stack (Loki, Grafana, Tempo, Mimir)</li>
+ * </ul>
+ * All containers are configured with service connection support for automatic
+ * property binding in the test context.
+ */
 @TestConfiguration(proxyBeanMethods = false)
 public class NoSQLContainersConfig {
 
