@@ -1,5 +1,7 @@
 package com.app.folioman.config.redis;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cache.Cache;
 import org.springframework.cache.annotation.CachingConfigurer;
 import org.springframework.cache.annotation.EnableCaching;
@@ -16,6 +18,8 @@ import org.springframework.lang.Nullable;
 @Configuration(proxyBeanMethods = false)
 @EnableCaching
 class RedisConfig implements CachingConfigurer {
+
+    private static final Logger log = LoggerFactory.getLogger(RedisConfig.class);
 
     @Bean
     RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
@@ -40,22 +44,26 @@ class RedisConfig implements CachingConfigurer {
             @Override
             public void handleCacheGetError(RuntimeException exception, Cache cache, Object key) {
                 // your custom error handling logic
+                log.error("Error getting key {} from cache {}", key, cache.getName(), exception);
             }
 
             @Override
             public void handleCachePutError(
                     RuntimeException exception, Cache cache, Object key, @Nullable Object value) {
                 // your custom error handling logic
+                log.error("Error putting key {} in cache {}", key, cache.getName(), exception);
             }
 
             @Override
             public void handleCacheEvictError(RuntimeException exception, Cache cache, Object key) {
                 // your custom error handling logic
+                log.error("Error evicting key {} from cache {}", key, cache.getName(), exception);
             }
 
             @Override
             public void handleCacheClearError(RuntimeException exception, Cache cache) {
                 // your custom error handling logic
+                log.error("Error clearing cache {}", cache.getName(), exception);
             }
         };
     }
