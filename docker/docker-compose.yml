@@ -56,7 +56,7 @@ services:
       - folioman-network
 
   grafanalgtm:
-    image: grafana/otel-lgtm:0.8.0
+    image: grafana/otel-lgtm:0.8.1
     extra_hosts: [ 'host.docker.internal:host-gateway' ]
     container_name: grafanalgtm
     networks:
@@ -73,7 +73,8 @@ services:
   mongodb:
     hostname: mongodb
     container_name: mongodb
-    image: mongo:8.0.3
+    image: mongo:8.0.4
+    restart: unless-stopped
     volumes:
       - mongodb:/data/db
     ports:

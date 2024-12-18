@@ -42,6 +42,7 @@ public class FlexyPoolDataSourceConfig {
     private record FlexyPoolDataSourceBeanPostProcessor(ObjectProvider<AppDataSourceProperties> appDataSourceProperties)
             implements BeanPostProcessor {
 
+        @SuppressWarnings("unchecked")
         @Override
         public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
             if (bean instanceof DataSource dataSource && !ScopedProxyUtils.isScopedTarget(beanName)) {
