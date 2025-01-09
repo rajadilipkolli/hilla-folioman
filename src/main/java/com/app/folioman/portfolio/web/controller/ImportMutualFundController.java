@@ -44,12 +44,10 @@ public class ImportMutualFundController {
 
     @GetMapping("/api/portfolio/{pan}")
     public PortfolioResponse getPortfolio(
-            @PathVariable("pan") @Pattern(regexp = "[A-Z]{5}[0-9]{4}[A-Z]", message = "Invalid PAN number format")
-                    String panNumber,
+            @PathVariable("pan") @Pattern(regexp = "[A-Z]{5}[0-9]{4}[A-Z]", message = "Invalid PAN number format") String panNumber,
             @RequestParam(required = false)
                     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-                    @PastOrPresent(message = "Date should be past or today")
-                    LocalDate asOfDate) {
+                    @PastOrPresent(message = "Date should be past or today") LocalDate asOfDate) {
         return userDetailService.getPortfolioByPAN(panNumber, asOfDate);
     }
 }

@@ -27,8 +27,7 @@ class UserTransactionsController {
 
     @GetMapping("/investments/{pan}")
     public List<MonthlyInvestmentResponse> getTotalInvestmentsByPanPerMonth(
-            @PathVariable("pan") @Pattern(regexp = "[A-Z]{5}[0-9]{4}[A-Z]", message = "Invalid PAN number format")
-                    String pan) {
+            @PathVariable("pan") @Pattern(regexp = "[A-Z]{5}[0-9]{4}[A-Z]", message = "Invalid PAN number format") String pan) {
         return userTransactionDetailsService.getTotalInvestmentsByPanPerMonth(pan);
     }
 }
