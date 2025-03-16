@@ -15,6 +15,26 @@ http://localhost:8080 in your browser.
 You can also import the project to your IDE of choice as you would with any
 Maven project.
 
+### Run tests
+
+```shell
+./mvnw clean verify
+```
+
+### Run locally
+
+```shell
+docker-compose -f docker/docker-compose.yml up -d
+./mvnw spring-boot:run -Dspring-boot.run.profiles=local
+```
+### Using Testcontainers at Development Time
+You can run `TestApplication.java` from your IDE directly.
+You can also run the application using Maven as follows:
+
+```shell
+./mvnw spotless:apply spring-boot:test-run
+```
+
 ## Deploying to Production
 
 To create a production build, call `mvnw clean package -Pproduction` (Windows),
