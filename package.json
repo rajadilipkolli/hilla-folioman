@@ -1,6 +1,6 @@
 {
   "name": "hilla-folioman",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "type": "module",
   "dependencies": {
     "@polymer/polymer": "3.5.2",
