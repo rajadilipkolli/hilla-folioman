@@ -6,3 +6,4 @@ spring:
     password: secret
     hikari:
       maximum-pool-size: 25
+      minimum-idle: 5

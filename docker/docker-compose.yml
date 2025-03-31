@@ -1,7 +1,7 @@
 services:
 
   postgresqldb:
-    image: postgres:15.10-alpine
+    image: postgres:15.12-alpine
     hostname: postgresqldb
     container_name: postgresqldb
     extra_hosts: [ 'host.docker.internal:host-gateway' ]
@@ -56,7 +56,7 @@ services:
       - folioman-network
 
   grafanalgtm:
-    image: grafana/otel-lgtm:0.8.1
+    image: grafana/otel-lgtm:0.9.1
     extra_hosts: [ 'host.docker.internal:host-gateway' ]
     container_name: grafanalgtm
     networks:
@@ -73,7 +73,7 @@ services:
   mongodb:
     hostname: mongodb
     container_name: mongodb
-    image: mongo:8.0.4
+    image: mongo:8.0.6
     restart: unless-stopped
     volumes:
       - mongodb:/data/db

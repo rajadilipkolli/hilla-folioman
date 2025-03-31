@@ -14,14 +14,11 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 public class ApplicationProperties {
 
-    @Valid
-    private AmfiProperties amfi;
+    @Valid private AmfiProperties amfi;
 
-    @Valid
-    private BseStarProperties bseStar;
+    @Valid private BseStarProperties bseStar;
 
-    @Valid
-    private NavProperties nav;
+    @Valid private NavProperties nav;
 
     public AmfiProperties getAmfi() {
         return amfi;

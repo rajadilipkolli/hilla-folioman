@@ -9,11 +9,9 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 public class NavProperties {
 
-    @Valid
-    private AmfiProperties amfi;
+    @Valid private AmfiProperties amfi;
 
-    @Valid
-    private MfApiProperties mfApi;
+    @Valid private MfApiProperties mfApi;
 
     public AmfiProperties getAmfi() {
         return amfi;

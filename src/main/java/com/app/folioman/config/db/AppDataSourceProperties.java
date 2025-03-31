@@ -12,8 +12,7 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 public class AppDataSourceProperties {
 
-    @Min(value = 5, message = "Min OverGrow size should be 5")
-    private int maxOvergrowPoolSize;
+    @Min(value = 5, message = "Min OverGrow size should be 5") private int maxOvergrowPoolSize;
 
     private AcquisitionStrategy acquisitionStrategy;
 
@@ -36,18 +35,14 @@ public class AppDataSourceProperties {
     public static class AcquisitionStrategy {
 
         /** Number of retry attempts for connection acquisition */
-        @Min(value = 1, message = "At least one retry must be configured")
-        @Max(value = 10, message = "Maximum 10 retries allowed")
-        private int retries;
+        @Min(value = 1, message = "At least one retry must be configured") @Max(value = 10, message = "Maximum 10 retries allowed") private int retries;
 
         /** Timeout increment in milliseconds between retries */
-        @Min(value = 50, message = "Increment timeout must be at least 50ms")
-        private int incrementTimeout;
+        @Min(value = 50, message = "Increment timeout must be at least 50ms") private int incrementTimeout;
 
         @Positive(message = "Lease time threshold must be non-negative") private long leaseTimeThreshold;
 
-        @Min(value = 100, message = "Acquisition timeout must be at least 100ms")
-        private long acquisitionTimeout;
+        @Min(value = 100, message = "Acquisition timeout must be at least 100ms") private long acquisitionTimeout;
 
         public int getRetries() {
             return retries;

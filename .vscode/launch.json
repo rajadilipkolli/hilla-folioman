@@ -24,7 +24,7 @@
       "cwd": "${workspaceFolder}",
       "mainClass": "com.app.folioman.Application",
       "projectName": "hilla-folioman",
-      "args": "--spring.profiles.active=supabase",
+      "args": "--spring.profiles.active=local",
       "envFile": "${workspaceFolder}/.env"
     },
     {
