@@ -5,7 +5,7 @@ spring:
     username: postgres.jkkwbevrahufvjpcxxsp
     password: foliom4n@123
     hikari:
-      maximum-pool-size: 20
+      maximum-pool-size: 15
       minimum-idle: 5
       pool-name: supabaseds
       connection-timeout: 30000     # 30 seconds
