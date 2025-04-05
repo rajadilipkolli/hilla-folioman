@@ -17,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class PdfProcessingService {
 
     private static final Logger log = LoggerFactory.getLogger(PdfProcessingService.class);
+
     private static final String CASPARSER_COMMAND = "casparser";
     private static boolean casparserChecked = false;
 
@@ -44,47 +45,8 @@ public class PdfProcessingService {
             return true;
         }
 
-        log.info("casparser CLI is not installed. Attempting to install it...");
-
-        try {
-            // Attempt to install casparser using pip
-            ProcessBuilder installProcess = new ProcessBuilder("pip", "install", "casparser");
-            installProcess.redirectErrorStream(true);
-            Process process = installProcess.start();
-
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    log.info("pip install output: {}", line);
-                }
-            }
-
-            int exitCode = process.waitFor();
-
-            if (exitCode != 0) {
-                log.error("Failed to install casparser. Exit code: {}", exitCode);
-                return false;
-            }
-
-            // Check again if installation was successful
-            boolean installed = isCasparserAvailable();
-            casparserChecked = true;
-
-            if (installed) {
-                log.info("Successfully installed casparser CLI");
-            } else {
-                log.error("casparser installation seemed to succeed but command is still not available");
-            }
-
-            return installed;
-
-        } catch (IOException | InterruptedException e) {
-            log.error("Error while trying to install casparser: {}", e.getMessage());
-            if (e instanceof InterruptedException) {
-                Thread.currentThread().interrupt();
-            }
-            return false;
-        }
+        log.error("casparser CLI is not installed. Please install it as part of the deployment process.");
+        return false;
     }
 
     /**

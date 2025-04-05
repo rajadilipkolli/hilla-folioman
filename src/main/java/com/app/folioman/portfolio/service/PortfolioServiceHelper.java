@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
-class PortfolioServiceHelper {
+public class PortfolioServiceHelper {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PortfolioServiceHelper.class);
     private final ObjectMapper mapper;
