@@ -18,10 +18,11 @@ import java.net.URI;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Deque;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.Stack;
+import java.util.ArrayDeque;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
@@ -244,7 +245,7 @@ public class MfSchemeServiceImpl implements MfSchemeService {
      * @param schemeId The scheme ID these NAVs belong to
      */
     private void processNavsInPartitions(List<MFSchemeNav> navs, Long schemeId) {
-        Stack<List<MFSchemeNav>> stack = new Stack<>();
+        Deque<List<MFSchemeNav>> stack = new ArrayDeque<>();
         stack.push(navs);
 
         while (!stack.isEmpty()) {
