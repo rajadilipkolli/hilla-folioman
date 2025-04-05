@@ -23,7 +23,7 @@ public class PdfProcessingService {
 
     private final PortfolioServiceHelper portfolioServiceHelper;
 
-    public PdfProcessingService(PortfolioServiceHelper portfolioServiceHelper) {
+    PdfProcessingService(PortfolioServiceHelper portfolioServiceHelper) {
         this.portfolioServiceHelper = portfolioServiceHelper;
     }
 
@@ -95,8 +95,7 @@ public class PdfProcessingService {
 
         // Check if casparser is installed and try to install it if not
         if (!ensureCasparserInstalled()) {
-            throw new IOException(
-                    "casparser CLI is not installed and automatic installation failed. Please install manually using 'pip install casparser'");
+            throw new IOException("casparser CLI is not installed, this is prerequisite ");
         }
 
         // Create temporary files for the PDF and JSON output

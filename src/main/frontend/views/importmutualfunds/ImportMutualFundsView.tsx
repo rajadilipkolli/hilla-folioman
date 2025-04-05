@@ -184,14 +184,9 @@ export default function ImportMutualFundsView() {
         setPassword('');
         
         // Clear the files in both upload components
-        if (pdfUploadRef.current) {
-            // Reset the file input by calling the clear method instead of manipulating files array
-            pdfUploadRef.current.clear && pdfUploadRef.current.clear();
-        }
-        if (jsonUploadRef.current) {
-            // Reset the file input by calling the clear method instead of manipulating files array
-            jsonUploadRef.current.clear && jsonUploadRef.current.clear();
-        }
+        pdfUploadRef.current?.clear();
+        jsonUploadRef.current?.clear();
+        maxFilesReached.current = false;
     };
 
     return (
