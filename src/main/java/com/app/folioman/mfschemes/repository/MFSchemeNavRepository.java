@@ -2,6 +2,7 @@ package com.app.folioman.mfschemes.repository;
 
 import com.app.folioman.mfschemes.MFSchemeNavProjection;
 import com.app.folioman.mfschemes.entities.MFSchemeNav;
+import com.app.folioman.mfschemes.models.projection.NavDateValueProjection;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
@@ -42,4 +43,12 @@ public interface MFSchemeNavRepository extends JpaRepository<MFSchemeNav, Long> 
             @Param("amfiCodes") Set<Long> amfiCodes,
             @Param("startNavDate") LocalDate startNavDate,
             @Param("endNavDate") LocalDate endNavDate);
+
+    /**
+     * Find all NAVs for a scheme with their date and value
+     * Used for batch processing to avoid individual existence checks
+     */
+    @Query(
+            "SELECT new com.app.folioman.mfschemes.NavDateValueProjection(n.nav, n.navDate) FROM MFSchemeNav n WHERE n.mfScheme.id = :schemeId")
+    List<NavDateValueProjection> findAllNavDateValuesBySchemeId(@Param("schemeId") Long schemeId);
 }
