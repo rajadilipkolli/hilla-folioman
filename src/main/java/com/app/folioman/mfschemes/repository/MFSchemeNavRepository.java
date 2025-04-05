@@ -49,6 +49,6 @@ public interface MFSchemeNavRepository extends JpaRepository<MFSchemeNav, Long> 
      * Used for batch processing to avoid individual existence checks
      */
     @Query(
-            "SELECT new com.app.folioman.mfschemes.NavDateValueProjection(n.nav, n.navDate) FROM MFSchemeNav n WHERE n.mfScheme.id = :schemeId")
+            "SELECT new com.app.folioman.mfschemes.models.projection.NavDateValueProjection(n.nav, n.navDate) FROM MFSchemeNav n WHERE n.mfScheme.id = :schemeId")
     List<NavDateValueProjection> findAllNavDateValuesBySchemeId(@Param("schemeId") Long schemeId);
 }
