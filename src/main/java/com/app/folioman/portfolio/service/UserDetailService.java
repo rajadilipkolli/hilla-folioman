@@ -80,6 +80,19 @@ public class UserDetailService {
         return existingUser ? processExistingUser(casDTO) : processNewUser(casDTO);
     }
 
+    /**
+     * Processes a CasDTO object directly, bypassing the file parsing step.
+     * This is useful when the CasDTO is generated from another source, like a PDF conversion.
+     *
+     * @param casDTO The CasDTO object to process
+     * @return UploadFileResponse with processing statistics
+     */
+    public UploadFileResponse uploadFromDto(CasDTO casDTO) {
+        log.info("Processing CasDTO from converted source");
+        boolean existingUser = validateCasDTO(casDTO);
+        return existingUser ? processExistingUser(casDTO) : processNewUser(casDTO);
+    }
+
     private UploadFileResponse processExistingUser(CasDTO casDTO) {
         AtomicInteger newTransactions = new AtomicInteger();
         AtomicInteger newFolios = new AtomicInteger();
