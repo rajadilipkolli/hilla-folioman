@@ -10,8 +10,9 @@ import com.vladmihalcea.flexypool.strategy.RetryConnectionAcquisitionStrategy;
 import com.vladmihalcea.flexypool.strategy.UniqueNamingStrategy;
 import com.zaxxer.hikari.HikariDataSource;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import javax.sql.DataSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.aop.scope.ScopedProxyUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.ObjectProvider;
@@ -32,6 +33,8 @@ import org.springframework.core.annotation.Order;
 @ConditionalOnBean(DataSource.class)
 public class FlexyPoolDataSourceConfig {
 
+    private static final Logger log = LoggerFactory.getLogger(FlexyPoolDataSourceConfig.class);
+
     @Bean
     @Order(Ordered.LOWEST_PRECEDENCE - 2)
     static BeanPostProcessor flexyPoolDataSourceBeanPostProcessor(
@@ -42,7 +45,6 @@ public class FlexyPoolDataSourceConfig {
     private record FlexyPoolDataSourceBeanPostProcessor(ObjectProvider<AppDataSourceProperties> appDataSourceProperties)
             implements BeanPostProcessor {
 
-        @SuppressWarnings("unchecked")
         @Override
         public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
             if (bean instanceof DataSource dataSource && !ScopedProxyUtils.isScopedTarget(beanName)) {
@@ -51,31 +53,82 @@ public class FlexyPoolDataSourceConfig {
                     // HikariDataSource is not available; return the original bean
                     return bean;
                 }
-                AppDataSourceProperties appDataSourceProperties = getAppDataSourceProperties();
-                FlexyPoolConfiguration<HikariDataSource> flexyPoolConfiguration = new FlexyPoolConfiguration.Builder<>(
-                                getClass().getSimpleName(), hikariDataSource, HikariCPPoolAdapter.FACTORY)
-                        .setMetricsFactory(MetricsFactoryResolver.INSTANCE.resolve())
-                        .setConnectionProxyFactory(ConnectionDecoratorFactoryResolver.INSTANCE.resolve())
-                        .setMetricLogReporterMillis(TimeUnit.SECONDS.toMillis(5))
-                        .setMetricNamingUniqueName(UniqueNamingStrategy.INSTANCE)
-                        .setJmxEnabled(false)
-                        .setJmxAutoStart(false)
-                        .setConnectionAcquisitionTimeThresholdMillis(
-                                appDataSourceProperties.getAcquisitionStrategy().getAcquisitionTimeout())
-                        .setConnectionLeaseTimeThresholdMillis(
-                                appDataSourceProperties.getAcquisitionStrategy().getLeaseTimeThreshold())
-                        .setEventListenerResolver(() -> List.of(new ConnectionAcquisitionTimeoutEventListener()))
-                        .build();
 
-                return new FlexyPoolDataSource<>(
-                        flexyPoolConfiguration,
-                        new IncrementPoolOnTimeoutConnectionAcquisitionStrategy.Factory<>(
-                                appDataSourceProperties.getMaxOvergrowPoolSize(),
-                                appDataSourceProperties.getAcquisitionStrategy().getIncrementTimeout()),
-                        new RetryConnectionAcquisitionStrategy.Factory<>(
-                                appDataSourceProperties.getAcquisitionStrategy().getRetries()));
+                // Apply Hikari optimizations
+                optimizeHikariPool(hikariDataSource, beanName);
+
+                AppDataSourceProperties appDataSourceProperties = getAppDataSourceProperties();
+
+                // Configure Flexy Pool with improved metrics and leak detection
+                FlexyPoolConfiguration<HikariDataSource> flexyPoolConfiguration =
+                        buildFlexyPoolConfiguration(hikariDataSource, appDataSourceProperties, beanName);
+
+                // Create and return the FlexyPoolDataSource with improved strategies
+                return createFlexyPoolDataSource(flexyPoolConfiguration, appDataSourceProperties);
             }
             return bean;
+        }
+
+        private FlexyPoolConfiguration<HikariDataSource> buildFlexyPoolConfiguration(
+                HikariDataSource hikariDataSource, AppDataSourceProperties appDataSourceProperties, String beanName) {
+
+            return new FlexyPoolConfiguration.Builder<>(beanName, hikariDataSource, HikariCPPoolAdapter.FACTORY)
+                    .setMetricsFactory(MetricsFactoryResolver.INSTANCE.resolve())
+                    .setConnectionProxyFactory(ConnectionDecoratorFactoryResolver.INSTANCE.resolve())
+                    .setMetricLogReporterMillis(
+                            appDataSourceProperties.getMetrics().getReportingIntervalMs())
+                    .setMetricNamingUniqueName(UniqueNamingStrategy.INSTANCE)
+                    .setJmxEnabled(appDataSourceProperties.getMetrics().isDetailed())
+                    .setJmxAutoStart(appDataSourceProperties.getMetrics().isDetailed())
+                    .setConnectionAcquisitionTimeThresholdMillis(
+                            appDataSourceProperties.getAcquisitionStrategy().getAcquisitionTimeout())
+                    .setConnectionLeaseTimeThresholdMillis(
+                            appDataSourceProperties.getAcquisitionStrategy().getLeaseTimeThreshold())
+                    .setEventListenerResolver(() -> List.of(new ConnectionAcquisitionTimeoutEventListener()))
+                    .build();
+        }
+
+        private FlexyPoolDataSource<HikariDataSource> createFlexyPoolDataSource(
+                FlexyPoolConfiguration<HikariDataSource> flexyPoolConfiguration,
+                AppDataSourceProperties appDataSourceProperties) {
+
+            return new FlexyPoolDataSource<>(
+                    flexyPoolConfiguration,
+                    new IncrementPoolOnTimeoutConnectionAcquisitionStrategy.Factory<>(
+                            appDataSourceProperties.getMaxOvergrowPoolSize(),
+                            appDataSourceProperties.getAcquisitionStrategy().getIncrementTimeout()),
+                    new RetryConnectionAcquisitionStrategy.Factory<>(
+                            appDataSourceProperties.getAcquisitionStrategy().getRetries()));
+        }
+
+        /**
+         * Apply optimizations to HikariCP connection pool
+         */
+        private void optimizeHikariPool(HikariDataSource hikariDataSource, String poolName) {
+            AppDataSourceProperties props = getAppDataSourceProperties();
+
+            // Enable leak detection if configured
+            if (props.getConnectionLeak().isEnabled()) {
+                hikariDataSource.setLeakDetectionThreshold(
+                        props.getConnectionLeak().getThresholdMs());
+                log.info(
+                        "Enabled connection leak detection for pool '{}' with threshold: {} ms",
+                        poolName,
+                        props.getConnectionLeak().getThresholdMs());
+            }
+
+            // Set other optimal settings if not already configured
+            if (hikariDataSource.getMinimumIdle() == hikariDataSource.getMaximumPoolSize()) {
+                // For better performance under steady load, minimum idle connections should be lower
+                hikariDataSource.setMinimumIdle(Math.max(2, hikariDataSource.getMaximumPoolSize() / 4));
+                log.info(
+                        "Optimized minimum idle connections for pool '{}': {}",
+                        poolName,
+                        hikariDataSource.getMinimumIdle());
+            }
+
+            // Use faster connection test query if database allows it
+            hikariDataSource.setConnectionTestQuery(null); // Let JDBC4 driver handle validation
         }
 
         private AppDataSourceProperties getAppDataSourceProperties() {

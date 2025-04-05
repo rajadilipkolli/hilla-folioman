@@ -1,10 +1,13 @@
 package com.app.folioman.config.redis;
 
 import java.time.Duration;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.Cache;
 import org.springframework.cache.interceptor.SimpleKey;
+import org.springframework.cache.support.SimpleValueWrapper;
 import org.springframework.data.redis.cache.RedisCache;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheWriter;
@@ -14,45 +17,154 @@ public class CustomRedisCache extends RedisCache {
 
     private static final Logger log = LoggerFactory.getLogger(CustomRedisCache.class);
     private final Monitor monitor;
+    private final CacheCircuitBreaker circuitBreaker;
+
+    // In-memory fallback cache for critical items when Redis is unavailable
+    private final Map<Object, Object> localCache = new ConcurrentHashMap<>();
+    // Limit local cache size to prevent memory issues
+    private static final int MAX_LOCAL_CACHE_SIZE = 1000;
 
     public CustomRedisCache(
             String name,
             RedisCacheWriter cacheWriter,
             RedisSerializer<Object> valueSerializer,
             Duration ttl,
-            Monitor monitor) {
+            Monitor monitor,
+            CacheCircuitBreaker circuitBreaker) {
         super(name, cacheWriter, RedisCacheConfiguration.defaultCacheConfig().entryTtl(ttl));
         this.monitor = monitor;
+        this.circuitBreaker = circuitBreaker;
     }
 
     @Override
     public void put(Object key, Object value) {
-        // Call the original implementation first
-        super.put(key, value);
+        try {
+            // Use circuit breaker to handle Redis connection failures
+            circuitBreaker.execute(() -> {
+                super.put(key, value);
+                return null;
+            });
 
-        // Custom logic after the put operation
-        log.debug("Put operation completed for key: {}, value: {}", key, value);
+            // Custom logic after the put operation
+            if (log.isDebugEnabled()) {
+                log.debug("Put operation completed for key: {}", key);
+            }
 
-        // Additional custom steps can be added here
-        // For example, send a notification, update logs, etc.
-        if (key instanceof SimpleKey) {
-            monitor.recordUpdate(((SimpleKey) key).toString());
-        } else {
-            monitor.recordUpdate(key.toString());
+            // Store in local backup cache if Redis was successful and local cache isn't too large
+            if (localCache.size() < MAX_LOCAL_CACHE_SIZE) {
+                localCache.put(key, value);
+            }
+
+            // Record metrics
+            recordMetrics(key, "update");
+        } catch (Exception e) {
+            log.warn("Failed to put key {} in Redis cache: {}", key, e.getMessage());
+            // Still store in local cache as fallback
+            if (localCache.size() < MAX_LOCAL_CACHE_SIZE) {
+                localCache.put(key, value);
+            }
         }
     }
 
     @Override
     public Cache.ValueWrapper get(Object key) {
-        Cache.ValueWrapper valueWrapper = super.get(key);
+        try {
+            // Try to get from Redis with circuit breaker protection
+            ValueWrapper valueWrapper = circuitBreaker.executeWithFallback(() -> super.get(key), () -> {
+                // Fallback to local cache if Redis is unavailable
+                Object value = localCache.get(key);
+                return value != null ? new SimpleValueWrapper(value) : null;
+            });
 
-        // Custom behavior after a get operation
-        log.debug("Retrieved from cache for key: {}", key);
-        if (key instanceof SimpleKey) {
-            monitor.recordAccess(((SimpleKey) key).toString());
-        } else {
-            monitor.recordAccess(key.toString());
+            // Record access metrics
+            recordMetrics(key, "access");
+
+            // If we got a value from Redis, refresh local cache
+            if (valueWrapper != null && localCache.size() < MAX_LOCAL_CACHE_SIZE) {
+                localCache.put(key, valueWrapper.get());
+            }
+
+            if (valueWrapper == null) {
+                // Cache miss
+                monitor.recordMiss(getNormalizedKey(key));
+            } else {
+                // Cache hit
+                monitor.recordHit(getNormalizedKey(key));
+            }
+
+            return valueWrapper;
+        } catch (Exception e) {
+            log.warn("Failed to get key {} from Redis cache: {}", key, e.getMessage());
+
+            // Try local cache as last resort on unexpected errors
+            Object value = localCache.get(key);
+            return value != null ? new SimpleValueWrapper(value) : null;
         }
-        return valueWrapper;
+    }
+
+    @Override
+    public void evict(Object key) {
+        try {
+            // Use circuit breaker for Redis eviction
+            circuitBreaker.execute(() -> {
+                super.evict(key);
+                return null;
+            });
+
+            // Always remove from local cache
+            localCache.remove(key);
+
+            if (log.isDebugEnabled()) {
+                log.debug("Evicted key {} from cache", key);
+            }
+        } catch (Exception e) {
+            log.warn("Failed to evict key {} from Redis cache: {}", key, e.getMessage());
+            // Still remove from local cache
+            localCache.remove(key);
+        }
+    }
+
+    @Override
+    public void clear() {
+        try {
+            // Use circuit breaker for Redis clear
+            circuitBreaker.execute(() -> {
+                super.clear();
+                return null;
+            });
+
+            // Always clear local cache
+            localCache.clear();
+
+            log.info("Cache cleared");
+        } catch (Exception e) {
+            log.warn("Failed to clear Redis cache: {}", e.getMessage());
+            // Still clear local cache
+            localCache.clear();
+        }
+    }
+
+    /**
+     * Record metrics for cache operations
+     */
+    private void recordMetrics(Object key, String operation) {
+        String keyString = getNormalizedKey(key);
+
+        if ("access".equals(operation)) {
+            monitor.recordAccess(keyString);
+        } else if ("update".equals(operation)) {
+            monitor.recordUpdate(keyString);
+        }
+    }
+
+    /**
+     * Normalize key format for metrics
+     */
+    private String getNormalizedKey(Object key) {
+        if (key instanceof SimpleKey) {
+            return ((SimpleKey) key).toString();
+        } else {
+            return key.toString();
+        }
     }
 }

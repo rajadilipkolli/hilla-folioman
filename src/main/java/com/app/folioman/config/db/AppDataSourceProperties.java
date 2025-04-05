@@ -16,6 +16,10 @@ public class AppDataSourceProperties {
 
     private AcquisitionStrategy acquisitionStrategy;
 
+    private ConnectionLeak connectionLeak = new ConnectionLeak();
+
+    private Metrics metrics = new Metrics();
+
     public int getMaxOvergrowPoolSize() {
         return maxOvergrowPoolSize;
     }
@@ -30,6 +34,22 @@ public class AppDataSourceProperties {
 
     public void setAcquisitionStrategy(AcquisitionStrategy acquisitionStrategy) {
         this.acquisitionStrategy = acquisitionStrategy;
+    }
+
+    public ConnectionLeak getConnectionLeak() {
+        return connectionLeak;
+    }
+
+    public void setConnectionLeak(ConnectionLeak connectionLeak) {
+        this.connectionLeak = connectionLeak;
+    }
+
+    public Metrics getMetrics() {
+        return metrics;
+    }
+
+    public void setMetrics(Metrics metrics) {
+        this.metrics = metrics;
     }
 
     public static class AcquisitionStrategy {
@@ -74,6 +94,60 @@ public class AppDataSourceProperties {
 
         public void setAcquisitionTimeout(long acquisitionTimeout) {
             this.acquisitionTimeout = acquisitionTimeout;
+        }
+    }
+
+    /**
+     * Configuration for connection leak detection
+     */
+    public static class ConnectionLeak {
+        /** Whether leak detection is enabled */
+        private boolean enabled = true;
+
+        /** Threshold in milliseconds after which to consider a connection leaked */
+        @Min(value = 30000, message = "Leak threshold must be at least 30 seconds") private long thresholdMs = 300000; // Default 5 minutes
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public long getThresholdMs() {
+            return thresholdMs;
+        }
+
+        public void setThresholdMs(long thresholdMs) {
+            this.thresholdMs = thresholdMs;
+        }
+    }
+
+    /**
+     * Configuration for connection pool metrics
+     */
+    public static class Metrics {
+        /** Whether detailed metrics collection is enabled */
+        private boolean detailed = true;
+
+        /** Interval in milliseconds for metrics reporting */
+        @Min(value = 1000, message = "Metrics reporting interval must be at least 1 second") private long reportingIntervalMs = 60000; // Default 1 minute
+
+        public boolean isDetailed() {
+            return detailed;
+        }
+
+        public void setDetailed(boolean detailed) {
+            this.detailed = detailed;
+        }
+
+        public long getReportingIntervalMs() {
+            return reportingIntervalMs;
+        }
+
+        public void setReportingIntervalMs(long reportingIntervalMs) {
+            this.reportingIntervalMs = reportingIntervalMs;
         }
     }
 }
