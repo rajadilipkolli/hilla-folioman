@@ -10,6 +10,7 @@ import com.app.folioman.mfschemes.entities.MFSchemeNav;
 import com.app.folioman.mfschemes.entities.MfFundScheme;
 import com.app.folioman.mfschemes.mapper.MfSchemeEntityToDtoMapper;
 import com.app.folioman.mfschemes.mapper.SchemeNAVDataDtoToEntityMapper;
+import com.app.folioman.mfschemes.models.projection.NavDateValueProjection;
 import com.app.folioman.mfschemes.models.response.NavResponse;
 import com.app.folioman.mfschemes.repository.MFSchemeNavRepository;
 import com.app.folioman.mfschemes.repository.MfFundSchemeRepository;
@@ -145,11 +146,14 @@ public class MfSchemeServiceImpl implements MfSchemeService {
 
     private void mergeList(NavResponse navResponse, MfFundScheme mfFundScheme, Long schemeCode) {
         if (navResponse.data().size() != mfFundScheme.getMfSchemeNavs().size()) {
+            // Data from 3rd Party API
             List<MFSchemeNav> navList = navResponse.data().stream()
                     .map(navDataDTO -> navDataDTO.withSchemeId(schemeCode))
                     .map(schemeNAVDataDtoToEntityMapper::schemeNAVDataDTOToEntity)
                     .toList();
-            LOGGER.info("No of entries from Server :{} for schemeCode/amfi :{}", navList.size(), schemeCode);
+            LOGGER.info("No of entries from API Server :{} for schemeCode/amfi :{}", navList.size(), schemeCode);
+
+            // Find only the new NAVs that don't already exist in the database
             List<MFSchemeNav> newNavs = navList.stream()
                     .filter(nav -> !mfFundScheme.getMfSchemeNavs().contains(nav))
                     .toList();
@@ -157,25 +161,97 @@ public class MfSchemeServiceImpl implements MfSchemeService {
             LOGGER.info("No of entities to insert :{} for schemeCode/amfi :{}", newNavs.size(), schemeCode);
 
             if (!newNavs.isEmpty()) {
-                for (MFSchemeNav newSchemeNav : newNavs) {
-                    mfFundScheme.addSchemeNav(newSchemeNav);
-                }
                 try {
-                    transactionTemplate.execute(__ -> this.mFSchemeRepository.save(mfFundScheme));
-                } catch (DataIntegrityViolationException exception) {
-                    LOGGER.error("DataIntegrityViolationException ", exception);
-                    // This is happening as framework is unable to set the id for mfschemeNav
-                    mfFundScheme.getMfSchemeNavs().forEach(mfSchemeNav -> {
-                        try {
-                            transactionTemplate.execute(__ -> mfSchemeNavRepository.save(mfSchemeNav));
-                        } catch (DataIntegrityViolationException dive) {
-                            LOGGER.error("DataIntegrityViolationException ", dive);
+                    transactionTemplate.execute(status -> {
+                        // Fetch all existing NAVs for this scheme in a single query to avoid N+1 problem
+                        List<NavDateValueProjection> existingNavs =
+                                mfSchemeNavRepository.findAllNavDateValuesBySchemeId(mfFundScheme.getId());
+
+                        // Create a batch of NAVs that don't exist yet
+                        List<MFSchemeNav> navsToSave = newNavs.stream()
+                                .filter(newNav -> {
+                                    // Create a projection for comparison
+                                    NavDateValueProjection projection =
+                                            new NavDateValueProjection(newNav.getNav(), newNav.getNavDate());
+                                    return !existingNavs.contains(projection);
+                                })
+                                .peek(newNav -> newNav.setMfScheme(mfFundScheme))
+                                .toList();
+
+                        if (!navsToSave.isEmpty()) {
+                            LOGGER.info("Saving {} NAVs in batch for scheme {}", navsToSave.size(), schemeCode);
+                            try {
+                                // Save all NAVs in a single batch operation
+                                mfSchemeNavRepository.saveAll(navsToSave);
+                            } catch (DataIntegrityViolationException ex) {
+                                // When batch insert fails, use a partitioning approach instead of individual saves
+                                LOGGER.warn("Batch insert failed due to constraint violations: {}", ex.getMessage());
+
+                                // Use a binary partitioning approach to save NAVs in smaller batches
+                                processNavsInPartitions(navsToSave, mfFundScheme.getId());
+                            }
+                        } else {
+                            LOGGER.info(
+                                    "All {} NAVs already exist in database for scheme {}", newNavs.size(), schemeCode);
                         }
+
+                        return null;
                     });
+
+                    // Refresh the fund scheme to get updated NAVs
+                    mFSchemeRepository.findById(mfFundScheme.getId());
+
+                } catch (Exception e) {
+                    LOGGER.error("Error while saving NAVs for scheme {}: {}", schemeCode, e.getMessage(), e);
                 }
             }
         } else {
-            LOGGER.info("data in db and from service is same hence ignoring");
+            LOGGER.info("Data in DB and from service is same, no updates needed");
+        }
+    }
+
+    /**
+     * Process NAVs in partitions to handle large batches more efficiently when constraint violations occur.
+     * Uses a divide-and-conquer approach to minimize database calls while handling duplicates.
+     *
+     * @param navs The list of NAVs to save
+     * @param schemeId The scheme ID these NAVs belong to
+     */
+    private void processNavsInPartitions(List<MFSchemeNav> navs, Long schemeId) {
+        // If the list is small enough, try to save each item individually
+        if (navs.size() <= 5) {
+            navs.forEach(nav -> {
+                try {
+                    mfSchemeNavRepository.save(nav);
+                } catch (DataIntegrityViolationException e) {
+                    LOGGER.warn(
+                            "Skipping duplicate NAV entry: {} for date: {} and scheme: {}",
+                            nav.getNav(),
+                            nav.getNavDate(),
+                            schemeId);
+                }
+            });
+            return;
+        }
+
+        // Split the list in half and process each half
+        int mid = navs.size() / 2;
+        List<MFSchemeNav> firstHalf = navs.subList(0, mid);
+        List<MFSchemeNav> secondHalf = navs.subList(mid, navs.size());
+
+        // Try to save each half as a batch
+        try {
+            mfSchemeNavRepository.saveAll(firstHalf);
+        } catch (DataIntegrityViolationException ex) {
+            // If saving the first half fails, process it recursively in smaller batches
+            processNavsInPartitions(firstHalf, schemeId);
+        }
+
+        try {
+            mfSchemeNavRepository.saveAll(secondHalf);
+        } catch (DataIntegrityViolationException ex) {
+            // If saving the second half fails, process it recursively in smaller batches
+            processNavsInPartitions(secondHalf, schemeId);
         }
     }
 
