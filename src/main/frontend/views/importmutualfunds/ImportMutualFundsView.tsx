@@ -8,6 +8,14 @@ const layoutSteps: FormLayoutResponsiveStep[] = [
     {minWidth: '520px', columns: 2, labelsPosition: 'top'},
 ];
 
+// Define the interface for the upload response
+interface UploadResponse {
+    newFolios: number;
+    newSchemes: number;
+    newTransactions: number;
+    casId?: number;
+}
+
 export default function ImportMutualFundsView() {
 
     const maxFilesReached = useRef(false);
@@ -19,6 +27,9 @@ export default function ImportMutualFundsView() {
     const [isUploading, setIsUploading] = useState<boolean>(false);
     const [pdfFile, setPdfFile] = useState<File | null>(null);
     const [jsonFile, setJsonFile] = useState<File | null>(null);
+    const [newFolios, setNewFolios] = useState<number | null>(null);
+    const [newSchemes, setNewSchemes] = useState<number | null>(null);
+    const [newTransactions, setNewTransactions] = useState<number | null>(null);
 
     const fileRejectHandler = (event: any) => {
         Notification.show(`Error: ${event.detail.error} '${event.detail.file.name}'`);
@@ -28,101 +39,140 @@ export default function ImportMutualFundsView() {
         maxFilesReached.current = event.detail.value;
     };
 
-    const [newFolios, setNewFolios] = useState<number | null>(null);
-    const [newSchemes, setNewSchemes] = useState<number | null>(null);
-    const [newTransactions, setNewTransactions] = useState<number | null>(null);
-
     const handlePasswordChange = (e: any) => {
         setPassword(e.target.value);
     };
     
-    const handleBeforeUpload = (event: UploadBeforeEvent) => {
+    // Generic file selection handler
+    const handleFileSelection = (event: UploadBeforeEvent, setFile: (file: File | null) => void) => {
         event.preventDefault();
         const file = event.detail.file;
         if (file) {
-            setPdfFile(file);
+            setFile(file);
         }
     };
     
+    const handleBeforeUpload = (event: UploadBeforeEvent) => {
+        handleFileSelection(event, setPdfFile);
+    };
+    
     const handleJsonBeforeUpload = (event: UploadBeforeEvent) => {
-        event.preventDefault();
-        const file = event.detail.file;
-        if (file) {
-            setJsonFile(file);
+        handleFileSelection(event, setJsonFile);
+    };
+    
+    // Common function to handle upload success
+    const handleUploadSuccess = (response: UploadResponse, fileType: 'pdf' | 'json') => {
+        setNewFolios(response.newFolios);
+        setNewSchemes(response.newSchemes);
+        setNewTransactions(response.newTransactions);
+        Notification.show('File uploaded successfully');
+        
+        if (fileType === 'pdf') {
+            setPdfFile(null);
+            setPassword('');
+            if (pdfUploadRef.current?.clear) {
+                pdfUploadRef.current.clear();
+            }
+        } else {
+            setJsonFile(null);
+            if (jsonUploadRef.current?.clear) {
+                jsonUploadRef.current.clear();
+            }
+        }
+    };
+    
+    // Generic error handler for file uploads
+    const handleUploadError = (error: unknown) => {
+        Notification.show(`Error uploading file: ${error instanceof Error ? error.message : String(error)}`);
+        setIsUploading(false);
+    };
+    
+    // Common upload process with validation
+    const processUpload = async (
+        fileType: 'pdf' | 'json',
+        validationFn: () => boolean,
+        uploadFn: () => Promise<UploadResponse | Response | undefined>
+    ) => {
+        if (!validationFn()) {
+            return;
+        }
+        
+        setIsUploading(true);
+        
+        try {
+            const response = await uploadFn();
+            
+            if (!response) {
+                throw new Error('No response received from server');
+            }
+            
+            // Check if response is a Response object (from fetch)
+            if (response instanceof Response) {
+                if (!response.ok) {
+                    throw new Error(`Server responded with status: ${response.status}`);
+                }
+                // Parse JSON data from the response
+                const data = await response.json();
+                // Validate that the data has the expected properties
+                if (typeof data.newFolios !== 'number' || 
+                    typeof data.newSchemes !== 'number' || 
+                    typeof data.newTransactions !== 'number') {
+                    throw new Error('Invalid response format from server');
+                }
+                handleUploadSuccess(data as UploadResponse, fileType);
+            } else {
+                // Direct UploadResponse object (from ImportMutualFundController)
+                handleUploadSuccess(response, fileType);
+            }
+        } catch (error) {
+            handleUploadError(error);
+        } finally {
+            setIsUploading(false);
         }
     };
     
     const handlePdfUpload = async () => {
-        if (!pdfFile) {
-            Notification.show('Please select a PDF file first');
-            return;
-        }
-        
-        if (!password) {
-            Notification.show('Please enter the password');
-            return;
-        }
-        
-        setIsUploading(true);
-        
-        try {
-            const response = await ImportMutualFundController.uploadPasswordProtectedCasPdf(pdfFile, password);
-            
-            if (response) {
-                setNewFolios(response.newFolios);
-                setNewSchemes(response.newSchemes);
-                setNewTransactions(response.newTransactions);
-                Notification.show('File uploaded successfully');
-                setPdfFile(null);
-                setPassword('');
-                // Clear the files in the upload component
-                if (pdfUploadRef.current) {
-                    pdfUploadRef.current.clear && pdfUploadRef.current.clear();
+        await processUpload(
+            'pdf',
+            () => {
+                if (!pdfFile) {
+                    Notification.show('Please select a PDF file first');
+                    return false;
                 }
+                
+                if (!password) {
+                    Notification.show('Please enter the password');
+                    return false;
+                }
+                
+                return true;
+            },
+            async () => {
+                return await ImportMutualFundController.uploadPasswordProtectedCasPdf(pdfFile!, password);
             }
-        } catch (error) {
-            Notification.show(`Error uploading file: ${error instanceof Error ? error.message : String(error)}`);
-        } finally {
-            setIsUploading(false);
-        }
+        );
     };
     
     const handleJsonUpload = async () => {
-        if (!jsonFile) {
-            Notification.show('Please select a JSON file first');
-            return;
-        }
-        
-        setIsUploading(true);
-        
-        try {
-            const formData = new FormData();
-            formData.append('file', jsonFile);
-            
-            const response = await fetch('/api/upload-handler', {
-                method: 'POST',
-                body: formData
-            });
-            
-            if (response.ok) {
-                const data = await response.json();
-                setNewFolios(data.newFolios);
-                setNewSchemes(data.newSchemes);
-                setNewTransactions(data.newTransactions);
-                Notification.show('File uploaded successfully');
-                setJsonFile(null);
-                // Clear the files in the upload component
-                if (jsonUploadRef.current) {
-                    jsonUploadRef.current.clear && jsonUploadRef.current.clear();
+        await processUpload(
+            'json',
+            () => {
+                if (!jsonFile) {
+                    Notification.show('Please select a JSON file first');
+                    return false;
                 }
-            } else {
-                throw new Error(`Server responded with status: ${response.status}`);
+                return true;
+            },
+            async () => {
+                const formData = new FormData();
+                formData.append('file', jsonFile!);
+                
+                return await fetch('/api/upload-handler', {
+                    method: 'POST',
+                    body: formData
+                });
             }
-        } catch (error) {
-            Notification.show(`Error uploading file: ${error instanceof Error ? error.message : String(error)}`);
-        } finally {
-            setIsUploading(false);
-        }
+        );
     };
 
     const resetViews = () => {
