@@ -96,6 +96,9 @@ class ImportMutualFundControllerTest {
         MockMultipartFile mockPdf = new MockMultipartFile(
                 "file", "test.pdf", MediaType.APPLICATION_PDF_VALUE, "test pdf content".getBytes());
 
+        // Create password part
+        MockMultipartFile passwordPart = new MockMultipartFile("password", "", "text/plain", "testpassword".getBytes());
+
         CasDTO mockCasDTO = TestData.getCasDTO();
 
         UploadFileResponse uploadFileResponse = new UploadFileResponse(1, 2, 3, 4L);
@@ -105,11 +108,11 @@ class ImportMutualFundControllerTest {
         this.mockMvc
                 .perform(multipart("/api/upload-pdf-cas")
                         .file(mockPdf)
-                        .param("password", "testpassword")
+                        .file(passwordPart)
                         .contentType(MediaType.MULTIPART_FORM_DATA)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.newFolios", is("1")));
+                .andExpect(jsonPath("$.newFolios", is(1)));
 
         verify(pdfProcessingService).convertPdfCasToJson(any(), eq("testpassword"));
         verify(userDetailService).uploadFromDto(eq(mockCasDTO));
