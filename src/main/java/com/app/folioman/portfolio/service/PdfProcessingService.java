@@ -24,59 +24,59 @@ public class PdfProcessingService {
     public PdfProcessingService(PortfolioServiceHelper portfolioServiceHelper) {
         this.portfolioServiceHelper = portfolioServiceHelper;
     }
-    
+
     /**
      * Checks if casparser CLI is installed and attempts to install it if not found.
-     * 
+     *
      * @return true if casparser is available (either already installed or successfully installed), false otherwise
      */
     private boolean ensureCasparserInstalled() {
         if (casparserChecked) {
             return isCasparserAvailable();
         }
-        
+
         log.info("Checking if casparser CLI is installed...");
-        
+
         if (isCasparserAvailable()) {
             log.info("casparser CLI is already installed");
             casparserChecked = true;
             return true;
         }
-        
+
         log.info("casparser CLI is not installed. Attempting to install it...");
-        
+
         try {
             // Attempt to install casparser using pip
             ProcessBuilder installProcess = new ProcessBuilder("pip", "install", "casparser");
             installProcess.redirectErrorStream(true);
             Process process = installProcess.start();
-            
+
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     log.info("pip install output: {}", line);
                 }
             }
-            
+
             int exitCode = process.waitFor();
-            
+
             if (exitCode != 0) {
                 log.error("Failed to install casparser. Exit code: {}", exitCode);
                 return false;
             }
-            
+
             // Check again if installation was successful
             boolean installed = isCasparserAvailable();
             casparserChecked = true;
-            
+
             if (installed) {
                 log.info("Successfully installed casparser CLI");
             } else {
                 log.error("casparser installation seemed to succeed but command is still not available");
             }
-            
+
             return installed;
-            
+
         } catch (IOException | InterruptedException e) {
             log.error("Error while trying to install casparser: {}", e.getMessage());
             if (e instanceof InterruptedException) {
@@ -85,10 +85,10 @@ public class PdfProcessingService {
             return false;
         }
     }
-    
+
     /**
      * Checks if casparser command is available in the system path.
-     * 
+     *
      * @return true if casparser is available, false otherwise
      */
     private boolean isCasparserAvailable() {
@@ -96,7 +96,7 @@ public class PdfProcessingService {
             ProcessBuilder checkProcess = new ProcessBuilder(CASPARSER_COMMAND, "--version");
             checkProcess.redirectErrorStream(true);
             Process process = checkProcess.start();
-            
+
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
                 String line;
                 StringBuilder output = new StringBuilder();
@@ -105,10 +105,10 @@ public class PdfProcessingService {
                 }
                 log.debug("casparser version check output: {}", output);
             }
-            
+
             int exitCode = process.waitFor();
             return exitCode == 0;
-            
+
         } catch (IOException | InterruptedException e) {
             if (e instanceof InterruptedException) {
                 Thread.currentThread().interrupt();
@@ -132,7 +132,8 @@ public class PdfProcessingService {
 
         // Check if casparser is installed and try to install it if not
         if (!ensureCasparserInstalled()) {
-            throw new IOException("casparser CLI is not installed and automatic installation failed. Please install manually using 'pip install casparser'");
+            throw new IOException(
+                    "casparser CLI is not installed and automatic installation failed. Please install manually using 'pip install casparser'");
         }
 
         // Create temporary files for the PDF and JSON output

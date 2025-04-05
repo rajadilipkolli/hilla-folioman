@@ -11,8 +11,9 @@ const layoutSteps: FormLayoutResponsiveStep[] = [
 export default function ImportMutualFundsView() {
 
     const maxFilesReached = useRef(false);
-    const pdfUploadRef = useRef<Upload | null>(null);
-    const jsonUploadRef = useRef<Upload | null>(null);
+    // Fix the ref types to use element references instead of component references
+    const pdfUploadRef = useRef<any>(null);
+    const jsonUploadRef = useRef<any>(null);
     const [activeView, setActiveView] = useState<'json' | 'pdf'>('pdf');
     const [password, setPassword] = useState<string>('');
     const [isUploading, setIsUploading] = useState<boolean>(false);
@@ -76,7 +77,7 @@ export default function ImportMutualFundsView() {
                 setPassword('');
                 // Clear the files in the upload component
                 if (pdfUploadRef.current) {
-                    pdfUploadRef.current.files = [];
+                    pdfUploadRef.current.clear && pdfUploadRef.current.clear();
                 }
             }
         } catch (error) {
@@ -112,7 +113,7 @@ export default function ImportMutualFundsView() {
                 setJsonFile(null);
                 // Clear the files in the upload component
                 if (jsonUploadRef.current) {
-                    jsonUploadRef.current.files = [];
+                    jsonUploadRef.current.clear && jsonUploadRef.current.clear();
                 }
             } else {
                 throw new Error(`Server responded with status: ${response.status}`);
@@ -134,10 +135,12 @@ export default function ImportMutualFundsView() {
         
         // Clear the files in both upload components
         if (pdfUploadRef.current) {
-            pdfUploadRef.current.files = [];
+            // Reset the file input by calling the clear method instead of manipulating files array
+            pdfUploadRef.current.clear && pdfUploadRef.current.clear();
         }
         if (jsonUploadRef.current) {
-            jsonUploadRef.current.files = [];
+            // Reset the file input by calling the clear method instead of manipulating files array
+            jsonUploadRef.current.clear && jsonUploadRef.current.clear();
         }
     };
 
