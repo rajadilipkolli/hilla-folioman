@@ -175,59 +175,63 @@ public class UserDetailService {
             Map<String, List<UserTransactionDetails>> userSchemaTransactionMapFromDB,
             List<UserSchemeDetails> existingUserSchemeDetailsList) {
 
+        // Create a map to collect new transactions by their scheme
         Map<UserSchemeDetails, List<UserTransactionDetails>> transactionsByScheme = new HashMap<>();
-
+        
         userSchemaTransactionMap.forEach((rtaCodeFromRequest, requestTransactions) -> {
             List<UserTransactionDetails> dbTransactions =
                     userSchemaTransactionMapFromDB.getOrDefault(rtaCodeFromRequest, List.of());
 
             if (requestTransactions.size() != dbTransactions.size()) {
-                // New transactions added to scheme
+                // For efficient lookup, create a set of transaction dates that already exist
                 Set<LocalDate> transactionDateSetDB = dbTransactions.stream()
                         .map(UserTransactionDetails::getTransactionDate)
                         .collect(Collectors.toSet());
 
-                requestTransactions.parallelStream().forEach(userTransactionDTO -> {
-                    LocalDate newTransactionDate = userTransactionDTO.date();
-                    if (!transactionDateSetDB.contains(newTransactionDate)) {
-                        log.info(
-                                "New transaction on date: {} created for rtaCode {} that is not present in the database",
-                                newTransactionDate,
-                                rtaCodeFromRequest);
-                        UserTransactionDetails userTransactionDetailsEntity =
-                                casDetailsMapper.transactionDTOToTransactionEntity(userTransactionDTO);
-
-                        for (UserSchemeDetails userSchemeDetailsEntity : existingUserSchemeDetailsList) {
-                            if (rtaCodeFromRequest.equals(userSchemeDetailsEntity.getRtaCode())) {
-                                // Group transactions by scheme for batch processing
-                                transactionsByScheme
-                                        .computeIfAbsent(userSchemeDetailsEntity, k -> new ArrayList<>())
-                                        .add(userTransactionDetailsEntity);
+                // Find matching scheme once outside the inner loop
+                UserSchemeDetails matchingScheme = existingUserSchemeDetailsList.stream()
+                        .filter(scheme -> rtaCodeFromRequest.equals(scheme.getRtaCode()))
+                        .findFirst()
+                        .orElse(null);
+                
+                if (matchingScheme != null) {
+                    // Process all new transactions for this scheme
+                    List<UserTransactionDetails> newTransactionsForScheme = requestTransactions.stream()
+                            .filter(dto -> !transactionDateSetDB.contains(dto.date()))
+                            .map(dto -> {
+                                log.info(
+                                        "New transaction on date: {} created for rtaCode {} that is not present in the database",
+                                        dto.date(),
+                                        rtaCodeFromRequest);
+                                UserTransactionDetails entity = casDetailsMapper.transactionDTOToTransactionEntity(dto);
+                                entity.setUserSchemeDetails(matchingScheme);
                                 newTransactions.incrementAndGet();
-                                break; // Once we find the matching scheme, no need to check others
-                            }
-                        }
+                                return entity;
+                            })
+                            .collect(Collectors.toList());
+                    
+                    if (!newTransactionsForScheme.isEmpty()) {
+                        transactionsByScheme.put(matchingScheme, newTransactionsForScheme);
                     }
-                });
+                }
             }
         });
-
-        // Process each scheme's transactions separately to maintain relationships properly
+        
+        // Process all transactions in a single batch where possible
         if (!transactionsByScheme.isEmpty()) {
             List<UserTransactionDetails> allNewTransactions = new ArrayList<>();
-
+            
+            // Update in-memory relationships
             transactionsByScheme.forEach((scheme, transactions) -> {
-                transactions.forEach(transaction -> {
-                    // Set the relationship in both directions
-                    transaction.setUserSchemeDetails(scheme);
-                    // Add to the in-memory collection to maintain consistency
-                    scheme.getTransactions().add(transaction);
-                    allNewTransactions.add(transaction);
-                });
+                scheme.getTransactions().addAll(transactions);
+                allNewTransactions.addAll(transactions);
             });
-
-            // Save all transactions in a single batch operation
-            userTransactionDetailsService.saveTransactions(allNewTransactions);
+            
+            // Save all new transactions in a single batch operation
+            if (!allNewTransactions.isEmpty()) {
+                log.info("Batch saving {} new transactions", allNewTransactions.size());
+                userTransactionDetailsService.saveTransactions(allNewTransactions);
+            }
         }
     }
 
@@ -284,6 +288,8 @@ public class UserDetailService {
             AtomicInteger newSchemes,
             AtomicInteger newTransactions) {
 
+        Map<UserFolioDetails, List<UserSchemeDetails>> newSchemesByFolio = new HashMap<>();
+
         requestedFolioSchemesMap.forEach((folioFromRequest, requestSchemes) -> {
             List<UserSchemeDetails> existingSchemesFromDB =
                     existingFolioSchemesMap.getOrDefault(folioFromRequest, new ArrayList<>());
@@ -292,24 +298,41 @@ public class UserDetailService {
                     .map(UserSchemeDetails::getRtaCode)
                     .collect(Collectors.toSet());
 
-            requestSchemes.stream()
-                    .filter(scheme -> !rtaCodeSet.contains(scheme.rtaCode()))
-                    .forEach(userSchemeDTO -> {
-                        log.info(
-                                "New RTACode: {} created for folio : {} that is not present in the database",
-                                userSchemeDTO.rtaCode(),
-                                folioFromRequest);
-                        UserSchemeDetails userSchemeDetailsEntity =
-                                casDetailsMapper.schemeDTOToSchemeEntity(userSchemeDTO, newTransactions);
+            // Find the matching folio entity
+            UserFolioDetails matchingFolio = userCASDetails.getFolios().stream()
+                    .filter(folio -> folioFromRequest.equals(folio.getFolio()))
+                    .findFirst()
+                    .orElse(null);
 
-                        userCASDetails.getFolios().forEach(userFolioDetailsEntity -> {
-                            if (folioFromRequest.equals(userFolioDetailsEntity.getFolio())) {
-                                userFolioDetailsEntity.addScheme(userSchemeDetailsEntity);
-                                newSchemes.incrementAndGet();
-                            }
-                        });
-                    });
+            if (matchingFolio != null) {
+                // Collect all new schemes for this folio
+                List<UserSchemeDetails> newSchemesForFolio = requestSchemes.stream()
+                        .filter(scheme -> !rtaCodeSet.contains(scheme.rtaCode()))
+                        .map(userSchemeDTO -> {
+                            log.info(
+                                    "New RTACode: {} created for folio : {} that is not present in the database",
+                                    userSchemeDTO.rtaCode(),
+                                    folioFromRequest);
+                            UserSchemeDetails entity = casDetailsMapper.schemeDTOToSchemeEntity(userSchemeDTO, newTransactions);
+                            entity.setUserFolioDetails(matchingFolio);
+                            newSchemes.incrementAndGet();
+                            return entity;
+                        })
+                        .collect(Collectors.toList());
+
+                if (!newSchemesForFolio.isEmpty()) {
+                    newSchemesByFolio.put(matchingFolio, newSchemesForFolio);
+                }
+            }
         });
+
+        // Process all schemes in a single batch where possible
+        if (!newSchemesByFolio.isEmpty()) {
+            // Update in-memory relationships
+            newSchemesByFolio.forEach((folio, schemes) -> {
+                folio.getSchemes().addAll(schemes);
+            });
+        }
     }
 
     private Map<String, List<UserSchemeDetails>> groupExistingSchemes(
@@ -356,19 +379,31 @@ public class UserDetailService {
     }
 
     private UserCASDetails getUserCASDetails(UserCASDetails userCASDetails) {
-        UserCASDetails savedCasDetailsEntity = userCASDetailsService.saveEntity(userCASDetails);
-        CompletableFuture.runAsync(() -> userFolioDetailService.setPANIfNotSet(savedCasDetailsEntity.getId()));
-        CompletableFuture.runAsync(userSchemeDetailService::setUserSchemeAMFIIfNull);
+        // Extract AMFI codes before saving to avoid extra database fetches later
         List<Long> schemesList = userCASDetails.getFolios().stream()
                 .map(UserFolioDetails::getSchemes)
                 .flatMap(List::stream)
                 .map(UserSchemeDetails::getAmfi)
                 .filter(Objects::nonNull)
                 .distinct()
-                .toList();
-
-        applicationEventPublisher.publishEvent(new UploadedSchemesList(schemesList));
-        portfolioValueUpdateService.updatePortfolioValue(userCASDetails);
+                .collect(Collectors.toList());  // Using collect instead of toList() for thread safety
+                
+        // Save entity in a single transaction
+        UserCASDetails savedCasDetailsEntity = userCASDetailsService.saveEntity(userCASDetails);
+        
+        // Run non-critical post-processing tasks asynchronously
+        Long savedId = savedCasDetailsEntity.getId();
+        CompletableFuture.runAsync(() -> userFolioDetailService.setPANIfNotSet(savedId));
+        CompletableFuture.runAsync(userSchemeDetailService::setUserSchemeAMFIIfNull);
+        
+        // Publish event with pre-collected schemes list
+        if (!schemesList.isEmpty()) {
+            applicationEventPublisher.publishEvent(new UploadedSchemesList(schemesList));
+        }
+        
+        // Start portfolio value update asynchronously 
+        portfolioValueUpdateService.updatePortfolioValue(savedCasDetailsEntity);
+        
         return savedCasDetailsEntity;
     }
 
