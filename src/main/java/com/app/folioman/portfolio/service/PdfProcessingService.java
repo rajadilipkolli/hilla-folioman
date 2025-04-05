@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +20,7 @@ public class PdfProcessingService {
     private static final Logger log = LoggerFactory.getLogger(PdfProcessingService.class);
 
     private static final String CASPARSER_COMMAND = "casparser";
-    private static boolean casparserChecked = false;
+    private static final AtomicBoolean casparserChecked = new AtomicBoolean(false);
 
     private final PortfolioServiceHelper portfolioServiceHelper;
 
@@ -33,7 +34,7 @@ public class PdfProcessingService {
      * @return true if casparser is available (either already installed or successfully installed), false otherwise
      */
     private boolean ensureCasparserInstalled() {
-        if (casparserChecked) {
+        if (casparserChecked.get()) {
             return isCasparserAvailable();
         }
 
@@ -41,7 +42,7 @@ public class PdfProcessingService {
 
         if (isCasparserAvailable()) {
             log.info("casparser CLI is already installed");
-            casparserChecked = true;
+            casparserChecked.set(true);
             return true;
         }
 
