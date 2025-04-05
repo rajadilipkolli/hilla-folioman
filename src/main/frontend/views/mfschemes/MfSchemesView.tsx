@@ -13,6 +13,7 @@ export default function MfSchemesView() {
     const [selectedDate, setSelectedDate] = useState<string | null>(null);
     const [currentAmfiCode, setCurrentAmfiCode] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const today = new Date().toISOString().split('T')[0]; // Gets current date in YYYY-MM-DD format
 
     useEffect(() => {
         if (query.length > 3) {
@@ -34,10 +35,10 @@ export default function MfSchemesView() {
 
     const fetchSchemeDetails = (amfiCode: string, date?: string) => {
         setIsLoading(true);
-        const fetchUrl = date 
+        const fetchUrl = date
             ? `/api/nav/${amfiCode}/${date}`
             : `/api/nav/${amfiCode}`;
-            
+
         fetch(fetchUrl, { method: 'GET' })
             .then(response => {
                 if (response.ok) {
@@ -63,9 +64,11 @@ export default function MfSchemesView() {
 
     const handleDateChange = (e: CustomEvent) => {
         if (!currentAmfiCode) return;
-        
+
         const newDate = e.detail.value;
         if (newDate) {
+            // Avoid redundant fetches if the date hasn't changed
+            if (newDate === selectedDate) return;
             // Format date as YYYY-MM-DD for API call
             fetchSchemeDetails(currentAmfiCode, newDate);
         }
@@ -132,13 +135,14 @@ export default function MfSchemesView() {
                     ) : schemeDetails ? (
                         <>
                             <div style={{ marginBottom: '20px' }}>
-                                <DatePicker 
-                                    label="Select Date" 
-                                    value={selectedDate || ''} 
+                                <DatePicker
+                                    label="Select Date"
+                                    value={selectedDate || ''}
                                     onValueChanged={handleDateChange}
+                                    max={today} // Prevent selecting future dates
                                 />
                             </div>
-                            
+
                             <p><strong>AMC:</strong> {schemeDetails.amc}</p>
                             <p><strong>Scheme Code:</strong> {schemeDetails.schemeCode}</p>
                             <p><strong>ISIN:</strong> {schemeDetails.isin}</p>
