@@ -243,40 +243,42 @@ public class MfSchemeServiceImpl implements MfSchemeService {
      * @param schemeId The scheme ID these NAVs belong to
      */
     private void processNavsInPartitions(List<MFSchemeNav> navs, Long schemeId) {
-        // If the list is small enough, try to save each item individually
-        if (navs.size() <= 5) {
-            navs.forEach(nav -> {
-                try {
-                    mfSchemeNavRepository.save(nav);
-                } catch (DataIntegrityViolationException e) {
-                    LOGGER.warn(
-                            "Skipping duplicate NAV entry: {} for date: {} and scheme: {}",
-                            nav.getNav(),
-                            nav.getNavDate(),
-                            schemeId);
-                }
-            });
-            return;
-        }
+        Stack<List<MFSchemeNav>> stack = new Stack<>();
+        stack.push(navs);
 
-        // Split the list in half and process each half
-        int mid = navs.size() / 2;
-        List<MFSchemeNav> firstHalf = navs.subList(0, mid);
-        List<MFSchemeNav> secondHalf = navs.subList(mid, navs.size());
+        while (!stack.isEmpty()) {
+            List<MFSchemeNav> currentNavs = stack.pop();
 
-        // Try to save each half as a batch
-        try {
-            mfSchemeNavRepository.saveAll(firstHalf);
-        } catch (DataIntegrityViolationException ex) {
-            // If saving the first half fails, process it recursively in smaller batches
-            processNavsInPartitions(firstHalf, schemeId);
-        }
+            if (currentNavs.size() <= 5) {
+                currentNavs.forEach(nav -> {
+                    try {
+                        mfSchemeNavRepository.save(nav);
+                    } catch (DataIntegrityViolationException e) {
+                        LOGGER.warn(
+                                "Skipping duplicate NAV entry: {} for date: {} and scheme: {}",
+                                nav.getNav(),
+                                nav.getNavDate(),
+                                schemeId);
+                    }
+                });
+                continue;
+            }
 
-        try {
-            mfSchemeNavRepository.saveAll(secondHalf);
-        } catch (DataIntegrityViolationException ex) {
-            // If saving the second half fails, process it recursively in smaller batches
-            processNavsInPartitions(secondHalf, schemeId);
+            int mid = currentNavs.size() / 2;
+            List<MFSchemeNav> firstHalf = currentNavs.subList(0, mid);
+            List<MFSchemeNav> secondHalf = currentNavs.subList(mid, currentNavs.size());
+
+            try {
+                mfSchemeNavRepository.saveAll(firstHalf);
+            } catch (DataIntegrityViolationException ex) {
+                stack.push(firstHalf);
+            }
+
+            try {
+                mfSchemeNavRepository.saveAll(secondHalf);
+            } catch (DataIntegrityViolationException ex) {
+                stack.push(secondHalf);
+            }
         }
     }
 
