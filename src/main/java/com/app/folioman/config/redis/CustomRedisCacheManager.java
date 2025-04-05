@@ -7,7 +7,6 @@ import org.springframework.data.redis.cache.RedisCache;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.cache.RedisCacheWriter;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.serializer.RedisSerializer;
 
 public class CustomRedisCacheManager extends RedisCacheManager {
@@ -20,11 +19,7 @@ public class CustomRedisCacheManager extends RedisCacheManager {
     private final CacheCircuitBreaker circuitBreaker;
 
     public CustomRedisCacheManager(
-            RedisCacheWriter cacheWriter,
-            RedisConnectionFactory connectionFactory,
-            Monitor monitor,
-            CacheCircuitBreaker circuitBreaker,
-            Duration defaultTtl) {
+            RedisCacheWriter cacheWriter, Monitor monitor, CacheCircuitBreaker circuitBreaker, Duration defaultTtl) {
         super(cacheWriter, RedisCacheConfiguration.defaultCacheConfig());
         this.redisCacheWriter = cacheWriter;
         this.redisSerializer = RedisSerializer.java(); // Custom serializer if needed

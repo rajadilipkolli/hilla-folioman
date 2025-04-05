@@ -87,11 +87,7 @@ class RedisConfig implements CachingConfigurer {
 
         // Create the custom cache manager with our circuit breaker and default TTL
         return new CustomRedisCacheManager(
-                redisCacheWriter,
-                redisConnectionFactory,
-                monitor,
-                circuitBreaker,
-                Duration.ofSeconds(defaultTtlSeconds));
+                redisCacheWriter, monitor, circuitBreaker, Duration.ofSeconds(defaultTtlSeconds));
     }
 
     /**

@@ -36,6 +36,7 @@ public class CacheCircuitBreaker {
                         org.springframework.dao.QueryTimeoutException.class,
                         org.springframework.dao.DataAccessResourceFailureException.class,
                         org.springframework.data.redis.RedisConnectionFailureException.class,
+                        org.springframework.data.redis.RedisSystemException.class,
                         java.net.ConnectException.class)
                 .build();
 
