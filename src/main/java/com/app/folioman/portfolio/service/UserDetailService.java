@@ -20,6 +20,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -174,6 +175,8 @@ public class UserDetailService {
             Map<String, List<UserTransactionDetails>> userSchemaTransactionMapFromDB,
             List<UserSchemeDetails> existingUserSchemeDetailsList) {
 
+        Map<UserSchemeDetails, List<UserTransactionDetails>> transactionsByScheme = new HashMap<>();
+
         userSchemaTransactionMap.forEach((rtaCodeFromRequest, requestTransactions) -> {
             List<UserTransactionDetails> dbTransactions =
                     userSchemaTransactionMapFromDB.getOrDefault(rtaCodeFromRequest, List.of());
@@ -194,16 +197,38 @@ public class UserDetailService {
                         UserTransactionDetails userTransactionDetailsEntity =
                                 casDetailsMapper.transactionDTOToTransactionEntity(userTransactionDTO);
 
-                        existingUserSchemeDetailsList.forEach(userSchemeDetailsEntity -> {
+                        for (UserSchemeDetails userSchemeDetailsEntity : existingUserSchemeDetailsList) {
                             if (rtaCodeFromRequest.equals(userSchemeDetailsEntity.getRtaCode())) {
-                                userSchemeDetailsEntity.addTransaction(userTransactionDetailsEntity);
+                                // Group transactions by scheme for batch processing
+                                transactionsByScheme
+                                        .computeIfAbsent(userSchemeDetailsEntity, k -> new ArrayList<>())
+                                        .add(userTransactionDetailsEntity);
                                 newTransactions.incrementAndGet();
+                                break; // Once we find the matching scheme, no need to check others
                             }
-                        });
+                        }
                     }
                 });
             }
         });
+
+        // Process each scheme's transactions separately to maintain relationships properly
+        if (!transactionsByScheme.isEmpty()) {
+            List<UserTransactionDetails> allNewTransactions = new ArrayList<>();
+
+            transactionsByScheme.forEach((scheme, transactions) -> {
+                transactions.forEach(transaction -> {
+                    // Set the relationship in both directions
+                    transaction.setUserSchemeDetails(scheme);
+                    // Add to the in-memory collection to maintain consistency
+                    scheme.getTransactions().add(transaction);
+                    allNewTransactions.add(transaction);
+                });
+            });
+
+            // Save all transactions in a single batch operation
+            userTransactionDetailsService.saveTransactions(allNewTransactions);
+        }
     }
 
     private Map<String, List<UserTransactionDetails>> groupExistingTransactionsByRtaCode(
