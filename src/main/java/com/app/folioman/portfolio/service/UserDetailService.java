@@ -177,7 +177,7 @@ public class UserDetailService {
 
         // Create a map to collect new transactions by their scheme
         Map<UserSchemeDetails, List<UserTransactionDetails>> transactionsByScheme = new HashMap<>();
-        
+
         userSchemaTransactionMap.forEach((rtaCodeFromRequest, requestTransactions) -> {
             List<UserTransactionDetails> dbTransactions =
                     userSchemaTransactionMapFromDB.getOrDefault(rtaCodeFromRequest, List.of());
@@ -193,7 +193,7 @@ public class UserDetailService {
                         .filter(scheme -> rtaCodeFromRequest.equals(scheme.getRtaCode()))
                         .findFirst()
                         .orElse(null);
-                
+
                 if (matchingScheme != null) {
                     // Process all new transactions for this scheme
                     List<UserTransactionDetails> newTransactionsForScheme = requestTransactions.stream()
@@ -209,24 +209,24 @@ public class UserDetailService {
                                 return entity;
                             })
                             .collect(Collectors.toList());
-                    
+
                     if (!newTransactionsForScheme.isEmpty()) {
                         transactionsByScheme.put(matchingScheme, newTransactionsForScheme);
                     }
                 }
             }
         });
-        
+
         // Process all transactions in a single batch where possible
         if (!transactionsByScheme.isEmpty()) {
             List<UserTransactionDetails> allNewTransactions = new ArrayList<>();
-            
+
             // Update in-memory relationships
             transactionsByScheme.forEach((scheme, transactions) -> {
                 scheme.getTransactions().addAll(transactions);
                 allNewTransactions.addAll(transactions);
             });
-            
+
             // Save all new transactions in a single batch operation
             if (!allNewTransactions.isEmpty()) {
                 log.info("Batch saving {} new transactions", allNewTransactions.size());
@@ -313,7 +313,8 @@ public class UserDetailService {
                                     "New RTACode: {} created for folio : {} that is not present in the database",
                                     userSchemeDTO.rtaCode(),
                                     folioFromRequest);
-                            UserSchemeDetails entity = casDetailsMapper.schemeDTOToSchemeEntity(userSchemeDTO, newTransactions);
+                            UserSchemeDetails entity =
+                                    casDetailsMapper.schemeDTOToSchemeEntity(userSchemeDTO, newTransactions);
                             entity.setUserFolioDetails(matchingFolio);
                             newSchemes.incrementAndGet();
                             return entity;
@@ -386,24 +387,24 @@ public class UserDetailService {
                 .map(UserSchemeDetails::getAmfi)
                 .filter(Objects::nonNull)
                 .distinct()
-                .collect(Collectors.toList());  // Using collect instead of toList() for thread safety
-                
+                .collect(Collectors.toList()); // Using collect instead of toList() for thread safety
+
         // Save entity in a single transaction
         UserCASDetails savedCasDetailsEntity = userCASDetailsService.saveEntity(userCASDetails);
-        
+
         // Run non-critical post-processing tasks asynchronously
         Long savedId = savedCasDetailsEntity.getId();
         CompletableFuture.runAsync(() -> userFolioDetailService.setPANIfNotSet(savedId));
         CompletableFuture.runAsync(userSchemeDetailService::setUserSchemeAMFIIfNull);
-        
+
         // Publish event with pre-collected schemes list
         if (!schemesList.isEmpty()) {
             applicationEventPublisher.publishEvent(new UploadedSchemesList(schemesList));
         }
-        
-        // Start portfolio value update asynchronously 
+
+        // Start portfolio value update asynchronously
         portfolioValueUpdateService.updatePortfolioValue(savedCasDetailsEntity);
-        
+
         return savedCasDetailsEntity;
     }
 
