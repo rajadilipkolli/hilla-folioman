@@ -20,7 +20,7 @@ class Evaluator {
     String evaluate(Map<String, Object> metrics) {
         validateMetrics(metrics);
 
-        long cacheSize = (int) metrics.get("cacheSize");
+        long cacheSize = (long) metrics.get("cacheSize");
         double hitRate = (double) metrics.get("hitRate");
         long memoryUsage = (long) metrics.get("memoryUsage");
 
@@ -41,7 +41,7 @@ class Evaluator {
             throw new IllegalArgumentException("Input map does not contain the expected keys");
         }
 
-        long cacheSize = (int) metrics.get("cacheSize");
+        long cacheSize = (long) metrics.get("cacheSize");
         double hitRate = (double) metrics.get("hitRate");
         long memoryUsage = (long) metrics.get("memoryUsage");
 
