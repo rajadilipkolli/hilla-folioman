@@ -38,6 +38,14 @@ public class PortfolioValueUpdateService {
     private final MFNavService mfNavService;
     private final FolioSchemeRepository folioSchemeRepository;
 
+    // Add a constant for excluded transaction types
+    private static final EnumSet<TransactionType> TAX_TRANSACTION_TYPES = EnumSet.of(
+            TransactionType.STAMP_DUTY_TAX, TransactionType.TDS_TAX, TransactionType.STT_TAX, TransactionType.MISC);
+
+    // Add a constant for redemption transaction types
+    private static final EnumSet<TransactionType> REDEMPTION_TRANSACTION_TYPES =
+            EnumSet.of(TransactionType.REDEMPTION, TransactionType.SWITCH_OUT);
+
     public PortfolioValueUpdateService(
             UserPortfolioValueRepository userPortfolioValueRepository,
             MFNavService mfNavService,
@@ -66,12 +74,7 @@ public class PortfolioValueUpdateService {
             List<UserTransactionDetails> transactionList = userCASDetails.getFolios().stream()
                     .flatMap(folio -> folio.getSchemes().stream())
                     .flatMap(scheme -> scheme.getTransactions().stream())
-                    .filter(transaction -> !EnumSet.of(
-                                    TransactionType.STAMP_DUTY_TAX,
-                                    TransactionType.TDS_TAX,
-                                    TransactionType.STT_TAX,
-                                    TransactionType.MISC)
-                            .contains(transaction.getType()))
+                    .filter(transaction -> !TAX_TRANSACTION_TYPES.contains(transaction.getType()))
                     .sorted(Comparator.comparing(UserTransactionDetails::getTransactionDate))
                     .toList();
 
@@ -174,19 +177,12 @@ public class PortfolioValueUpdateService {
                 }
 
                 // Record cash flows for all transactions except taxes
-                if (transaction.getType() != TransactionType.STAMP_DUTY_TAX
-                        && transaction.getType() != TransactionType.STT_TAX
-                        && transaction.getType() != TransactionType.TDS_TAX
-                        && transaction.getType() != TransactionType.MISC) {
-
+                TransactionType transactionType = transaction.getType();
+                if (transactionType != null && !TAX_TRANSACTION_TYPES.contains(transactionType)) {
                     // Investment is negative cash flow, redemption is positive
-                    BigDecimal cashFlowAmount;
-                    if (transaction.getType() == TransactionType.REDEMPTION
-                            || transaction.getType() == TransactionType.SWITCH_OUT) {
-                        cashFlowAmount = transactionAmount; // Positive (money received)
-                    } else {
-                        cashFlowAmount = transactionAmount.negate(); // Negative (money invested)
-                    }
+                    BigDecimal cashFlowAmount = REDEMPTION_TRANSACTION_TYPES.contains(transactionType)
+                            ? transactionAmount // Positive (money received)
+                            : transactionAmount.negate(); // Negative (money invested)
 
                     cashFlowsByScheme.get(amfiCode).add(cashFlowAmount);
                     cashFlowDatesByScheme.get(amfiCode).add(transaction.getTransactionDate());
@@ -324,19 +320,44 @@ public class PortfolioValueUpdateService {
     }
 
     /**
-     * Find an existing FolioScheme entity or create a new one if it doesn't exist
+     * Find an existing FolioScheme entity or create a new one if it doesn't exist.
+     * Enhanced with better tracking for asynchronous operation.
+     *
+     * @param schemeDetailId ID of the scheme to find
+     * @param userSchemeDetails The user scheme details entity
+     * @return The found or newly created FolioScheme
      */
     private FolioScheme findOrCreateFolioScheme(Long schemeDetailId, UserSchemeDetails userSchemeDetails) {
-        // Try to find existing FolioScheme
-        FolioScheme folioScheme = folioSchemeRepository.findByUserSchemeDetails_Id(schemeDetailId);
+        String operationId = "folioScheme-" + schemeDetailId + "-" + System.currentTimeMillis();
+        log.debug("[{}] Looking up FolioScheme for schemeDetailId: {}", operationId, schemeDetailId);
 
-        // Create new if not found
-        if (folioScheme == null) {
-            folioScheme = new FolioScheme();
-            folioScheme.setUserSchemeDetails(userSchemeDetails);
-            folioScheme.setUserFolioDetails(userSchemeDetails.getUserFolioDetails());
+        try {
+            // Try to find existing FolioScheme
+            FolioScheme folioScheme = folioSchemeRepository.findByUserSchemeDetails_Id(schemeDetailId);
+
+            if (folioScheme == null) {
+                log.debug(
+                        "[{}] No existing FolioScheme found, creating new one for schemeDetailId: {}",
+                        operationId,
+                        schemeDetailId);
+                // Create new if not found
+                folioScheme = new FolioScheme();
+                folioScheme.setUserSchemeDetails(userSchemeDetails);
+                folioScheme.setUserFolioDetails(userSchemeDetails.getUserFolioDetails());
+                log.debug("[{}] New FolioScheme created for schemeDetailId: {}", operationId, schemeDetailId);
+            } else {
+                log.debug("[{}] Found existing FolioScheme for schemeDetailId: {}", operationId, schemeDetailId);
+            }
+
+            return folioScheme;
+        } catch (Exception e) {
+            log.error(
+                    "[{}] Error while finding/creating FolioScheme for schemeDetailId: {}",
+                    operationId,
+                    schemeDetailId,
+                    e);
+            // Re-throw as runtime exception to ensure the error is properly handled in the calling async method
+            throw new RuntimeException("Failed to process FolioScheme for scheme ID: " + schemeDetailId, e);
         }
-
-        return folioScheme;
     }
 }
