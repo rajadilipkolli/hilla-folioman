@@ -35,7 +35,7 @@ public class PdfProcessingService {
      */
     private boolean ensureCasparserInstalled() {
         if (casparserChecked.get()) {
-            return isCasparserAvailable();
+            return true;
         }
 
         log.info("Checking if casparser CLI is installed...");

@@ -2,11 +2,15 @@ package com.app.folioman.portfolio.service;
 
 import com.app.folioman.mfschemes.MFNavService;
 import com.app.folioman.mfschemes.MFSchemeNavProjection;
+import com.app.folioman.portfolio.entities.FolioScheme;
 import com.app.folioman.portfolio.entities.UserCASDetails;
 import com.app.folioman.portfolio.entities.UserPortfolioValue;
+import com.app.folioman.portfolio.entities.UserSchemeDetails;
 import com.app.folioman.portfolio.entities.UserTransactionDetails;
 import com.app.folioman.portfolio.models.request.TransactionType;
+import com.app.folioman.portfolio.repository.FolioSchemeRepository;
 import com.app.folioman.portfolio.repository.UserPortfolioValueRepository;
+import com.app.folioman.portfolio.util.XirrCalculator;
 import com.app.folioman.shared.LocalDateUtility;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -19,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,15 +36,23 @@ public class PortfolioValueUpdateService {
     private static final Logger log = LoggerFactory.getLogger(PortfolioValueUpdateService.class);
     private final UserPortfolioValueRepository userPortfolioValueRepository;
     private final MFNavService mfNavService;
+    private final FolioSchemeRepository folioSchemeRepository;
 
     public PortfolioValueUpdateService(
-            UserPortfolioValueRepository userPortfolioValueRepository, MFNavService mfNavService) {
+            UserPortfolioValueRepository userPortfolioValueRepository,
+            MFNavService mfNavService,
+            FolioSchemeRepository folioSchemeRepository) {
         this.userPortfolioValueRepository = userPortfolioValueRepository;
         this.mfNavService = mfNavService;
+        this.folioSchemeRepository = folioSchemeRepository;
     }
 
     @Async
     public void updatePortfolioValue(UserCASDetails userCASDetails) {
+        handleDailyPortFolioValueUpdate(userCASDetails);
+    }
+
+    private void handleDailyPortFolioValueUpdate(UserCASDetails userCASDetails) {
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
         log.info(
@@ -128,45 +139,61 @@ public class PortfolioValueUpdateService {
 
         // Step 6: Process each day in the date range
         List<UserPortfolioValue> portfolioValueEntityList = new ArrayList<>();
-        AtomicInteger processedDays = new AtomicInteger();
-        AtomicInteger daysWithTransactions = new AtomicInteger();
-        AtomicInteger navMissingCount = new AtomicInteger();
 
-        log.debug("Starting day-by-day portfolio value calculation for CAS ID: {}", userCASDetails.getId());
-        StopWatch dailyProcessingStart = new StopWatch();
-        dailyProcessingStart.start();
+        // For XIRR calculation - all cash flows (investments and current portfolio value)
+        List<BigDecimal> allCashFlows = new ArrayList<>();
+        List<LocalDate> allCashFlowDates = new ArrayList<>();
+
+        // Track cash flows for XIRR calculation
+        Map<Long, List<BigDecimal>> cashFlowsByScheme = new HashMap<>();
+        Map<Long, List<LocalDate>> cashFlowDatesByScheme = new HashMap<>();
 
         startDate.datesUntil(endDate.plusDays(1)).forEach(currentDate -> {
-            processedDays.getAndIncrement();
             BigDecimal totalPortfolioValue = BigDecimal.ZERO;
 
             // Step 7: Update invested amount and units if transactions are present on this date
             List<UserTransactionDetails> dailyTransactions =
                     transactionsByDate.getOrDefault(currentDate, Collections.emptyList());
-
-            if (!dailyTransactions.isEmpty()) {
-                daysWithTransactions.getAndIncrement();
-                log.trace(
-                        "Processing {} transactions for date {} for CAS ID: {}",
-                        dailyTransactions.size(),
-                        currentDate,
-                        userCASDetails.getId());
-            }
-
             dailyTransactions.forEach(transaction -> {
                 Long amfiCode = transaction.getUserSchemeDetails().getAmfi();
                 BigDecimal transactionAmount = transaction.getAmount();
-                double transactionUnits = transaction.getUnits();
-
-                // Log null transaction amounts which might indicate data issues
+                Double transactionUnits = transaction.getUnits();
                 if (transactionAmount == null) {
-                    log.debug(
-                            "Null transaction amount for transaction ID: {}, type: {}, scheme: {}",
-                            transaction.getId(),
-                            transaction.getType(),
-                            amfiCode);
                     // happens when type is purchase and additional allotment
                     transactionAmount = BigDecimal.valueOf(0.0001);
+                }
+                if (transactionUnits == null) {
+                    // happens when transaction type is dividend payout
+                    transactionUnits = 0.0;
+                }
+
+                // For XIRR calculation - record investment (negative cash flow)
+                if (!cashFlowsByScheme.containsKey(amfiCode)) {
+                    cashFlowsByScheme.put(amfiCode, new ArrayList<>());
+                    cashFlowDatesByScheme.put(amfiCode, new ArrayList<>());
+                }
+
+                // Record cash flows for all transactions except taxes
+                if (transaction.getType() != TransactionType.STAMP_DUTY_TAX
+                        && transaction.getType() != TransactionType.STT_TAX
+                        && transaction.getType() != TransactionType.TDS_TAX
+                        && transaction.getType() != TransactionType.MISC) {
+
+                    // Investment is negative cash flow, redemption is positive
+                    BigDecimal cashFlowAmount;
+                    if (transaction.getType() == TransactionType.REDEMPTION
+                            || transaction.getType() == TransactionType.SWITCH_OUT) {
+                        cashFlowAmount = transactionAmount; // Positive (money received)
+                    } else {
+                        cashFlowAmount = transactionAmount.negate(); // Negative (money invested)
+                    }
+
+                    cashFlowsByScheme.get(amfiCode).add(cashFlowAmount);
+                    cashFlowDatesByScheme.get(amfiCode).add(transaction.getTransactionDate());
+
+                    // Also add to the all cash flows list for overall XIRR
+                    allCashFlows.add(cashFlowAmount);
+                    allCashFlowDates.add(transaction.getTransactionDate());
                 }
 
                 // Update cumulative invested amount and units for the scheme
@@ -178,56 +205,30 @@ public class PortfolioValueUpdateService {
             LocalDate adjustedDate = LocalDateUtility.getAdjustedDate(currentDate);
             for (Long schemeCode : cumulativeUnitsByScheme.keySet()) {
                 int attempts = 0;
-                int maxAttempts = 3;
-                MFSchemeNavProjection navOnCurrentDate =
-                        navsBySchemeAndDate.get(schemeCode).get(adjustedDate);
+                int maxAttempts = 5;
+                MFSchemeNavProjection navOnCurrentDate = null;
 
-                // Log each NAV lookup attempt
-                if (navOnCurrentDate == null) {
-                    log.trace(
-                            "NAV not found on first attempt for scheme {} on date {} for CAS ID: {}, trying previous dates",
-                            schemeCode,
-                            adjustedDate,
-                            userCASDetails.getId());
-                }
-
-                LocalDate searchDate = adjustedDate;
-                while (navOnCurrentDate == null && attempts <= maxAttempts) {
-                    searchDate = LocalDateUtility.getAdjustedDate(searchDate.minusDays(1));
-                    navOnCurrentDate = navsBySchemeAndDate.get(schemeCode).get(searchDate);
-                    attempts++;
-
-                    if (navOnCurrentDate == null && attempts <= maxAttempts) {
-                        log.trace(
-                                "NAV lookup attempt {} failed for scheme {} on date {} for CAS ID: {}",
-                                attempts,
-                                schemeCode,
-                                searchDate,
-                                userCASDetails.getId());
+                // First check if we have NAV data for this scheme
+                if (navsBySchemeAndDate.containsKey(schemeCode)) {
+                    navOnCurrentDate = navsBySchemeAndDate.get(schemeCode).get(adjustedDate);
+                    while (navOnCurrentDate == null && attempts <= maxAttempts) {
+                        adjustedDate = LocalDateUtility.getAdjustedDate(adjustedDate.minusDays(1));
+                        navOnCurrentDate = navsBySchemeAndDate.get(schemeCode).get(adjustedDate);
+                        attempts++;
                     }
                 }
+
                 if (navOnCurrentDate != null) {
-                    if (attempts > 0) {
-                        log.debug(
-                                "Found NAV for scheme {} on fallback date {} (original: {}) after {} attempts for CAS ID: {}",
-                                schemeCode,
-                                searchDate,
-                                adjustedDate,
-                                attempts,
-                                userCASDetails.getId());
-                    }
-
                     BigDecimal navValue = navOnCurrentDate.nav();
                     double units = cumulativeUnitsByScheme.get(schemeCode);
                     totalPortfolioValue = totalPortfolioValue.add(navValue.multiply(BigDecimal.valueOf(units)));
                 } else {
-                    navMissingCount.getAndIncrement();
                     log.warn(
-                            "NAV not found for scheme {} on date {} after {} attempts for CAS ID: {}",
+                            "NAV not found for scheme {} on date {} after {} attempts - continuing with other schemes",
                             schemeCode,
-                            adjustedDate,
-                            maxAttempts,
-                            userCASDetails.getId());
+                            currentDate,
+                            maxAttempts);
+                    // Continue with other schemes instead of stopping the entire process
                 }
             }
 
@@ -242,37 +243,100 @@ public class PortfolioValueUpdateService {
             portfolioValueEntity.setValue(totalPortfolioValue);
             portfolioValueEntity.setUserCasDetails(userCASDetails);
             portfolioValueEntityList.add(portfolioValueEntity);
+
+            // For the last date (most recent), we need to add the portfolio value as a positive cash flow
+            if (currentDate.equals(endDate)) {
+                // Add current valuations for each scheme to the scheme-specific cash flows
+                for (Long schemeCode : cumulativeUnitsByScheme.keySet()) {
+                    Double units = cumulativeUnitsByScheme.get(schemeCode);
+                    Map<LocalDate, MFSchemeNavProjection> localDateMFSchemeNavProjectionMap =
+                            navsBySchemeAndDate.get(schemeCode);
+                    if (localDateMFSchemeNavProjectionMap != null) {
+                        MFSchemeNavProjection navOnCurrentDate = localDateMFSchemeNavProjectionMap.get(adjustedDate);
+
+                        if (navOnCurrentDate != null && units > 0) {
+                            BigDecimal schemeValue = navOnCurrentDate.nav().multiply(BigDecimal.valueOf(units));
+
+                            // Add current valuation as positive cash flow for XIRR calculation
+                            if (cashFlowsByScheme.containsKey(schemeCode)) {
+                                cashFlowsByScheme.get(schemeCode).add(schemeValue);
+                                cashFlowDatesByScheme.get(schemeCode).add(currentDate);
+                            }
+                        }
+                    } else {
+                        log.warn(
+                                "NAV not found for scheme {} on date {} - skipping cash flow calculation",
+                                schemeCode,
+                                currentDate);
+                    }
+                }
+
+                // Add total portfolio value as positive cash flow for overall XIRR
+                allCashFlows.add(totalPortfolioValue);
+                allCashFlowDates.add(currentDate);
+            }
         });
 
-        dailyProcessingStart.stop();
-        log.debug(
-                "Daily processing completed in {} ms for CAS ID: {}",
-                dailyProcessingStart.getTotalTimeMillis(),
-                userCASDetails.getId());
+        // Step 11: Calculate XIRR for each scheme and save to FolioScheme entities
+        for (UserTransactionDetails transaction : transactionList) {
+            Long schemeCode = transaction.getUserSchemeDetails().getAmfi();
+            Long schemeDetailId = transaction.getUserSchemeDetails().getId();
 
-        // Step 11 : Bulk Insert Data
-        log.info(
-                "Saving {} portfolio value records for CAS ID: {}",
-                portfolioValueEntityList.size(),
-                userCASDetails.getId());
-        StopWatch stopWatch = new StopWatch();
-        stopWatch.start();
+            // Only calculate XIRR if we have sufficient cash flows
+            if (cashFlowsByScheme.containsKey(schemeCode)
+                    && cashFlowsByScheme.get(schemeCode).size() >= 2) { // Need at least 2 cash flows for XIRR
+                try {
+                    BigDecimal xirrValue = XirrCalculator.calculateXirr(
+                            cashFlowsByScheme.get(schemeCode), cashFlowDatesByScheme.get(schemeCode));
+
+                    // Create or update FolioScheme with XIRR
+                    FolioScheme folioScheme =
+                            findOrCreateFolioScheme(schemeDetailId, transaction.getUserSchemeDetails());
+                    folioScheme.setXirr(xirrValue);
+                    folioScheme.setValuationDate(endDate);
+                    folioSchemeRepository.save(folioScheme);
+
+                    log.debug("Saved XIRR {} for scheme ID {}", xirrValue, schemeDetailId);
+                } catch (Exception e) {
+                    log.warn("Unable to calculate XIRR for scheme ID {}: {}", schemeDetailId, e.getMessage());
+                }
+            }
+        }
+
+        // Step 12: Try to calculate overall portfolio XIRR
+        try {
+            if (allCashFlows.size() >= 2) { // Need at least 2 cash flows for meaningful XIRR
+                BigDecimal overallXirr = XirrCalculator.calculateXirr(allCashFlows, allCashFlowDates);
+
+                // Set XIRR on the most recent portfolio value entity
+                UserPortfolioValue mostRecent = portfolioValueEntityList.getLast();
+                mostRecent.setXirr(overallXirr);
+                log.debug("Overall portfolio XIRR calculated: {}", overallXirr);
+            }
+        } catch (Exception e) {
+            log.warn("Unable to calculate overall portfolio XIRR: {}", e.getMessage());
+        }
 
         userPortfolioValueRepository.saveAll(portfolioValueEntityList);
 
-        stopWatch.stop();
-        log.info(
-                "Database save completed in {} ms for CAS ID: {}",
-                stopWatch.getTotalTimeMillis(),
-                userCASDetails.getId());
-
         methodStartTime.stop();
-        log.info(
-                "Portfolio value calculation completed in {} seconds for CAS ID: {}. Processed {} days, {} days had transactions, {} NAV lookup failures",
-                methodStartTime.getTotalTimeSeconds(),
-                userCASDetails.getId(),
-                portfolioValueEntityList.size(),
-                daysWithTransactions.get(),
-                navMissingCount.get());
+        log.debug("Portfolio values calculated and inserted, took {} seconds", methodStartTime.getTotalTimeSeconds());
+    }
+
+    /**
+     * Find an existing FolioScheme entity or create a new one if it doesn't exist
+     */
+    private FolioScheme findOrCreateFolioScheme(Long schemeDetailId, UserSchemeDetails userSchemeDetails) {
+        // Try to find existing FolioScheme
+        FolioScheme folioScheme = folioSchemeRepository.findByUserSchemeDetails_Id(schemeDetailId);
+
+        // Create new if not found
+        if (folioScheme == null) {
+            folioScheme = new FolioScheme();
+            folioScheme.setUserSchemeDetails(userSchemeDetails);
+            folioScheme.setUserFolioDetails(userSchemeDetails.getUserFolioDetails());
+        }
+
+        return folioScheme;
     }
 }

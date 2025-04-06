@@ -168,7 +168,25 @@ public class MFNavServiceImpl implements MFNavService {
     @Override
     public Map<Long, Map<LocalDate, MFSchemeNavProjection>> getNavsForSchemesAndDates(
             Set<Long> schemeCodes, LocalDate startDate, LocalDate endDate) {
-        schemeCodes.forEach(this::getNav);
+        // Try to prefetch NAVs but handle exceptions for each scheme code individually
+        for (Long schemeCode : schemeCodes) {
+            try {
+                getNav(schemeCode);
+            } catch (NavNotFoundException e) {
+                // Log the exception but continue with other scheme codes
+                LOGGER.warn(
+                        "Could not find NAV for scheme {}: {}. Continuing with other schemes.",
+                        schemeCode,
+                        e.getMessage());
+            } catch (Exception e) {
+                // Log any other exceptions but continue with other scheme codes
+                LOGGER.error(
+                        "Error while fetching NAV for scheme {}: {}. Continuing with other schemes.",
+                        schemeCode,
+                        e.getMessage());
+            }
+        }
+
         // Fetch NAVs in bulk for all schemes and dates
         LOGGER.info("Fetching Nav for amfiCodes: {} from {} to {}", schemeCodes, startDate, endDate);
         return mfSchemeNavRepository
