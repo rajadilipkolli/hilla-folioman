@@ -5,8 +5,8 @@ import static org.hamcrest.Matchers.matchesPattern;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -102,8 +102,8 @@ class ImportMutualFundControllerTest {
         CasDTO mockCasDTO = TestData.getCasDTO();
 
         UploadFileResponse uploadFileResponse = new UploadFileResponse(1, 2, 3, 4L);
-        when(pdfProcessingService.convertPdfCasToJson(any(), anyString())).thenReturn(mockCasDTO);
-        when(userDetailService.uploadFromDto(any())).thenReturn(uploadFileResponse);
+        given(pdfProcessingService.convertPdfCasToJson(any(), anyString())).willReturn(mockCasDTO);
+        given(userDetailService.uploadFromDto(any())).willReturn(uploadFileResponse);
 
         this.mockMvc
                 .perform(multipart("/api/upload-pdf-cas")

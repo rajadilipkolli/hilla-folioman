@@ -1,7 +1,10 @@
-import React, {useRef, useState} from 'react';
+import React, {useRef, useState, useEffect} from 'react';
 import {Button, FormLayout, FormLayoutResponsiveStep, Notification, PasswordField} from "@vaadin/react-components";
 import {Upload, UploadMaxFilesReachedChangedEvent, UploadBeforeEvent} from "@vaadin/react-components/Upload";
 import {ImportMutualFundController} from "Frontend/generated/endpoints";
+
+// Password inactivity timeout in milliseconds (5 minutes)
+const PASSWORD_INACTIVITY_TIMEOUT = 5 * 60 * 1000;
 
 const layoutSteps: FormLayoutResponsiveStep[] = [
     {minWidth: 0, columns: 1, labelsPosition: 'top'},
@@ -30,6 +33,41 @@ export default function ImportMutualFundsView() {
     const [newFolios, setNewFolios] = useState<number | null>(null);
     const [newSchemes, setNewSchemes] = useState<number | null>(null);
     const [newTransactions, setNewTransactions] = useState<number | null>(null);
+    const inactivityTimerRef = useRef<number | null>(null);
+
+    // Security enhancement: Clear password after period of inactivity
+    useEffect(() => {
+        // Clear any existing timer when password changes
+        if (inactivityTimerRef.current !== null) {
+            window.clearTimeout(inactivityTimerRef.current);
+            inactivityTimerRef.current = null;
+        }
+        
+        // Only set timer if there is a password
+        if (password) {
+            inactivityTimerRef.current = window.setTimeout(() => {
+                setPassword('');
+                Notification.show('Password cleared due to inactivity', { position: 'bottom-end', duration: 3000 });
+            }, PASSWORD_INACTIVITY_TIMEOUT);
+        }
+        
+        // Cleanup function
+        return () => {
+            if (inactivityTimerRef.current !== null) {
+                window.clearTimeout(inactivityTimerRef.current);
+            }
+        };
+    }, [password]);
+
+    // Clean up password when component unmounts
+    useEffect(() => {
+        return () => {
+            setPassword('');
+            if (inactivityTimerRef.current !== null) {
+                window.clearTimeout(inactivityTimerRef.current);
+            }
+        };
+    }, []);
 
     const fileRejectHandler = (event: any) => {
         Notification.show(`Error: ${event.detail.error} '${event.detail.file.name}'`);
@@ -69,6 +107,7 @@ export default function ImportMutualFundsView() {
         
         if (fileType === 'pdf') {
             setPdfFile(null);
+            // Immediately clear password after successful upload for security
             setPassword('');
             if (pdfUploadRef.current?.clear) {
                 pdfUploadRef.current.clear();
