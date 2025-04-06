@@ -35,6 +35,21 @@ FolioMan follows a modern client-server architecture with these key components:
    - AMFI (Association of Mutual Funds in India) data integration
    - BSE Star MF integration for fund data
 
+
+## Prerequisites
+
+Before running the application, ensure you have the following prerequisites installed:
+
+- Java 21 or later
+- Maven
+- Docker (for local development with PostgreSQL)
+- Python with pip (for CAS PDF file processing)
+- casparser: A Python CLI tool required for processing password-protected CAS PDF files
+  ```shell
+  pip install casparser
+  ```
+This tool must be installed on the server environment where the application will run. The PDF upload functionality for CAS files will not work without this dependency.
+
 ## Running the application
 
 The project is a standard Maven project. To run it from the command line,
