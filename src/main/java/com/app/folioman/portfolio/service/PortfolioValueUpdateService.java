@@ -9,8 +9,6 @@ import com.app.folioman.portfolio.models.request.TransactionType;
 import com.app.folioman.portfolio.repository.UserPortfolioValueRepository;
 import com.app.folioman.shared.LocalDateUtility;
 import java.math.BigDecimal;
-import java.time.Duration;
-import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -112,14 +110,17 @@ public class PortfolioValueUpdateService {
                 .collect(Collectors.toSet());
 
         log.debug("Fetching NAVs for {} schemes for CAS ID: {}", schemeCodes.size(), userCASDetails.getId());
-        Instant navFetchStart = Instant.now();
+        StopWatch navFetchStart = new StopWatch();
+        navFetchStart.start();
 
         Map<Long, Map<LocalDate, MFSchemeNavProjection>> navsBySchemeAndDate =
                 mfNavService.getNavsForSchemesAndDates(schemeCodes, startDate, endDate);
 
-        Duration navFetchDuration = Duration.between(navFetchStart, Instant.now());
+        navFetchStart.stop();
         log.debug(
-                "NAV fetching completed in {} ms for CAS ID: {}", navFetchDuration.toMillis(), userCASDetails.getId());
+                "NAV fetching completed in {} ms for CAS ID: {}",
+                navFetchStart.getTotalTimeMillis(),
+                userCASDetails.getId());
 
         // Step 5: Pre-compute the total cumulative invested amount and units for each scheme
         Map<Long, BigDecimal> cumulativeInvestedAmountByScheme = new HashMap<>();
@@ -127,14 +128,16 @@ public class PortfolioValueUpdateService {
 
         // Step 6: Process each day in the date range
         List<UserPortfolioValue> portfolioValueEntityList = new ArrayList<>();
-        int processedDays = 0;
-        int daysWithTransactions = 0;
+        AtomicInteger processedDays = new AtomicInteger();
+        AtomicInteger daysWithTransactions = new AtomicInteger();
         AtomicInteger navMissingCount = new AtomicInteger();
 
         log.debug("Starting day-by-day portfolio value calculation for CAS ID: {}", userCASDetails.getId());
-        Instant dailyProcessingStart = Instant.now();
+        StopWatch dailyProcessingStart = new StopWatch();
+        dailyProcessingStart.start();
 
         startDate.datesUntil(endDate.plusDays(1)).forEach(currentDate -> {
+            processedDays.getAndIncrement();
             BigDecimal totalPortfolioValue = BigDecimal.ZERO;
 
             // Step 7: Update invested amount and units if transactions are present on this date
@@ -142,6 +145,7 @@ public class PortfolioValueUpdateService {
                     transactionsByDate.getOrDefault(currentDate, Collections.emptyList());
 
             if (!dailyTransactions.isEmpty()) {
+                daysWithTransactions.getAndIncrement();
                 log.trace(
                         "Processing {} transactions for date {} for CAS ID: {}",
                         dailyTransactions.size(),
@@ -240,10 +244,10 @@ public class PortfolioValueUpdateService {
             portfolioValueEntityList.add(portfolioValueEntity);
         });
 
-        Duration dailyProcessingDuration = Duration.between(dailyProcessingStart, Instant.now());
+        dailyProcessingStart.stop();
         log.debug(
                 "Daily processing completed in {} ms for CAS ID: {}",
-                dailyProcessingDuration.toMillis(),
+                dailyProcessingStart.getTotalTimeMillis(),
                 userCASDetails.getId());
 
         // Step 11 : Bulk Insert Data
