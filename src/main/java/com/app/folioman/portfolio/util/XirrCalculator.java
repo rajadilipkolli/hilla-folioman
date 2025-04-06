@@ -99,8 +99,8 @@ public class XirrCalculator {
 
     private static BigDecimal calculateXirrWithBisection(List<BigDecimal> cashFlows, List<LocalDate> dates) {
         // Bisection method is more robust but slower
-        double left = -0.999;  // -99.9%
-        double right = 10.0;   // 1000%
+        double left = -0.999; // -99.9%
+        double right = 10.0; // 1000%
         double mid;
 
         for (int i = 0; i < MAX_ITERATIONS * 2; i++) {
