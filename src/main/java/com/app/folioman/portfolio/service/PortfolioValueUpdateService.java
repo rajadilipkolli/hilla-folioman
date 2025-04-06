@@ -268,13 +268,7 @@ public class PortfolioValueUpdateService {
 
         methodStartTime.stop();
         log.info(
-                "Portfolio value calculation completed in {} seconds for CAS ID: {}. "
-                        + "Processed {} days, {} days had transactions, {} NAV lookup failures",
-                methodStartTime.getTotalTimeSeconds(),
-                userCASDetails.getId(),
-        log.info(
-                "Portfolio value calculation completed in {} seconds for CAS ID: {}. "
-                        + "Processed {} days, {} days had transactions, {} NAV lookup failures",
+                "Portfolio value calculation completed in {} seconds for CAS ID: {}. Processed {} days, {} days had transactions, {} NAV lookup failures",
                 methodStartTime.getTotalTimeSeconds(),
                 userCASDetails.getId(),
                 portfolioValueEntityList.size(),
