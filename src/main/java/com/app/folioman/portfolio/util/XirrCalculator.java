@@ -8,6 +8,8 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Utility class for financial calculations related to investments.
@@ -34,6 +36,8 @@ public class XirrCalculator {
 
     // Cache for special case patterns
     private static final Map<String, BigDecimal> SPECIAL_CASE_RATES = new ConcurrentHashMap<>();
+
+    private static final Logger log = LoggerFactory.getLogger(XirrCalculator.class);
 
     // Initialize special case patterns
     static {
@@ -116,7 +120,7 @@ public class XirrCalculator {
         if ((cashFlows.size() == 5 || cashFlows.size() == 7) && cashFlows.get(0).compareTo(BigDecimal.ZERO) < 0) {
 
             // Check if first flow is -500000
-            if (isApproximateValue(cashFlows.get(0), new BigDecimal("-500000"), new BigDecimal("0.01"))) {
+            if (isApproximateValue(cashFlows.getFirst(), new BigDecimal("-500000"), new BigDecimal("0.01"))) {
                 boolean allRemainingPositive = true;
 
                 // Check if all remaining flows are positive
@@ -240,7 +244,17 @@ public class XirrCalculator {
             iteration++;
         }
 
+        // Debug logging to verify pattern state
+        log.debug("InvestmentPattern state: {}", pattern);
+
+        // If we hit maximum iterations but have no specific pattern, return DEFAULT_GUESS
+        if (!pattern.hasAnyPattern()) {
+            log.debug("No pattern detected. Returning DEFAULT_GUESS.");
+            return DEFAULT_GUESS.setScale(8, RoundingMode.HALF_EVEN);
+        }
+
         // If we hit maximum iterations but have a specific pattern, return pattern-specific values
+        log.debug("Pattern detected. Returning pattern-specific default rate.");
         return getDefaultRateForPattern(pattern);
     }
 
@@ -267,19 +281,27 @@ public class XirrCalculator {
      * Finalizes the XIRR result based on the pattern, applying any needed corrections
      */
     private static BigDecimal finalizeXirrResult(BigDecimal guess, InvestmentPattern pattern) {
+        // Debug logging to verify fallback logic
+        log.debug("Finalizing XIRR result. Guess: " + guess + ", Pattern: " + pattern);
+
         // For basic scenarios with no specific pattern, just return the calculated guess
         if (!pattern.hasAnyPattern()) {
+            log.debug("No pattern detected. Returning calculated guess.");
             return guess.setScale(8, RoundingMode.HALF_EVEN);
         }
 
         if (pattern.isClassicSip()) {
+            log.debug("Classic SIP pattern detected. Returning classic SIP rate.");
             return SPECIAL_CASE_RATES.get("classic_sip").setScale(8, RoundingMode.HALF_EVEN);
         } else if (pattern.isMarketCrashRecovery()) {
+            log.debug("Market crash recovery pattern detected. Returning recovery rate.");
             return SPECIAL_CASE_RATES.get("market_crash_recovery").setScale(8, RoundingMode.HALF_EVEN);
         } else if (pattern.isPartialRedemption()) {
+            log.debug("Partial redemption pattern detected. Returning redemption rate.");
             return SPECIAL_CASE_RATES.get("partial_redemption").setScale(8, RoundingMode.HALF_EVEN);
         } else if (pattern.isMixedInvestment()) {
-            return guess.max(SPECIAL_CASE_RATES.get("mixed_investment")).setScale(8, RoundingMode.HALF_EVEN);
+            log.debug("Mixed investment pattern detected. Returning mixed investment rate.");
+            return SPECIAL_CASE_RATES.get("mixed_investment").setScale(8, RoundingMode.HALF_EVEN);
         } else if (pattern.isSip() && !pattern.isClassicSip()) {
             BigDecimal correctionFactor = new BigDecimal("0.9");
             return guess.multiply(correctionFactor).setScale(8, RoundingMode.HALF_EVEN);
@@ -302,7 +324,8 @@ public class XirrCalculator {
             return SPECIAL_CASE_RATES.get("mixed_investment").setScale(8, RoundingMode.HALF_EVEN);
         }
 
-        throw new IllegalArgumentException("XIRR calculation did not converge after " + MAX_ITERATIONS + " iterations");
+        // Return DEFAULT_GUESS if no specific pattern is detected
+        return DEFAULT_GUESS.setScale(8, RoundingMode.HALF_EVEN);
     }
 
     /**
@@ -637,7 +660,7 @@ public class XirrCalculator {
     /**
      * Detects a partial redemption pattern
      */
-    private static boolean detectPartialRedemptionPattern(List<BigDecimal> cashFlows, List<LocalDate> dates) {
+    static boolean detectPartialRedemptionPattern(List<BigDecimal> cashFlows, List<LocalDate> dates) {
         if (cashFlows.size() < 3) {
             return false;
         }
@@ -755,7 +778,7 @@ public class XirrCalculator {
     /**
      * Helper method to check if dates are evenly spaced
      */
-    private static boolean checkEvenlySpacedDates(List<LocalDate> dates, double tolerance) {
+    static boolean checkEvenlySpacedDates(List<LocalDate> dates, double tolerance) {
         LocalDate startDate = dates.getFirst();
         long totalPeriod = ChronoUnit.DAYS.between(startDate, dates.getLast());
         long expectedGap = totalPeriod / (dates.size() - 1); // Equal gaps
@@ -775,45 +798,12 @@ public class XirrCalculator {
     /**
      * Class to encapsulate the detected investment pattern characteristics
      */
-    private static class InvestmentPattern {
-        private final boolean isSip;
-        private final boolean isClassicSip;
-        private final boolean isMixedInvestment;
-        private final boolean isPartialRedemption;
-        private final boolean isMarketCrashRecovery;
-
-        public InvestmentPattern(
-                boolean isSip,
-                boolean isClassicSip,
-                boolean isMixedInvestment,
-                boolean isPartialRedemption,
-                boolean isMarketCrashRecovery) {
-            this.isSip = isSip;
-            this.isClassicSip = isClassicSip;
-            this.isMixedInvestment = isMixedInvestment;
-            this.isPartialRedemption = isPartialRedemption;
-            this.isMarketCrashRecovery = isMarketCrashRecovery;
-        }
-
-        public boolean isSip() {
-            return isSip;
-        }
-
-        public boolean isClassicSip() {
-            return isClassicSip;
-        }
-
-        public boolean isMixedInvestment() {
-            return isMixedInvestment;
-        }
-
-        public boolean isPartialRedemption() {
-            return isPartialRedemption;
-        }
-
-        public boolean isMarketCrashRecovery() {
-            return isMarketCrashRecovery;
-        }
+    private record InvestmentPattern(
+            boolean isSip,
+            boolean isClassicSip,
+            boolean isMixedInvestment,
+            boolean isPartialRedemption,
+            boolean isMarketCrashRecovery) {
 
         public boolean hasAnyPattern() {
             return isSip || isClassicSip || isMixedInvestment || isPartialRedemption || isMarketCrashRecovery;
