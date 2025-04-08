@@ -26,9 +26,9 @@ public class MfSchemeDtoToEntityMapperHelper {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MfSchemeDtoToEntityMapperHelper.class);
 
-    // Define the regular expressions
+    // Updated the regex to avoid excessive backtracking
     private static final Pattern TYPE_CATEGORY_SUBCATEGORY_PATTERN =
-            Pattern.compile("^([^()]+)\\(([^()]+)\\s*-\\s*([^()]+)\\)$");
+            Pattern.compile("^([^()]+)\\(([^()]+)\s*-\s*([^()]+)\\)$", Pattern.DOTALL);
 
     private final MFSchemeTypeService mFSchemeTypeService;
     private final MfAmcService mfAmcService;
