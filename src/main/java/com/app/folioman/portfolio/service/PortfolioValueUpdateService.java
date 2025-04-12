@@ -75,11 +75,6 @@ public class PortfolioValueUpdateService {
         try {
             List<UserTransactionDetails> transactionList = collectRelevantTransactions(userCASDetails);
 
-            if (transactionList.isEmpty()) {
-                log.warn("No relevant transactions found for CAS ID: {}", userCASDetails.getId());
-                return;
-            }
-
             calculateAndInsertDailyPortfolioValues(transactionList, userCASDetails);
 
             stopWatch.stop();
