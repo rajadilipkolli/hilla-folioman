@@ -175,25 +175,26 @@ public class MfSchemeServiceImpl implements MfSchemeService {
                     .toList();
             LOGGER.info("No of entries from API Server: {} for schemeCode/amfi: {}", newNavEntries.size(), schemeCode);
 
+            // Fetch all existing NAV dates for this scheme in a single query
+            // This avoids loading full entity objects when we only need dates for comparison
+            List<NavDateValueProjection> existingNavs =
+                    mfSchemeNavRepository.findAllNavDateValuesBySchemeId(mfFundScheme.getId());
+
+            // Filter out NAVs that already exist in the database
+            List<MFSchemeNav> navsToSave = newNavEntries.stream()
+                    .filter(newNav ->
+                            !existingNavs.contains(new NavDateValueProjection(newNav.getNav(), newNav.getNavDate())))
+                    .peek(newNav -> newNav.setMfScheme(mfFundScheme))
+                    .toList();
+
+            if (navsToSave.isEmpty()) {
+                LOGGER.info("All NAVs already exist in database for scheme {}", schemeCode);
+                return;
+            }
+
             // Use transaction to ensure database consistency
             transactionTemplate.execute(status -> {
                 try {
-                    // Fetch all existing NAV dates for this scheme in a single query
-                    // This avoids loading full entity objects when we only need dates for comparison
-                    List<NavDateValueProjection> existingNavs =
-                            mfSchemeNavRepository.findAllNavDateValuesBySchemeId(mfFundScheme.getId());
-
-                    // Filter out NAVs that already exist in the database
-                    List<MFSchemeNav> navsToSave = newNavEntries.stream()
-                            .filter(newNav -> !existingNavs.contains(
-                                    new NavDateValueProjection(newNav.getNav(), newNav.getNavDate())))
-                            .peek(newNav -> newNav.setMfScheme(mfFundScheme))
-                            .toList();
-
-                    if (navsToSave.isEmpty()) {
-                        LOGGER.info("All NAVs already exist in database for scheme {}", schemeCode);
-                        return null;
-                    }
 
                     LOGGER.info("Saving {} new NAVs for scheme {}", navsToSave.size(), schemeCode);
 
