@@ -143,13 +143,11 @@ public class PortfolioValueUpdateService {
         // Step 6: Process each day in the date range
         List<UserPortfolioValue> portfolioValueEntityList = new ArrayList<>();
 
-        // For XIRR calculation - all cash flows (investments and current portfolio value)
-        List<BigDecimal> allCashFlows = new ArrayList<>();
-        List<LocalDate> allCashFlowDates = new ArrayList<>();
+        // For XIRR calculation - using Maps instead of Lists for the new XirrCalculator implementation
+        Map<LocalDate, BigDecimal> allCashFlows = new HashMap<>();
 
-        // Track cash flows for XIRR calculation
-        Map<Long, List<BigDecimal>> cashFlowsByScheme = new HashMap<>();
-        Map<Long, List<LocalDate>> cashFlowDatesByScheme = new HashMap<>();
+        // Track cash flows for XIRR calculation using Maps for each scheme
+        Map<Long, Map<LocalDate, BigDecimal>> cashFlowsByScheme = new HashMap<>();
 
         startDate.datesUntil(endDate.plusDays(1)).forEach(currentDate -> {
             BigDecimal totalPortfolioValue = BigDecimal.ZERO;
@@ -170,10 +168,9 @@ public class PortfolioValueUpdateService {
                     transactionUnits = 0.0;
                 }
 
-                // For XIRR calculation - record investment (negative cash flow)
+                // For XIRR calculation - initialize the map for this scheme if needed
                 if (!cashFlowsByScheme.containsKey(amfiCode)) {
-                    cashFlowsByScheme.put(amfiCode, new ArrayList<>());
-                    cashFlowDatesByScheme.put(amfiCode, new ArrayList<>());
+                    cashFlowsByScheme.put(amfiCode, new HashMap<>());
                 }
 
                 // Record cash flows for all transactions except taxes
@@ -184,12 +181,13 @@ public class PortfolioValueUpdateService {
                             ? transactionAmount // Positive (money received)
                             : transactionAmount.negate(); // Negative (money invested)
 
-                    cashFlowsByScheme.get(amfiCode).add(cashFlowAmount);
-                    cashFlowDatesByScheme.get(amfiCode).add(transaction.getTransactionDate());
+                    // Add to scheme-specific cash flows (merge values for same date)
+                    cashFlowsByScheme
+                            .get(amfiCode)
+                            .merge(transaction.getTransactionDate(), cashFlowAmount, BigDecimal::add);
 
-                    // Also add to the all cash flows list for overall XIRR
-                    allCashFlows.add(cashFlowAmount);
-                    allCashFlowDates.add(transaction.getTransactionDate());
+                    // Also add to the all cash flows map for overall XIRR (merge values for same date)
+                    allCashFlows.merge(transaction.getTransactionDate(), cashFlowAmount, BigDecimal::add);
                 }
 
                 // Update cumulative invested amount and units for the scheme
@@ -255,8 +253,7 @@ public class PortfolioValueUpdateService {
 
                             // Add current valuation as positive cash flow for XIRR calculation
                             if (cashFlowsByScheme.containsKey(schemeCode)) {
-                                cashFlowsByScheme.get(schemeCode).add(schemeValue);
-                                cashFlowDatesByScheme.get(schemeCode).add(currentDate);
+                                cashFlowsByScheme.get(schemeCode).merge(currentDate, schemeValue, BigDecimal::add);
                             }
                         }
                     } else {
@@ -268,8 +265,7 @@ public class PortfolioValueUpdateService {
                 }
 
                 // Add total portfolio value as positive cash flow for overall XIRR
-                allCashFlows.add(totalPortfolioValue);
-                allCashFlowDates.add(currentDate);
+                allCashFlows.put(currentDate, totalPortfolioValue);
             }
         });
 
@@ -282,8 +278,8 @@ public class PortfolioValueUpdateService {
             if (cashFlowsByScheme.containsKey(schemeCode)
                     && cashFlowsByScheme.get(schemeCode).size() >= 2) { // Need at least 2 cash flows for XIRR
                 try {
-                    BigDecimal xirrValue = XirrCalculator.calculateXirr(
-                            cashFlowsByScheme.get(schemeCode), cashFlowDatesByScheme.get(schemeCode));
+                    // Use the new XirrCalculator.xirr method with Map parameter
+                    BigDecimal xirrValue = XirrCalculator.xirr(cashFlowsByScheme.get(schemeCode));
 
                     // Create or update FolioScheme with XIRR
                     FolioScheme folioScheme =
@@ -302,7 +298,8 @@ public class PortfolioValueUpdateService {
         // Step 12: Try to calculate overall portfolio XIRR
         try {
             if (allCashFlows.size() >= 2) { // Need at least 2 cash flows for meaningful XIRR
-                BigDecimal overallXirr = XirrCalculator.calculateXirr(allCashFlows, allCashFlowDates);
+                // Use the new XirrCalculator.xirr method with Map parameter
+                BigDecimal overallXirr = XirrCalculator.xirr(allCashFlows);
 
                 // Set XIRR on the most recent portfolio value entity
                 UserPortfolioValue mostRecent = portfolioValueEntityList.getLast();
@@ -328,36 +325,52 @@ public class PortfolioValueUpdateService {
      * @return The found or newly created FolioScheme
      */
     private FolioScheme findOrCreateFolioScheme(Long schemeDetailId, UserSchemeDetails userSchemeDetails) {
-        String operationId = "folioScheme-" + schemeDetailId + "-" + System.currentTimeMillis();
+        String operationId = generateOperationId(schemeDetailId);
         log.debug("[{}] Looking up FolioScheme for schemeDetailId: {}", operationId, schemeDetailId);
 
         try {
-            // Try to find existing FolioScheme
-            FolioScheme folioScheme = folioSchemeRepository.findByUserSchemeDetails_Id(schemeDetailId);
-
-            if (folioScheme == null) {
-                log.debug(
-                        "[{}] No existing FolioScheme found, creating new one for schemeDetailId: {}",
-                        operationId,
-                        schemeDetailId);
-                // Create new if not found
-                folioScheme = new FolioScheme();
-                folioScheme.setUserSchemeDetails(userSchemeDetails);
-                folioScheme.setUserFolioDetails(userSchemeDetails.getUserFolioDetails());
-                log.debug("[{}] New FolioScheme created for schemeDetailId: {}", operationId, schemeDetailId);
-            } else {
-                log.debug("[{}] Found existing FolioScheme for schemeDetailId: {}", operationId, schemeDetailId);
-            }
-
-            return folioScheme;
+            FolioScheme folioScheme = findExistingFolioScheme(schemeDetailId, operationId);
+            return folioScheme != null
+                    ? folioScheme
+                    : createNewFolioScheme(schemeDetailId, userSchemeDetails, operationId);
         } catch (Exception e) {
-            log.error(
-                    "[{}] Error while finding/creating FolioScheme for schemeDetailId: {}",
-                    operationId,
-                    schemeDetailId,
-                    e);
-            // Re-throw as runtime exception to ensure the error is properly handled in the calling async method
+            handleFolioSchemeError(operationId, schemeDetailId, e);
             throw new RuntimeException("Failed to process FolioScheme for scheme ID: " + schemeDetailId, e);
         }
+    }
+
+    private String generateOperationId(Long schemeDetailId) {
+        return "folioScheme-" + schemeDetailId + "-" + System.currentTimeMillis();
+    }
+
+    private FolioScheme findExistingFolioScheme(Long schemeDetailId, String operationId) {
+        try {
+            FolioScheme folioScheme = folioSchemeRepository.findByUserSchemeDetails_Id(schemeDetailId);
+            if (folioScheme != null) {
+                log.debug("[{}] Found existing FolioScheme for schemeDetailId: {}", operationId, schemeDetailId);
+            }
+            return folioScheme;
+        } catch (Exception e) {
+            log.error("[{}] Error while finding FolioScheme for schemeDetailId: {}", operationId, schemeDetailId, e);
+            throw e;
+        }
+    }
+
+    private FolioScheme createNewFolioScheme(
+            Long schemeDetailId, UserSchemeDetails userSchemeDetails, String operationId) {
+        log.debug(
+                "[{}] No existing FolioScheme found, creating new one for schemeDetailId: {}",
+                operationId,
+                schemeDetailId);
+        FolioScheme folioScheme = new FolioScheme();
+        folioScheme.setUserSchemeDetails(userSchemeDetails);
+        folioScheme.setUserFolioDetails(userSchemeDetails.getUserFolioDetails());
+        log.debug("[{}] New FolioScheme created for schemeDetailId: {}", operationId, schemeDetailId);
+        return folioScheme;
+    }
+
+    private void handleFolioSchemeError(String operationId, Long schemeDetailId, Exception e) {
+        log.error(
+                "[{}] Error while finding/creating FolioScheme for schemeDetailId: {}", operationId, schemeDetailId, e);
     }
 }
