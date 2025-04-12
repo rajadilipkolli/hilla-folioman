@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -323,7 +324,7 @@ public class PortfolioValueUpdateService {
             navOnCurrentDate = navsBySchemeAndDate.get(schemeCode).get(adjustedDate);
         }
 
-        if (navOnCurrentDate == null && attempts >= maxAttempts) {
+        if (navOnCurrentDate == null) {
             log.warn(
                     "NAV not found for scheme {} on date {} after {} attempts - continuing with other schemes",
                     schemeCode,
@@ -392,7 +393,7 @@ public class PortfolioValueUpdateService {
             List<UserTransactionDetails> transactionList, PortfolioDataContainer dataContainer, LocalDate endDate) {
 
         // Create a set to track processed scheme IDs to avoid duplicate calculations
-        Set<Long> processedSchemeIds = new HashMap<Long, Boolean>().keySet();
+        Set<Long> processedSchemeIds = new HashSet<>();
 
         for (UserTransactionDetails transaction : transactionList) {
             Long schemeCode = transaction.getUserSchemeDetails().getAmfi();
