@@ -91,7 +91,7 @@ public class PdfProcessingService {
      */
     public CasDTO convertPdfCasToJson(MultipartFile pdfFile, String password) throws IOException {
         log.info(
-                "Converting password-protected PDF CAS file to Object using python casparser cli: {}",
+                "Converting password-protected PDF CAS file to CasDTO Object using python casparser cli: {}",
                 pdfFile.getOriginalFilename());
 
         // Check if casparser is installed and try to install it if not
