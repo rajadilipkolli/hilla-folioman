@@ -1,6 +1,7 @@
 package com.app.folioman.mfschemes.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -47,6 +48,9 @@ public class MfSchemeServiceImplTest {
 
     @Mock
     private MFSchemeNavRepository mfSchemeNavRepository;
+
+    @Mock
+    private MfAmcService mfAmcService;
 
     @InjectMocks
     private MfSchemeServiceImpl mfSchemeService;
