@@ -26,4 +26,22 @@ class UserTransactionsControllerIT extends AbstractIntegrationTest {
                 .perform(get("/api/portfolio/investments/{pan}", "INVALID-PAN").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
     }
+
+    @Test
+    void getTotalInvestmentsByPanPerYear() throws Exception {
+        this.mockMvc
+                .perform(get("/api/portfolio/investments/yearly/{pan}", "ABCDE1234F")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$").isArray());
+    }
+
+    @Test
+    void getTotalInvestmentsByPanPerYear_WithInvalidPan_ShouldReturnBadRequest() throws Exception {
+        this.mockMvc
+                .perform(get("/api/portfolio/investments/yearly/{pan}", "INVALID-PAN")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
 }

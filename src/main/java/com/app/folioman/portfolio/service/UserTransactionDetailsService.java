@@ -2,6 +2,7 @@ package com.app.folioman.portfolio.service;
 
 import com.app.folioman.portfolio.entities.UserTransactionDetails;
 import com.app.folioman.portfolio.models.response.MonthlyInvestmentResponse;
+import com.app.folioman.portfolio.models.response.YearlyInvestmentResponse;
 import com.app.folioman.portfolio.repository.UserTransactionDetailsRepository;
 import java.time.LocalDate;
 import java.util.List;
@@ -25,6 +26,10 @@ public class UserTransactionDetailsService {
 
     public List<MonthlyInvestmentResponse> getTotalInvestmentsByPanPerMonth(String pan) {
         return userTransactionDetailsRepository.findMonthlyInvestmentsByPan(pan);
+    }
+
+    public List<YearlyInvestmentResponse> getTotalInvestmentsByPanPerYear(String pan) {
+        return userTransactionDetailsRepository.findYearlyInvestmentsByPan(pan);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
