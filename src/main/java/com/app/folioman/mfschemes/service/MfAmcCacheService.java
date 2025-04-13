@@ -48,12 +48,17 @@ class MfAmcCacheService {
      */
     @Cacheable(value = "findAMCsByTextSearch", key = "#searchTerms", unless = "#result.isEmpty()")
     public List<MfAmc> findByTextSearch(String searchTerms) {
-        // Convert space-separated terms to PostgreSQL ts_query format (term1 & term2 & ...)
+        if (searchTerms == null || searchTerms.isBlank()) {
+            return List.of();
+        }
+
+        // Convert space-separated terms to PostgreSQL ts_query format ('term1' & 'term2' & ...)
         String tsQueryFormat = Arrays.stream(
                         searchTerms.strip().replaceAll("\\s+", " ").split("\\s+"))
                 .map(term -> term.toLowerCase(Locale.ENGLISH))
                 .map(term -> term.replaceAll("[^a-zA-Z0-9]", "")) // Remove special characters
                 .filter(term -> !term.isEmpty())
+                .map(term -> "'" + term + "'") // Add single quotes around each term
                 .collect(Collectors.joining(" & "));
 
         if (tsQueryFormat.isEmpty()) {
