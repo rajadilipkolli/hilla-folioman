@@ -7,6 +7,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
@@ -15,8 +16,12 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
+import org.hibernate.annotations.Formula;
 
-@Table(name = "mf_amc", schema = "mfschemes")
+@Table(
+        name = "mf_amc",
+        schema = "mfschemes",
+        indexes = {@Index(name = "idx_mf_amc_name_vector", columnList = "name_vector")})
 @Entity
 public class MfAmc extends Auditable<String> implements Serializable {
 
@@ -35,6 +40,10 @@ public class MfAmc extends Auditable<String> implements Serializable {
 
     @Column(nullable = false)
     private String code;
+
+    @Formula("to_tsvector('english', coalesce(name,'') || ' ' || coalesce(description,''))")
+    @Column(name = "name_vector", columnDefinition = "tsvector")
+    private String nameVector;
 
     @OneToMany(mappedBy = "amc", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MfFundScheme> mfFundSchemes = new ArrayList<>();
@@ -72,6 +81,15 @@ public class MfAmc extends Auditable<String> implements Serializable {
 
     public MfAmc setCode(String code) {
         this.code = code;
+        return this;
+    }
+
+    public String getNameVector() {
+        return nameVector;
+    }
+
+    public MfAmc setNameVector(String nameVector) {
+        this.nameVector = nameVector;
         return this;
     }
 

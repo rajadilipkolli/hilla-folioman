@@ -12,6 +12,11 @@
             ALTER TABLE mfschemes.mf_fund_scheme
                 ADD COLUMN name_tsv tsvector
                     GENERATED ALWAYS AS (to_tsvector('english', name)) STORED;
+
+
+            ALTER TABLE mfschemes.mf_amc
+                ADD COLUMN name_vector tsvector
+                    GENERATED ALWAYS AS (to_tsvector('english', name)) STORED;
         </sql>
     </changeSet>
 
@@ -19,6 +24,7 @@
     <changeSet id="4" author="appUser">
         <sql>
             CREATE INDEX IF NOT EXISTS idx_name_tsv ON mfschemes.mf_fund_scheme USING GIN (name_tsv);
+            CREATE INDEX IF NOT EXISTS idx_mf_amc_name_vector ON mfschemes.mf_amc USING GIN (name_vector);
         </sql>
     </changeSet>
 
