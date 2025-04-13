@@ -1,16 +1,36 @@
-import React, { useState } from "react";
-import { Button, DatePicker, Grid, GridColumn, GridSortColumn, GridSorterDirection, TextField } from "@vaadin/react-components";
+import React, { useState, useEffect, useRef } from "react";
+import { 
+    Button, 
+    DatePicker, 
+    Grid, 
+    GridColumn, 
+    GridSortColumn, 
+    GridSorterDirection, 
+    TextField,
+    HorizontalLayout,
+    VerticalLayout,
+    FormLayout,
+    Card,
+    Details,
+    Notification
+} from "@vaadin/react-components";
 import PortfolioResponse from "Frontend/generated/com/app/folioman/portfolio/models/response/PortfolioResponse";
 import MonthlyInvestmentResponse from "Frontend/generated/com/app/folioman/portfolio/models/response/MonthlyInvestmentResponse";
+import YearlyInvestmentResponse from "Frontend/generated/com/app/folioman/portfolio/models/response/YearlyInvestmentResponse";
 import { getPortfolio } from "Frontend/generated/ImportMutualFundController";
-import { getTotalInvestmentsByPanPerMonth } from "Frontend/generated/UserTransactionsController";
+import { getTotalInvestmentsByPanPerMonth, getTotalInvestmentsByPanPerYear } from "Frontend/generated/UserTransactionsController";
+import './user-portfolio.css';
 
 export default function UserPortfolioView() {
     const [pan, setPan] = useState<string>('');
     const [asOfDate, setAsOfDate] = useState<string | null>(null);
     const [portfolio, setPortfolio] = useState<PortfolioResponse | null>(null);
     const [monthlyInvestments, setMonthlyInvestments] = useState<MonthlyInvestmentResponse[] | null>(null);
+    const [yearlyInvestments, setYearlyInvestments] = useState<{year: number, amount: number}[]>([]);
     const [error, setError] = useState<string | null>(null);
+    const [showYearlyChart, setShowYearlyChart] = useState<boolean>(false);
+    const [showMonthlyData, setShowMonthlyData] = useState<boolean>(false);
+    const chartRef = useRef<HTMLDivElement>(null);
 
     const fetchPortfolio = async () => {
         if (!pan) {
@@ -19,6 +39,8 @@ export default function UserPortfolioView() {
         }
         setError(null);
         setMonthlyInvestments(null);  // Clear monthly investments when fetching portfolio
+        setShowYearlyChart(false); // Hide yearly chart when fetching new portfolio
+        setShowMonthlyData(false); // Hide monthly data
         try {
             const response = await getPortfolio(pan, asOfDate ?? undefined);
             setPortfolio(response || null);
@@ -35,17 +57,49 @@ export default function UserPortfolioView() {
         }
         setError(null);
         setPortfolio(null);  // Clear portfolio when fetching monthly investments
+        setShowYearlyChart(false); // Hide yearly chart when fetching new monthly data
         try {
             const response = await getTotalInvestmentsByPanPerMonth(pan);
             setMonthlyInvestments((response || []).filter((item): item is MonthlyInvestmentResponse => item !== undefined));
+            setShowMonthlyData(true); // Show monthly data
             setError(null);
         } catch (e) {
             setError(`Failed to fetch monthly investments: ${(e as Error).message}`);
         }
     };
+    
+    const fetchYearlyInvestments = async () => {
+        if (!pan) {
+            setError('PAN is required');
+            return;
+        }
+        
+        setError(null);
+        setPortfolio(null);  // Clear portfolio when fetching yearly investments
+        setShowMonthlyData(false); // Hide monthly data grid
+        
+        try {
+            // Direct call to backend for yearly investment data
+            const response = await getTotalInvestmentsByPanPerYear(pan);
+            const yearlyData = (response || [])
+                .filter((item): item is YearlyInvestmentResponse => item !== undefined)
+                .map(item => ({
+                    year: item.year ?? DEFAULT_YEAR,
+                    amount: item.yearlyInvestment ?? 0
+                }))
+                .sort((a, b) => a.year - b.year);
+                
+            setYearlyInvestments(yearlyData);
+            setShowYearlyChart(true);
+            setError(null);
+        } catch (e) {
+            setError(`Failed to fetch yearly investments: ${(e as Error).message}`);
+        }
+    };
 
     const DEFAULT_YEAR = 0;
     const DEFAULT_MONTH = 0;
+    
     // Custom sort handler for client-side sorting by Year and Month
     const sortMonthlyInvestments = (direction: GridSorterDirection) => {
         const sortedData = monthlyInvestments?.map(item => ({
@@ -60,67 +114,235 @@ export default function UserPortfolioView() {
                 }) ?? [];
         setMonthlyInvestments(sortedData);
     };
+    
+    // Function to render the yearly investment bar chart
+    const renderYearlyChart = () => {
+        const maxValue = Math.max(...yearlyInvestments.map(item => item.amount));
+        const barHeight = 300; // Maximum height for the tallest bar
+        
+        // Calculate Y-axis tick values (from bottom to top)
+        const yAxisValues = [0, 0.25, 0.5, 0.75, 1].map(ratio => maxValue * ratio);
+        
+        return (
+            <Card className="fade-in">
+                <h3 style={{ textAlign: 'center', margin: 'var(--lumo-space-m) 0' }}>
+                    Yearly Investment Summary
+                </h3>
+                <div className="chart-inner" ref={chartRef}>
+                    <div className="chart-y-axis">
+                        {yAxisValues.reverse().map((value, index) => (
+                            <div key={index} className="chart-y-axis-label">
+                                ₹{value.toLocaleString()}
+                            </div>
+                        ))}
+                    </div>
+                    {yearlyInvestments.map((item, index) => {
+                        const heightPercentage = (item.amount / maxValue) * 100;
+                        const barHeightPx = (heightPercentage / 100) * barHeight;
+                        
+                        return (
+                            <div key={index} className="chart-bar-group">
+                                <div 
+                                    className="chart-bar"
+                                    style={{ height: `${barHeightPx}px` }}
+                                    onMouseOver={(e) => {
+                                        const barElement = e.currentTarget;
+                                        const valueElement = barElement.querySelector('div');
+                                        if (valueElement) {
+                                            valueElement.style.opacity = '1';
+                                        }
+                                    }}
+                                    onMouseOut={(e) => {
+                                        const barElement = e.currentTarget;
+                                        const valueElement = barElement.querySelector('div');
+                                        if (valueElement) {
+                                            valueElement.style.opacity = '0';
+                                        }
+                                    }}
+                                >
+                                    <div className="chart-bar-value">
+                                        ₹{item.amount.toLocaleString()}
+                                    </div>
+                                </div>
+                                <div className="chart-bar-label">{item.year}</div>
+                            </div>
+                        );
+                    })}
+                    <div className="chart-x-axis"></div>
+                </div>
+            </Card>
+        );
+    };
 
     return (
-        <div style={{ padding: '20px' }}>
-            <h2>Portfolio Lookup</h2>
-            <div>
-                <TextField
-                    label="PAN"
-                    value={pan}
-                    onValueChanged={(e: any) => setPan(e.target.value)}
-                    required
-                />
-            </div>
-            <div>
-                <DatePicker
-                    label="As of Date (optional)"
-                    value={asOfDate ?? ''}
-                    onValueChanged={(e: any) => setAsOfDate(e.target.value)}
-                    placeholder="YYYY-MM-DD"
-                />
-            </div>
-            <div style={{ display: 'flex', gap: '10px' }}>
-                <Button onClick={fetchPortfolio} theme="primary">Get Portfolio</Button>
-                <Button onClick={fetchMonthlyInvestments} theme="secondary">Get Monthly Investments</Button>
-            </div>
+        <VerticalLayout className="fade-in" style={{ margin: '0 auto', maxWidth: '1200px' }}>
+            <h2 style={{ 
+                fontSize: 'var(--lumo-font-size-xxl)',
+                fontWeight: '600',
+                margin: 'var(--lumo-space-m) 0',
+                color: 'var(--lumo-primary-text-color)'
+            }}>
+                Portfolio Lookup
+            </h2>
+            
+            <Card>
+                <FormLayout responsiveSteps={[
+                    { minWidth: '0', columns: 1 },
+                    { minWidth: '500px', columns: 3 }
+                ]}>
+                    <TextField
+                        label="PAN"
+                        value={pan}
+                        onValueChanged={(e: any) => setPan(e.target.value)}
+                        required
+                    />
+                    <DatePicker
+                        label="As of Date (optional)"
+                        value={asOfDate ?? ''}
+                        onValueChanged={(e: any) => setAsOfDate(e.target.value)}
+                        placeholder="YYYY-MM-DD"
+                    />
+                    <HorizontalLayout 
+                        theme="spacing" 
+                        style={{ 
+                            alignSelf: 'flex-end', 
+                            flexWrap: 'wrap'
+                        }}
+                    >
+                        <Button 
+                            onClick={fetchPortfolio} 
+                            theme="primary">
+                            Get Portfolio
+                        </Button>
+                        <Button 
+                            onClick={fetchMonthlyInvestments}
+                            theme="secondary">
+                            Get Monthly Investments
+                        </Button>
+                        <Button 
+                            onClick={fetchYearlyInvestments}
+                            theme="tertiary">
+                            Get Yearly Investments
+                        </Button>
+                    </HorizontalLayout>
+                </FormLayout>
+            </Card>
 
-            {error && <div style={{ color: 'red' }}>{error}</div>}
+            {error && (
+                <div style={{ 
+                    marginTop: 'var(--lumo-space-m)',
+                }}>
+                    {/* Use Notification component for error message */}
+                    <Notification 
+                        theme="error" 
+                        duration={0} 
+                        opened={!!error}
+                        position="middle"
+                    >
+                        {error}
+                    </Notification>
+                </div>
+            )}
 
             {portfolio && (
-                <div>
-                    <p><strong>Total Value:</strong> {portfolio.totalPortfolioValue}</p>
-
-                    <Grid items={portfolio.portfolioDetailsDTOS}>
-                        <GridSortColumn path="schemeName" header="Scheme Name"
+                <Card className="fade-in" style={{ marginTop: 'var(--lumo-space-m)', width: '100%' }}>
+                    <HorizontalLayout 
+                        style={{ 
+                            padding: 'var(--lumo-space-m)', 
+                            backgroundColor: 'var(--lumo-contrast-5pct)', 
+                            justifyContent: 'space-between',
+                            width: '100%'
+                        }}
+                    >
+                        <span>Total Portfolio Value:</span>
+                        <span style={{ 
+                            fontWeight: 'bold',
+                            color: 'var(--lumo-primary-text-color)'
+                        }}>
+                            ₹{portfolio.totalPortfolioValue?.toLocaleString() || '0'}
+                        </span>
+                    </HorizontalLayout>
+                    <Grid 
+                        items={portfolio.portfolioDetailsDTOS} 
+                        style={{ 
+                            width: '100%', 
+                            minHeight: '300px'
+                        }}
+                        theme="no-border row-stripes"
+                        allRowsVisible
+                        columnReorderingAllowed
+                    >
+                        <GridSortColumn 
+                            path="schemeName" 
+                            header="Scheme Name" 
+                            flexGrow={2}
+                            autoWidth={false}
                             renderer={({ item }) => (
                                 <span style={{ whiteSpace: 'normal', overflow: 'visible' }}>
                                     {item.schemeName}
                                 </span>
                             )}
                         />
-                        <GridSortColumn path="folioNumber" header="Folio Number" />
-                        <GridSortColumn path="totalValue" header="Total Value" />
-                        <GridSortColumn path="date" header="As of Date" />
+                        <GridSortColumn path="folioNumber" header="Folio Number" flexGrow={1} />
+                        <GridSortColumn 
+                            path="totalValue" 
+                            header="Total Value" 
+                            flexGrow={1}
+                            textAlign="end"
+                            renderer={({ item }) => `₹${item.totalValue?.toLocaleString() || '0'}`}
+                        />
+                        <GridSortColumn path="date" header="As of Date" flexGrow={1} />
                     </Grid>
-                </div>
+                </Card>
             )}
 
-            {monthlyInvestments && (
-                <div>
-                    <h3>Monthly Investments</h3>
-                    <Grid items={monthlyInvestments} className="header-wrap" aria-label="Monthly Investment Summary">
+            {showMonthlyData && monthlyInvestments && (
+                <Card className="fade-in" style={{ marginTop: 'var(--lumo-space-m)', width: '100%' }}>
+                    <h3 style={{ 
+                        fontSize: 'var(--lumo-font-size-xl)',
+                        fontWeight: '500',
+                        margin: 'var(--lumo-space-m)',
+                        color: 'var(--lumo-secondary-text-color)'
+                    }}>
+                        Monthly Investments
+                    </h3>
+                    <Grid 
+                        items={monthlyInvestments} 
+                        style={{ 
+                            width: '100%', 
+                            minHeight: '300px'
+                        }}
+                        theme="no-border row-stripes"
+                        allRowsVisible
+                        columnReorderingAllowed
+                    >
                         <GridSortColumn
                             path="year"
                             header="Year"
+                            flexGrow={1}
+                            autoWidth={false}
                             onDirectionChanged={(e) => sortMonthlyInvestments(e.detail.value)}
                         />
-                        <GridColumn path="monthNumber" header="Month" />
-                        <GridSortColumn path="investmentPerMonth" header="Amount Invested In current Month" />
-                        <GridColumn path="cumulativeInvestment" header="Total Cumulative Investment" />
+                        <GridColumn path="monthNumber" header="Month" flexGrow={1} />
+                        <GridSortColumn 
+                            path="investmentPerMonth" 
+                            header="Amount Invested In Current Month"
+                            flexGrow={2}
+                            textAlign="end"
+                            renderer={({ item }) => `₹${item.investmentPerMonth?.toLocaleString() || '0'}`}
+                        />
+                        <GridColumn 
+                            path="cumulativeInvestment" 
+                            header="Total Cumulative Investment"
+                            flexGrow={2}
+                            textAlign="end"
+                            renderer={({ item }) => `₹${item.cumulativeInvestment?.toLocaleString() || '0'}`}
+                        />
                     </Grid>
-                </div>
+                </Card>
             )}
-        </div>
+
+            {showYearlyChart && yearlyInvestments.length > 0 && renderYearlyChart()}
+        </VerticalLayout>
     );
 }

@@ -1,0 +1,97 @@
+/* Import Mutual Funds View Styles */
+
+.p-m {
+  padding: 1.5rem;
+}
+
+h2 {
+  font-size: 2rem;
+  font-weight: 500;
+  margin-bottom: 1.5rem;
+  color: var(--lumo-primary-text-color);
+}
+
+h3 {
+  font-size: 1.5rem;
+  font-weight: 400;
+  margin: 1rem 0;
+  color: var(--lumo-secondary-text-color);
+}
+
+p {
+  margin: 0.5rem 0;
+  color: var(--lumo-contrast-70pct);
+}
+
+.response-data {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  background-color: var(--lumo-contrast-5pct);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  animation: fadeIn 0.5s ease-out;
+}
+
+.response-data h3 {
+  color: var(--lumo-primary-text-color);
+  margin-top: 0;
+}
+
+.response-data p {
+  font-size: 1.1rem;
+  margin: 0.75rem 0;
+}
+
+.password-field-container {
+  width: 100%;
+}
+
+/* File selection area styling */
+vaadin-upload {
+  width: 100%;
+  border: 2px dashed var(--lumo-contrast-20pct);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  background-color: var(--lumo-contrast-5pct);
+  transition: all 0.3s ease;
+}
+
+vaadin-upload:hover {
+  border-color: var(--lumo-primary-color-50pct);
+  background-color: var(--lumo-primary-color-10pct);
+}
+
+/* Button styling */
+vaadin-button {
+  margin-right: 0.5rem;
+}
+
+/* Animation for response data */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Tab button container */
+vaadin-button[theme="primary"] {
+  font-weight: 600;
+}
+
+vaadin-button[theme="secondary"] {
+  color: var(--lumo-contrast-70pct);
+}
+
+/* Make form more responsive */
+@media (max-width: 600px) {
+  .p-m {
+    padding: 1rem;
+  }
+  
+  h2 {
+    font-size: 1.75rem;
+  }
+  
+  h3 {
+    font-size: 1.25rem;
+  }
+}

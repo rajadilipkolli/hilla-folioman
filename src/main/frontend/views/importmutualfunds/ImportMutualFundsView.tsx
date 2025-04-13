@@ -1,7 +1,8 @@
 import React, {useRef, useState, useEffect} from 'react';
-import {Button, FormLayout, FormLayoutResponsiveStep, Notification, PasswordField} from "@vaadin/react-components";
+import {Button, FormLayout, FormLayoutResponsiveStep, Notification, PasswordField, ProgressBar} from "@vaadin/react-components";
 import {Upload, UploadMaxFilesReachedChangedEvent, UploadBeforeEvent} from "@vaadin/react-components/Upload";
 import {ImportMutualFundController} from "Frontend/generated/endpoints";
+import './import-mutual-funds.css';
 
 // Password inactivity timeout in milliseconds (5 minutes)
 const PASSWORD_INACTIVITY_TIMEOUT = 5 * 60 * 1000;
