@@ -16,7 +16,6 @@
     "@vaadin/hilla-react-signals": "24.7.1",
     "@vaadin/polymer-legacy-adapter": "24.7.2",
     "@vaadin/react-components": "24.7.2",
-    "@vaadin/react-components-pro": "24.7.2",
     "@vaadin/vaadin-development-mode-detector": "2.0.7",
     "@vaadin/vaadin-lumo-styles": "24.7.2",
     "@vaadin/vaadin-material-styles": "24.7.2",
@@ -25,7 +24,6 @@
     "construct-style-sheets-polyfill": "3.1.0",
     "date-fns": "4.1.0",
     "lit": "3.3.0",
-    "proj4": "2.15.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-router": "7.5.0",
@@ -79,7 +77,6 @@
       "@vaadin/hilla-react-signals": "24.7.1",
       "@vaadin/polymer-legacy-adapter": "24.7.1",
       "@vaadin/react-components": "24.4.5",
-      "@vaadin/react-components-pro": "24.4.4",
       "@vaadin/vaadin-development-mode-detector": "2.0.7",
       "@vaadin/vaadin-lumo-styles": "24.7.1",
       "@vaadin/vaadin-material-styles": "24.7.1",
@@ -88,7 +85,6 @@
       "construct-style-sheets-polyfill": "3.1.0",
       "date-fns": "2.29.3",
       "lit": "3.2.1",
-      "proj4": "2.15.0",
       "react": "18.3.1",
       "react-dom": "18.3.1",
       "react-router": "7.2.0"
@@ -125,7 +121,7 @@
       "workbox-core": "7.3.0",
       "workbox-precaching": "7.3.0"
     },
-    "hash": "96c7347f7179fc2930da98e203d17d9546ceb8934eb8ab0a608f16e067ecc629"
+    "hash": "72385efb9149d8343cf2a762838b201cbf5a6e1f14e411308928433c9a13ac97"
   },
   "overrides": {
     "@vaadin/bundles": "$@vaadin/bundles",
@@ -144,7 +140,6 @@
     "@vaadin/hilla-generator-plugin-model": "$@vaadin/hilla-generator-plugin-model",
     "@vaadin/hilla-react-crud": "$@vaadin/hilla-react-crud",
     "@vaadin/hilla-generator-plugin-subtypes": "$@vaadin/hilla-generator-plugin-subtypes",
-    "proj4": "$proj4",
     "@vaadin/hilla-generator-utils": "$@vaadin/hilla-generator-utils",
     "@vaadin/hilla-generator-plugin-barrel": "$@vaadin/hilla-generator-plugin-barrel",
     "@vaadin/hilla-react-form": "$@vaadin/hilla-react-form",
@@ -160,7 +155,6 @@
     "@vaadin/hilla-file-router": "$@vaadin/hilla-file-router",
     "@vaadin/hilla-react-signals": "$@vaadin/hilla-react-signals",
     "@vaadin/hilla-react-i18n": "$@vaadin/hilla-react-i18n",
-    "@vaadin/react-components-pro": "$@vaadin/react-components-pro",
     "@vaadin/vaadin-themable-mixin": "$@vaadin/vaadin-themable-mixin",
     "@vaadin/vaadin-lumo-styles": "$@vaadin/vaadin-lumo-styles",
     "@vaadin/vaadin-material-styles": "$@vaadin/vaadin-material-styles",
