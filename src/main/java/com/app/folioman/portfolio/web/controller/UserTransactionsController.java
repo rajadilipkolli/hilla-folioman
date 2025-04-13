@@ -1,6 +1,7 @@
 package com.app.folioman.portfolio.web.controller;
 
 import com.app.folioman.portfolio.models.response.MonthlyInvestmentResponse;
+import com.app.folioman.portfolio.models.response.YearlyInvestmentResponse;
 import com.app.folioman.portfolio.service.UserTransactionDetailsService;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.Endpoint;
@@ -29,5 +30,11 @@ class UserTransactionsController {
     public List<MonthlyInvestmentResponse> getTotalInvestmentsByPanPerMonth(
             @PathVariable("pan") @Pattern(regexp = "[A-Z]{5}[0-9]{4}[A-Z]", message = "Invalid PAN number format") String pan) {
         return userTransactionDetailsService.getTotalInvestmentsByPanPerMonth(pan);
+    }
+
+    @GetMapping("/investments/yearly/{pan}")
+    public List<YearlyInvestmentResponse> getTotalInvestmentsByPanPerYear(
+            @PathVariable("pan") @Pattern(regexp = "[A-Z]{5}[0-9]{4}[A-Z]", message = "Invalid PAN number format") String pan) {
+        return userTransactionDetailsService.getTotalInvestmentsByPanPerYear(pan);
     }
 }
