@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   Button,
   DatePicker,
@@ -11,7 +11,6 @@ import {
   VerticalLayout,
   FormLayout,
   Card,
-  Details,
   Notification,
 } from '@vaadin/react-components';
 import PortfolioResponse from 'Frontend/generated/com/app/folioman/portfolio/models/response/PortfolioResponse';
@@ -24,9 +23,19 @@ import {
 } from 'Frontend/generated/UserTransactionsController';
 import './user-portfolio.css';
 
+// Helper function to validate PAN is provided
+function ensurePanIsProvided(pan: string, setErrorFn: (msg: string | null) => void): boolean {
+  if (!pan) {
+    setErrorFn('PAN is required');
+    return false;
+  }
+  setErrorFn(null);
+  return true;
+}
+
 export default function UserPortfolioView() {
   const [pan, setPan] = useState<string>('');
-  const [asOfDate, setAsOfDate] = useState<string | null>(null);
+  const [asOfDate, setAsOfDate] = useState<Date | null>(null);
   const [portfolio, setPortfolio] = useState<PortfolioResponse | null>(null);
   const [monthlyInvestments, setMonthlyInvestments] = useState<MonthlyInvestmentResponse[] | null>(null);
   const [yearlyInvestments, setYearlyInvestments] = useState<{ year: number; amount: number }[]>([]);
@@ -36,16 +45,14 @@ export default function UserPortfolioView() {
   const chartRef = useRef<HTMLDivElement>(null);
 
   const fetchPortfolio = async () => {
-    if (!pan) {
-      setError('PAN is required');
-      return;
-    }
-    setError(null);
+    if (!ensurePanIsProvided(pan, setError)) return;
     setMonthlyInvestments(null); // Clear monthly investments when fetching portfolio
     setShowYearlyChart(false); // Hide yearly chart when fetching new portfolio
     setShowMonthlyData(false); // Hide monthly data
     try {
-      const response = await getPortfolio(pan, asOfDate ?? undefined);
+      // Convert Date to string format expected by backend API if it exists
+      const dateStr = asOfDate ? asOfDate.toISOString().split('T')[0] : undefined;
+      const response = await getPortfolio(pan, dateStr);
       setPortfolio(response || null);
       setError(null);
     } catch (e) {
@@ -54,11 +61,7 @@ export default function UserPortfolioView() {
   };
 
   const fetchMonthlyInvestments = async () => {
-    if (!pan) {
-      setError('PAN is required');
-      return;
-    }
-    setError(null);
+    if (!ensurePanIsProvided(pan, setError)) return;
     setPortfolio(null); // Clear portfolio when fetching monthly investments
     setShowYearlyChart(false); // Hide yearly chart when fetching new monthly data
     try {
@@ -72,12 +75,8 @@ export default function UserPortfolioView() {
   };
 
   const fetchYearlyInvestments = async () => {
-    if (!pan) {
-      setError('PAN is required');
-      return;
-    }
+    if (!ensurePanIsProvided(pan, setError)) return;
 
-    setError(null);
     setPortfolio(null); // Clear portfolio when fetching yearly investments
     setShowMonthlyData(false); // Hide monthly data grid
 
@@ -123,7 +122,19 @@ export default function UserPortfolioView() {
 
   // Function to render the yearly investment bar chart
   const renderYearlyChart = () => {
-    const maxValue = Math.max(...yearlyInvestments.map((item) => item.amount));
+    // Handle no data or minimal data scenario
+    if (yearlyInvestments.length === 0) {
+      return (
+        <Card className="fade-in">
+          <div className="empty-chart-message" aria-live="polite">
+            <h3>No yearly investment data available</h3>
+            <p>There is no investment data to display for the selected PAN.</p>
+          </div>
+        </Card>
+      );
+    }
+
+    const maxValue = Math.max(...yearlyInvestments.map((item) => item.amount), 1); // Ensure non-zero for division
     const barHeight = 300; // Maximum height for the tallest bar
 
     // Calculate Y-axis tick values (from bottom to top)
@@ -132,8 +143,12 @@ export default function UserPortfolioView() {
     return (
       <Card className="fade-in">
         <h3 style={{ textAlign: 'center', margin: 'var(--lumo-space-m) 0' }}>Yearly Investment Summary</h3>
-        <div className="chart-inner" ref={chartRef}>
-          <div className="chart-y-axis">
+        <div
+          className="chart-inner"
+          ref={chartRef}
+          role="img"
+          aria-label="Bar chart showing yearly investment amounts from years ${yearlyInvestments[0]?.year} to ${yearlyInvestments[yearlyInvestments.length-1]?.year}">
+          <div className="chart-y-axis" aria-hidden="true">
             {yAxisValues.reverse().map((value, index) => (
               <div key={index} className="chart-y-axis-label">
                 ₹{value.toLocaleString()}
@@ -142,13 +157,16 @@ export default function UserPortfolioView() {
           </div>
           {yearlyInvestments.map((item, index) => {
             const heightPercentage = (item.amount / maxValue) * 100;
-            const barHeightPx = (heightPercentage / 100) * barHeight;
+            const barHeightPx = Math.max((heightPercentage / 100) * barHeight, 1); // Ensure at least 1px height for visibility
 
             return (
               <div key={index} className="chart-bar-group">
                 <div
                   className="chart-bar"
                   style={{ height: `${barHeightPx}px` }}
+                  role="graphics-symbol"
+                  aria-label={`Year ${item.year}: ₹${item.amount.toLocaleString()}`}
+                  aria-roledescription="bar"
                   onMouseOver={(e) => {
                     const barElement = e.currentTarget;
                     const valueElement = barElement.querySelector('div');
@@ -169,7 +187,7 @@ export default function UserPortfolioView() {
               </div>
             );
           })}
-          <div className="chart-x-axis"></div>
+          <div className="chart-x-axis" aria-hidden="true"></div>
         </div>
       </Card>
     );
@@ -193,11 +211,18 @@ export default function UserPortfolioView() {
             { minWidth: '0', columns: 1 },
             { minWidth: '500px', columns: 3 },
           ]}>
-          <TextField label="PAN" value={pan} onValueChanged={(e: any) => setPan(e.target.value)} required />
+          <TextField
+            label="PAN"
+            value={pan}
+            onValueChanged={(e: CustomEvent) => setPan((e.target as HTMLInputElement).value)}
+            required
+          />
           <DatePicker
             label="As of Date (optional)"
-            value={asOfDate ?? ''}
-            onValueChanged={(e: any) => setAsOfDate(e.target.value)}
+            value={asOfDate ? asOfDate.toISOString().split('T')[0] : ''}
+            onValueChanged={(e: CustomEvent) =>
+              setAsOfDate((e.target as HTMLInputElement).value ? new Date((e.target as HTMLInputElement).value) : null)
+            }
             placeholder="YYYY-MM-DD"
           />
           <HorizontalLayout
