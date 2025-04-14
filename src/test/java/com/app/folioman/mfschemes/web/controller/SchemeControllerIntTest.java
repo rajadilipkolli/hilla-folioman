@@ -62,8 +62,8 @@ class SchemeControllerIntTest extends AbstractIntegrationTest {
 
     @Test
     void testFetchSchemesWithNoResults() throws Exception {
-        // Test with a query that should not match any schemes
-        String nonExistentSchemeName = "ThisSchemeDoesNotExistAnywhere12345";
+        // Test with a query that should not match any schemes or amcs
+        String nonExistentSchemeName = "ThisSchemeDoesNotExistAnywhere12345amc";
 
         mockMvc.perform(get("/api/scheme/{schemeName}", nonExistentSchemeName))
                 .andExpect(status().isOk())
@@ -76,5 +76,19 @@ class SchemeControllerIntTest extends AbstractIntegrationTest {
         mockMvc.perform(get("/api/scheme/{schemeName}", "equity"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(greaterThanOrEqualTo(1))));
+    }
+
+    @Test
+    void fetchSchemes_byFuzzyAmcName() throws Exception {
+        // Using a slightly misspelled AMC name that should trigger the fuzzy search
+        // AMC keywords should help trigger the AMC-specific search path
+        this.mockMvc
+                .perform(get("/api/scheme/{schemeName}", "amc SBI Fondes Managemnt")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, is(MediaType.APPLICATION_JSON_VALUE)))
+                .andExpect(jsonPath("$", hasSize(greaterThanOrEqualTo(1))))
+                .andExpect(jsonPath("$[0].amcName", equalTo("SBI Funds Management Limited")))
+                .andExpect(jsonPath("$[*].amcName", everyItem(equalTo("SBI Funds Management Limited"))));
     }
 }

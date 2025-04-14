@@ -122,22 +122,7 @@ public class MfSchemeServiceImpl implements MfSchemeService {
             Long amfiCode = Long.parseLong(query);
             MfFundScheme scheme = this.mFSchemeRepository.findByAmfiCode(amfiCode);
             if (scheme != null) {
-                return List.of(new FundDetailProjection() {
-                    @Override
-                    public String getSchemeName() {
-                        return scheme.getName();
-                    }
-
-                    @Override
-                    public Long getAmfiCode() {
-                        return scheme.getAmfiCode();
-                    }
-
-                    @Override
-                    public String getAmcName() {
-                        return scheme.getAmc() != null ? scheme.getAmc().getName() : "Unknown";
-                    }
-                });
+                return List.of(createFundDetailProjection(scheme));
             }
             return List.of();
         }
@@ -160,6 +145,7 @@ public class MfSchemeServiceImpl implements MfSchemeService {
         if (!results.isEmpty()) {
             return results;
         }
+
         // If no results, try searching by AMC name
         String queryLower = query.toLowerCase();
 
@@ -175,7 +161,27 @@ public class MfSchemeServiceImpl implements MfSchemeService {
             }
         }
 
-        return results;
+        // Return empty list when no results found
+        return List.of();
+    }
+
+    private FundDetailProjection createFundDetailProjection(MfFundScheme scheme) {
+        return new FundDetailProjection() {
+            @Override
+            public String getSchemeName() {
+                return scheme.getName();
+            }
+
+            @Override
+            public Long getAmfiCode() {
+                return scheme.getAmfiCode();
+            }
+
+            @Override
+            public String getAmcName() {
+                return scheme.getAmc() != null ? scheme.getAmc().getName() : "Unknown";
+            }
+        };
     }
 
     private List<FundDetailProjection> searchByAmc(String query, String queryLower) {
