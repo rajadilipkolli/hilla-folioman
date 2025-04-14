@@ -3,6 +3,7 @@ package com.app.folioman.mfschemes.web.controller;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -57,5 +58,23 @@ class SchemeControllerIntTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].amfiCode", is(125494)))
                 .andExpect(jsonPath("$[0].amcName", equalTo("SBI Funds Management Limited")));
+    }
+
+    @Test
+    void testFetchSchemesWithNoResults() throws Exception {
+        // Test with a query that should not match any schemes
+        String nonExistentSchemeName = "ThisSchemeDoesNotExistAnywhere12345";
+
+        mockMvc.perform(get("/api/scheme/{schemeName}", nonExistentSchemeName))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(0)));
+    }
+
+    @Test
+    void testFetchSchemesWithPartialMatch() throws Exception {
+        // Test with partial name that should match multiple schemes
+        mockMvc.perform(get("/api/scheme/{schemeName}", "equity"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(greaterThanOrEqualTo(1))));
     }
 }
