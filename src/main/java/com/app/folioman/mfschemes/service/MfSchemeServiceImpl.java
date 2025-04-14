@@ -178,8 +178,10 @@ public class MfSchemeServiceImpl implements MfSchemeService {
             }
 
             // Extract search terms for AMC search, removing AMC-specific keywords
-            String amcSearchTerms =
-                    queryLower.replaceAll("\\s*(amc|asset|management)\\s*", " ").strip();
+            String amcSearchTerms = queryLower
+                    .replaceAll("\\s*(amc|asset|management)\\s*", " ")
+                    .replaceAll("\\s+", " ")
+                    .strip();
 
             if (StringUtils.hasText(amcSearchTerms)) {
                 // Try with AMC text search using the formatted query
