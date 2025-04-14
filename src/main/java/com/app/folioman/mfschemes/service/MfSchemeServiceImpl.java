@@ -167,51 +167,60 @@ public class MfSchemeServiceImpl implements MfSchemeService {
         boolean containsAmcKeyword =
                 queryLower.contains("amc") || queryLower.contains("asset") || queryLower.contains("management");
 
-        // Try AMC search if it contains AMC keywords or has multiple words
+        // Try AMC search if it contains AMC keywords
         if (containsAmcKeyword) {
-            LOGGER.info("Fetching schemes by AMC name: {}", query);
-
-            // First try direct AMC search with the original query
-            List<FundDetailProjection> amcResults = this.mFSchemeRepository.searchByAmc(query);
+            List<FundDetailProjection> amcResults = searchByAmc(query, queryLower);
             if (!amcResults.isEmpty()) {
                 return amcResults;
-            }
-
-            // Extract search terms for AMC search, removing AMC-specific keywords
-            String amcSearchTerms = queryLower
-                    .replaceAll("\\s*(amc|asset|management)\\s*", " ")
-                    .replaceAll("\\s+", " ")
-                    .strip();
-
-            if (StringUtils.hasText(amcSearchTerms)) {
-                // Try with AMC text search using the formatted query
-                String tsQuery = formatTsQueryTerms(amcSearchTerms);
-                if (StringUtils.hasText(tsQuery)) {
-                    LOGGER.info("Trying AMC text search with: {}", tsQuery);
-                    amcResults = this.mFSchemeRepository.searchByAmcTextSearch(tsQuery);
-                    if (!amcResults.isEmpty()) {
-                        return amcResults;
-                    }
-                }
-
-                // If no match yet, try fuzzy search through the AMC service
-                List<MfAmc> matchingAmcs = mfAmcService.findBySearchTerms(amcSearchTerms);
-                if (!matchingAmcs.isEmpty()) {
-                    LOGGER.info(
-                            "Found AMC match using fuzzy search: {}",
-                            matchingAmcs.getFirst().getName());
-
-                    // Use the AMC name directly for searching schemes
-                    amcResults = this.mFSchemeRepository.searchByAmc(
-                            matchingAmcs.getFirst().getName());
-                    if (!amcResults.isEmpty()) {
-                        return amcResults;
-                    }
-                }
             }
         }
 
         return results;
+    }
+
+    private List<FundDetailProjection> searchByAmc(String query, String queryLower) {
+        LOGGER.info("Fetching schemes by AMC name: {}", query);
+
+        // First try direct AMC search with the original query
+        List<FundDetailProjection> amcResults = this.mFSchemeRepository.searchByAmc(query);
+        if (!amcResults.isEmpty()) {
+            return amcResults;
+        }
+
+        // Extract search terms for AMC search, removing AMC-specific keywords
+        String amcSearchTerms = queryLower
+                .replaceAll("\\s*(amc|asset|management)\\s*", " ")
+                .replaceAll("\\s+", " ")
+                .strip();
+
+        if (StringUtils.hasText(amcSearchTerms)) {
+            // Try with AMC text search using the formatted query
+            String tsQuery = formatTsQueryTerms(amcSearchTerms);
+            if (StringUtils.hasText(tsQuery)) {
+                LOGGER.info("Trying AMC text search with: {}", tsQuery);
+                amcResults = this.mFSchemeRepository.searchByAmcTextSearch(tsQuery);
+                if (!amcResults.isEmpty()) {
+                    return amcResults;
+                }
+            }
+
+            // If no match yet, try fuzzy search through the AMC service
+            List<MfAmc> matchingAmcs = mfAmcService.findBySearchTerms(amcSearchTerms);
+            if (!matchingAmcs.isEmpty()) {
+                LOGGER.info(
+                        "Found AMC match using fuzzy search: {}",
+                        matchingAmcs.getFirst().getName());
+
+                // Use the AMC name directly for searching schemes
+                amcResults = this.mFSchemeRepository.searchByAmc(
+                        matchingAmcs.getFirst().getName());
+                if (!amcResults.isEmpty()) {
+                    return amcResults;
+                }
+            }
+        }
+
+        return List.of();
     }
 
     /**
