@@ -40,9 +40,6 @@ public class MfAmc extends Auditable<String> implements Serializable {
     @Column(nullable = false)
     private String code;
 
-    @Column(name = "name_vector", insertable = false, updatable = false)
-    private String nameVector;
-
     @OneToMany(mappedBy = "amc", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MfFundScheme> mfFundSchemes = new ArrayList<>();
 
@@ -79,15 +76,6 @@ public class MfAmc extends Auditable<String> implements Serializable {
 
     public MfAmc setCode(String code) {
         this.code = code;
-        return this;
-    }
-
-    public String getNameVector() {
-        return nameVector;
-    }
-
-    public MfAmc setNameVector(String nameVector) {
-        this.nameVector = nameVector;
         return this;
     }
 
