@@ -16,7 +16,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
-import org.hibernate.annotations.Formula;
 
 @Table(
         name = "mf_amc",
@@ -41,8 +40,7 @@ public class MfAmc extends Auditable<String> implements Serializable {
     @Column(nullable = false)
     private String code;
 
-    @Formula("to_tsvector('english', coalesce(name,'') || ' ' || coalesce(description,''))")
-    @Column(name = "name_vector", columnDefinition = "tsvector")
+    @Column(name = "name_vector", insertable = false, updatable = false)
     private String nameVector;
 
     @OneToMany(mappedBy = "amc", cascade = CascadeType.ALL, orphanRemoval = true)

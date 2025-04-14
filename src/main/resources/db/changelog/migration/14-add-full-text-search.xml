@@ -16,7 +16,7 @@
 
             ALTER TABLE mfschemes.mf_amc
                 ADD COLUMN name_vector tsvector
-                    GENERATED ALWAYS AS (to_tsvector('english', name)) STORED;
+                    GENERATED ALWAYS AS (to_tsvector('english', coalesce(name,'') || ' ' || coalesce(description,''))) STORED;
         </sql>
     </changeSet>
 

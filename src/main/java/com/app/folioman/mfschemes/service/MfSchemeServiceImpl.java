@@ -142,35 +142,66 @@ public class MfSchemeServiceImpl implements MfSchemeService {
             return List.of();
         }
 
-        String[] keywords = query.split("\\s");
+        String[] keywords = query.split("\\s+");
+
+        // Default full-text search for scheme name
+        String sName;
+        if (keywords.length < 2) {
+            sName = query;
+        } else {
+            // Create a proper full-text search query with all terms required
+            sName = formatTsQueryTerms(query);
+            LOGGER.info("Using formatted search terms: {}", sName);
+        }
+
+        // Get full-text search results
+        List<FundDetailProjection> results = this.mFSchemeRepository.searchByFullText(sName);
+        LOGGER.info("Returning {} search results for query: {}", results.size(), query);
+        if (!results.isEmpty()) {
+            return results;
+        }
+        // If no results, try searching by AMC name
         String queryLower = query.toLowerCase();
 
         // Check if query might specifically be searching for an AMC
         boolean containsAmcKeyword =
                 queryLower.contains("amc") || queryLower.contains("asset") || queryLower.contains("management");
 
-        // First, try direct AMC search if it contains AMC keywords
-        if (keywords.length >= 2 && containsAmcKeyword) {
+        // Try AMC search if it contains AMC keywords or has multiple words
+        if (containsAmcKeyword) {
             LOGGER.info("Fetching schemes by AMC name: {}", query);
+
+            // First try direct AMC search with the original query
             List<FundDetailProjection> amcResults = this.mFSchemeRepository.searchByAmc(query);
             if (!amcResults.isEmpty()) {
                 return amcResults;
             }
-        }
 
-        // Extract search terms for AMC search, removing AMC-specific keywords
-        String amcSearchTerms =
-                queryLower.replaceAll("\\s*(amc|asset|management)\\s*", " ").strip();
+            // Extract search terms for AMC search, removing AMC-specific keywords
+            String amcSearchTerms =
+                    queryLower.replaceAll("\\s*(amc|asset|management)\\s*", " ").strip();
 
-        // Try text search for AMC names if the query looks like an AMC search
-        if (containsAmcKeyword || keywords.length >= 1) {
             if (StringUtils.hasText(amcSearchTerms)) {
-                // Convert to PostgreSQL ts_query format
+                // Try with AMC text search using the formatted query
                 String tsQuery = formatTsQueryTerms(amcSearchTerms);
-
                 if (StringUtils.hasText(tsQuery)) {
                     LOGGER.info("Trying AMC text search with: {}", tsQuery);
-                    List<FundDetailProjection> amcResults = this.mFSchemeRepository.searchByAmcTextSearch(tsQuery);
+                    amcResults = this.mFSchemeRepository.searchByAmcTextSearch(tsQuery);
+                    if (!amcResults.isEmpty()) {
+                        return amcResults;
+                    }
+                }
+
+                // If no match yet, try fuzzy search through the AMC service
+                List<MfAmc> matchingAmcs = mfAmcService.findBySearchTerms(amcSearchTerms);
+                if (!matchingAmcs.isEmpty()) {
+                    LOGGER.info(
+                            "Found AMC match using fuzzy search: {}",
+                            matchingAmcs.getFirst().getName());
+
+                    // Use the AMC name directly for searching schemes
+                    amcResults = this.mFSchemeRepository.searchByAmc(
+                            matchingAmcs.getFirst().getName());
                     if (!amcResults.isEmpty()) {
                         return amcResults;
                     }
@@ -178,31 +209,7 @@ public class MfSchemeServiceImpl implements MfSchemeService {
             }
         }
 
-        // If that didn't work, try finding AMCs directly using our new service method
-        if (!amcSearchTerms.isEmpty()) {
-            List<MfAmc> matchingAmcs = mfAmcService.findBySearchTerms(amcSearchTerms);
-            if (!matchingAmcs.isEmpty()) {
-                LOGGER.info(
-                        "Found AMC match using text search: {}",
-                        matchingAmcs.getFirst().getName());
-                // Use the first AMC name for the LIKE query
-                List<FundDetailProjection> amcResults = this.mFSchemeRepository.searchByAmc(
-                        matchingAmcs.getFirst().getName());
-                if (!amcResults.isEmpty()) {
-                    return amcResults;
-                }
-            }
-        }
-
-        // Default full-text search for scheme name
-        String sName;
-        if (keywords.length < 2) {
-            sName = query;
-        } else {
-            sName = Arrays.stream(keywords).map(keyword -> "'" + keyword + "'").collect(Collectors.joining(" & "));
-        }
-        LOGGER.info("Fetching schemes with full-text search: {}", sName);
-        return this.mFSchemeRepository.searchByFullText(sName);
+        return results;
     }
 
     /**

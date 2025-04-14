@@ -26,7 +26,7 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.web.client.RestClient;
 
 @ExtendWith(MockitoExtension.class)
-public class MfSchemeServiceImplTest {
+class MfSchemeServiceImplTest {
 
     @Mock
     private RestClient restClient;
@@ -61,14 +61,14 @@ public class MfSchemeServiceImplTest {
         String query = "sbi small cap";
         List<FundDetailProjection> expectedResults =
                 Collections.singletonList(Mockito.mock(FundDetailProjection.class));
-        when(mfSchemeRepository.searchByFullText(eq("'sbi' & 'small' & 'cap'"))).thenReturn(expectedResults);
+        when(mfSchemeRepository.searchByFullText(eq("sbi & small & cap"))).thenReturn(expectedResults);
 
         // Act
         List<FundDetailProjection> actualResults = mfSchemeService.fetchSchemes(query);
 
         // Assert
         assertThat(actualResults).isEqualTo(expectedResults);
-        verify(mfSchemeRepository).searchByFullText(eq("'sbi' & 'small' & 'cap'"));
+        verify(mfSchemeRepository).searchByFullText(eq("sbi & small & cap"));
         verify(mfSchemeRepository, never()).searchByAmc(anyString());
     }
 
@@ -78,6 +78,9 @@ public class MfSchemeServiceImplTest {
         String query = "amc sbi funds";
         List<FundDetailProjection> expectedResults =
                 Collections.singletonList(Mockito.mock(FundDetailProjection.class));
+
+        // Mock searchByFullText to return empty results so that searchByAmc gets called
+        when(mfSchemeRepository.searchByFullText(anyString())).thenReturn(Collections.emptyList());
         when(mfSchemeRepository.searchByAmc(query)).thenReturn(expectedResults);
 
         // Act
@@ -86,7 +89,6 @@ public class MfSchemeServiceImplTest {
         // Assert
         assertThat(actualResults).isEqualTo(expectedResults);
         verify(mfSchemeRepository).searchByAmc(query);
-        verify(mfSchemeRepository, never()).searchByFullText(anyString());
     }
 
     @Test
@@ -95,6 +97,9 @@ public class MfSchemeServiceImplTest {
         String query = "SBI Funds Management Limited";
         List<FundDetailProjection> expectedResults =
                 Collections.singletonList(Mockito.mock(FundDetailProjection.class));
+
+        // Mock searchByFullText to return empty results so searchByAmc gets called
+        when(mfSchemeRepository.searchByFullText(anyString())).thenReturn(Collections.emptyList());
         when(mfSchemeRepository.searchByAmc(query)).thenReturn(expectedResults);
 
         // Act
@@ -103,7 +108,6 @@ public class MfSchemeServiceImplTest {
         // Assert
         assertThat(actualResults).isEqualTo(expectedResults);
         verify(mfSchemeRepository).searchByAmc(query);
-        verify(mfSchemeRepository, never()).searchByFullText(anyString());
     }
 
     @Test
@@ -167,6 +171,9 @@ public class MfSchemeServiceImplTest {
         String query = "asset management hdfc";
         List<FundDetailProjection> expectedResults =
                 Collections.singletonList(Mockito.mock(FundDetailProjection.class));
+
+        // Mock searchByFullText to return empty results so searchByAmc gets called
+        when(mfSchemeRepository.searchByFullText(anyString())).thenReturn(Collections.emptyList());
         when(mfSchemeRepository.searchByAmc(query)).thenReturn(expectedResults);
 
         // Act
@@ -175,8 +182,6 @@ public class MfSchemeServiceImplTest {
         // Assert
         assertThat(actualResults).isEqualTo(expectedResults);
         verify(mfSchemeRepository).searchByAmc(query);
-        verify(mfSchemeRepository, never()).searchByFullText(anyString());
-        verify(mfSchemeRepository, never()).findByAmfiCode(anyLong());
     }
 
     @Test
