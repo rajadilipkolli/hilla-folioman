@@ -14,7 +14,6 @@ import {
   Notification,
   Details,
   Scroller,
-  FormLayout,
   FormLayoutResponsiveStep,
 } from '@vaadin/react-components';
 

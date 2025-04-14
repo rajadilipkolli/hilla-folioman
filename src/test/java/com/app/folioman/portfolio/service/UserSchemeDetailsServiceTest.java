@@ -7,7 +7,7 @@ import java.lang.reflect.Method;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class UserSchemeDetailsServiceTest {
+class UserSchemeDetailsServiceTest {
 
     private UserSchemeDetailServiceImpl userSchemeDetailsService;
 

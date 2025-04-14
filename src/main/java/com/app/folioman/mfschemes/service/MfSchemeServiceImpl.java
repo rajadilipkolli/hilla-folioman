@@ -7,6 +7,7 @@ import com.app.folioman.mfschemes.MfSchemeService;
 import com.app.folioman.mfschemes.SchemeNotFoundException;
 import com.app.folioman.mfschemes.config.ApplicationProperties;
 import com.app.folioman.mfschemes.entities.MFSchemeNav;
+import com.app.folioman.mfschemes.entities.MfAmc;
 import com.app.folioman.mfschemes.entities.MfFundScheme;
 import com.app.folioman.mfschemes.mapper.MfSchemeEntityToDtoMapper;
 import com.app.folioman.mfschemes.mapper.SchemeNAVDataDtoToEntityMapper;
@@ -33,6 +34,7 @@ import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -52,6 +54,7 @@ public class MfSchemeServiceImpl implements MfSchemeService {
     private final TransactionTemplate transactionTemplate;
     private final ApplicationProperties applicationProperties;
     private final MFSchemeNavRepository mfSchemeNavRepository;
+    private final MfAmcService mfAmcService;
 
     public MfSchemeServiceImpl(
             RestClient restClient,
@@ -60,7 +63,8 @@ public class MfSchemeServiceImpl implements MfSchemeService {
             SchemeNAVDataDtoToEntityMapper schemeNAVDataDtoToEntityMapper,
             PlatformTransactionManager transactionManager,
             ApplicationProperties applicationProperties,
-            MFSchemeNavRepository mfSchemeNavRepository) {
+            MFSchemeNavRepository mfSchemeNavRepository,
+            MfAmcService mfAmcService) {
         this.restClient = restClient;
         this.mFSchemeRepository = mFSchemeRepository;
         this.mfSchemeEntityToDtoMapper = mfSchemeEntityToDtoMapper;
@@ -70,6 +74,7 @@ public class MfSchemeServiceImpl implements MfSchemeService {
         this.mfSchemeNavRepository = mfSchemeNavRepository;
         this.transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
         this.applicationProperties = applicationProperties;
+        this.mfAmcService = mfAmcService;
     }
 
     public long count() {
@@ -108,18 +113,130 @@ public class MfSchemeServiceImpl implements MfSchemeService {
     }
 
     @Override
-    public List<FundDetailProjection> fetchSchemes(String schemeName) {
-        String[] keywords = schemeName.strip().split("\\s");
+    public List<FundDetailProjection> fetchSchemes(String query) {
+        query = query.strip();
 
-        // Join the keywords with " & " and wrap each with single quotes
+        // If query is numeric and 6 digits, it might be an AMFI code
+        if (query.matches("\\d{6}")) {
+            LOGGER.info("Fetching scheme by AMFI code: {}", query);
+            Long amfiCode = Long.parseLong(query);
+            MfFundScheme scheme = this.mFSchemeRepository.findByAmfiCode(amfiCode);
+            if (scheme != null) {
+                return List.of(new FundDetailProjection() {
+                    @Override
+                    public String getSchemeName() {
+                        return scheme.getName();
+                    }
+
+                    @Override
+                    public Long getAmfiCode() {
+                        return scheme.getAmfiCode();
+                    }
+
+                    @Override
+                    public String getAmcName() {
+                        return scheme.getAmc() != null ? scheme.getAmc().getName() : "Unknown";
+                    }
+                });
+            }
+            return List.of();
+        }
+
+        String[] keywords = query.split("\\s+");
+
+        // Default full-text search for scheme name
         String sName;
         if (keywords.length < 2) {
-            sName = schemeName;
+            sName = query;
         } else {
-            sName = Arrays.stream(keywords).map(keyword -> "'" + keyword + "'").collect(Collectors.joining(" & "));
+            // Create a proper full-text search query with all terms required
+            sName = formatTsQueryTerms(query);
+            LOGGER.info("Using formatted search terms: {}", sName);
         }
-        LOGGER.info("Fetching schemes with :{}", sName);
-        return this.mFSchemeRepository.searchByFullText(sName);
+
+        // Get full-text search results
+        List<FundDetailProjection> results = this.mFSchemeRepository.searchByFullText(sName);
+        LOGGER.info("Returning {} search results for query: {}", results.size(), query);
+        if (!results.isEmpty()) {
+            return results;
+        }
+        // If no results, try searching by AMC name
+        String queryLower = query.toLowerCase();
+
+        // Check if query might specifically be searching for an AMC
+        boolean containsAmcKeyword =
+                queryLower.contains("amc") || queryLower.contains("asset") || queryLower.contains("management");
+
+        // Try AMC search if it contains AMC keywords
+        if (containsAmcKeyword) {
+            List<FundDetailProjection> amcResults = searchByAmc(query, queryLower);
+            if (!amcResults.isEmpty()) {
+                return amcResults;
+            }
+        }
+
+        return results;
+    }
+
+    private List<FundDetailProjection> searchByAmc(String query, String queryLower) {
+        LOGGER.info("Fetching schemes by AMC name: {}", query);
+
+        // First try direct AMC search with the original query
+        List<FundDetailProjection> amcResults = this.mFSchemeRepository.searchByAmc(query);
+        if (!amcResults.isEmpty()) {
+            return amcResults;
+        }
+
+        // Extract search terms for AMC search, removing AMC-specific keywords
+        String amcSearchTerms = queryLower
+                .replaceAll("\\s*(amc|asset|management)\\s*", " ")
+                .replaceAll("\\s+", " ")
+                .strip();
+
+        if (StringUtils.hasText(amcSearchTerms)) {
+            // Try with AMC text search using the formatted query
+            String tsQuery = formatTsQueryTerms(amcSearchTerms);
+            if (StringUtils.hasText(tsQuery)) {
+                LOGGER.info("Trying AMC text search with: {}", tsQuery);
+                amcResults = this.mFSchemeRepository.searchByAmcTextSearch(tsQuery);
+                if (!amcResults.isEmpty()) {
+                    return amcResults;
+                }
+            }
+
+            // If no match yet, try fuzzy search through the AMC service
+            List<MfAmc> matchingAmcs = mfAmcService.findBySearchTerms(amcSearchTerms);
+            if (!matchingAmcs.isEmpty()) {
+                LOGGER.info(
+                        "Found AMC match using fuzzy search: {}",
+                        matchingAmcs.getFirst().getName());
+
+                // Use the AMC name directly for searching schemes
+                amcResults = this.mFSchemeRepository.searchByAmc(
+                        matchingAmcs.getFirst().getName());
+                if (!amcResults.isEmpty()) {
+                    return amcResults;
+                }
+            }
+        }
+
+        return List.of();
+    }
+
+    /**
+     * Format search terms for PostgreSQL ts_query
+     * @param terms Space-separated search terms
+     * @return Formatted terms in format: term1 & term2 & term3
+     */
+    private String formatTsQueryTerms(String terms) {
+        if (terms == null || terms.isEmpty()) {
+            return "";
+        }
+
+        return Arrays.stream(terms.split("\\s+"))
+                .map(term -> term.replaceAll("[^a-zA-Z0-9]", "")) // Remove special characters
+                .filter(term -> !term.isEmpty())
+                .collect(Collectors.joining(" & "));
     }
 
     @Override

@@ -7,6 +7,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
@@ -16,7 +17,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
 
-@Table(name = "mf_amc", schema = "mfschemes")
+@Table(
+        name = "mf_amc",
+        schema = "mfschemes",
+        indexes = {@Index(name = "idx_mf_amc_name_vector", columnList = "name_vector")})
 @Entity
 public class MfAmc extends Auditable<String> implements Serializable {
 
