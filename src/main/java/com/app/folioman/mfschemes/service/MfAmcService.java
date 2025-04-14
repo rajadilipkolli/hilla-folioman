@@ -78,7 +78,7 @@ public class MfAmcService {
         // Return AMCs with fuzzy score above threshold, sorted by score
         return mfAmcList.stream()
                 .map(amc -> new Object[] {amc, fuzzyScore.fuzzyScore(searchTerms, amc.getName())})
-                .filter(pair -> (int) pair[1] > 0) // Filter out zero scores
+                .filter(pair -> (int) pair[1] > 5) // Filter out zero scores
                 .sorted(Comparator.comparingInt(pair -> -1 * (int) pair[1])) // Sort by score desc
                 .map(pair -> (MfAmc) pair[0])
                 .limit(10) // Limit to top 10 matches
