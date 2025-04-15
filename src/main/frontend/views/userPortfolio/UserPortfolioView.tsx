@@ -14,8 +14,8 @@ import {
   Notification,
 } from '@vaadin/react-components';
 import PortfolioResponse from 'Frontend/generated/com/app/folioman/portfolio/models/response/PortfolioResponse';
-import MonthlyInvestmentResponse from 'Frontend/generated/com/app/folioman/portfolio/models/response/MonthlyInvestmentResponse';
-import YearlyInvestmentResponse from 'Frontend/generated/com/app/folioman/portfolio/models/response/YearlyInvestmentResponse';
+import MonthlyInvestmentResponseDTO from 'Frontend/generated/com/app/folioman/portfolio/models/response/MonthlyInvestmentResponseDTO';
+import YearlyInvestmentResponseDTO from 'Frontend/generated/com/app/folioman/portfolio/models/response/YearlyInvestmentResponseDTO';
 import { getPortfolio } from 'Frontend/generated/ImportMutualFundController';
 import {
   getTotalInvestmentsByPanPerMonth,
@@ -37,7 +37,7 @@ export default function UserPortfolioView() {
   const [pan, setPan] = useState<string>('');
   const [asOfDate, setAsOfDate] = useState<Date | null>(null);
   const [portfolio, setPortfolio] = useState<PortfolioResponse | null>(null);
-  const [monthlyInvestments, setMonthlyInvestments] = useState<MonthlyInvestmentResponse[] | null>(null);
+  const [monthlyInvestments, setMonthlyInvestments] = useState<MonthlyInvestmentResponseDTO[] | null>(null);
   const [yearlyInvestments, setYearlyInvestments] = useState<{ year: number; amount: number }[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [showYearlyChart, setShowYearlyChart] = useState<boolean>(false);
@@ -66,7 +66,9 @@ export default function UserPortfolioView() {
     setShowYearlyChart(false); // Hide yearly chart when fetching new monthly data
     try {
       const response = await getTotalInvestmentsByPanPerMonth(pan);
-      setMonthlyInvestments((response || []).filter((item): item is MonthlyInvestmentResponse => item !== undefined));
+      setMonthlyInvestments(
+        (response || []).filter((item): item is MonthlyInvestmentResponseDTO => item !== undefined),
+      );
       setShowMonthlyData(true); // Show monthly data
       setError(null);
     } catch (e) {
@@ -84,7 +86,7 @@ export default function UserPortfolioView() {
       // Direct call to backend for yearly investment data
       const response = await getTotalInvestmentsByPanPerYear(pan);
       const yearlyData = (response || [])
-        .filter((item): item is YearlyInvestmentResponse => item !== undefined)
+        .filter((item): item is YearlyInvestmentResponseDTO => item !== undefined)
         .map((item) => ({
           year: item.year ?? DEFAULT_YEAR,
           amount: item.yearlyInvestment ?? 0,
