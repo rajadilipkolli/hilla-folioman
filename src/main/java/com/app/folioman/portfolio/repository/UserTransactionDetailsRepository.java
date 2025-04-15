@@ -1,8 +1,8 @@
 package com.app.folioman.portfolio.repository;
 
 import com.app.folioman.portfolio.entities.UserTransactionDetails;
-import com.app.folioman.portfolio.models.response.MonthlyInvestmentResponse;
-import com.app.folioman.portfolio.models.response.YearlyInvestmentResponse;
+import com.app.folioman.portfolio.models.projection.MonthlyInvestmentResponse;
+import com.app.folioman.portfolio.models.projection.YearlyInvestmentResponse;
 import java.time.LocalDate;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;

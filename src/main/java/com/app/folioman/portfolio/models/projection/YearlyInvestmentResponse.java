@@ -1,4 +1,4 @@
-package com.app.folioman.portfolio.models.response;
+package com.app.folioman.portfolio.models.projection;
 
 import java.math.BigDecimal;
 
