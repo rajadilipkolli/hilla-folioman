@@ -14,8 +14,8 @@ import {
   Notification,
 } from '@vaadin/react-components';
 import PortfolioResponse from 'Frontend/generated/com/app/folioman/portfolio/models/response/PortfolioResponse';
-import MonthlyInvestmentResponseDTO from 'Frontend/generated/com/app/folioman/portfolio/models/dto/MonthlyInvestmentResponseDTO';
-import YearlyInvestmentResponseDTO from 'Frontend/generated/com/app/folioman/portfolio/models/dto/YearlyInvestmentResponseDTO';
+import MonthlyInvestmentResponseDTO from 'Frontend/generated/com/app/folioman/portfolio/models/response/MonthlyInvestmentResponseDTO';
+import YearlyInvestmentResponseDTO from 'Frontend/generated/com/app/folioman/portfolio/models/response/YearlyInvestmentResponseDTO';
 import { getPortfolio } from 'Frontend/generated/ImportMutualFundController';
 import {
   getTotalInvestmentsByPanPerMonth,
