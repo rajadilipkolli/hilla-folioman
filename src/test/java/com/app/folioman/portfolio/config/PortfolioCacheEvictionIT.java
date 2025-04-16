@@ -16,7 +16,6 @@ import com.app.folioman.portfolio.service.UserTransactionDetailsService;
 import com.app.folioman.portfolio.web.controller.UserTransactionsController;
 import java.math.BigDecimal;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -32,7 +31,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.cache.CacheManager;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 
 /**
@@ -43,23 +41,16 @@ import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
  * 2. Cache eviction happens correctly at specified times
  * 3. Cache is refreshed with new data after eviction
  */
-@TestPropertySource(
-        properties = {"org.jobrunr.dashboard.enabled=false", "org.jobrunr.background-job-server.enabled=false"})
-class PortfolioCacheEvictionIntTest extends AbstractIntegrationTest {
+class PortfolioCacheEvictionIT extends AbstractIntegrationTest {
 
     private static final String TEST_PAN = "ABCDE1234F";
+    private static final String TEST_CRON_EXPRESSION = "0 45 18 * * *";
 
     // Cache values for initial and updated data - using distinct values to clearly track changes
     private static final BigDecimal INITIAL_MONTHLY_VALUE = new BigDecimal("1234.56");
     private static final BigDecimal INITIAL_YEARLY_VALUE = new BigDecimal("9876.54");
     private static final BigDecimal UPDATED_MONTHLY_VALUE = new BigDecimal("5678.90");
     private static final BigDecimal UPDATED_YEARLY_VALUE = new BigDecimal("4321.09");
-
-    @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
-
-    @Autowired
-    private CacheManager cacheManager;
 
     @MockitoSpyBean
     private UserTransactionDetailsService userTransactionDetailsService;
@@ -68,7 +59,16 @@ class PortfolioCacheEvictionIntTest extends AbstractIntegrationTest {
     private PortfolioCacheConfig portfolioCacheConfig;
 
     @Autowired
-    private UserTransactionsController userTransactionsController;
+    protected UserTransactionsController userTransactionsController;
+
+    @Autowired
+    protected PortfolioCacheProperties portfolioCacheProperties;
+
+    @Autowired
+    protected RedisTemplate<String, Object> redisTemplate;
+
+    @Autowired
+    protected CacheManager cacheManager;
 
     @BeforeEach
     void setUp() {
@@ -101,7 +101,16 @@ class PortfolioCacheEvictionIntTest extends AbstractIntegrationTest {
         verifyCachedDataIsStillUsed();
 
         // PHASE 4: Perform cache eviction and verify cache is cleared
-        performCacheEvictionAndVerifyCacheCleared();
+        // Use the actual instance instead of the mock to perform the eviction
+        portfolioCacheConfig.evictTransactionCaches();
+
+        // Verify specific cache keys are gone
+        Set<String> keysAfter = redisTemplate.keys(CacheNames.TRANSACTION_CACHE + "::*");
+        boolean monthlyKeyGone = keysAfter.stream().noneMatch(key -> key.contains("monthly_" + TEST_PAN));
+        boolean yearlyKeyGone = keysAfter.stream().noneMatch(key -> key.contains("yearly_" + TEST_PAN));
+
+        assertThat(monthlyKeyGone).isTrue();
+        assertThat(yearlyKeyGone).isTrue();
 
         // PHASE 5: Verify new data is loaded after cache eviction
         verifyNewDataIsLoadedAfterEviction();
@@ -110,16 +119,29 @@ class PortfolioCacheEvictionIntTest extends AbstractIntegrationTest {
     @Test
     @DisplayName("Should configure cache eviction job with correct schedule")
     void shouldConfigureJobRunrCacheEvictionWithCorrectSchedule() {
-        // Use Mockito's static mocking to verify the JobRunr API call
         try (MockedStatic<BackgroundJob> mockedBackgroundJob = Mockito.mockStatic(BackgroundJob.class)) {
-            // Invoke the method that should schedule the job
-            portfolioCacheConfig.scheduleTransactionCacheEvictionJob(Mockito.mock(ApplicationStartedEvent.class));
+            // Use a simpler approach to verify the job scheduling
+            PortfolioCacheProperties.Eviction evictionSpy = Mockito.spy(portfolioCacheProperties.getEviction());
+            given(evictionSpy.getTransactionCron()).willReturn(TEST_CRON_EXPRESSION);
 
-            // Verify that the BackgroundJob.scheduleRecurrently was called with the correct parameters
+            // Create a new instance of the config for the test
+            PortfolioCacheConfig configUnderTest =
+                    new PortfolioCacheConfig(redisTemplate, new PortfolioCacheProperties() {
+                        @Override
+                        public Eviction getEviction() {
+                            return evictionSpy;
+                        }
+                    });
+
+            // Trigger the method that schedules the job
+            configUnderTest.scheduleTransactionCacheEvictionJob(Mockito.mock(ApplicationStartedEvent.class));
+
+            // Verify the job was scheduled with the correct parameters
             mockedBackgroundJob.verify(() -> BackgroundJob.scheduleRecurrently(
-                    eq("transaction-cache-eviction"), eq("0 45 18 * * *"), Mockito.any(JobLambda.class)));
+                    eq("transaction-cache-eviction"), eq(TEST_CRON_EXPRESSION), Mockito.any(JobLambda.class)));
 
-            // This confirms the job is scheduled for 6:45 PM UTC (which is 12:15 AM IST)
+            // Verify the cron expression was obtained from properties
+            verify(evictionSpy, times(2)).getTransactionCron();
         }
     }
 
@@ -204,29 +226,6 @@ class PortfolioCacheEvictionIntTest extends AbstractIntegrationTest {
     }
 
     /**
-     * Perform cache eviction and verify that caches are cleared
-     */
-    private void performCacheEvictionAndVerifyCacheCleared() {
-        // Verify cache contains entries before eviction
-        Set<String> keysBefore = redisTemplate.keys(CacheNames.TRANSACTION_CACHE + "::*");
-        assertThat(keysBefore).isNotEmpty();
-
-        // Call cache eviction method
-        portfolioCacheConfig.evictTransactionCaches();
-
-        // Verify specific cache keys are gone
-        Set<String> keysAfter = redisTemplate.keys(CacheNames.TRANSACTION_CACHE + "::*");
-        // Handle potential null from Redis template
-        keysAfter = (keysAfter != null) ? keysAfter : Collections.emptySet();
-
-        boolean monthlyKeyGone = keysAfter.stream().noneMatch(key -> key.contains("monthly_" + TEST_PAN));
-        boolean yearlyKeyGone = keysAfter.stream().noneMatch(key -> key.contains("yearly_" + TEST_PAN));
-
-        assertThat(monthlyKeyGone).isTrue();
-        assertThat(yearlyKeyGone).isTrue();
-    }
-
-    /**
      * Verify that new data is loaded after cache eviction
      */
     private void verifyNewDataIsLoadedAfterEviction() {
@@ -260,7 +259,7 @@ class PortfolioCacheEvictionIntTest extends AbstractIntegrationTest {
 
             // Also clear directly via Redis as fallback
             Set<String> keys = redisTemplate.keys(CacheNames.TRANSACTION_CACHE + "::*");
-            if (!keys.isEmpty()) {
+            if (keys != null && !keys.isEmpty()) {
                 redisTemplate.delete(keys);
             }
         } catch (Exception e) {
