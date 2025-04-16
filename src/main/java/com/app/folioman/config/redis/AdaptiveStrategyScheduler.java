@@ -4,13 +4,16 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.EnableScheduling;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+/**
+ * Adaptive strategy scheduler for Redis cache management.
+ * This class evaluates metrics and adapts cache strategies based on usage patterns.
+ *
+ * Note: Scheduling is now managed centrally via JobRunr in SchedulerConfiguration.
+ */
 @Component
-@EnableScheduling
-class AdaptiveStrategyScheduler {
+public class AdaptiveStrategyScheduler {
 
     private static final Logger log = LoggerFactory.getLogger(AdaptiveStrategyScheduler.class);
 
@@ -33,7 +36,7 @@ class AdaptiveStrategyScheduler {
     @Value("${app.cache.adaptive-strategy.stability-threshold:3}")
     private int stabilityThreshold;
 
-    AdaptiveStrategyScheduler(
+    public AdaptiveStrategyScheduler(
             CacheAdapter cacheAdapter, Monitor monitor, Evaluator evaluator, PolicyRepository policyRepository) {
         this.cacheAdapter = cacheAdapter;
         this.monitor = monitor;
@@ -41,8 +44,11 @@ class AdaptiveStrategyScheduler {
         this.policyRepository = policyRepository;
     }
 
-    @Scheduled(fixedRateString = "${app.cache.adaptive-strategy.interval-ms:600000}")
-    void adaptStrategy() {
+    /**
+     * Evaluates current cache metrics and adapts the caching strategy if necessary.
+     * This method is called by JobRunr based on schedule configured in SchedulerConfiguration.
+     */
+    public void adaptStrategy() {
         try {
             Map<String, Object> metrics = monitor.getMetrics();
             String newStrategy = evaluator.evaluate(metrics);
@@ -68,7 +74,7 @@ class AdaptiveStrategyScheduler {
                 consecutiveStrategyMatches = 0;
             }
 
-            // Only apply if strategy has changed or we've confirmed it's stable
+            // Only apply if strategy has changed, or we've confirmed it's stable
             if (lastAppliedStrategy == null
                     || !lastAppliedStrategy.equals(newStrategy)
                     || consecutiveStrategyMatches >= stabilityThreshold) {
