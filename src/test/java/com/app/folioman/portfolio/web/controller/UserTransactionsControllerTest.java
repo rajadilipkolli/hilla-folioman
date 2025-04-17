@@ -40,4 +40,19 @@ class UserTransactionsControllerTest {
                         "$.detail", matchesPattern("getTotalInvestmentsByPanPerMonth.pan: Invalid PAN number format")))
                 .andExpect(jsonPath("$.instance", is("/api/portfolio/investments/ABCD1234EF")));
     }
+
+    @Test
+    void getTotalInvestmentsByPanPerYear() throws Exception {
+        this.mockMvc
+                .perform(get("/api/portfolio/investments/yearly/{pan}", "ABCD1234EF")
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, is(MediaType.APPLICATION_PROBLEM_JSON_VALUE)))
+                .andExpect(jsonPath("$.type", is("about:blank")))
+                .andExpect(jsonPath("$.title", is("Constraint Violation")))
+                .andExpect(jsonPath("$.status", is(400)))
+                .andExpect(jsonPath(
+                        "$.detail", matchesPattern("getTotalInvestmentsByPanPerYear.pan: Invalid PAN number format")))
+                .andExpect(jsonPath("$.instance", is("/api/portfolio/investments/yearly/ABCD1234EF")));
+    }
 }

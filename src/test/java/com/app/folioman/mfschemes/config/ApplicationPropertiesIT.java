@@ -9,23 +9,23 @@ class ApplicationPropertiesIT extends AbstractIntegrationTest {
 
     @Test
     void whenValidPropertiesProvided_thenBindingSucceeds() {
-        assertThat(properties.getAmfi()).isNotNull();
-        assertThat(properties.getAmfi().getScheme()).isNotNull();
-        assertThat(properties.getAmfi().getScheme().getDataUrl())
+        assertThat(applicationProperties.getAmfi()).isNotNull();
+        assertThat(applicationProperties.getAmfi().getScheme()).isNotNull();
+        assertThat(applicationProperties.getAmfi().getScheme().getDataUrl())
                 .isNotNull()
                 .isEqualTo("https://portal.amfiindia.com/DownloadSchemeData_Po.aspx?mf=0");
-        assertThat(properties.getBseStar()).isNotNull();
-        assertThat(properties.getBseStar().getScheme()).isNotNull();
-        assertThat(properties.getBseStar().getScheme().getDataUrl())
+        assertThat(applicationProperties.getBseStar()).isNotNull();
+        assertThat(applicationProperties.getBseStar().getScheme()).isNotNull();
+        assertThat(applicationProperties.getBseStar().getScheme().getDataUrl())
                 .isNotNull()
                 .isEqualTo("https://bsestarmf.in/RptSchemeMaster.aspx");
-        assertThat(properties.getNav()).isNotNull();
-        assertThat(properties.getNav().getAmfi()).isNotNull();
-        assertThat(properties.getNav().getAmfi().getDataUrl())
+        assertThat(applicationProperties.getNav()).isNotNull();
+        assertThat(applicationProperties.getNav().getAmfi()).isNotNull();
+        assertThat(applicationProperties.getNav().getAmfi().getDataUrl())
                 .isNotNull()
                 .isEqualTo("https://www.amfiindia.com/spages/NAVAll.txt");
-        assertThat(properties.getNav().getMfApi()).isNotNull();
-        assertThat(properties.getNav().getMfApi().getDataUrl())
+        assertThat(applicationProperties.getNav().getMfApi()).isNotNull();
+        assertThat(applicationProperties.getNav().getMfApi().getDataUrl())
                 .isNotNull()
                 .isEqualTo("https://api.mfapi.in/mf/{schemeCode}");
     }

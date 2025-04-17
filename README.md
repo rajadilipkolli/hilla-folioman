@@ -1,10 +1,54 @@
 [![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/rajadilipkolli/hilla-folioman)
 
+# Hilla FolioMan: Mutual Fund Portfolio Management System
 
-# Custom project from Hilla
+## Project Overview
 
-This project can be used as a starting point to create your own Hilla application with Spring Boot.
-It contains all the necessary configuration and some placeholder files to get you started.
+FolioMan is a comprehensive mutual fund portfolio management application built using Hilla and Spring Boot. The application helps investors track, analyze, and optimize their mutual fund investments in one centralized platform.
+
+### What FolioMan Does
+
+- **Portfolio Tracking**: Automatically imports and tracks your mutual fund investments using CAS (Consolidated Account Statement) files
+- **Portfolio Analysis**: Analyzes your investment performance including XIRR (Extended Internal Rate of Return)
+- **Investment Optimization**: Provides rebalancing tools to optimize your portfolio allocation
+- **Transaction History**: Maintains a detailed history of all your mutual fund transactions
+
+### Architecture Overview
+
+FolioMan follows a modern client-server architecture with these key components:
+
+1. **Frontend (Client-side)**
+   - Built with React and Hilla
+   - Responsive user interface for portfolio management
+   - Interactive data visualization components
+
+2. **Backend (Server-side)**
+   - Java Spring Boot application
+   - RESTful API endpoints
+   - Business logic for investment calculations and portfolio analysis
+
+3. **Database**
+   - PostgreSQL database for persistent storage
+   - Separate schemas for portfolio data and mutual fund information
+
+4. **External Integrations**
+   - AMFI (Association of Mutual Funds in India) data integration
+   - BSE Star MF integration for fund data
+
+
+## Prerequisites
+
+Before running the application, ensure you have the following prerequisites installed:
+
+- Java 21 or later
+- Maven
+- Docker (for local development with PostgreSQL)
+- Python with pip (for CAS PDF file processing)
+- casparser: A Python CLI tool required for processing password-protected CAS PDF files
+  ```shell
+  pip install casparser
+  ```
+This tool must be installed on the server environment where the application will run. The PDF upload functionality for CAS files will not work without this dependency.
 
 ## Running the application
 
@@ -61,10 +105,20 @@ App Layout</a></td></tr>
 components</td></tr>
   <tr><td>&nbsp;&nbsp;&nbsp;&nbsp;<code>themes/</code></td><td>Custom  
 CSS styles</td></tr>
-  <tr><td><code>src/main/java/&lt;groupId&gt;/</code></td><td>Server-side 
-source directory, contains the server-side Java views</td></tr>
+  <tr><td><code>src/main/java/com/app/folioman/</code></td><td>Server-side 
+source directory, contains the server-side Java code</td></tr>
+  <tr><td>&nbsp;&nbsp;&nbsp;&nbsp;<code>portfolio/</code></td><td>Portfolio management services and models</td></tr>
+  <tr><td>&nbsp;&nbsp;&nbsp;&nbsp;<code>mfschemes/</code></td><td>Mutual fund scheme data and services</td></tr>
   <tr><td>&nbsp;&nbsp;&nbsp;&nbsp;<code>Application.java</code></td><td>Server entry-point</td></tr>
 </table>
+
+## Key Features
+
+- **Import Mutual Funds**: Upload CAS files from mutual fund registrars (CAMS, Karvy)
+- **Portfolio View**: See your entire mutual fund portfolio in one place
+- **NAV Updates**: Automatically fetches latest NAVs (Net Asset Values)
+- **Rebalancing Tool**: Calculate optimum allocation for new investments
+- **Performance Tracking**: Track your investments over time with graphical reports
 
 ## Useful links
 

@@ -29,6 +29,36 @@ public interface MfFundSchemeRepository extends JpaRepository<MfFundScheme, Long
     List<FundDetailProjection> searchByFullText(@Param("query") String query);
 
     @Query(
+            value =
+                    """
+            SELECT m.name as schemeName, m.amfi_code as amfiCode, a.name as amcName
+            FROM mfschemes.mf_fund_scheme m
+            JOIN mfschemes.mf_amc a ON m.mf_amc_id = a.id
+            WHERE LOWER(a.name) LIKE LOWER(CONCAT('%', :query, '%'))
+            order by m.amfi_code
+            """,
+            nativeQuery = true)
+    List<FundDetailProjection> searchByAmc(@Param("query") String query);
+
+    /**
+     * Search schemes by AMC name using PostgreSQL text search
+     *
+     * @param searchTerms the search terms in PostgreSQL ts_query format (term1 & term2 & ...)
+     * @return List of fund details matching the AMC search
+     */
+    @Query(
+            value =
+                    """
+            SELECT m.name as schemeName, m.amfi_code as amfiCode, a.name as amcName
+            FROM mfschemes.mf_fund_scheme m
+            JOIN mfschemes.mf_amc a ON m.mf_amc_id = a.id
+            WHERE a.name_vector @@ to_tsquery('english', :searchTerms)
+            ORDER BY ts_rank(a.name_vector, to_tsquery('english', :searchTerms)) DESC, m.amfi_code
+            """,
+            nativeQuery = true)
+    List<FundDetailProjection> searchByAmcTextSearch(@Param("searchTerms") String searchTerms);
+
+    @Query(
             """
             select m from MfFundScheme m inner join fetch m.mfSchemeNavs mfSchemeNavs
             where m.amfiCode = :schemeCode and mfSchemeNavs.navDate = :date
