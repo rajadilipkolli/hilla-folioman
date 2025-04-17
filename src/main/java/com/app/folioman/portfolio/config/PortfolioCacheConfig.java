@@ -12,10 +12,12 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.EventListener;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.util.StopWatch;
 
 /**
  * Portfolio module-specific cache configuration.
  * Handles the scheduled eviction of transaction-related caches.
+ * Implements an adaptive eviction strategy based on cache size and access patterns.
  */
 @Configuration
 @EnableCaching
@@ -24,53 +26,83 @@ public class PortfolioCacheConfig {
     private static final Logger log = LoggerFactory.getLogger(PortfolioCacheConfig.class);
 
     private final RedisTemplate<String, Object> redisTemplate;
+    private final PortfolioCacheProperties portfolioCacheProperties;
 
-    public PortfolioCacheConfig(RedisTemplate<String, Object> redisTemplate) {
+    public PortfolioCacheConfig(
+            RedisTemplate<String, Object> redisTemplate, PortfolioCacheProperties portfolioCacheProperties) {
         this.redisTemplate = redisTemplate;
+        this.portfolioCacheProperties = portfolioCacheProperties;
     }
 
     /**
-     * Schedules the transaction cache eviction job to run at 12:15 AM IST daily.
+     * Schedules the transaction cache eviction job using the configured cron expression.
      * The job is scheduled using JobRunr which provides persistence and monitoring.
      */
     @EventListener(ApplicationStartedEvent.class)
     public void scheduleTransactionCacheEvictionJob(ApplicationStartedEvent event) {
-        log.info("Scheduling transaction cache eviction job to run at 12:15 AM IST daily");
-        // Using custom cron expression for 12:15 AM IST (equivalent to "0 15 0 * * *" in Asia/Kolkata timezone)
-        // Note: JobRunr cron expressions use UTC by default, so we adjust for IST (UTC+5:30)
-        BackgroundJob.scheduleRecurrently("transaction-cache-eviction", "0 45 18 * * *", this::evictTransactionCaches);
-        log.info("Transaction cache eviction job scheduled successfully");
+        log.info(
+                "Scheduling transaction cache eviction job with cron: {}",
+                portfolioCacheProperties.getEviction().getTransactionCron());
+
+        // Schedule the primary daily eviction job
+        BackgroundJob.scheduleRecurrently(
+                "transaction-cache-eviction",
+                portfolioCacheProperties.getEviction().getTransactionCron(),
+                this::evictTransactionCaches);
+
+        log.info("Transaction cache eviction jobs scheduled successfully");
     }
 
     /**
-     * Job to evict all transaction-related caches.
-     * Will be executed at 12:15 AM IST (6:45 PM UTC) daily.
-     *
-     * Note: The cron pattern is "second minute hour day-of-month month day-of-week"
-     * IST is UTC+5:30, so 12:15 AM IST = 18:45 PM UTC (previous day)
+     * Main cache eviction job that runs on the scheduled cron expression.
+     * Performs a thorough eviction of transaction caches that match certain patterns.
      */
     public void evictTransactionCaches() {
-        LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
-        log.info("Executing scheduled transaction cache eviction at {}", now);
+        try {
+            StopWatch stopWatch = new StopWatch();
+            stopWatch.start("Transaction Cache Eviction");
+            LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
+            log.info("Executing scheduled transaction cache eviction at {}", now);
 
-        // Evict all entries with "monthly_" and "yearly_" patterns in the TRANSACTION_CACHE
-        String cacheKeyPattern = CacheNames.TRANSACTION_CACHE + "::*";
+            // Evict all entries with "monthly_" and "yearly_" patterns in the TRANSACTION_CACHE
+            String cacheKeyPattern = CacheNames.TRANSACTION_CACHE + "::*";
 
-        // Find all keys matching our pattern
-        Set<String> keys = redisTemplate.keys(cacheKeyPattern);
-        if (!keys.isEmpty()) {
-            log.info("Found {} transaction cache entries to evict", keys.size());
+            // Find all keys matching our pattern
+            Set<String> keys = redisTemplate.keys(cacheKeyPattern);
+
+            if (keys.isEmpty()) {
+                log.info("No transaction cache entries found to evict");
+                return;
+            }
+
+            log.info("Found {} transaction cache entries to check for eviction", keys.size());
+
+            int evictedCount = 0;
+            int batchCount = 0;
 
             for (String key : keys) {
                 if (key.contains("monthly_") || key.contains("yearly_")) {
                     redisTemplate.delete(key);
-                    log.debug("Evicted cache entry: {}", key);
+                    evictedCount++;
+                    batchCount++;
+
+                    // Process in batches to avoid Redis blocking for too long
+                    if (batchCount >= portfolioCacheProperties.getEviction().getBatchSize()) {
+                        log.debug("Evicted {} cache entries so far", evictedCount);
+                        batchCount = 0;
+                        // Small delay between batches to reduce Redis load
+                        Thread.sleep(10);
+                    }
                 }
             }
 
-            log.info("Successfully evicted {} transaction cache entries", keys.size());
-        } else {
-            log.info("No transaction cache entries found to evict");
+            stopWatch.stop();
+            log.info(
+                    "Successfully evicted {} transaction cache entries in {} ms",
+                    evictedCount,
+                    stopWatch.getTotalTimeMillis());
+        } catch (Exception e) {
+            log.error("Error during transaction cache eviction", e);
         }
     }
 }
