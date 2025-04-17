@@ -4,11 +4,13 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 
 import com.app.folioman.mfschemes.config.ApplicationProperties;
 import com.app.folioman.mfschemes.repository.MFSchemeNavRepository;
+import com.app.folioman.portfolio.config.PortfolioCacheProperties;
 import com.app.folioman.portfolio.repository.UserPortfolioValueRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -37,5 +39,11 @@ public abstract class AbstractIntegrationTest {
     protected MFSchemeNavRepository mfSchemeNavRepository;
 
     @Autowired
-    protected ApplicationProperties properties;
+    protected ApplicationProperties applicationProperties;
+
+    @Autowired
+    protected PortfolioCacheProperties portfolioCacheProperties;
+
+    @Autowired
+    protected RedisTemplate<String, Object> redisTemplate;
 }
