@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
@@ -70,7 +71,8 @@ public class Initializer {
     }
 
     private Map<String, String> getAmfiCodeISINMapping(Map<String, Map<String, String>> amfiDataMap) {
-        Map<String, String> amfiCodeIsinMapping = mfNavService.getAmfiCodeIsinMap();
+        // Using ConcurrentHashMap to ensure thread safety
+        Map<String, String> amfiCodeIsinMapping = new ConcurrentHashMap<>(mfNavService.getAmfiCodeIsinMap());
 
         // Only proceed if the mapping is empty
         if (amfiCodeIsinMapping.isEmpty()) {
@@ -87,7 +89,7 @@ public class Initializer {
                     // Optimize the length check and substring operation
                     String processedIsin = (isin.length() > 12) ? isin.substring(0, 12) : isin;
 
-                    // Map ISIN to AMFI code
+                    // Map ISIN to AMFI code - ConcurrentHashMap's putIfAbsent is thread-safe
                     amfiCodeIsinMapping.putIfAbsent(processedIsin, amfiCode);
                 }
             }
@@ -95,18 +97,32 @@ public class Initializer {
         return amfiCodeIsinMapping;
     }
 
-    // Parallel processing for better performance
+    /**
+     * Process master data by filtering and saving new schemes.
+     * This method is designed to work with both sequential and parallel streams.
+     * Current implementation uses sequential stream for predictable behavior.
+     * If changed to parallel in the future, ensure thread safety of all operations.
+     *
+     * @param bseStarMasterDataMap Map of scheme data from BSE Star
+     * @param amfiCodeSet Set of AMFI codes to process
+     */
     private void processMasterData(Map<String, MfFundScheme> bseStarMasterDataMap, Set<String> amfiCodeSet) {
-
+        // Thread-safe read operation
         Set<String> distinctAmfiCodeFromDB = new HashSet<>(this.mfFundSchemeService.findDistinctAmfiCode());
+
+        // All operations in this stream are stateless and have no side effects,
+        // making it safe for potential parallel execution in the future if needed
         List<MfFundScheme> mfFundSchemeList = bseStarMasterDataMap.keySet().stream()
+                // These filter operations are stateless and thread-safe
                 .filter(amfiCodeSet::contains)
                 .filter(s -> !distinctAmfiCodeFromDB.contains(s))
                 .distinct()
+                // Map operation gets values from a shared map but doesn't modify it
                 .map(bseStarMasterDataMap::get)
+                // Using toList() which is thread-safe and immutable
                 .toList();
 
-        // Batch insert instead of inserting individually
+        // Batch insert instead of inserting individually - contained in a single transaction
         if (!mfFundSchemeList.isEmpty()) {
             mfFundSchemeService.saveData(mfFundSchemeList);
         }
