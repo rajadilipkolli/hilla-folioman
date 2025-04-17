@@ -19,9 +19,10 @@ import java.net.URI;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,8 +45,8 @@ public class MfSchemeServiceImpl implements MfSchemeService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MfSchemeServiceImpl.class);
 
-    // Concurrency control: Use a map of locks for each scheme to prevent concurrent updates to the same scheme
-    private static final ConcurrentHashMap<Long, ReentrantLock> SCHEME_LOCKS = new ConcurrentHashMap<>();
+    // Improved concurrent processing: Use a concurrent map of scheme IDs to monitor objects for synchronization
+    private static final Map<Long, Object> SCHEME_LOCKS = new ConcurrentHashMap<>();
 
     private final RestClient restClient;
     private final MfFundSchemeRepository mFSchemeRepository;
@@ -272,6 +273,32 @@ public class MfSchemeServiceImpl implements MfSchemeService {
         }
     }
 
+    /**
+     * Execute an operation with scheme-specific synchronization to ensure thread safety
+     * while minimizing contention between different schemes.
+     *
+     * @param schemeCode The scheme code to synchronize on
+     * @param operation The operation to execute
+     * @param <T> The return type of the operation
+     * @return The result of the operation
+     */
+    private <T> T withSchemeLock(Long schemeCode, Supplier<T> operation) {
+        // Get or create a lock object for this specific scheme
+        Object lock = SCHEME_LOCKS.computeIfAbsent(schemeCode, k -> new Object());
+
+        synchronized (lock) {
+            try {
+                return operation.get();
+            } finally {
+                // Remove the lock if no more operations are pending for this scheme
+                // This prevents memory leaks from accumulating lock objects
+                if (SCHEME_LOCKS.size() > 100) { // Only clean up when the map gets large
+                    SCHEME_LOCKS.remove(schemeCode);
+                }
+            }
+        }
+    }
+
     private void mergeList(NavResponse navResponse, MfFundScheme mfFundScheme, Long schemeCode) {
         // Skip processing if there's no new data to merge
         if (navResponse.data().isEmpty()) {
@@ -279,16 +306,12 @@ public class MfSchemeServiceImpl implements MfSchemeService {
             return;
         }
 
-        // Get or create a lock specific to this scheme
-        ReentrantLock schemeLock = SCHEME_LOCKS.computeIfAbsent(schemeCode, k -> new ReentrantLock());
-
-        // Acquire the lock for this scheme to prevent concurrent processing of the same scheme
-        schemeLock.lock();
-        try {
+        // Execute the merge operation with scheme-specific synchronization
+        withSchemeLock(schemeCode, () -> {
             // Check if NAV data is already up to date to avoid unnecessary processing
             if (navResponse.data().size() == mfFundScheme.getMfSchemeNavs().size()) {
                 LOGGER.info("Data in DB and from api is same, no updates needed for scheme {}", schemeCode);
-                return;
+                return null;
             }
 
             // Data from 3rd Party API
@@ -312,13 +335,12 @@ public class MfSchemeServiceImpl implements MfSchemeService {
 
             if (navsToSave.isEmpty()) {
                 LOGGER.info("All NAVs already exist in database for scheme {}", schemeCode);
-                return;
+                return null;
             }
 
             // Use transaction to ensure database consistency
             transactionTemplate.execute(status -> {
                 try {
-
                     LOGGER.info("Saving {} new NAVs for scheme {}", navsToSave.size(), schemeCode);
 
                     // Try batch save first - most efficient approach
@@ -336,15 +358,9 @@ public class MfSchemeServiceImpl implements MfSchemeService {
                     throw e; // Rethrow to trigger transaction rollback
                 }
             });
-        } finally {
-            // Always release the lock in a finally block to prevent deadlocks
-            schemeLock.unlock();
 
-            // If this scheme was only processed once, we can remove the lock to prevent memory leaks
-            if (!schemeLock.hasQueuedThreads()) {
-                SCHEME_LOCKS.remove(schemeCode);
-            }
-        }
+            return null;
+        });
     }
 
     /**

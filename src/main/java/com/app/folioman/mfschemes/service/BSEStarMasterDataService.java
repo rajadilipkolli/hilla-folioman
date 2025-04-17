@@ -20,7 +20,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -44,9 +43,10 @@ public class BSEStarMasterDataService {
     private final RestClient restClient;
     private final MfAmcService mfAmcService;
     private final MfSchemeDtoToEntityMapperHelper mfSchemeDtoToEntityMapperHelper;
-
-    private final ReentrantLock reentrantLock = new ReentrantLock();
     private final ApplicationProperties applicationProperties;
+
+    // Local cache for AMCs by code to avoid repeated lookups in concurrent processing
+    private final ConcurrentHashMap<String, MfAmc> amcCache = new ConcurrentHashMap<>();
 
     public BSEStarMasterDataService(
             RestClient restClient,
@@ -217,23 +217,20 @@ public class BSEStarMasterDataService {
     }
 
     private MfAmc getOrCreateAmc(String amcCode, String amcName) {
-        MfAmc amc = mfAmcService.findByCode(amcCode);
-        if (amc == null) {
-            reentrantLock.lock(); // Acquiring the lock
-            try {
-                // Double-check within the locked section
-                amc = mfAmcService.findByCode(amcCode);
-                if (amc == null) {
-                    amc = new MfAmc();
-                    amc.setName(amcName);
-                    amc.setCode(amcCode);
-                    amc = mfAmcService.saveMfAmc(amc);
-                }
-            } finally {
-                reentrantLock.unlock(); // Ensure the lock is released in the finally block
+        // First try to get from local cache
+        return amcCache.computeIfAbsent(amcCode, code -> {
+            // If not in local cache, try to find in service
+            MfAmc amc = mfAmcService.findByCode(code);
+            if (amc == null) {
+                // If not found in service, create new one
+                MfAmc newAmc = new MfAmc();
+                newAmc.setName(amcName);
+                newAmc.setCode(code);
+                // Save the new AMC, which is a thread-safe operation in the service
+                return mfAmcService.saveMfAmc(newAmc);
             }
-        }
-        return amc;
+            return amc;
+        });
     }
 
     private MfFundScheme createMfFundScheme(
