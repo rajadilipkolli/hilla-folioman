@@ -4,7 +4,7 @@ import com.app.folioman.mfschemes.entities.MfAmc;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import org.apache.commons.text.similarity.FuzzyScore;
 import org.slf4j.Logger;
@@ -20,7 +20,8 @@ public class MfAmcService {
 
     private final MfAmcCacheService mfAmcCacheService;
 
-    private final ReentrantLock reentrantLock = new ReentrantLock();
+    // Local cache for AMC entities by name for faster lookup in find-or-create operations
+    private final ConcurrentHashMap<String, MfAmc> amcNameCache = new ConcurrentHashMap<>();
 
     public MfAmcService(MfAmcCacheService mfAmcCacheService) {
         this.mfAmcCacheService = mfAmcCacheService;
@@ -31,12 +32,36 @@ public class MfAmcService {
     }
 
     public MfAmc saveMfAmc(MfAmc amc) {
-        return this.mfAmcCacheService.saveMfAmc(amc);
+        MfAmc savedAmc = this.mfAmcCacheService.saveMfAmc(amc);
+        // Update local cache after saving
+        if (savedAmc != null) {
+            amcNameCache.put(savedAmc.getName(), savedAmc);
+        }
+        return savedAmc;
     }
 
     public MfAmc findByName(String amcName) {
+        // First check local cache
+        MfAmc cachedAmc = amcNameCache.get(amcName);
+        if (cachedAmc != null) {
+            return cachedAmc;
+        }
+
+        // If not in cache, try database lookup
         MfAmc byNameIgnoreCase = mfAmcCacheService.findByName(amcName);
-        return byNameIgnoreCase != null ? byNameIgnoreCase : findClosestMatch(amcName);
+        if (byNameIgnoreCase != null) {
+            // Update cache and return
+            amcNameCache.put(amcName, byNameIgnoreCase);
+            return byNameIgnoreCase;
+        }
+
+        // As last resort, try to find closest match
+        MfAmc closestMatch = findClosestMatch(amcName);
+        if (closestMatch != null) {
+            // Cache the result of closest match for future lookups
+            amcNameCache.put(amcName, closestMatch);
+        }
+        return closestMatch;
     }
 
     /**
@@ -94,22 +119,25 @@ public class MfAmcService {
     }
 
     public MfAmc findOrCreateByName(String amcName) {
+        // First check if AMC exists
         MfAmc amc = findByName(amcName);
-        if (amc == null) {
-            reentrantLock.lock();
-            try {
-                // Recheck cache after acquiring the lock
-                amc = mfAmcCacheService.findByName(amcName);
-                if (amc == null) {
-                    amc = new MfAmc();
-                    amc.setName(amcName);
-                    amc.setCode(amcName);
-                    amc = mfAmcCacheService.saveMfAmc(amc);
-                }
-            } finally {
-                reentrantLock.unlock();
-            }
+        if (amc != null) {
+            return amc;
         }
-        return amc;
+
+        // Use computeIfAbsent for atomic check-and-create operation
+        return amcNameCache.computeIfAbsent(amcName, name -> {
+            // Double-check in database to avoid race conditions with other threads
+            MfAmc existingAmc = mfAmcCacheService.findByName(name);
+            if (existingAmc != null) {
+                return existingAmc;
+            }
+
+            // Create and save new AMC
+            MfAmc newAmc = new MfAmc();
+            newAmc.setName(name);
+            newAmc.setCode(name);
+            return mfAmcCacheService.saveMfAmc(newAmc);
+        });
     }
 }
