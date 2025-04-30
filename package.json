@@ -30,7 +30,7 @@
     "react-router-dom": "7.5.3"
   },
   "devDependencies": {
-    "@babel/preset-react": "7.26.3",
+    "@babel/preset-react": "7.27.1",
     "@preact/signals-react-transform": "0.5.1",
     "@rollup/plugin-replace": "6.0.2",
     "@rollup/pluginutils": "5.1.4",
