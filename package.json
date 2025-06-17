@@ -75,12 +75,12 @@
       "@vaadin/hilla-react-form": "24.7.5",
       "@vaadin/hilla-react-i18n": "24.7.5",
       "@vaadin/hilla-react-signals": "24.7.5",
-      "@vaadin/polymer-legacy-adapter": "24.7.6",
+      "@vaadin/polymer-legacy-adapter": "24.7.7",
       "@vaadin/react-components": "24.4.5",
       "@vaadin/vaadin-development-mode-detector": "2.0.7",
-      "@vaadin/vaadin-lumo-styles": "24.7.6",
-      "@vaadin/vaadin-material-styles": "24.7.6",
-      "@vaadin/vaadin-themable-mixin": "24.7.6",
+      "@vaadin/vaadin-lumo-styles": "24.7.7",
+      "@vaadin/vaadin-material-styles": "24.7.7",
+      "@vaadin/vaadin-themable-mixin": "24.7.7",
       "@vaadin/vaadin-usage-statistics": "2.1.2",
       "construct-style-sheets-polyfill": "3.1.0",
       "date-fns": "2.29.3",
@@ -121,7 +121,7 @@
       "workbox-core": "7.3.0",
       "workbox-precaching": "7.3.0"
     },
-    "hash": "cb3a794bc0d239cb4cbad7e7c1dda501af23fc056c19cdce3d08b76ead293e8f"
+    "hash": "5de2ba40f81e0adc27e3b3c694adbc305dd64d61f89847677a043a3a09505218"
   },
   "overrides": {
     "@vaadin/bundles": "$@vaadin/bundles",
