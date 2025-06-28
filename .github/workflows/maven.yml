@@ -15,9 +15,12 @@ on:
     branches: [ "main" ]
 
 permissions:
+  # Required for actions/cache on push & PR
+  actions: read
   contents: read
   pull-requests: write
-
+  # Needed by SonarCloud to publish commit statuses/checks
+  statuses: write
 jobs:
   build:
 
