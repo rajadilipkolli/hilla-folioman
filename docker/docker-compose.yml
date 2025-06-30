@@ -73,7 +73,7 @@ services:
   mongodb:
     hostname: mongodb
     container_name: mongodb
-    image: mongo:8.0.10
+    image: mongo:8.0.11
     restart: unless-stopped
     volumes:
       - mongodb:/data/db
