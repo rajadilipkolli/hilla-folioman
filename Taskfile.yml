@@ -39,3 +39,11 @@ tasks:
       DURATION: "{{default 5 .DURATION}}"
     cmds:
       - "{{.SLEEP_CMD}} {{.DURATION}}"
+
+  start-local:
+    desc: "Start Spring Boot application with local profile"
+    deps:
+      - start
+    cmds:
+      - "{{.MVNW}} spring-boot:run -Dspring-boot.run.profiles=local"
+  
