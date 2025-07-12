@@ -5,5 +5,5 @@ spring:
     username: appuser
     password: secret
     hikari:
-      maximum-pool-size: 50
+      maximum-pool-size: 25
       minimum-idle: 5
