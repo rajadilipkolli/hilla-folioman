@@ -15,9 +15,7 @@ import org.springframework.modulith.Modulith;
  */
 @SpringBootApplication
 @Theme(value = "hilla-folioman")
-@Modulith(
-        sharedModules = {"shared", "config"},
-        useFullyQualifiedModuleNames = false)
+@Modulith(sharedModules = {"shared", "config"})
 public class Application implements AppShellConfigurator {
 
     public static void main(String[] args) {
