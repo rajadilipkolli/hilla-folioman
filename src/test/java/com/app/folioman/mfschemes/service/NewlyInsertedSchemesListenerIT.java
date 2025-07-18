@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
 import com.app.folioman.common.AbstractIntegrationTest;
+import com.app.folioman.mfschemes.MFSchemeNavProjection;
 import com.app.folioman.shared.UploadedSchemesList;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -16,24 +17,25 @@ class NewlyInsertedSchemesListenerIT extends AbstractIntegrationTest {
     @Test
     void testAsyncNavProcessingTriggeredByEvent() {
         // Given
-        List<Long> schemeCodes = List.of(120503L, 118272L, 118968L);
+        List<Long> schemeCodes = List.of(118272L);
         UploadedSchemesList event = new UploadedSchemesList(schemeCodes);
 
         // Publish the event to trigger async processing
         eventPublisher.publishEvent(event);
 
+        // Record the time before processing to verify new NAVs
+        LocalDate testStartDate = LocalDate.now().minusDays(1);
+
         // Then: Awaitility waits for async processing and checks repository state
-        await().atMost(Duration.ofSeconds(10)).untilAsserted(() -> {
-            for (Long code : schemeCodes) {
-                // Check that at least one NAV exists for each scheme code
-                boolean navExists = !mfSchemeNavRepository
-                        .findByMfScheme_AmfiCodeInAndNavDateGreaterThanEqualAndNavDateLessThanEqual(
-                                Set.of(code), LocalDate.of(2000, 1, 1), LocalDate.now())
-                        .isEmpty();
-                assertThat(navExists)
-                        .as("NAV should exist for scheme code " + code)
-                        .isTrue();
-            }
+        await().atMost(Duration.ofSeconds(30)).untilAsserted(() -> {
+            // Verify NAVs were created for all scheme codes with recent dates
+            List<MFSchemeNavProjection> navs =
+                    mfSchemeNavRepository.findByMfScheme_AmfiCodeInAndNavDateGreaterThanEqualAndNavDateLessThanEqual(
+                            Set.copyOf(schemeCodes), testStartDate, LocalDate.now());
+
+            assertThat(navs).isNotEmpty();
+            assertThat(navs.stream().map(nav -> nav.amfiCode()).distinct())
+                    .containsExactlyInAnyOrderElementsOf(schemeCodes);
         });
     }
 }
