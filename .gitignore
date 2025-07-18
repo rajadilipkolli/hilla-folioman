@@ -10,3 +10,5 @@ vite.generated.ts
 logs/
 .vaadin-node-tasks.lock
 .vscode/.copilot-plugin
+target_test-classes/
+
