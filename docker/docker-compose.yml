@@ -84,7 +84,7 @@ services:
       - folioman-network
     healthcheck:
       test: |
-        mongosh --eval "try { rs.status().ok } catch (e) { rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'localhost:27017' }] }).ok }"
+        mongosh --eval "try { rs.status().ok } catch (e) { rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'mongodb:27017' }] }).ok }"
       interval: 10s
       start_period: 30s
       timeout: 5s
@@ -99,12 +99,10 @@ services:
     networks:
       - folioman-network
     environment:
-      #      - ME_CONFIG_MONGODB_ADMINUSERNAME=admin
-      #      - ME_CONFIG_MONGODB_ADMINPASSWORD=passcode
-      - ME_CONFIG_MONGODB_SERVER=mongodb
+      - ME_CONFIG_MONGODB_URL=mongodb://mongodb:27017/?replicaSet=rs0
+      - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
       - ME_CONFIG_BASICAUTH_USERNAME=admin
       - ME_CONFIG_BASICAUTH_PASSWORD=pass
-      - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
     restart: unless-stopped
     depends_on:
       mongodb:
