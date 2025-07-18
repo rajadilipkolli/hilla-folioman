@@ -2,6 +2,7 @@ package com.app.folioman.mfschemes.service;
 
 import com.app.folioman.mfschemes.MFNavService;
 import com.app.folioman.shared.UploadedSchemesList;
+import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.modulith.events.ApplicationModuleListener;
@@ -22,6 +23,8 @@ public class NewlyInsertedSchemesListener {
     void onOrderResponseEvent(UploadedSchemesList uploadedSchemesList) {
         log.info("Received Event :{}", uploadedSchemesList);
         // Delegate async processing to the service layer to avoid transactional issues
-        mfNavService.processNavsAsync(uploadedSchemesList.schemesList());
+        mfNavService.processNavsAsync(uploadedSchemesList.schemesList().stream()
+                .filter(Objects::nonNull)
+                .toList());
     }
 }

@@ -32,6 +32,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.StringUtils;
@@ -77,6 +78,7 @@ public class MFNavServiceImpl implements MFNavService {
     }
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public MFSchemeDTO getNav(Long schemeCode) {
         return getNavByDateWithRetry(schemeCode, LocalDateUtility.getAdjustedDate());
     }
