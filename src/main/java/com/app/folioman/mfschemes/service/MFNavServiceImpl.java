@@ -28,9 +28,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.StringUtils;
@@ -76,6 +78,7 @@ public class MFNavServiceImpl implements MFNavService {
     }
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public MFSchemeDTO getNav(Long schemeCode) {
         return getNavByDateWithRetry(schemeCode, LocalDateUtility.getAdjustedDate());
     }
@@ -163,6 +166,28 @@ public class MFNavServiceImpl implements MFNavService {
     public Map<String, String> getAmfiCodeIsinMap() {
         String downloadedAllNAVs = downloadAllNAVs();
         return getAmfiCodeIsinMap(downloadedAllNAVs);
+    }
+
+    /**
+     * Process NAVs for a list of scheme codes asynchronously.
+     * This method should handle parallel processing and transactional boundaries.
+     */
+    @Override
+    @Async("taskExecutor")
+    public void processNavsAsync(List<Long> schemeCodes) {
+        if (schemeCodes == null || schemeCodes.isEmpty()) {
+            LOGGER.info("No scheme codes provided for NAV processing.");
+            return;
+        }
+        LOGGER.info("Processing NAVs asynchronously for scheme codes: {}", schemeCodes);
+        for (Long schemeCode : schemeCodes) {
+            try {
+                LOGGER.info("Processing NAV for scheme code: {}", schemeCode);
+                getNav(schemeCode);
+            } catch (Exception e) {
+                LOGGER.error("Error processing NAV for scheme code: {}", schemeCode, e);
+            }
+        }
     }
 
     @Override

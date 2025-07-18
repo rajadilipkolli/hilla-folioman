@@ -1,6 +1,7 @@
 package com.app.folioman.mfschemes;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -17,6 +18,12 @@ public interface MFNavService {
     void loadHistoricalDataIfNotExists();
 
     Map<String, String> getAmfiCodeIsinMap();
+
+    /**
+     * Process NAVs for a list of scheme codes asynchronously.
+     * This method should handle parallel processing and transactional boundaries.
+     */
+    void processNavsAsync(List<Long> schemeCodes);
 
     /**
      * Retrieves NAV projections for multiple schemes over a date range.
