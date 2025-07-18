@@ -11,8 +11,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.app.folioman.common.AbstractIntegrationTest;
 import com.app.folioman.portfolio.TestData;
+import com.app.folioman.shared.AbstractIntegrationTest;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;

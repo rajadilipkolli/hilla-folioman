@@ -2,7 +2,7 @@ package com.app.folioman;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.app.folioman.common.SQLContainersConfig;
+import com.app.folioman.config.SQLContainersConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;

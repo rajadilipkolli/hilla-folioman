@@ -2,7 +2,7 @@ package com.app.folioman.mfschemes.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.app.folioman.common.AbstractIntegrationTest;
+import com.app.folioman.shared.AbstractIntegrationTest;
 import org.junit.jupiter.api.Test;
 
 class ApplicationPropertiesIT extends AbstractIntegrationTest {

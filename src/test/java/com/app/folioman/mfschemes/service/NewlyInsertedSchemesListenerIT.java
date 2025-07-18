@@ -3,8 +3,8 @@ package com.app.folioman.mfschemes.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
-import com.app.folioman.common.AbstractIntegrationTest;
 import com.app.folioman.mfschemes.MFSchemeNavProjection;
+import com.app.folioman.shared.AbstractIntegrationTest;
 import com.app.folioman.shared.UploadedSchemesList;
 import java.time.Duration;
 import java.time.LocalDate;

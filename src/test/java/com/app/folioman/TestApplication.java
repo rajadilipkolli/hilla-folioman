@@ -1,7 +1,7 @@
 package com.app.folioman;
 
-import com.app.folioman.common.NoSQLContainersConfig;
-import com.app.folioman.common.SQLContainersConfig;
+import com.app.folioman.config.NoSQLContainersConfig;
+import com.app.folioman.config.SQLContainersConfig;
 import org.springframework.boot.SpringApplication;
 
 class TestApplication {

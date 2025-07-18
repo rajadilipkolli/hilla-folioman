@@ -5,7 +5,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import com.app.folioman.common.AbstractIntegrationTest;
+import com.app.folioman.shared.AbstractIntegrationTest;
 import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.scheduling.BackgroundJob;
 import org.junit.jupiter.api.DisplayName;

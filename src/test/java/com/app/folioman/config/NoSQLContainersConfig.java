@@ -1,4 +1,4 @@
-package com.app.folioman.common;
+package com.app.folioman.config;
 
 import com.redis.testcontainers.RedisStackContainer;
 import java.time.Duration;

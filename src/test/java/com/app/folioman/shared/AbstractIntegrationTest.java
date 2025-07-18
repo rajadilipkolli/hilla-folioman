@@ -1,7 +1,9 @@
-package com.app.folioman.common;
+package com.app.folioman.shared;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
+import com.app.folioman.config.NoSQLContainersConfig;
+import com.app.folioman.config.SQLContainersConfig;
 import com.app.folioman.mfschemes.config.ApplicationProperties;
 import com.app.folioman.mfschemes.repository.MFSchemeNavRepository;
 import com.app.folioman.portfolio.config.PortfolioCacheProperties;
