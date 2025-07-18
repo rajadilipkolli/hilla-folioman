@@ -17,11 +17,11 @@ class NewlyInsertedSchemesListenerIT extends AbstractIntegrationTest {
     @Test
     void testAsyncNavProcessingTriggeredByEvent() {
         // Given
-        List<Long> schemeCodes = List.of(118272L);
+        List<Long> schemeCodes = List.of(118272L, 120503L);
         UploadedSchemesList event = new UploadedSchemesList(schemeCodes);
 
         // Publish the event to trigger async processing
-        eventPublisher.publishEvent(event);
+        applicationEventPublisher.publishEvent(event);
 
         // Record the time before processing to verify new NAVs
         LocalDate testStartDate = LocalDate.now().minusDays(1);

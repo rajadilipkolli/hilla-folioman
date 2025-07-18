@@ -49,5 +49,5 @@ public abstract class AbstractIntegrationTest {
     protected RedisTemplate<String, Object> redisTemplate;
 
     @Autowired
-    protected ApplicationEventPublisher eventPublisher;
+    protected ApplicationEventPublisher applicationEventPublisher;
 }
