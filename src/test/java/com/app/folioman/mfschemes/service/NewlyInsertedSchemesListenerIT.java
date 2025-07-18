@@ -16,7 +16,7 @@ class NewlyInsertedSchemesListenerIT extends AbstractIntegrationTest {
     @Test
     void testAsyncNavProcessingTriggeredByEvent() {
         // Given
-        List<Long> schemeCodes = List.of(118272L);
+        List<Long> schemeCodes = List.of(120503L, 118272L, 118968L);
         UploadedSchemesList event = new UploadedSchemesList(schemeCodes);
 
         // Publish the event to trigger async processing
