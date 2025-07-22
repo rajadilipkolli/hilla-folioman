@@ -58,7 +58,7 @@
     "transform-ast": "2.4.4",
     "typescript": "5.8.3",
     "vite": "7.0.5",
-    "vite-plugin-checker": "0.10.0",
+    "vite-plugin-checker": "0.10.1",
     "workbox-build": "7.3.0",
     "workbox-core": "7.3.0",
     "workbox-precaching": "7.3.0"
