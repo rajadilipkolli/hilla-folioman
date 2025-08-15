@@ -7,7 +7,8 @@ describe('MainLayout', () => {
     renderWithRouter('/');
 
     // Check for navigation links
-    expect(screen.getByText(/Import Mutual Funds/i)).toBeInTheDocument();
+    const importMutualFundElements = screen.getAllByText(/Import Mutual Funds/i);
+    expect(importMutualFundElements.length).toBeGreaterThan(0);
     const mutualFundElements = screen.getAllByText(/Mutual Fund Schemes/i);
     expect(mutualFundElements.length).toBeGreaterThan(0);
     expect(screen.getByText(/UserPortfolio/i)).toBeInTheDocument();

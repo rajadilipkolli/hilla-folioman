@@ -16,6 +16,7 @@ export const routes = [
       { path: '/userPortfolio', element: <UserPortfolioView />, handle: { title: 'UserPortfolio' } },
       { path: '/rebalance', element: <ReBalanceView />, handle: { title: 'ReBalance Calculator' } },
       { path: '/', element: <MfSchemesView />, handle: { title: 'Mutual Fund Schemes' } },
+      { path: '/mfschemes', element: <MfSchemesView />, handle: { title: 'Mutual Fund Schemes' } },
     ],
   },
 ] as RouteObject[];
