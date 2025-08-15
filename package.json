@@ -2,6 +2,11 @@
   "name": "hilla-folioman",
   "license": "MIT",
   "type": "module",
+  "scripts": {
+    "test": "vitest",
+    "coverage": "vitest run --coverage",
+    "test:ci": "vitest run"
+  },
   "dependencies": {
     "@polymer/polymer": "3.5.2",
     "@vaadin/bundles": "24.8.5",
@@ -34,6 +39,12 @@
     "@preact/signals-react-transform": "0.5.2",
     "@rollup/plugin-replace": "6.0.2",
     "@rollup/pluginutils": "5.2.0",
+    "@testing-library/jest-dom": "^6.7.0",
+    "@testing-library/react": "^14.2.1",
+    "@testing-library/user-event": "^14.6.1",
+    "@vitejs/plugin-react": "^5.0.0",
+    "jsdom": "^24.0.0",
+    "vitest": "^3.2.4",
     "@types/react": "19.1.10",
     "@types/react-dom": "19.1.7",
     "@types/react-router-dom": "5.3.3",
@@ -48,7 +59,6 @@
     "@vaadin/hilla-generator-plugin-subtypes": "24.8.6",
     "@vaadin/hilla-generator-plugin-transfertypes": "24.8.6",
     "@vaadin/hilla-generator-utils": "24.8.6",
-    "@vitejs/plugin-react": "5.0.0",
     "async": "3.2.6",
     "glob": "11.0.3",
     "magic-string": "0.30.17",
