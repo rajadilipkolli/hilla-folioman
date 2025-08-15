@@ -42,9 +42,6 @@
     "@testing-library/jest-dom": "^6.7.0",
     "@testing-library/react": "^14.2.1",
     "@testing-library/user-event": "^14.6.1",
-    "@vitejs/plugin-react": "^5.0.0",
-    "jsdom": "^24.0.0",
-    "vitest": "^3.2.4",
     "@types/react": "19.1.10",
     "@types/react-dom": "19.1.7",
     "@types/react-router-dom": "5.3.3",
@@ -59,8 +56,10 @@
     "@vaadin/hilla-generator-plugin-subtypes": "24.8.6",
     "@vaadin/hilla-generator-plugin-transfertypes": "24.8.6",
     "@vaadin/hilla-generator-utils": "24.8.6",
+    "@vitejs/plugin-react": "^5.0.0",
     "async": "3.2.6",
     "glob": "11.0.3",
+    "jsdom": "^24.0.0",
     "magic-string": "0.30.17",
     "rollup-plugin-brotli": "3.1.0",
     "rollup-plugin-visualizer": "6.0.3",
@@ -69,6 +68,7 @@
     "typescript": "5.9.2",
     "vite": "7.1.2",
     "vite-plugin-checker": "0.10.2",
+    "vitest": "^3.2.4",
     "workbox-build": "7.3.0",
     "workbox-core": "7.3.0",
     "workbox-precaching": "7.3.0"
@@ -133,7 +133,7 @@
       "workbox-core": "7.3.0",
       "workbox-precaching": "7.3.0"
     },
-    "hash": "2e738b0f464c6d6dc58a632addb932abaa71fd1d779d109fd01f5625a3cef63f"
+    "hash": "fc04acaa6ce550ba186eec2d4419e7517b2c1fe64528c52fa4061c9f7b5a93c6"
   },
   "overrides": {
     "@vaadin/bundles": "$@vaadin/bundles",
