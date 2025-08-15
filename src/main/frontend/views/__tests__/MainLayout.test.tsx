@@ -5,7 +5,7 @@ import { renderWithRouter } from '../../test-utils';
 describe('MainLayout', () => {
   test('renders navigation items', () => {
     renderWithRouter('/');
-    
+
     // Check for navigation links
     expect(screen.getByText(/Import Mutual Funds/i)).toBeInTheDocument();
     const mutualFundElements = screen.getAllByText(/Mutual Fund Schemes/i);

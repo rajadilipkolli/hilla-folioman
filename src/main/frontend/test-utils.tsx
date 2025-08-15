@@ -6,6 +6,6 @@ export function renderWithRouter(initialEntry = '/') {
   const router = createMemoryRouter(routes, {
     initialEntries: [initialEntry],
   });
-  
+
   return render(<RouterProvider router={router} />);
 }

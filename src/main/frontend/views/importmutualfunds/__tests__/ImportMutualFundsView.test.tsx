@@ -7,28 +7,28 @@ import { Notification } from '@vaadin/react-components';
 vi.mock('Frontend/generated/endpoints', () => ({
   ImportMutualFundController: {
     // Add any methods that need to be mocked
-  }
+  },
 }));
 
 describe('ImportMutualFundsView', () => {
   test('renders PDF upload view by default', () => {
     renderWithRouter('/importmutualfunds');
-    
+
     // Check for Import Mutual Funds heading
     const headings = screen.getAllByText('Import Mutual Funds');
     expect(headings).toHaveLength(2);
-    
+
     // Check for view switch buttons
     const pdfButton = screen.getByRole('button', { name: /Password Protected CAS/i });
     const jsonButton = screen.getByRole('button', { name: /JSON Upload \(Fallback\)/i });
     expect(pdfButton).toHaveAttribute('data-theme', 'primary');
     expect(jsonButton).toHaveAttribute('data-theme', 'secondary');
-    
+
     // Check for the PDF upload form
     expect(screen.getByText('Upload Password Protected CAS PDF')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Select PDF/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Upload Protected CAS PDF/i })).toBeInTheDocument();
-    
+
     // Check the password field
     const passwordField = screen.getByRole('textbox', { name: /PDF Password/i });
     expect(passwordField).toBeInTheDocument();
@@ -59,7 +59,7 @@ describe('ImportMutualFundsView', () => {
 
   test('clears password after inactivity', async () => {
     vi.useFakeTimers();
-    
+
     renderWithRouter('/importmutualfunds');
 
     // Find the password field by its label
@@ -75,10 +75,10 @@ describe('ImportMutualFundsView', () => {
 
     // Verify notification was shown and password was cleared
     expect(Notification.show).toHaveBeenCalledWith(
-      'Password cleared due to inactivity', 
-      expect.objectContaining({ position: 'bottom-end', duration: 3000 })
+      'Password cleared due to inactivity',
+      expect.objectContaining({ position: 'bottom-end', duration: 3000 }),
     );
-    
+
     // Wait for password field to be cleared
     await waitFor(() => {
       const updatedPasswordField = screen.getByRole('textbox', { name: /PDF Password/i }) as HTMLInputElement;
