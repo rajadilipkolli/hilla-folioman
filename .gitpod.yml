@@ -8,7 +8,7 @@ image:
   file: .gitpod.Dockerfile
   
 tasks:
-  - init: npm install && ./mvnw install -DskipTests=false
+  - init: npm install && ./mvnw install -DskipTests
 
 ports:
   - port: 8080
