@@ -56,7 +56,7 @@
     "@vaadin/hilla-generator-plugin-subtypes": "24.8.6",
     "@vaadin/hilla-generator-plugin-transfertypes": "24.8.6",
     "@vaadin/hilla-generator-utils": "24.8.6",
-    "@vitejs/plugin-react": "^5.0.0",
+    "@vitejs/plugin-react": "4.7.0",
     "async": "3.2.6",
     "glob": "11.0.3",
     "jsdom": "^24.0.0",
@@ -133,7 +133,7 @@
       "workbox-core": "7.3.0",
       "workbox-precaching": "7.3.0"
     },
-    "hash": "fc04acaa6ce550ba186eec2d4419e7517b2c1fe64528c52fa4061c9f7b5a93c6"
+    "hash": "0372490ed8d7079ca6541b72184ebc8c5f18234f12da9495334ccb7cf5b9db86"
   },
   "overrides": {
     "@vaadin/bundles": "$@vaadin/bundles",
