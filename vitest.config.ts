@@ -1,15 +1,18 @@
-import { UserConfigFn, defineConfig } from 'vite';
-import { overrideVaadinConfig } from './vite.generated';
+/// <reference types="vitest" />
+import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-const customConfig: UserConfigFn = (env) => ({
-  // Here you can add custom Vite parameters
-  // https://vitejs.dev/config/
+export default defineConfig({
+  resolve: {
+    alias: {
+      'Frontend': '/src/main/frontend'
+    }
+  },
   plugins: [react()],
   test: {
     globals: true,
     environment: 'jsdom',
-    setupFiles: ['./src/main/frontend/setupTests.ts'],
+    setupFiles: ['src/main/frontend/setupTests.ts'],
     include: ['src/main/frontend/**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'],
     coverage: {
       reporter: ['text', 'html'],
@@ -21,5 +24,3 @@ const customConfig: UserConfigFn = (env) => ({
     },
   },
 });
-
-export default overrideVaadinConfig(customConfig);

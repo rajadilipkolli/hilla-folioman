@@ -23,10 +23,10 @@
 	},
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
-	"forwardPorts": [8080, 8000, 8001],
+	"forwardPorts": [8080, 8000, 8001, 8005],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	"postCreateCommand": "java -version"
+	"postCreateCommand": "npm install -g @go-task/cli"
 
 	// Configure tool-specific properties.
 	// "customizations": {},

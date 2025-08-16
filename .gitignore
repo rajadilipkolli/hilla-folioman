@@ -12,3 +12,4 @@ logs/
 .vscode/.copilot-plugin
 target_test-classes/
 
+node/

@@ -231,7 +231,7 @@ export default function ImportMutualFundsView() {
   };
 
   return (
-    <div className="p-m">
+    <div className="p-m" data-testid="import-mutual-funds-view">
       <h2>Import Mutual Funds</h2>
 
       <div style={{ marginBottom: '20px', display: 'flex', gap: '10px' }}>
