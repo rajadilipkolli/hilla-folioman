@@ -34,7 +34,7 @@
     "@preact/signals-react-transform": "0.6.0",
     "@rollup/plugin-replace": "6.0.2",
     "@rollup/pluginutils": "5.2.0",
-    "@types/react": "19.1.10",
+    "@types/react": "19.1.11",
     "@types/react-dom": "19.1.7",
     "@types/react-router-dom": "5.3.3",
     "@vaadin/hilla-generator-cli": "24.8.6",
