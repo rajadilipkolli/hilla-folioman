@@ -56,4 +56,16 @@ public abstract class AbstractIntegrationTest {
 
     @LocalServerPort
     protected int port;
+
+    /**
+     * Returns the base URL for integration tests.
+     * The host can be configured using the system property "it.host".
+     * For CI environments, set -Dit.host=host-gateway or run Docker with --add-host=host.docker.internal:host-gateway
+     *
+     * @return The complete base URL including protocol, host and port
+     */
+    protected String baseUrl() {
+        String host = System.getProperty("it.host", "host.docker.internal");
+        return String.format("http://%s:%d", host, port);
+    }
 }

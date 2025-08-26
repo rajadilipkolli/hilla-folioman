@@ -36,7 +36,7 @@ class MainPageIT extends AbstractIntegrationTest {
 
     @Test
     void mainPageLoads() {
-        driver.get("http://localhost:" + port + "/");
+        driver.get(baseUrl() + "/");
         assertTrue(driver.getTitle() != null && !driver.getTitle().isEmpty(), "Main page should load and have a title");
 
         // Click navigation links and verify page changes
