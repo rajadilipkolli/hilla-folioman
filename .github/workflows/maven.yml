@@ -54,16 +54,20 @@ jobs:
           echo "cat ~/.testcontainers.properties"
           cat ~/.testcontainers.properties
 
+      - name: Set Integration Test Host
+        run: |
+          echo "IT_HOST=host.docker.internal" >> $GITHUB_ENV
+
       - if: ${{ github.ref != 'refs/heads/main' }}
         name: Build and analyze
-        run: ./mvnw clean verify -Dit.host=host-gateway
+        run: ./mvnw clean verify -Dit.host=${{ env.IT_HOST }}
 
       - if: ${{ github.ref == 'refs/heads/main' }}
         name: Build and analyze
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./mvnw -B verify sonar:sonar -Dit.host=host-gateway
+        run: ./mvnw -B verify sonar:sonar -Dit.host=${{ env.IT_HOST }}
 
       - if: ${{ github.ref == 'refs/heads/main' }}
         name: Build Image with Maven

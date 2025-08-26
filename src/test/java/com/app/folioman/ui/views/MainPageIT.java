@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.app.folioman.shared.AbstractIntegrationTest;
 import io.github.bonigarcia.wdm.WebDriverManager;
+import java.time.Duration;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,6 +13,8 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
 class MainPageIT extends AbstractIntegrationTest {
 
@@ -57,11 +60,18 @@ class MainPageIT extends AbstractIntegrationTest {
         WebElement searchField =
                 driver.findElement(By.cssSelector("input[placeholder='Search mutual fund schemes...']"));
         searchField.sendKeys("Fund");
-        try {
-            Thread.sleep(4000);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+
+        // Wait for either search results or the "No schemes found" message
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        wait.until(driver -> {
+            // Check for either search results containing "Fund" or the "No schemes found" message
+            return ExpectedConditions.or(
+                            ExpectedConditions.presenceOfElementLocated(By.xpath("//*[contains(text(), 'Fund')]")),
+                            ExpectedConditions.presenceOfElementLocated(
+                                    By.xpath("//*[contains(text(), 'No schemes found')]")))
+                    .apply(driver);
+        });
+
         String pageSource = driver.getPageSource();
         boolean foundResults = pageSource.contains("Fund") && !pageSource.contains("No schemes found");
         assertTrue(
