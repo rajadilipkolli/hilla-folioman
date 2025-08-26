@@ -3,31 +3,34 @@ package com.app.folioman.ui.views;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.app.folioman.shared.AbstractIntegrationTest;
-import io.github.bonigarcia.wdm.WebDriverManager;
 import java.time.Duration;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
+import org.testcontainers.Testcontainers;
+import org.testcontainers.containers.BrowserWebDriverContainer;
 
 class MainPageIT extends AbstractIntegrationTest {
 
     private WebDriver driver;
 
-    @BeforeEach
-    void setup() {
-        ChromeOptions options = new ChromeOptions();
-        options.addArguments("--remote-allow-origins=*");
-        driver = WebDriverManager.chromedriver()
-                .capabilities(options)
-                .browserInDocker()
-                .create();
+    static BrowserWebDriverContainer<?> container =
+            new BrowserWebDriverContainer<>().withCapabilities(new ChromeOptions());
+
+    @BeforeAll
+    static void beforeAll(@Autowired Environment environment) {
+        Testcontainers.exposeHostPorts(environment.getProperty("local.server.port", Integer.class));
+        container.start();
     }
 
     @AfterEach
@@ -39,7 +42,8 @@ class MainPageIT extends AbstractIntegrationTest {
 
     @Test
     void mainPageLoads() {
-        driver.get(baseUrl() + "/");
+        driver = new RemoteWebDriver(container.getSeleniumAddress(), new ChromeOptions());
+        driver.get("http://host.testcontainers.internal:" + port);
         assertTrue(driver.getTitle() != null && !driver.getTitle().isEmpty(), "Main page should load and have a title");
 
         // Click navigation links and verify page changes
