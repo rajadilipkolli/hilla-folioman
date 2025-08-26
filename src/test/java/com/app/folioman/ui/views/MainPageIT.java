@@ -86,16 +86,11 @@ class MainPageIT extends AbstractIntegrationTest {
         List<WebElement> schemeButtons = driver.findElements(By.cssSelector("button[theme='tertiary']"));
         if (!schemeButtons.isEmpty()) {
             schemeButtons.getFirst().click();
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-            assertTrue(
-                    driver.getPageSource().contains("NAV Value"),
-                    "Scheme details dialog should open and show NAV Value");
+            var dialogWait = new WebDriverWait(driver, Duration.ofSeconds(10));
+            dialogWait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//*[contains(.,'NAV Value')]")));
             // Close dialog
-            WebElement closeButton = driver.findElement(By.cssSelector("button[aria-label='Close dialog']"));
+            WebElement closeButton = dialogWait.until(
+                    ExpectedConditions.elementToBeClickable(By.cssSelector("button[aria-label='Close dialog']")));
             closeButton.click();
         }
     }
