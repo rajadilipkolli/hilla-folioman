@@ -20,7 +20,7 @@ class MainPageIT extends AbstractIntegrationTest {
     @BeforeEach
     void setup() {
         ChromeOptions options = new ChromeOptions();
-        options.addArguments("--disable-dev-shm-usage");
+        options.addArguments("--remote-allow-origins=*");
         driver = WebDriverManager.chromedriver()
                 .capabilities(options)
                 .browserInDocker()
@@ -36,7 +36,7 @@ class MainPageIT extends AbstractIntegrationTest {
 
     @Test
     void mainPageLoads() {
-        driver.get("http://host.docker.internal:" + port + "/");
+        driver.get("http://localhost:" + port + "/");
         assertTrue(driver.getTitle() != null && !driver.getTitle().isEmpty(), "Main page should load and have a title");
 
         // Click navigation links and verify page changes
