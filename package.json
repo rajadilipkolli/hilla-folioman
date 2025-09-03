@@ -36,7 +36,7 @@
     "@rollup/plugin-replace": "6.0.2",
     "@rollup/pluginutils": "5.2.0",
     "@types/react": "19.1.12",
-    "@types/react-dom": "19.1.8",
+    "@types/react-dom": "19.1.9",
     "@vaadin/hilla-generator-cli": "24.8.7",
     "@vaadin/hilla-generator-core": "24.8.7",
     "@vaadin/hilla-generator-plugin-backbone": "24.8.7",
