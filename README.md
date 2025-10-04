@@ -50,6 +50,92 @@ Before running the application, ensure you have the following prerequisites inst
   ```
 This tool must be installed on the server environment where the application will run. The PDF upload functionality for CAS files will not work without this dependency.
 
+## Install Python & pip
+
+This project requires Python for a CLI dependency (see CAS PDF processing notes). Below are short, copyable steps to install Python and pip on common platforms and to verify the installation.
+
+Notes:
+- We recommend Python 3.11 or newer.
+- pip is included with modern Python installers; the commands below also show how to ensure pip is available and up-to-date.
+
+Windows (PowerShell)
+
+1. Install Python using the official installer from python.org or via Winget (recommended on modern Windows):
+
+```powershell
+# Install via winget (runs from an elevated PowerShell if required)
+winget install --exact --id Python.Python
+```
+
+2. After installation, confirm Python and pip are available:
+
+```powershell
+python --version
+python -m pip --version
+```
+
+3. Ensure pip, setuptools and wheel are up-to-date:
+
+```powershell
+python -m pip install --upgrade pip setuptools wheel
+```
+
+If `python` isn't found, try `py` (the Python launcher) or add the Python install directory to your PATH. You can also enable the "Add Python to PATH" option in the official Windows installer.
+
+macOS
+
+1. The easiest way is Homebrew (if you have Homebrew installed):
+
+```bash
+brew install python
+```
+
+2. Alternatively, download the installer from https://python.org and run it.
+
+3. Verify and upgrade pip:
+
+```bash
+python3 --version
+python3 -m pip install --upgrade pip setuptools wheel
+```
+
+Linux (Ubuntu/Debian)
+
+```bash
+sudo apt update
+sudo apt install -y python3 python3-venv python3-pip
+python3 --version
+python3 -m pip install --upgrade pip setuptools wheel --user
+```
+
+Linux (Fedora/CentOS/RHEL)
+
+```bash
+sudo dnf install -y python3 python3-pip
+python3 --version
+python3 -m pip install --upgrade pip setuptools wheel --user
+```
+
+Troubleshooting / tips
+
+- If pip is missing, you can run:
+
+```bash
+python3 -m ensurepip --upgrade
+```
+
+- Use virtual environments for project work:
+
+```bash
+python -m venv .venv
+# activate (PowerShell)
+.\.venv\Scripts\Activate.ps1
+# activate (bash/macOS/Linux)
+source .venv/bin/activate
+```
+
+After installing Python and pip, re-run any Python-based CLI steps in this README (for example, the CAS PDF processing) and ensure the required Python packages are installed.
+
 ## Running the application
 
 The project is a standard Maven project. To run it from the command line,
@@ -99,7 +185,7 @@ Once the JAR file is built, you can run it using
 entrypoint, bootstraps a React application</td></tr>
   <tr><td>&nbsp;&nbsp;&nbsp;&nbsp;<code>routes.tsx</code></td><td>React Router routes definition</td></tr>
   <tr><td>&nbsp;&nbsp;&nbsp;&nbsp;<code>views/MainLayout.tsx</code></td><td>Main 
-layout component, contains the navigation menu, uses <a href="https://hilla.dev/docs/react/components/app-layout">
+ layout component, contains the navigation menu, uses <a href="https://hilla.dev/docs/react/components/app-layout">
 App Layout</a></td></tr>
   <tr><td>&nbsp;&nbsp;&nbsp;&nbsp;<code>views/</code></td><td>UI view 
 components</td></tr>
