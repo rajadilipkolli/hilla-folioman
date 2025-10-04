@@ -4,7 +4,7 @@
   "type": "module",
   "dependencies": {
     "@polymer/polymer": "3.5.2",
-    "@vaadin/bundles": "24.9.1",
+    "@vaadin/bundles": "24.9.2",
     "@vaadin/common-frontend": "0.0.19",
     "@vaadin/hilla-file-router": "24.9.2",
     "@vaadin/hilla-frontend": "24.9.2",
