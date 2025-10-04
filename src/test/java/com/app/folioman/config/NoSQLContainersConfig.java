@@ -34,13 +34,13 @@ public class NoSQLContainersConfig {
     @Bean
     @ServiceConnection
     MongoDBContainer mongoDBContainer() {
-        return new MongoDBContainer(DockerImageName.parse("mongo").withTag("8.0.13"));
+        return new MongoDBContainer(DockerImageName.parse("mongo").withTag("8.0.15"));
     }
 
     @Bean
     @ServiceConnection
     LgtmStackContainer lgtmContainer() {
-        return new LgtmStackContainer(DockerImageName.parse("grafana/otel-lgtm:0.11.9"))
+        return new LgtmStackContainer(DockerImageName.parse("grafana/otel-lgtm:0.11.10"))
                 .withStartupTimeout(Duration.ofMinutes(2));
     }
 }
