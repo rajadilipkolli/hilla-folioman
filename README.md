@@ -1,5 +1,3 @@
-[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/rajadilipkolli/hilla-folioman)
-
 # Hilla FolioMan: Mutual Fund Portfolio Management System
 
 ## Project Overview
