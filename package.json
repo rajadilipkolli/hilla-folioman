@@ -49,7 +49,7 @@
     "@vaadin/hilla-generator-utils": "24.9.3",
     "@vitejs/plugin-react": "5.0.4",
     "glob": "11.0.3",
-    "magic-string": "0.30.19",
+    "magic-string": "0.30.21",
     "rollup-plugin-brotli": "3.1.0",
     "rollup-plugin-visualizer": "6.0.5",
     "strip-css-comments": "5.0.0",
