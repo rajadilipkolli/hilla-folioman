@@ -1,54 +1,20 @@
 package com.app.folioman.portfolio.mapper;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
-import com.app.folioman.portfolio.entities.UserCASDetails;
-import com.app.folioman.portfolio.entities.UserFolioDetails;
-import com.app.folioman.portfolio.entities.UserSchemeDetails;
-import com.app.folioman.portfolio.entities.UserTransactionDetails;
-import com.app.folioman.portfolio.models.request.CasDTO;
-import com.app.folioman.portfolio.models.request.UserFolioDTO;
-import com.app.folioman.portfolio.models.request.UserSchemeDTO;
-import com.app.folioman.portfolio.models.request.UserTransactionDTO;
+import com.app.folioman.portfolio.entities.*;
+import com.app.folioman.portfolio.models.request.*;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mapstruct.factory.Mappers;
 
-@ExtendWith(MockitoExtension.class)
 class CasDetailsMapperTest {
 
-    @Mock
-    private CasDetailsMapper mapper;
-
-    @Mock
-    private CasDTO casDTO;
-
-    @Mock
-    private UserFolioDTO userFolioDTO;
-
-    @Mock
-    private UserSchemeDTO userSchemeDTO;
-
-    @Mock
-    private UserTransactionDTO userTransactionDTO;
-
-    @Mock
-    private UserCASDetails userCASDetails;
-
-    @Mock
-    private UserFolioDetails userFolioDetails;
-
-    @Mock
-    private UserSchemeDetails userSchemeDetails;
-
-    @Mock
-    private UserTransactionDetails userTransactionDetails;
+    private final CasDetailsMapper mapper = Mappers.getMapper(CasDetailsMapper.class);
 
     private AtomicInteger newFolios;
     private AtomicInteger newSchemes;
@@ -63,270 +29,295 @@ class CasDetailsMapperTest {
 
     @Test
     void testConvert() {
-        when(mapper.convert(
-                        any(CasDTO.class),
-                        any(AtomicInteger.class),
-                        any(AtomicInteger.class),
-                        any(AtomicInteger.class)))
-                .thenReturn(userCASDetails);
 
-        UserCASDetails result = mapper.convert(casDTO, newFolios, newSchemes, newTransactions);
+        // use a real DTO here to exercise the mapper, but verify via the spy
+        CasDTO local = new CasDTO(null, FileTypeEnum.KARVY.name(), CasTypeEnum.SUMMARY.name(), null, new ArrayList<>());
+        UserCASDetails result = mapper.convert(local, newFolios, newSchemes, newTransactions);
 
         assertNotNull(result);
-        verify(mapper).convert(casDTO, newFolios, newSchemes, newTransactions);
+        // basic property mappings
+        assertEquals(FileTypeEnum.KARVY, result.getFileTypeEnum());
+        assertEquals(CasTypeEnum.SUMMARY, result.getCasTypeEnum());
     }
 
     @Test
     void testConvertWithNullInput() {
-        when(mapper.convert(isNull(), any(AtomicInteger.class), any(AtomicInteger.class), any(AtomicInteger.class)))
-                .thenReturn(null);
-
-        UserCASDetails result = mapper.convert(null, newFolios, newSchemes, newTransactions);
-
-        assertNull(result);
-        verify(mapper).convert(null, newFolios, newSchemes, newTransactions);
+        // MapStruct implementation triggers @AfterMapping which assumes non-null input
+        assertThrows(NullPointerException.class, () -> mapper.convert(null, newFolios, newSchemes, newTransactions));
     }
 
     @Test
     void testMapUserFolioDTOToUserFolioDetails() {
-        when(mapper.mapUserFolioDTOToUserFolioDetails(
-                        any(UserFolioDTO.class), any(AtomicInteger.class), any(AtomicInteger.class)))
-                .thenReturn(userFolioDetails);
 
-        UserFolioDetails result = mapper.mapUserFolioDTOToUserFolioDetails(userFolioDTO, newSchemes, newTransactions);
+        // use a real DTO and map to entity to validate mapping
+        UserFolioDTO localFolio = new UserFolioDTO("124567", "JioAMC", "ABCDE1234F", "OK", "OK", new ArrayList<>());
+        UserFolioDetails result = mapper.mapUserFolioDTOToUserFolioDetails(localFolio, newSchemes, newTransactions);
 
         assertNotNull(result);
-        verify(mapper).mapUserFolioDTOToUserFolioDetails(userFolioDTO, newSchemes, newTransactions);
+        assertEquals("124567", result.getFolio());
     }
 
     @Test
     void testMapUserFolioDTOToUserFolioDetailsWithNullInput() {
-        when(mapper.mapUserFolioDTOToUserFolioDetails(isNull(), any(AtomicInteger.class), any(AtomicInteger.class)))
-                .thenReturn(null);
-
-        UserFolioDetails result = mapper.mapUserFolioDTOToUserFolioDetails(null, newSchemes, newTransactions);
-
-        assertNull(result);
-        verify(mapper).mapUserFolioDTOToUserFolioDetails(null, newSchemes, newTransactions);
+        assertThrows(
+                NullPointerException.class,
+                () -> mapper.mapUserFolioDTOToUserFolioDetails(null, newSchemes, newTransactions));
     }
 
     @Test
     void testSchemeDTOToSchemeEntity() {
-        when(mapper.schemeDTOToSchemeEntity(any(UserSchemeDTO.class), any(AtomicInteger.class)))
-                .thenReturn(userSchemeDetails);
 
-        UserSchemeDetails result = mapper.schemeDTOToSchemeEntity(userSchemeDTO, newTransactions);
+        UserSchemeDTO localScheme = new UserSchemeDTO(
+                "SCHEME",
+                "ISIN",
+                123L,
+                "advisor",
+                "RTA",
+                "EQUITY",
+                "CAMS",
+                "0.0",
+                "close",
+                "closeCalculated",
+                null,
+                new ArrayList<>());
+        UserSchemeDetails result = mapper.schemeDTOToSchemeEntity(localScheme, newTransactions);
 
         assertNotNull(result);
-        verify(mapper).schemeDTOToSchemeEntity(userSchemeDTO, newTransactions);
+        // no id mapping expected
+        assertNull(result.getId());
     }
 
     @Test
     void testSchemeDTOToSchemeEntityWithNullInput() {
-        when(mapper.schemeDTOToSchemeEntity(isNull(), any(AtomicInteger.class))).thenReturn(null);
-
-        UserSchemeDetails result = mapper.schemeDTOToSchemeEntity(null, newTransactions);
-
-        assertNull(result);
-        verify(mapper).schemeDTOToSchemeEntity(null, newTransactions);
+        assertThrows(NullPointerException.class, () -> mapper.schemeDTOToSchemeEntity(null, newTransactions));
     }
 
     @Test
     void testTransactionDTOToTransactionEntity() {
-        when(mapper.transactionDTOToTransactionEntity(any(UserTransactionDTO.class)))
-                .thenReturn(userTransactionDetails);
 
-        UserTransactionDetails result = mapper.transactionDTOToTransactionEntity(userTransactionDTO);
+        UserTransactionDTO localTxn = new UserTransactionDTO(
+                LocalDate.parse("2020-01-01"),
+                "BUY",
+                100.0d,
+                1.0d,
+                100.0d,
+                100.0d,
+                com.app.folioman.portfolio.models.request.TransactionType.PURCHASE,
+                null);
+        UserTransactionDetails result = mapper.transactionDTOToTransactionEntity(localTxn);
 
         assertNotNull(result);
-        verify(mapper).transactionDTOToTransactionEntity(userTransactionDTO);
+        assertEquals(com.app.folioman.portfolio.models.request.TransactionType.PURCHASE, result.getType());
     }
 
     @Test
     void testTransactionDTOToTransactionEntityWithNullInput() {
-        when(mapper.transactionDTOToTransactionEntity(isNull())).thenReturn(null);
-
         UserTransactionDetails result = mapper.transactionDTOToTransactionEntity(null);
 
         assertNull(result);
-        verify(mapper).transactionDTOToTransactionEntity(null);
     }
 
     @Test
     void testAddFolioEntityToCaseDetails() {
-        List<UserFolioDTO> folios = List.of(userFolioDTO);
-        when(casDTO.folios()).thenReturn(folios);
-        when(mapper.mapUserFolioDTOToUserFolioDetails(
-                        any(UserFolioDTO.class), any(AtomicInteger.class), any(AtomicInteger.class)))
-                .thenReturn(userFolioDetails);
-        doCallRealMethod()
-                .when(mapper)
-                .addFolioEntityToCaseDetails(
-                        any(CasDTO.class),
-                        any(AtomicInteger.class),
-                        any(AtomicInteger.class),
-                        any(AtomicInteger.class),
-                        any(UserCASDetails.class));
+        // use a real CasDTO with a single folio to exercise the @AfterMapping hook
+        UserFolioDTO folioDTO = new UserFolioDTO("F1", "AMC", "PAN", "KYC", "PANKYC", new ArrayList<>());
+        CasDTO localCas =
+                new CasDTO(null, FileTypeEnum.CAMS.name(), CasTypeEnum.DETAILED.name(), null, List.of(folioDTO));
+        com.app.folioman.portfolio.entities.UserCASDetails userCAS =
+                mapper.convert(localCas, newFolios, newSchemes, newTransactions);
 
-        mapper.addFolioEntityToCaseDetails(casDTO, newFolios, newSchemes, newTransactions, userCASDetails);
-
-        verify(mapper).mapUserFolioDTOToUserFolioDetails(userFolioDTO, newSchemes, newTransactions);
-        verify(userCASDetails).addFolioEntity(userFolioDetails);
+        assertNotNull(userCAS);
         assertEquals(1, newFolios.get());
+        assertEquals(1, userCAS.getFolios().size());
     }
 
     @Test
     void testAddFolioEntityToCaseDetailsWithEmptyFolios() {
-        when(casDTO.folios()).thenReturn(List.of());
-        doCallRealMethod()
-                .when(mapper)
-                .addFolioEntityToCaseDetails(
-                        any(CasDTO.class),
-                        any(AtomicInteger.class),
-                        any(AtomicInteger.class),
-                        any(AtomicInteger.class),
-                        any(UserCASDetails.class));
+        CasDTO emptyCas = new CasDTO(null, FileTypeEnum.CAMS.name(), CasTypeEnum.DETAILED.name(), null, List.of());
+        com.app.folioman.portfolio.entities.UserCASDetails userCAS =
+                mapper.convert(emptyCas, newFolios, newSchemes, newTransactions);
 
-        mapper.addFolioEntityToCaseDetails(casDTO, newFolios, newSchemes, newTransactions, userCASDetails);
-
-        verify(mapper, never())
-                .mapUserFolioDTOToUserFolioDetails(
-                        any(UserFolioDTO.class), any(AtomicInteger.class), any(AtomicInteger.class));
-        verify(userCASDetails, never()).addFolioEntity(any(UserFolioDetails.class));
+        assertNotNull(userCAS);
         assertEquals(0, newFolios.get());
     }
 
     @Test
     void testAddFolioEntityToCaseDetailsWithMultipleFolios() {
-        List<UserFolioDTO> folios = List.of(userFolioDTO, userFolioDTO);
-        when(casDTO.folios()).thenReturn(folios);
-        when(mapper.mapUserFolioDTOToUserFolioDetails(
-                        any(UserFolioDTO.class), any(AtomicInteger.class), any(AtomicInteger.class)))
-                .thenReturn(userFolioDetails);
-        doCallRealMethod()
-                .when(mapper)
-                .addFolioEntityToCaseDetails(
-                        any(CasDTO.class),
-                        any(AtomicInteger.class),
-                        any(AtomicInteger.class),
-                        any(AtomicInteger.class),
-                        any(UserCASDetails.class));
+        UserFolioDTO f1 = new UserFolioDTO("F1", "AMC", "PAN", "KYC", "PANKYC", new ArrayList<>());
+        UserFolioDTO f2 = new UserFolioDTO("F2", "AMC", "PAN", "KYC", "PANKYC", new ArrayList<>());
+        CasDTO localCas2 =
+                new CasDTO(null, FileTypeEnum.CAMS.name(), CasTypeEnum.DETAILED.name(), null, List.of(f1, f2));
+        com.app.folioman.portfolio.entities.UserCASDetails userCAS2 =
+                mapper.convert(localCas2, newFolios, newSchemes, newTransactions);
 
-        mapper.addFolioEntityToCaseDetails(casDTO, newFolios, newSchemes, newTransactions, userCASDetails);
-
-        verify(mapper, times(2)).mapUserFolioDTOToUserFolioDetails(userFolioDTO, newSchemes, newTransactions);
-        verify(userCASDetails, times(2)).addFolioEntity(userFolioDetails);
+        assertNotNull(userCAS2);
         assertEquals(2, newFolios.get());
+        assertEquals(2, userCAS2.getFolios().size());
     }
 
     @Test
     void testAddSchemaEntityToFolioEntity() {
-        List<UserSchemeDTO> schemes = List.of(userSchemeDTO);
-        when(userFolioDTO.schemes()).thenReturn(schemes);
-        when(mapper.schemeDTOToSchemeEntity(any(UserSchemeDTO.class), any(AtomicInteger.class)))
-                .thenReturn(userSchemeDetails);
-        doCallRealMethod()
-                .when(mapper)
-                .addSchemaEntityToFolioEntity(
-                        any(UserFolioDTO.class),
-                        any(AtomicInteger.class),
-                        any(AtomicInteger.class),
-                        any(UserFolioDetails.class));
+        UserSchemeDTO s1 = new UserSchemeDTO(
+                "S1",
+                "ISIN",
+                111L,
+                "advisor",
+                "RTA",
+                "EQUITY",
+                "CAMS",
+                "0.0",
+                "close",
+                "closeCalculated",
+                null,
+                new ArrayList<>());
+        UserFolioDTO folioWithScheme = new UserFolioDTO("F1", "AMC", "PAN", "KYC", "PANKYC", List.of(s1));
+        com.app.folioman.portfolio.entities.UserFolioDetails folioEntity =
+                mapper.mapUserFolioDTOToUserFolioDetails(folioWithScheme, newSchemes, newTransactions);
 
-        mapper.addSchemaEntityToFolioEntity(userFolioDTO, newSchemes, newTransactions, userFolioDetails);
-
-        verify(mapper).schemeDTOToSchemeEntity(userSchemeDTO, newTransactions);
-        verify(userFolioDetails).addScheme(userSchemeDetails);
+        assertNotNull(folioEntity);
         assertEquals(1, newSchemes.get());
+        assertEquals(1, folioEntity.getSchemes().size());
     }
 
     @Test
     void testAddSchemaEntityToFolioEntityWithEmptySchemes() {
-        when(userFolioDTO.schemes()).thenReturn(List.of());
-        doCallRealMethod()
-                .when(mapper)
-                .addSchemaEntityToFolioEntity(
-                        any(UserFolioDTO.class),
-                        any(AtomicInteger.class),
-                        any(AtomicInteger.class),
-                        any(UserFolioDetails.class));
+        UserFolioDTO folioWithoutSchemes = new UserFolioDTO("F1", "AMC", "PAN", "KYC", "PANKYC", List.of());
+        com.app.folioman.portfolio.entities.UserFolioDetails folioEntity2 =
+                mapper.mapUserFolioDTOToUserFolioDetails(folioWithoutSchemes, newSchemes, newTransactions);
 
-        mapper.addSchemaEntityToFolioEntity(userFolioDTO, newSchemes, newTransactions, userFolioDetails);
-
-        verify(mapper, never()).schemeDTOToSchemeEntity(any(UserSchemeDTO.class), any(AtomicInteger.class));
-        verify(userFolioDetails, never()).addScheme(any(UserSchemeDetails.class));
+        assertNotNull(folioEntity2);
         assertEquals(0, newSchemes.get());
     }
 
     @Test
     void testAddSchemaEntityToFolioEntityWithMultipleSchemes() {
-        List<UserSchemeDTO> schemes = List.of(userSchemeDTO, userSchemeDTO);
-        when(userFolioDTO.schemes()).thenReturn(schemes);
-        when(mapper.schemeDTOToSchemeEntity(any(UserSchemeDTO.class), any(AtomicInteger.class)))
-                .thenReturn(userSchemeDetails);
-        doCallRealMethod()
-                .when(mapper)
-                .addSchemaEntityToFolioEntity(
-                        any(UserFolioDTO.class),
-                        any(AtomicInteger.class),
-                        any(AtomicInteger.class),
-                        any(UserFolioDetails.class));
+        UserSchemeDTO s1 = new UserSchemeDTO(
+                "S1",
+                "ISIN",
+                111L,
+                "advisor",
+                "RTA",
+                "EQUITY",
+                "CAMS",
+                "0.0",
+                "close",
+                "closeCalculated",
+                null,
+                new ArrayList<>());
+        UserSchemeDTO s2 = new UserSchemeDTO(
+                "S2",
+                "ISIN2",
+                222L,
+                "advisor2",
+                "RTA2",
+                "EQUITY",
+                "CAMS",
+                "0.0",
+                "close",
+                "closeCalculated",
+                null,
+                new ArrayList<>());
+        UserFolioDTO folioWithTwo = new UserFolioDTO("F1", "AMC", "PAN", "KYC", "PANKYC", List.of(s1, s2));
+        com.app.folioman.portfolio.entities.UserFolioDetails folioEntity3 =
+                mapper.mapUserFolioDTOToUserFolioDetails(folioWithTwo, newSchemes, newTransactions);
 
-        mapper.addSchemaEntityToFolioEntity(userFolioDTO, newSchemes, newTransactions, userFolioDetails);
-
-        verify(mapper, times(2)).schemeDTOToSchemeEntity(userSchemeDTO, newTransactions);
-        verify(userFolioDetails, times(2)).addScheme(userSchemeDetails);
+        assertNotNull(folioEntity3);
         assertEquals(2, newSchemes.get());
+        assertEquals(2, folioEntity3.getSchemes().size());
     }
 
     @Test
     void testAddTransactionEntityToSchemeEntity() {
-        List<UserTransactionDTO> transactions = List.of(userTransactionDTO);
-        when(userSchemeDTO.transactions()).thenReturn(transactions);
-        when(mapper.transactionDTOToTransactionEntity(any(UserTransactionDTO.class)))
-                .thenReturn(userTransactionDetails);
-        doCallRealMethod()
-                .when(mapper)
-                .addTransactionEntityToSchemeEntity(
-                        any(UserSchemeDTO.class), any(AtomicInteger.class), any(UserSchemeDetails.class));
+        UserTransactionDTO t1 = new UserTransactionDTO(
+                java.time.LocalDate.parse("2020-01-01"),
+                "BUY",
+                100.0d,
+                1.0d,
+                100.0d,
+                100.0d,
+                TransactionType.PURCHASE,
+                null);
+        UserSchemeDTO schemeWithTxn = new UserSchemeDTO(
+                "S1",
+                "ISIN",
+                555L,
+                "advisor",
+                "RTA",
+                "EQUITY",
+                "CAMS",
+                "0.0",
+                "close",
+                "closeCalculated",
+                null,
+                List.of(t1));
+        com.app.folioman.portfolio.entities.UserSchemeDetails schemeEntity =
+                mapper.schemeDTOToSchemeEntity(schemeWithTxn, newTransactions);
 
-        mapper.addTransactionEntityToSchemeEntity(userSchemeDTO, newTransactions, userSchemeDetails);
-
-        verify(mapper).transactionDTOToTransactionEntity(userTransactionDTO);
-        verify(userSchemeDetails).addTransaction(userTransactionDetails);
+        assertNotNull(schemeEntity);
         assertEquals(1, newTransactions.get());
+        assertEquals(1, schemeEntity.getTransactions().size());
     }
 
     @Test
     void testAddTransactionEntityToSchemeEntityWithEmptyTransactions() {
-        when(userSchemeDTO.transactions()).thenReturn(List.of());
-        doCallRealMethod()
-                .when(mapper)
-                .addTransactionEntityToSchemeEntity(
-                        any(UserSchemeDTO.class), any(AtomicInteger.class), any(UserSchemeDetails.class));
+        UserSchemeDTO schemeWithoutTx = new UserSchemeDTO(
+                "S1",
+                "ISIN",
+                666L,
+                "advisor",
+                "RTA",
+                "EQUITY",
+                "CAMS",
+                "0.0",
+                "close",
+                "closeCalculated",
+                null,
+                List.of());
+        com.app.folioman.portfolio.entities.UserSchemeDetails schemeEntity2 =
+                mapper.schemeDTOToSchemeEntity(schemeWithoutTx, newTransactions);
 
-        mapper.addTransactionEntityToSchemeEntity(userSchemeDTO, newTransactions, userSchemeDetails);
-
-        verify(mapper, never()).transactionDTOToTransactionEntity(any(UserTransactionDTO.class));
-        verify(userSchemeDetails, never()).addTransaction(any(UserTransactionDetails.class));
+        assertNotNull(schemeEntity2);
         assertEquals(0, newTransactions.get());
     }
 
     @Test
     void testAddTransactionEntityToSchemeEntityWithMultipleTransactions() {
-        List<UserTransactionDTO> transactions = List.of(userTransactionDTO, userTransactionDTO);
-        when(userSchemeDTO.transactions()).thenReturn(transactions);
-        when(mapper.transactionDTOToTransactionEntity(any(UserTransactionDTO.class)))
-                .thenReturn(userTransactionDetails);
-        doCallRealMethod()
-                .when(mapper)
-                .addTransactionEntityToSchemeEntity(
-                        any(UserSchemeDTO.class), any(AtomicInteger.class), any(UserSchemeDetails.class));
+        UserTransactionDTO t1 = new UserTransactionDTO(
+                java.time.LocalDate.parse("2020-01-01"),
+                "BUY",
+                100.0d,
+                1.0d,
+                100.0d,
+                100.0d,
+                TransactionType.PURCHASE,
+                null);
+        UserTransactionDTO t2 = new UserTransactionDTO(
+                java.time.LocalDate.parse("2020-01-02"),
+                "SELL",
+                50.0d,
+                0.5d,
+                100.0d,
+                50.0d,
+                TransactionType.REDEMPTION,
+                null);
+        UserSchemeDTO schemeWithTwo = new UserSchemeDTO(
+                "S1",
+                "ISIN",
+                777L,
+                "advisor",
+                "RTA",
+                "EQUITY",
+                "CAMS",
+                "0.0",
+                "close",
+                "closeCalculated",
+                null,
+                List.of(t1, t2));
+        com.app.folioman.portfolio.entities.UserSchemeDetails schemeEntity3 =
+                mapper.schemeDTOToSchemeEntity(schemeWithTwo, newTransactions);
 
-        mapper.addTransactionEntityToSchemeEntity(userSchemeDTO, newTransactions, userSchemeDetails);
-
-        verify(mapper, times(2)).transactionDTOToTransactionEntity(userTransactionDTO);
-        verify(userSchemeDetails, times(2)).addTransaction(userTransactionDetails);
+        assertNotNull(schemeEntity3);
         assertEquals(2, newTransactions.get());
+        assertEquals(2, schemeEntity3.getTransactions().size());
     }
 }
