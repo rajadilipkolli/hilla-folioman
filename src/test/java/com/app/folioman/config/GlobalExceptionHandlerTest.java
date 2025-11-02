@@ -11,7 +11,6 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.ProblemDetail;
 import org.springframework.validation.FieldError;
@@ -23,14 +22,11 @@ class GlobalExceptionHandlerTest {
     @InjectMocks
     private GlobalExceptionHandler globalExceptionHandler;
 
-    @Mock
-    private MethodArgumentNotValidException methodArgumentNotValidException;
-
-    @Mock
-    private FieldError fieldError;
-
     @Test
     void onException_MethodArgumentNotValidException_ShouldReturnProblemDetail() {
+
+        MethodArgumentNotValidException methodArgumentNotValidException = mock(MethodArgumentNotValidException.class);
+        FieldError fieldError = mock(FieldError.class);
         when(fieldError.getObjectName()).thenReturn("testObject");
         when(fieldError.getField()).thenReturn("testField");
         when(fieldError.getRejectedValue()).thenReturn("rejectedValue");
@@ -49,14 +45,16 @@ class GlobalExceptionHandlerTest {
         List<GlobalExceptionHandler.ApiValidationError> violations = (List<GlobalExceptionHandler.ApiValidationError>)
                 result.getProperties().get("violations");
         assertEquals(1, violations.size());
-        assertEquals("testObject", violations.get(0).object());
-        assertEquals("testField", violations.get(0).field());
-        assertEquals("rejectedValue", violations.get(0).rejectedValue());
-        assertEquals("Test error message", violations.get(0).message());
+        assertEquals("testObject", violations.getFirst().object());
+        assertEquals("testField", violations.getFirst().field());
+        assertEquals("rejectedValue", violations.getFirst().rejectedValue());
+        assertEquals("Test error message", violations.getFirst().message());
     }
 
     @Test
     void onException_MethodArgumentNotValidException_WithNullMessage_ShouldUseEmptyString() {
+        MethodArgumentNotValidException methodArgumentNotValidException = mock(MethodArgumentNotValidException.class);
+        FieldError fieldError = mock(FieldError.class);
         when(fieldError.getObjectName()).thenReturn("testObject");
         when(fieldError.getField()).thenReturn("testField");
         when(fieldError.getRejectedValue()).thenReturn("rejectedValue");
@@ -69,11 +67,12 @@ class GlobalExceptionHandlerTest {
         @SuppressWarnings("unchecked")
         List<GlobalExceptionHandler.ApiValidationError> violations = (List<GlobalExceptionHandler.ApiValidationError>)
                 result.getProperties().get("violations");
-        assertEquals("", violations.get(0).message());
+        assertEquals("", violations.getFirst().message());
     }
 
     @Test
     void onException_MethodArgumentNotValidException_WithMultipleErrors_ShouldSortByField() {
+        MethodArgumentNotValidException methodArgumentNotValidException = mock(MethodArgumentNotValidException.class);
         FieldError fieldError1 = mock(FieldError.class);
         FieldError fieldError2 = mock(FieldError.class);
 
