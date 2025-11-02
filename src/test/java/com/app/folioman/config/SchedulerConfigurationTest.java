@@ -51,7 +51,7 @@ class SchedulerConfigurationTest {
     }
 
     @Test
-    void scheduleAllJobs_ShouldScheduleAllThreeJobs() {
+    void scheduleAllJobs_ShouldScheduleAllFourJobs() {
         String amfiCron = "0 0 1 * * ?";
         String historicalNavCron = "0 0 2 * * ?";
         String dailyDataCron = "0 0 3 * * ?";
@@ -97,10 +97,6 @@ class SchedulerConfigurationTest {
         try (MockedStatic<BackgroundJob> backgroundJobMock = mockStatic(BackgroundJob.class)) {
             schedulerConfiguration.scheduleAllJobs(applicationStartedEvent);
 
-            backgroundJobMock.verify(
-                    () -> BackgroundJob.scheduleRecurrently(
-                            anyString(), anyString(), any(org.jobrunr.jobs.lambdas.JobLambda.class)),
-                    times(4));
             backgroundJobMock.verify(
                     () -> BackgroundJob.scheduleRecurrently(
                             anyString(), anyString(), any(org.jobrunr.jobs.lambdas.JobLambda.class)),

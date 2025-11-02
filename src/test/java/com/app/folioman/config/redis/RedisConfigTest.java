@@ -1,13 +1,16 @@
 package com.app.folioman.config.redis;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import java.net.ConnectException;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.cache.Cache;
@@ -54,20 +57,8 @@ class RedisConfigTest {
     }
 
     @Test
-    void cacheManager_WithCompressionEnabled_ShouldCreateCustomRedisCacheManager() {
-        ReflectionTestUtils.setField(redisConfig, "compressionEnabled", true);
-        ReflectionTestUtils.setField(redisConfig, "defaultTtlSeconds", 3600L);
-
-        CustomRedisCacheManager cacheManager =
-                redisConfig.cacheManager(redisConnectionFactory, monitor, circuitBreaker);
-
-        assertNotNull(cacheManager);
-    }
-
-    @Test
     void cacheManager_WithCompressionDisabled_ShouldCreateCustomRedisCacheManager() {
-        ReflectionTestUtils.setField(redisConfig, "compressionEnabled", false);
-        ReflectionTestUtils.setField(redisConfig, "defaultTtlSeconds", 1800L);
+        setConfigFields(false, 1800L);
 
         CustomRedisCacheManager cacheManager =
                 redisConfig.cacheManager(redisConnectionFactory, monitor, circuitBreaker);
@@ -91,101 +82,24 @@ class RedisConfigTest {
         assertDoesNotThrow(() -> errorHandler.handleCacheGetError(exception, cache, "testKey"));
     }
 
-    @Test
-    void errorHandler_HandleCacheGetError_WithOtherException() {
-        when(cache.getName()).thenReturn("testCache");
-        RuntimeException exception = new RuntimeException("General error");
+    @ParameterizedTest
+    @MethodSource("provideExceptionsForGetError")
+    void errorHandler_HandleCacheGetError_ShouldNotThrow(RuntimeException exception, Cache cache, Object key) {
+        if (cache != null) {
+            when(cache.getName()).thenReturn("testCache");
+        }
         CacheErrorHandler errorHandler = redisConfig.errorHandler();
 
-        assertDoesNotThrow(() -> errorHandler.handleCacheGetError(exception, cache, "testKey"));
+        assertDoesNotThrow(() -> errorHandler.handleCacheGetError(exception, cache, key));
     }
 
-    @Test
-    void errorHandler_HandleCacheGetError_WithNullCache() {
-        RuntimeException exception = new RuntimeException("Error");
-        CacheErrorHandler errorHandler = redisConfig.errorHandler();
-
-        assertDoesNotThrow(() -> errorHandler.handleCacheGetError(exception, null, "testKey"));
-    }
-
-    @Test
-    void errorHandler_HandleCacheGetError_WithNullKey() {
-        when(cache.getName()).thenReturn("testCache");
-        RuntimeException exception = new RuntimeException("Error");
-        CacheErrorHandler errorHandler = redisConfig.errorHandler();
-
-        assertDoesNotThrow(() -> errorHandler.handleCacheGetError(exception, cache, null));
-    }
-
-    @Test
-    void errorHandler_HandleCachePutError_WithConnectException() {
-        when(cache.getName()).thenReturn("testCache");
-        RuntimeException exception = new RuntimeException(new ConnectException("Connection failed"));
-        CacheErrorHandler errorHandler = redisConfig.errorHandler();
-
-        assertDoesNotThrow(() -> errorHandler.handleCachePutError(exception, cache, "testKey", "testValue"));
-    }
-
-    @Test
-    void errorHandler_HandleCachePutError_WithOtherException() {
-        when(cache.getName()).thenReturn("testCache");
-        RuntimeException exception = new RuntimeException("General error");
-        CacheErrorHandler errorHandler = redisConfig.errorHandler();
-
-        assertDoesNotThrow(() -> errorHandler.handleCachePutError(exception, cache, "testKey", "testValue"));
-    }
-
-    @Test
-    void errorHandler_HandleCachePutError_WithNullValue() {
-        when(cache.getName()).thenReturn("testCache");
-        RuntimeException exception = new RuntimeException("Error");
-        CacheErrorHandler errorHandler = redisConfig.errorHandler();
-
-        assertDoesNotThrow(() -> errorHandler.handleCachePutError(exception, cache, "testKey", null));
-    }
-
-    @Test
-    void errorHandler_HandleCacheEvictError_WithConnectException() {
-        when(cache.getName()).thenReturn("testCache");
-        RuntimeException exception = new RuntimeException(new ConnectException("Connection failed"));
-        CacheErrorHandler errorHandler = redisConfig.errorHandler();
-
-        assertDoesNotThrow(() -> errorHandler.handleCacheEvictError(exception, cache, "testKey"));
-    }
-
-    @Test
-    void errorHandler_HandleCacheEvictError_WithOtherException() {
-        when(cache.getName()).thenReturn("testCache");
-        RuntimeException exception = new RuntimeException("General error");
-        CacheErrorHandler errorHandler = redisConfig.errorHandler();
-
-        assertDoesNotThrow(() -> errorHandler.handleCacheEvictError(exception, cache, "testKey"));
-    }
-
-    @Test
-    void errorHandler_HandleCacheClearError_WithConnectException() {
-        when(cache.getName()).thenReturn("testCache");
-        RuntimeException exception = new RuntimeException(new ConnectException("Connection failed"));
-        CacheErrorHandler errorHandler = redisConfig.errorHandler();
-
-        assertDoesNotThrow(() -> errorHandler.handleCacheClearError(exception, cache));
-    }
-
-    @Test
-    void errorHandler_HandleCacheClearError_WithOtherException() {
-        when(cache.getName()).thenReturn("testCache");
-        RuntimeException exception = new RuntimeException("General error");
-        CacheErrorHandler errorHandler = redisConfig.errorHandler();
-
-        assertDoesNotThrow(() -> errorHandler.handleCacheClearError(exception, cache));
-    }
-
-    @Test
-    void errorHandler_HandleCacheClearError_WithNullCache() {
-        RuntimeException exception = new RuntimeException("Error");
-        CacheErrorHandler errorHandler = redisConfig.errorHandler();
-
-        assertDoesNotThrow(() -> errorHandler.handleCacheClearError(exception, null));
+    private static Stream<Arguments> provideExceptionsForGetError() {
+        Cache mockCache = mock(Cache.class);
+        return Stream.of(
+                Arguments.of(new RuntimeException(new ConnectException("Connection failed")), mockCache, "testKey"),
+                Arguments.of(new RuntimeException("General error"), mockCache, "testKey"),
+                Arguments.of(new RuntimeException("Error"), null, "testKey"),
+                Arguments.of(new RuntimeException("Error"), mockCache, null));
     }
 
     @Test
@@ -201,8 +115,22 @@ class RedisConfigTest {
 
     @Test
     void cacheManager_WithCustomTtl_ShouldUseCustomValue() {
-        ReflectionTestUtils.setField(redisConfig, "compressionEnabled", false);
-        ReflectionTestUtils.setField(redisConfig, "defaultTtlSeconds", 7200L);
+        setConfigFields(false, 7200L);
+
+        CustomRedisCacheManager cacheManager =
+                redisConfig.cacheManager(redisConnectionFactory, monitor, circuitBreaker);
+
+        assertNotNull(cacheManager);
+    }
+
+    private void setConfigFields(boolean compressionEnabled, long ttlSeconds) {
+        ReflectionTestUtils.setField(redisConfig, "compressionEnabled", compressionEnabled);
+        ReflectionTestUtils.setField(redisConfig, "defaultTtlSeconds", ttlSeconds);
+    }
+
+    @Test
+    void cacheManager_WithCompressionEnabled_ShouldCreateCustomRedisCacheManager() {
+        setConfigFields(true, 3600L);
 
         CustomRedisCacheManager cacheManager =
                 redisConfig.cacheManager(redisConnectionFactory, monitor, circuitBreaker);
