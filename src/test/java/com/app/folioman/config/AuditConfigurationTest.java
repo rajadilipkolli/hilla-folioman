@@ -33,12 +33,4 @@ class AuditConfigurationTest {
         assertTrue(currentAuditor.isPresent());
         assertEquals("App", currentAuditor.get());
     }
-
-    @Test
-    void testAuditorAware_ReturnsOptionalWithValue() {
-        AuditorAware<String> auditorAware = auditConfiguration.auditorAware();
-        Optional<String> currentAuditor = auditorAware.getCurrentAuditor();
-
-        assertTrue(currentAuditor.isPresent());
-    }
 }
