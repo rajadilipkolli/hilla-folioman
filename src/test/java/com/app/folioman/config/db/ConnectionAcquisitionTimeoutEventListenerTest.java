@@ -8,6 +8,7 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import com.vladmihalcea.flexypool.event.ConnectionAcquisitionTimeoutEvent;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -35,8 +36,14 @@ class ConnectionAcquisitionTimeoutEventListenerTest {
         logger.setLevel(Level.WARN);
     }
 
+    @AfterEach
+    void tearDown() {
+        Logger logger = (Logger) LoggerFactory.getLogger(ConnectionAcquisitionTimeoutEventListener.class);
+        logger.detachAppender(listAppender);
+    }
+
     @Test
-    void constructor_ShouldInitializeWithCorrectEventClass() {
+    void constructor_ShouldCreateNonNullInstance() {
         ConnectionAcquisitionTimeoutEventListener newListener = new ConnectionAcquisitionTimeoutEventListener();
 
         assertNotNull(newListener);
@@ -50,11 +57,12 @@ class ConnectionAcquisitionTimeoutEventListenerTest {
         listener.on(event);
 
         assertEquals(1, listAppender.list.size());
-        ILoggingEvent loggingEvent = listAppender.list.get(0);
+        ILoggingEvent loggingEvent = listAppender.list.getFirst();
         assertEquals(Level.WARN, loggingEvent.getLevel());
         assertTrue(loggingEvent.getFormattedMessage().contains(poolName));
         assertTrue(loggingEvent.getFormattedMessage().contains("Connection acquisition timeout occurred"));
         assertTrue(loggingEvent.getFormattedMessage().contains("connection pool saturation"));
+        verify(event).getUniqueName();
     }
 
     @Test
@@ -64,7 +72,7 @@ class ConnectionAcquisitionTimeoutEventListenerTest {
         listener.on(event);
 
         assertEquals(1, listAppender.list.size());
-        ILoggingEvent loggingEvent = listAppender.list.get(0);
+        ILoggingEvent loggingEvent = listAppender.list.getFirst();
         assertEquals(Level.WARN, loggingEvent.getLevel());
         assertTrue(loggingEvent.getFormattedMessage().contains("null"));
     }
