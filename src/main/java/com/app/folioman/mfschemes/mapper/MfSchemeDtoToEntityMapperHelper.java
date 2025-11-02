@@ -56,21 +56,29 @@ public class MfSchemeDtoToEntityMapperHelper {
         if (matcher.find()) {
             String type = matcher.group(1).strip();
 
-            // Split only once, store the result in an array
+            // Split into words to allow trimming of trailing generic words like "Fund" or "Scheme"
             String[] splitArray = type.split("\\s+");
 
-            // Check if there are more than 2 elements
             if (splitArray.length > 2) {
-                // Join all elements except the last one using a space
-                type = String.join(" ", Arrays.copyOf(splitArray, splitArray.length - 1));
+                // For multi-word types like "Long Term Equity Fund" -> keep all except last token
+                type = String.join(" ", Arrays.copyOf(splitArray, splitArray.length - 1))
+                        .strip();
+            } else if (splitArray.length == 2) {
+                // For common two-word forms like "Equity Fund" or "Debt Fund" -> drop the trailing "Fund"/"Scheme"
+                String last = splitArray[splitArray.length - 1];
+                if ("Fund".equalsIgnoreCase(last) || "Scheme".equalsIgnoreCase(last)) {
+                    type = splitArray[0].strip();
+                }
             }
             String category = matcher.group(2).strip();
             String subCategory = matcher.group(3).strip();
             mfSchemeType = findOrCreateMFSchemeTypeEntity(type, category, subCategory);
         } else {
             if (!schemeType.contains("-")) {
-                String type = schemeType.substring(0, schemeType.indexOf('('));
-                String category = schemeType.substring(schemeType.indexOf('(') + 1, schemeType.length() - 1);
+                String type = schemeType.substring(0, schemeType.indexOf('(')).strip();
+                String category = schemeType
+                        .substring(schemeType.indexOf('(') + 1, schemeType.length() - 1)
+                        .strip();
                 mfSchemeType = findOrCreateMFSchemeTypeEntity(type, category, null);
             } else {
                 LOGGER.error("Unable to parse schemeType :{}", schemeType);

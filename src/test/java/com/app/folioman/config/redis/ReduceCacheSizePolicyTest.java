@@ -15,6 +15,7 @@ import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Duration;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -80,7 +81,7 @@ class ReduceCacheSizePolicyTest {
 
     @Test
     void apply_WithRegularKeys_EvictsKeysAndAppliesTTL() {
-        Set<String> keys = Set.of("key1", "key2", "key3", "key4", "key5");
+        Set<String> keys = new LinkedHashSet<>(List.of("key1", "key2", "key3", "key4", "key5"));
         try (MockedConstruction<Monitor> mocked = mockConstruction(Monitor.class, (mock, ctx) -> {
             when(mock.scanKeys("*")).thenReturn(keys);
         })) {
@@ -126,25 +127,24 @@ class ReduceCacheSizePolicyTest {
 
     @Test
     void apply_WithHighAccessKeys_DoesNotEvictHighAccessKeys() {
-        Set<String> keys = Set.of("key1", "key2", "key3");
+        Set<String> keys = new LinkedHashSet<>(List.of("key1", "key2", "key3", "key4", "key5", "key6", "key7"));
         try (MockedConstruction<Monitor> mocked = mockConstruction(Monitor.class, (mock, ctx) -> {
             when(mock.scanKeys("*")).thenReturn(keys);
         })) {
-            when(counter.count()).thenReturn(10.0, 15.0, 1.0);
+            when(counter.count()).thenReturn(50.0, 60.0, 1.0, 2.0, 3.0, 4.0, 5.0);
             when(redisTemplate.getExpire(anyString())).thenReturn(3600L);
 
             reduceCacheSizePolicy.apply(redisTemplate, meterRegistry);
 
-            // For 3 keys keysToRemove is 0 (30% -> 0), so no deletions should occur
-            verify(redisTemplate, never()).delete("key3");
+            // 7 keys × 30% = 2.1 → 2 deletions expected, but high-access keys should be protected
             verify(redisTemplate, never()).delete("key1");
             verify(redisTemplate, never()).delete("key2");
+            verify(redisTemplate, times(2)).delete(anyString());
         }
     }
 
     @Test
     void apply_WithNegativeTTL_HandlesNegativeTTL() {
-        // Use a deterministic collection so we can map counts and TTLs to keys reliably
         LinkedHashSet<String> keys = new LinkedHashSet<>();
         keys.add("key1");
         keys.add("key2");
@@ -216,7 +216,7 @@ class ReduceCacheSizePolicyTest {
 
     @Test
     void apply_WithLowAccessCountKeys_AppliesShortTTL() {
-        Set<String> keys = Set.of("key1", "key2", "key3", "key4", "key5", "key6");
+        Set<String> keys = new LinkedHashSet<>(List.of("key1", "key2", "key3", "key4", "key5", "key6"));
         try (MockedConstruction<Monitor> mocked = mockConstruction(Monitor.class, (mock, ctx) -> {
             when(mock.scanKeys("*")).thenReturn(keys);
         })) {
