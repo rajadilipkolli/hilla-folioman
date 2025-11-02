@@ -1,13 +1,11 @@
 package com.app.folioman.config.redis;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Duration;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -25,11 +23,6 @@ class CachePolicyTest {
 
     @Mock
     private MeterRegistry meterRegistry;
-
-    @BeforeEach
-    void setUp() {
-        cachePolicy = mock(CachePolicy.class);
-    }
 
     @Test
     void getExpirationTime_ShouldReturnDuration() {

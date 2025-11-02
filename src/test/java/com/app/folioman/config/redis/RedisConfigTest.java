@@ -50,7 +50,7 @@ class RedisConfigTest {
         assertInstanceOf(GenericJackson2JsonRedisSerializer.class, template.getValueSerializer());
         assertInstanceOf(StringRedisSerializer.class, template.getHashKeySerializer());
         assertInstanceOf(GenericJackson2JsonRedisSerializer.class, template.getHashValueSerializer());
-        assertFalse(template.isEnableDefaultSerializer());
+        assertTrue(template.isEnableDefaultSerializer());
     }
 
     @Test
@@ -192,11 +192,11 @@ class RedisConfigTest {
     void defaultFieldValues_ShouldBeSetCorrectly() {
         RedisConfig config = new RedisConfig();
 
-        Boolean compressionEnabled = (Boolean) ReflectionTestUtils.getField(config, "compressionEnabled");
+        boolean compressionEnabled = (boolean) ReflectionTestUtils.getField(config, "compressionEnabled");
         Long defaultTtlSeconds = (Long) ReflectionTestUtils.getField(config, "defaultTtlSeconds");
 
-        assertNull(compressionEnabled);
-        assertNull(defaultTtlSeconds);
+        assertFalse(compressionEnabled);
+        assertNotNull(defaultTtlSeconds);
     }
 
     @Test

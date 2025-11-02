@@ -1,7 +1,6 @@
 package com.app.folioman.config.redis;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import java.util.function.Supplier;

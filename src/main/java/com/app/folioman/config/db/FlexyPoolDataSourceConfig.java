@@ -42,7 +42,7 @@ public class FlexyPoolDataSourceConfig {
         return new FlexyPoolDataSourceBeanPostProcessor(appDataSourceProperties);
     }
 
-    private record FlexyPoolDataSourceBeanPostProcessor(ObjectProvider<AppDataSourceProperties> appDataSourceProperties)
+    static record FlexyPoolDataSourceBeanPostProcessor(ObjectProvider<AppDataSourceProperties> appDataSourceProperties)
             implements BeanPostProcessor {
 
         @Override
@@ -69,7 +69,7 @@ public class FlexyPoolDataSourceConfig {
             return bean;
         }
 
-        private FlexyPoolConfiguration<HikariDataSource> buildFlexyPoolConfiguration(
+        FlexyPoolConfiguration<HikariDataSource> buildFlexyPoolConfiguration(
                 HikariDataSource hikariDataSource, AppDataSourceProperties appDataSourceProperties, String beanName) {
 
             return new FlexyPoolConfiguration.Builder<>(beanName, hikariDataSource, HikariCPPoolAdapter.FACTORY)
@@ -88,7 +88,7 @@ public class FlexyPoolDataSourceConfig {
                     .build();
         }
 
-        private FlexyPoolDataSource<HikariDataSource> createFlexyPoolDataSource(
+        FlexyPoolDataSource<HikariDataSource> createFlexyPoolDataSource(
                 FlexyPoolConfiguration<HikariDataSource> flexyPoolConfiguration,
                 AppDataSourceProperties appDataSourceProperties) {
 
@@ -104,7 +104,7 @@ public class FlexyPoolDataSourceConfig {
         /**
          * Apply optimizations to HikariCP connection pool
          */
-        private void optimizeHikariPool(HikariDataSource hikariDataSource, String poolName) {
+        void optimizeHikariPool(HikariDataSource hikariDataSource, String poolName) {
             AppDataSourceProperties props = getAppDataSourceProperties();
 
             // Enable leak detection if configured
@@ -131,11 +131,11 @@ public class FlexyPoolDataSourceConfig {
             hikariDataSource.setConnectionTestQuery(null); // Let JDBC4 driver handle validation
         }
 
-        private AppDataSourceProperties getAppDataSourceProperties() {
+        AppDataSourceProperties getAppDataSourceProperties() {
             return appDataSourceProperties.getIfAvailable();
         }
 
-        private HikariDataSource getHikariDataSource(DataSource dataSource) {
+        HikariDataSource getHikariDataSource(DataSource dataSource) {
             HikariDataSource hikariDataSource = null;
             if (dataSource instanceof HikariDataSource hikariDataSource1) {
                 hikariDataSource = hikariDataSource1;

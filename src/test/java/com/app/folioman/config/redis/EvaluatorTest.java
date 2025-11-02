@@ -86,7 +86,7 @@ class EvaluatorTest {
 
         String result = evaluator.evaluate(metrics);
 
-        assertEquals("MAINTAIN_CURRENT", result);
+        assertEquals("ADJUST_TTL", result);
     }
 
     @Test

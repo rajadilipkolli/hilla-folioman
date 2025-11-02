@@ -56,7 +56,8 @@ class CustomRedisCacheTest {
         Object value = "testValue";
 
         doAnswer(invocation -> {
-                    invocation.getArgument(0, Runnable.class).run();
+                    // CacheCircuitBreaker.execute accepts a Supplier<T>, so invoke its get()
+                    invocation.getArgument(0, java.util.function.Supplier.class).get();
                     return null;
                 })
                 .when(circuitBreaker)
@@ -87,7 +88,7 @@ class CustomRedisCacheTest {
         Object value = "testValue";
 
         doAnswer(invocation -> {
-                    invocation.getArgument(0, Runnable.class).run();
+                    invocation.getArgument(0, java.util.function.Supplier.class).get();
                     return null;
                 })
                 .when(circuitBreaker)
@@ -104,13 +105,9 @@ class CustomRedisCacheTest {
     void get_ShouldReturnValue_WhenRedisHasValue() {
         Object key = "testKey";
         Object value = "testValue";
-        SimpleValueWrapper expectedWrapper = new SimpleValueWrapper(value);
 
-        when(circuitBreaker.executeWithFallback(any(), any())).thenAnswer(invocation -> {
-            Supplier<Cache.ValueWrapper> supplier = invocation.getArgument(0);
-            return supplier.get();
-        });
-        when(valueWrapper.get()).thenReturn(value);
+        // Simulate Redis returning a value
+        when(circuitBreaker.executeWithFallback(any(), any())).thenReturn(new SimpleValueWrapper(value));
 
         Cache.ValueWrapper result = customRedisCache.get(key);
 
@@ -123,12 +120,10 @@ class CustomRedisCacheTest {
     void get_ShouldReturnNull_WhenRedisHasNoValue() {
         Object key = "testKey";
 
-        when(circuitBreaker.executeWithFallback(any(), any())).thenAnswer(invocation -> {
-            Supplier<Cache.ValueWrapper> supplier = invocation.getArgument(0);
-            return supplier.get();
-        });
+        // Simulate Redis returning null
+        when(circuitBreaker.executeWithFallback(any(), any())).thenReturn(null);
 
-        Cache.ValueWrapper result = customRedisCache.get(key);
+        customRedisCache.get(key);
 
         verify(circuitBreaker).executeWithFallback(any(), any());
         verify(monitor).recordAccess(key.toString());
@@ -152,7 +147,7 @@ class CustomRedisCacheTest {
             return fallback.get();
         });
 
-        Cache.ValueWrapper result = customRedisCache.get(key);
+        customRedisCache.get(key);
 
         verify(circuitBreaker).executeWithFallback(any(), any());
     }
@@ -163,9 +158,9 @@ class CustomRedisCacheTest {
 
         when(circuitBreaker.executeWithFallback(any(), any())).thenThrow(new RuntimeException("Unexpected error"));
 
-        Cache.ValueWrapper result = customRedisCache.get(key);
+        Cache.ValueWrapper res = customRedisCache.get(key);
 
-        assertNull(result);
+        assertNull(res);
         verify(circuitBreaker).executeWithFallback(any(), any());
     }
 
@@ -174,7 +169,7 @@ class CustomRedisCacheTest {
         Object key = "testKey";
 
         doAnswer(invocation -> {
-                    invocation.getArgument(0, Runnable.class).run();
+                    invocation.getArgument(0, java.util.function.Supplier.class).get();
                     return null;
                 })
                 .when(circuitBreaker)
@@ -200,7 +195,7 @@ class CustomRedisCacheTest {
     @Test
     void clear_ShouldExecuteSuccessfully_WhenRedisIsAvailable() {
         doAnswer(invocation -> {
-                    invocation.getArgument(0, Runnable.class).run();
+                    invocation.getArgument(0, Supplier.class).get();
                     return null;
                 })
                 .when(circuitBreaker)
@@ -226,7 +221,7 @@ class CustomRedisCacheTest {
         SimpleKey simpleKey = new SimpleKey("param1", "param2");
 
         doAnswer(invocation -> {
-                    invocation.getArgument(0, Runnable.class).run();
+                    invocation.getArgument(0, Supplier.class).get();
                     return null;
                 })
                 .when(circuitBreaker)
@@ -242,7 +237,7 @@ class CustomRedisCacheTest {
         String regularKey = "regularKey";
 
         doAnswer(invocation -> {
-                    invocation.getArgument(0, Runnable.class).run();
+                    invocation.getArgument(0, Supplier.class).get();
                     return null;
                 })
                 .when(circuitBreaker)
@@ -273,7 +268,7 @@ class CustomRedisCacheTest {
         Object value = "testValue";
 
         doAnswer(invocation -> {
-                    invocation.getArgument(0, Runnable.class).run();
+                    invocation.getArgument(0, Supplier.class).get();
                     return null;
                 })
                 .when(circuitBreaker)

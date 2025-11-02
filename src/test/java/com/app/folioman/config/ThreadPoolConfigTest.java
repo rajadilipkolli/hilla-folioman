@@ -2,6 +2,7 @@ package com.app.folioman.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.core.task.TaskExecutor;
@@ -14,6 +15,16 @@ class ThreadPoolConfigTest {
     @BeforeEach
     void setUp() {
         threadPoolConfig = new ThreadPoolConfig();
+    }
+
+    @AfterEach
+    void tearDown() {
+        if (threadPoolConfig != null) {
+            TaskExecutor executor = threadPoolConfig.taskExecutor();
+            if (executor instanceof ThreadPoolTaskExecutor) {
+                ((ThreadPoolTaskExecutor) executor).shutdown();
+            }
+        }
     }
 
     @Test

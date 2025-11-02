@@ -70,6 +70,13 @@ public class CacheCircuitBreaker {
      * @return the result of the operation or fallback
      */
     public <T> T executeWithFallback(Supplier<T> supplier, Supplier<T> fallback) {
+        if (supplier == null) {
+            throw new NullPointerException("supplier must not be null");
+        }
+        if (fallback == null) {
+            throw new NullPointerException("fallback must not be null");
+        }
+
         try {
             return CircuitBreaker.decorateSupplier(circuitBreaker, supplier).get();
         } catch (Exception e) {
@@ -86,6 +93,9 @@ public class CacheCircuitBreaker {
      * @return the result of the operation or null if the circuit is open
      */
     public <T> T execute(Supplier<T> supplier) {
+        if (supplier == null) {
+            throw new NullPointerException("supplier must not be null");
+        }
         return executeWithFallback(supplier, () -> null);
     }
 

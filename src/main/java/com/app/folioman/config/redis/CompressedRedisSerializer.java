@@ -38,8 +38,13 @@ public class CompressedRedisSerializer<T> implements RedisSerializer<T> {
             // First serialize the value using the delegate
             byte[] serialized = delegate.serialize(value);
 
+            // If delegate returned null, return a single-byte 'not compressed' marker
+            if (serialized == null) {
+                return new byte[] {0};
+            }
+
             // Only compress if serialized value is above threshold
-            if (serialized != null && serialized.length > COMPRESSION_THRESHOLD_BYTES) {
+            if (serialized.length > COMPRESSION_THRESHOLD_BYTES) {
                 byte[] compressed = compress(serialized);
 
                 // Log compression ratio for monitoring

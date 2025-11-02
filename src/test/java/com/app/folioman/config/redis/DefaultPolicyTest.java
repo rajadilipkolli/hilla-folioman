@@ -1,7 +1,7 @@
 package com.app.folioman.config.redis;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.*;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Duration;
@@ -26,9 +26,12 @@ class DefaultPolicyTest {
 
     @Test
     void apply_ShouldExecuteWithoutError() {
-        RedisTemplate<String, Object> redisTemplate = mock(RedisTemplate.class);
+        @SuppressWarnings("unchecked")
+        RedisTemplate<String, Object> redisTemplate = (RedisTemplate<String, Object>) mock(RedisTemplate.class);
         MeterRegistry meterRegistry = mock(MeterRegistry.class);
 
         defaultPolicy.apply(redisTemplate, meterRegistry);
+        // DefaultPolicy does no work; assert there are no interactions with redisTemplate or meterRegistry
+        verifyNoInteractions(redisTemplate, meterRegistry);
     }
 }
