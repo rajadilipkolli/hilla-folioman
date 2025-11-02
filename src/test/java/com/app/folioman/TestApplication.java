@@ -6,7 +6,7 @@ import org.springframework.boot.SpringApplication;
 
 class TestApplication {
 
-    public static void main(String[] args) {
+    static void main(String[] args) {
         SpringApplication.from(Application::main)
                 .with(SQLContainersConfig.class, NoSQLContainersConfig.class)
                 .run(args);
