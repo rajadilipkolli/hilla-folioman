@@ -51,6 +51,13 @@ public class AdaptiveStrategyScheduler {
     public void adaptStrategy() {
         try {
             Map<String, Object> metrics = monitor.getMetrics();
+
+            if (metrics == null) {
+                log.debug("Cache metrics are null, skipping evaluation");
+                return;
+            }
+
+            // only evaluate when metrics is non-null
             String newStrategy = evaluator.evaluate(metrics);
 
             log.debug(

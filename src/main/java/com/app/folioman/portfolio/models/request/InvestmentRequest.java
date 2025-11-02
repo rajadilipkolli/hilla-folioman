@@ -12,5 +12,6 @@ import java.util.List;
  * The funds list must not be empty, and the investment amount must be positive.
  */
 public record InvestmentRequest(
-        @NotEmpty(message = "Investment request and funds list cannot be null or empty") @ValidSumOfRatios @Valid List<Fund> funds,
+        @NotEmpty(message = "Investment request and funds list cannot be null or empty") @ValidSumOfRatios @Valid
+                List<Fund> funds,
         @PositiveOrZero(message = "Amount to invest cannot be negative") double amountToInvest) {}

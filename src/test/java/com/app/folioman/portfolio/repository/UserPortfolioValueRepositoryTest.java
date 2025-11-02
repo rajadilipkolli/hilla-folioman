@@ -1,0 +1,163 @@
+package com.app.folioman.portfolio.repository;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import com.app.folioman.portfolio.entities.UserPortfolioValue;
+import java.util.List;
+import java.util.Optional;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.context.annotation.Import;
+
+@DataJpaTest
+@Import(com.app.folioman.config.SQLContainersConfig.class)
+class UserPortfolioValueRepositoryTest {
+
+    @Autowired
+    private TestEntityManager entityManager;
+
+    @Autowired
+    private UserPortfolioValueRepository userPortfolioValueRepository;
+
+    @Test
+    void testSave() {
+        UserPortfolioValue userPortfolioValue = new UserPortfolioValue();
+        userPortfolioValue.setDate(java.time.LocalDate.now());
+        userPortfolioValue.setInvested(new java.math.BigDecimal("0"));
+        userPortfolioValue.setValue(new java.math.BigDecimal("0"));
+        com.app.folioman.portfolio.entities.UserCASDetails cas =
+                new com.app.folioman.portfolio.entities.UserCASDetails();
+        cas.setCasTypeEnum(com.app.folioman.portfolio.entities.CasTypeEnum.DETAILED);
+        cas.setFileTypeEnum(com.app.folioman.portfolio.entities.FileTypeEnum.UNKNOWN);
+        cas = entityManager.persistAndFlush(cas);
+        userPortfolioValue.setUserCasDetails(cas);
+
+        UserPortfolioValue saved = userPortfolioValueRepository.save(userPortfolioValue);
+
+        assertThat(saved).isNotNull();
+        assertThat(saved.getId()).isNotNull();
+    }
+
+    @Test
+    void testFindById_ExistingId() {
+        UserPortfolioValue userPortfolioValue = new UserPortfolioValue();
+        userPortfolioValue.setDate(java.time.LocalDate.now());
+        userPortfolioValue.setInvested(new java.math.BigDecimal("0"));
+        userPortfolioValue.setValue(new java.math.BigDecimal("0"));
+        com.app.folioman.portfolio.entities.UserCASDetails cas =
+                new com.app.folioman.portfolio.entities.UserCASDetails();
+        cas.setCasTypeEnum(com.app.folioman.portfolio.entities.CasTypeEnum.DETAILED);
+        cas.setFileTypeEnum(com.app.folioman.portfolio.entities.FileTypeEnum.CAMS);
+        cas = entityManager.persistAndFlush(cas);
+        userPortfolioValue.setUserCasDetails(cas);
+        UserPortfolioValue saved = entityManager.persistAndFlush(userPortfolioValue);
+
+        Optional<UserPortfolioValue> found = userPortfolioValueRepository.findById(saved.getId());
+
+        assertThat(found).isPresent();
+        assertThat(found.get().getId()).isEqualTo(saved.getId());
+    }
+
+    @Test
+    void testFindById_NonExistentId() {
+        Optional<UserPortfolioValue> found = userPortfolioValueRepository.findById(999L);
+
+        assertThat(found).isEmpty();
+    }
+
+    @Test
+    void testFindAll() {
+        com.app.folioman.portfolio.entities.UserCASDetails cas =
+                new com.app.folioman.portfolio.entities.UserCASDetails();
+        cas.setCasTypeEnum(com.app.folioman.portfolio.entities.CasTypeEnum.DETAILED);
+        cas.setFileTypeEnum(com.app.folioman.portfolio.entities.FileTypeEnum.UNKNOWN);
+        cas = entityManager.persistAndFlush(cas);
+
+        UserPortfolioValue userPortfolioValue1 = new UserPortfolioValue();
+        userPortfolioValue1.setDate(java.time.LocalDate.now());
+        userPortfolioValue1.setInvested(new java.math.BigDecimal("0"));
+        userPortfolioValue1.setValue(new java.math.BigDecimal("0"));
+        userPortfolioValue1.setUserCasDetails(cas);
+
+        UserPortfolioValue userPortfolioValue2 = new UserPortfolioValue();
+        userPortfolioValue2.setDate(java.time.LocalDate.now().plusDays(1));
+        userPortfolioValue2.setInvested(new java.math.BigDecimal("0"));
+        userPortfolioValue2.setValue(new java.math.BigDecimal("0"));
+        userPortfolioValue2.setUserCasDetails(cas);
+
+        entityManager.persistAndFlush(userPortfolioValue1);
+        entityManager.persistAndFlush(userPortfolioValue2);
+
+        List<UserPortfolioValue> all = userPortfolioValueRepository.findAll();
+
+        assertThat(all).hasSize(2);
+    }
+
+    @Test
+    void testDeleteById() {
+        UserPortfolioValue userPortfolioValue = new UserPortfolioValue();
+        userPortfolioValue.setDate(java.time.LocalDate.now());
+        userPortfolioValue.setInvested(new java.math.BigDecimal("0"));
+        userPortfolioValue.setValue(new java.math.BigDecimal("0"));
+        com.app.folioman.portfolio.entities.UserCASDetails cas =
+                new com.app.folioman.portfolio.entities.UserCASDetails();
+        cas.setCasTypeEnum(com.app.folioman.portfolio.entities.CasTypeEnum.DETAILED);
+        cas.setFileTypeEnum(com.app.folioman.portfolio.entities.FileTypeEnum.UNKNOWN);
+        cas = entityManager.persistAndFlush(cas);
+        userPortfolioValue.setUserCasDetails(cas);
+        UserPortfolioValue saved = entityManager.persistAndFlush(userPortfolioValue);
+
+        userPortfolioValueRepository.deleteById(saved.getId());
+
+        Optional<UserPortfolioValue> found = userPortfolioValueRepository.findById(saved.getId());
+        assertThat(found).isEmpty();
+    }
+
+    @Test
+    void testCount() {
+        UserPortfolioValue userPortfolioValue = new UserPortfolioValue();
+        userPortfolioValue.setDate(java.time.LocalDate.now());
+        userPortfolioValue.setInvested(new java.math.BigDecimal("0"));
+        userPortfolioValue.setValue(new java.math.BigDecimal("0"));
+        com.app.folioman.portfolio.entities.UserCASDetails cas =
+                new com.app.folioman.portfolio.entities.UserCASDetails();
+        cas.setCasTypeEnum(com.app.folioman.portfolio.entities.CasTypeEnum.DETAILED);
+        cas.setFileTypeEnum(com.app.folioman.portfolio.entities.FileTypeEnum.UNKNOWN);
+        cas = entityManager.persistAndFlush(cas);
+        userPortfolioValue.setUserCasDetails(cas);
+        entityManager.persistAndFlush(userPortfolioValue);
+
+        long count = userPortfolioValueRepository.count();
+
+        assertThat(count).isEqualTo(1L);
+    }
+
+    @Test
+    void testExistsById() {
+        UserPortfolioValue userPortfolioValue = new UserPortfolioValue();
+        userPortfolioValue.setDate(java.time.LocalDate.now());
+        userPortfolioValue.setInvested(new java.math.BigDecimal("0"));
+        userPortfolioValue.setValue(new java.math.BigDecimal("0"));
+        com.app.folioman.portfolio.entities.UserCASDetails cas =
+                new com.app.folioman.portfolio.entities.UserCASDetails();
+        // ensure required enum fields are set before persisting
+        cas.setCasTypeEnum(com.app.folioman.portfolio.entities.CasTypeEnum.DETAILED);
+        cas.setFileTypeEnum(com.app.folioman.portfolio.entities.FileTypeEnum.UNKNOWN);
+        cas = entityManager.persistAndFlush(cas);
+        userPortfolioValue.setUserCasDetails(cas);
+        UserPortfolioValue saved = entityManager.persistAndFlush(userPortfolioValue);
+
+        boolean exists = userPortfolioValueRepository.existsById(saved.getId());
+
+        assertThat(exists).isTrue();
+    }
+
+    @Test
+    void testExistsById_NonExistentId() {
+        boolean exists = userPortfolioValueRepository.existsById(999L);
+
+        assertThat(exists).isFalse();
+    }
+}

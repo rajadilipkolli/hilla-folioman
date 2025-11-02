@@ -38,8 +38,13 @@ public class CompressedRedisSerializer<T> implements RedisSerializer<T> {
             // First serialize the value using the delegate
             byte[] serialized = delegate.serialize(value);
 
+            // If delegate returned null, return a single-byte 'not compressed' marker
+            if (serialized == null) {
+                return new byte[] {0};
+            }
+
             // Only compress if serialized value is above threshold
-            if (serialized != null && serialized.length > COMPRESSION_THRESHOLD_BYTES) {
+            if (serialized.length > COMPRESSION_THRESHOLD_BYTES) {
                 byte[] compressed = compress(serialized);
 
                 // Log compression ratio for monitoring
@@ -72,6 +77,7 @@ public class CompressedRedisSerializer<T> implements RedisSerializer<T> {
 
     @Override
     public T deserialize(byte[] bytes) throws SerializationException {
+        // Treat both null and empty payloads as 'no value' and don't call the delegate.
         if (bytes == null || bytes.length == 0) {
             return null;
         }
@@ -111,7 +117,14 @@ public class CompressedRedisSerializer<T> implements RedisSerializer<T> {
             while ((bytesRead = gzipStream.read(buffer)) != -1) {
                 byteStream.write(buffer, 0, bytesRead);
             }
+        } catch (IOException e) {
+            // Wrap decompression-related IO errors (for example when data is not valid GZIP)
+            // into Spring's SerializationException so callers (and tests) see a consistent
+            // serialization error type instead of leaking ZipException/IOException.
+            log.error("Error during GZIP decompression", e);
+            throw new SerializationException("Error during GZIP decompression", e);
         }
+
         return byteStream.toByteArray();
     }
 }

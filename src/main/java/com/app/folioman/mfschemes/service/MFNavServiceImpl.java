@@ -102,7 +102,7 @@ public class MFNavServiceImpl implements MFNavService {
             } catch (NavNotFoundException navNotFoundException) {
                 LOGGER.error("NavNotFoundException occurred: {}", navNotFoundException.getMessage());
 
-                LocalDate currentNavDate = navNotFoundException.getDate();
+                LocalDate currentNavDate = navNotFoundException.getNavDate();
                 if (retryCount == SchemeConstants.FIRST_RETRY || retryCount == SchemeConstants.THIRD_RETRY) {
                     // make a call to get historical Data and persist
                     String oldSchemeCode = historicalNavService.getHistoricalNav(schemeCode, navDate);

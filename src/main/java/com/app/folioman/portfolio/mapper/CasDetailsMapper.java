@@ -10,7 +10,11 @@ import com.app.folioman.portfolio.models.request.UserSchemeDTO;
 import com.app.folioman.portfolio.models.request.UserTransactionDTO;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
-import org.mapstruct.*;
+import org.mapstruct.AfterMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingConstants;
+import org.mapstruct.MappingTarget;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface CasDetailsMapper {

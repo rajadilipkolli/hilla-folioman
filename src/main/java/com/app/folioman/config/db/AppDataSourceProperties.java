@@ -12,7 +12,8 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 public class AppDataSourceProperties {
 
-    @Min(value = 5, message = "Min OverGrow size should be 5") private int maxOvergrowPoolSize;
+    @Min(value = 5, message = "Min OverGrow size should be 5")
+    private int maxOvergrowPoolSize;
 
     private AcquisitionStrategy acquisitionStrategy;
 
@@ -55,14 +56,19 @@ public class AppDataSourceProperties {
     public static class AcquisitionStrategy {
 
         /** Number of retry attempts for connection acquisition */
-        @Min(value = 1, message = "At least one retry must be configured") @Max(value = 10, message = "Maximum 10 retries allowed") private int retries;
+        @Min(value = 1, message = "At least one retry must be configured")
+        @Max(value = 10, message = "Maximum 10 retries allowed")
+        private int retries;
 
         /** Timeout increment in milliseconds between retries */
-        @Min(value = 50, message = "Increment timeout must be at least 50ms") private int incrementTimeout;
+        @Min(value = 50, message = "Increment timeout must be at least 50ms")
+        private int incrementTimeout;
 
-        @Positive(message = "Lease time threshold must be non-negative") private long leaseTimeThreshold;
+        @Positive(message = "Lease time threshold must be non-negative")
+        private long leaseTimeThreshold;
 
-        @Min(value = 100, message = "Acquisition timeout must be at least 100ms") private long acquisitionTimeout;
+        @Min(value = 100, message = "Acquisition timeout must be at least 100ms")
+        private long acquisitionTimeout;
 
         public int getRetries() {
             return retries;
@@ -105,7 +111,8 @@ public class AppDataSourceProperties {
         private boolean enabled = true;
 
         /** Threshold in milliseconds after which to consider a connection leaked */
-        @Min(value = 30000, message = "Leak threshold must be at least 30 seconds") private long thresholdMs = 300000; // Default 5 minutes
+        @Min(value = 30000, message = "Leak threshold must be at least 30 seconds")
+        private long thresholdMs = 300000; // Default 5 minutes
 
         public boolean isEnabled() {
             return enabled;
@@ -132,7 +139,8 @@ public class AppDataSourceProperties {
         private boolean detailed = true;
 
         /** Interval in milliseconds for metrics reporting */
-        @Min(value = 1000, message = "Metrics reporting interval must be at least 1 second") private long reportingIntervalMs = 60000; // Default 1 minute
+        @Min(value = 1000, message = "Metrics reporting interval must be at least 1 second")
+        private long reportingIntervalMs = 60000; // Default 1 minute
 
         public boolean isDetailed() {
             return detailed;

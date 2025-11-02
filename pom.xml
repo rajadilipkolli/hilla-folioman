@@ -322,7 +322,6 @@
                         </palantirJavaFormat>
                         <importOrder/>
                         <removeUnusedImports/>
-                        <formatAnnotations/>
                     </java>
                     <typescript>
                         <includes>

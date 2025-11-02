@@ -11,7 +11,8 @@ import org.springframework.validation.annotation.Validated;
 @Validated
 public class SchemeProperties {
 
-    @NotBlank(message = "Data URL must not be blank") @Pattern(
+    @NotBlank(message = "Data URL must not be blank")
+    @Pattern(
             regexp = "^https?://[-a-zA-Z0-9+&@#/%?=~_|!:,.;]*[-a-zA-Z0-9+&@#/%=~_|]",
             message = "Data URL must be a valid HTTP(S) URL")
     private String dataUrl;

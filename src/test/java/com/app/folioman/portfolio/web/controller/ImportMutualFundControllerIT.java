@@ -151,7 +151,7 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
                     .andExpect(jsonPath("$.newFolios", is(1)))
                     .andExpect(jsonPath("$.newSchemes", is(1)))
                     .andExpect(jsonPath("$.newTransactions", is(5)))
-                    .andExpect(jsonPath("$.casId", notNullValue()));
+                    .andExpect(jsonPath("$.userCASDetailsId", notNullValue()));
         } finally {
             tempFile.deleteOnExit();
         }
@@ -187,7 +187,7 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
                     .andExpect(jsonPath("$.newFolios", is(0)))
                     .andExpect(jsonPath("$.newSchemes", is(0)))
                     .andExpect(jsonPath("$.newTransactions", is(0)))
-                    .andExpect(jsonPath("$.casId", notNullValue()));
+                    .andExpect(jsonPath("$.userCASDetailsId", notNullValue()));
         } finally {
             tempFile.deleteOnExit();
         }
@@ -218,7 +218,7 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
                     .andExpect(jsonPath("$.newFolios", is(1)))
                     .andExpect(jsonPath("$.newSchemes", is(1)))
                     .andExpect(jsonPath("$.newTransactions", is(1)))
-                    .andExpect(jsonPath("$.casId", notNullValue()));
+                    .andExpect(jsonPath("$.userCASDetailsId", notNullValue()));
         } finally {
             tempFile.deleteOnExit();
         }
@@ -251,7 +251,7 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
                     .andExpect(jsonPath("$.newFolios", is(0)))
                     .andExpect(jsonPath("$.newSchemes", is(1)))
                     .andExpect(jsonPath("$.newTransactions", is(6)))
-                    .andExpect(jsonPath("$.casId", notNullValue()));
+                    .andExpect(jsonPath("$.userCASDetailsId", notNullValue()));
         } finally {
             tempFile.deleteOnExit();
         }
@@ -286,7 +286,7 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
                     .andExpect(jsonPath("$.newFolios", is(0)))
                     .andExpect(jsonPath("$.newSchemes", is(0)))
                     .andExpect(jsonPath("$.newTransactions", is(1)))
-                    .andExpect(jsonPath("$.casId", notNullValue()));
+                    .andExpect(jsonPath("$.userCASDetailsId", notNullValue()));
         } finally {
             tempFile.deleteOnExit();
         }
@@ -319,7 +319,7 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
                     .andExpect(jsonPath("$.newFolios", is(1)))
                     .andExpect(jsonPath("$.newSchemes", is(2)))
                     .andExpect(jsonPath("$.newTransactions", is(3)))
-                    .andExpect(jsonPath("$.casId", notNullValue()));
+                    .andExpect(jsonPath("$.userCASDetailsId", notNullValue()));
         } finally {
             tempFile.deleteOnExit();
         }
@@ -355,7 +355,7 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
                     .andExpect(jsonPath("$.newFolios", is(1)))
                     .andExpect(jsonPath("$.newSchemes", is(3)))
                     .andExpect(jsonPath("$.newTransactions", is(59)))
-                    .andExpect(jsonPath("$.casId", notNullValue()));
+                    .andExpect(jsonPath("$.userCASDetailsId", notNullValue()));
         } finally {
             tempFile.deleteOnExit();
         }
@@ -453,7 +453,7 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
                     .andExpect(jsonPath("$.newFolios", is(1)))
                     .andExpect(jsonPath("$.newSchemes", is(1)))
                     .andExpect(jsonPath("$.newTransactions", is(2)))
-                    .andExpect(jsonPath("$.casId", notNullValue()));
+                    .andExpect(jsonPath("$.userCASDetailsId", notNullValue()));
         } finally {
             initialFile.deleteOnExit();
         }
@@ -551,7 +551,7 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
                     .andExpect(jsonPath("$.newFolios", is(0)))
                     .andExpect(jsonPath("$.newSchemes", is(0)))
                     .andExpect(jsonPath("$.newTransactions", is(1))) // Only one new transaction should be processed
-                    .andExpect(jsonPath("$.casId", notNullValue()));
+                    .andExpect(jsonPath("$.userCASDetailsId", notNullValue()));
         } finally {
             updatedFile.deleteOnExit();
         }

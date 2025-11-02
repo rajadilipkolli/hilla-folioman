@@ -24,7 +24,8 @@ class NewlyInsertedSchemesListenerIT extends AbstractIntegrationTest {
         applicationEventPublisher.publishEvent(event);
 
         // Record the time before processing to verify new NAVs
-        LocalDate testStartDate = LocalDate.now().minusDays(1);
+        // Widen window to 7 days to include NAVs that may have older navDate values due to holidays
+        LocalDate testStartDate = LocalDate.now().minusDays(7);
 
         // Then: Awaitility waits for async processing and checks repository state
         await().atMost(Duration.ofSeconds(30)).untilAsserted(() -> {
@@ -33,8 +34,8 @@ class NewlyInsertedSchemesListenerIT extends AbstractIntegrationTest {
                     mfSchemeNavRepository.findByMfScheme_AmfiCodeInAndNavDateGreaterThanEqualAndNavDateLessThanEqual(
                             Set.copyOf(schemeCodes), testStartDate, LocalDate.now());
 
-            assertThat(navs).isNotEmpty();
-            assertThat(navs.stream().map(nav -> nav.amfiCode()).distinct())
+            assertThat(navs).isNotEmpty().hasSizeGreaterThan(3);
+            assertThat(navs.stream().map(MFSchemeNavProjection::amfiCode).distinct())
                     .containsExactlyInAnyOrderElementsOf(schemeCodes);
         });
     }
