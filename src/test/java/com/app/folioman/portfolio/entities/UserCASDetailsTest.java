@@ -22,12 +22,6 @@ class UserCASDetailsTest {
     @Mock
     private UserFolioDetails mockUserFolioDetails;
 
-    @Mock
-    private CasTypeEnum mockCasTypeEnum;
-
-    @Mock
-    private FileTypeEnum mockFileTypeEnum;
-
     @BeforeEach
     void setUp() {
         userCASDetails = new UserCASDetails();
@@ -62,9 +56,8 @@ class UserCASDetailsTest {
 
     @Test
     void testSetCasTypeEnum() {
-        UserCASDetails result = userCASDetails.setCasTypeEnum(mockCasTypeEnum);
-
-        assertEquals(mockCasTypeEnum, userCASDetails.getCasTypeEnum());
+        UserCASDetails result = userCASDetails.setCasTypeEnum(CasTypeEnum.DETAILED);
+        assertEquals(CasTypeEnum.DETAILED, userCASDetails.getCasTypeEnum());
         assertSame(userCASDetails, result);
     }
 
@@ -83,9 +76,9 @@ class UserCASDetailsTest {
 
     @Test
     void testSetFileTypeEnum() {
-        UserCASDetails result = userCASDetails.setFileTypeEnum(mockFileTypeEnum);
+        UserCASDetails result = userCASDetails.setFileTypeEnum(FileTypeEnum.CAMS);
 
-        assertEquals(mockFileTypeEnum, userCASDetails.getFileTypeEnum());
+        assertEquals(FileTypeEnum.CAMS, userCASDetails.getFileTypeEnum());
         assertSame(userCASDetails, result);
     }
 

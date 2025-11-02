@@ -94,17 +94,10 @@ class ApplicationEventTest {
     void multipleInstances_ShouldHaveDifferentEventIdsAndTimestamps() {
         TestApplicationEvent event1 = new TestApplicationEvent(mockSource);
 
-        try {
-            Thread.sleep(1);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-
         TestApplicationEvent event2 = new TestApplicationEvent(mockSource);
 
         assertNotEquals(event1.getEventId(), event2.getEventId());
-        assertTrue(event2.getTimestamp().isAfter(event1.getTimestamp())
-                || event2.getTimestamp().equals(event1.getTimestamp()));
+        assertFalse(event2.getTimestamp().isBefore(event1.getTimestamp()));
     }
 
     private static class TestApplicationEvent extends ApplicationEvent {

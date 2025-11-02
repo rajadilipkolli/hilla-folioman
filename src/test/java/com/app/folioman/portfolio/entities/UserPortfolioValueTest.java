@@ -12,18 +12,18 @@ import org.junit.jupiter.api.Test;
 class UserPortfolioValueTest {
 
     private UserPortfolioValue userPortfolioValue;
-    private UserCASDetails mockUserCasDetails;
+    private UserCASDetails userCasDetails;
 
     @BeforeEach
     void setUp() {
         userPortfolioValue = new UserPortfolioValue();
-        mockUserCasDetails = new UserCASDetails();
-        mockUserCasDetails.setCasTypeEnum(com.app.folioman.portfolio.entities.CasTypeEnum.DETAILED);
-        mockUserCasDetails.setFileTypeEnum(com.app.folioman.portfolio.entities.FileTypeEnum.CAMS);
-        com.app.folioman.portfolio.entities.InvestorInfo ii = new com.app.folioman.portfolio.entities.InvestorInfo();
+        userCasDetails = new UserCASDetails();
+        userCasDetails.setCasTypeEnum(CasTypeEnum.DETAILED);
+        userCasDetails.setFileTypeEnum(FileTypeEnum.CAMS);
+        InvestorInfo ii = new InvestorInfo();
         ii.setEmail("");
         ii.setName("");
-        mockUserCasDetails.setInvestorInfo(ii);
+        userCasDetails.setInvestorInfo(ii);
     }
 
     @Test
@@ -136,9 +136,9 @@ class UserPortfolioValueTest {
 
     @Test
     void testGetAndSetUserCasDetails() {
-        UserPortfolioValue result = userPortfolioValue.setUserCasDetails(mockUserCasDetails);
+        UserPortfolioValue result = userPortfolioValue.setUserCasDetails(userCasDetails);
 
-        assertEquals(mockUserCasDetails, userPortfolioValue.getUserCasDetails());
+        assertEquals(userCasDetails, userPortfolioValue.getUserCasDetails());
         assertSame(userPortfolioValue, result);
     }
 
@@ -166,7 +166,7 @@ class UserPortfolioValueTest {
                 .setValue(value)
                 .setXirr(xirr)
                 .setLiveXirr(liveXirr)
-                .setUserCasDetails(mockUserCasDetails);
+                .setUserCasDetails(userCasDetails);
 
         assertSame(userPortfolioValue, result);
         assertEquals(id, userPortfolioValue.getId());
@@ -175,6 +175,6 @@ class UserPortfolioValueTest {
         assertEquals(value, userPortfolioValue.getValue());
         assertEquals(xirr, userPortfolioValue.getXirr());
         assertEquals(liveXirr, userPortfolioValue.getLiveXirr());
-        assertEquals(mockUserCasDetails, userPortfolioValue.getUserCasDetails());
+        assertEquals(userCasDetails, userPortfolioValue.getUserCasDetails());
     }
 }

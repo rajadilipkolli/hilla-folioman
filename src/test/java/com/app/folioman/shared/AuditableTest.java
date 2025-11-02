@@ -16,7 +16,7 @@ class AuditableTest {
     @BeforeEach
     void setUp() {
         auditable = new TestableAuditable();
-        testDate = LocalDateTime.now();
+        testDate = LocalDateTime.of(2025, 11, 2, 0, 0, 0);
     }
 
     @Test

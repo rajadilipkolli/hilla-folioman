@@ -187,9 +187,9 @@ class AdaptiveStrategySchedulerTest {
         assertDoesNotThrow(() -> adaptiveStrategyScheduler.adaptStrategy());
 
         verify(monitor).getMetrics();
-        verify(evaluator, never()).evaluate(null);
-        verify(policyRepository, never()).getPolicy("DEFAULT_STRATEGY");
-        verify(cacheAdapter, never()).setPolicy(cachePolicy);
+        verify(evaluator, never()).evaluate(any());
+        verify(policyRepository, never()).getPolicy(anyString());
+        verify(cacheAdapter, never()).setPolicy(any(CachePolicy.class));
     }
 
     @Test
