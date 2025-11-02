@@ -51,17 +51,20 @@ public class AdaptiveStrategyScheduler {
     public void adaptStrategy() {
         try {
             Map<String, Object> metrics = monitor.getMetrics();
+
+            if (metrics == null) {
+                log.debug("Cache metrics are null, skipping evaluation");
+                return;
+            }
+
+            // only evaluate when metrics is non-null
             String newStrategy = evaluator.evaluate(metrics);
 
-            if (metrics != null) {
-                log.debug(
-                        "Cache metrics - Size: {}, Hit Rate: {}, Memory Usage: {}",
-                        metrics.get("cacheSize"),
-                        metrics.get("hitRate"),
-                        metrics.get("memoryUsage"));
-            } else {
-                log.debug("Cache metrics are null");
-            }
+            log.debug(
+                    "Cache metrics - Size: {}, Hit Rate: {}, Memory Usage: {}",
+                    metrics.get("cacheSize"),
+                    metrics.get("hitRate"),
+                    metrics.get("memoryUsage"));
 
             // Implement circuit breaker pattern to avoid excessive changes
             if (lastAppliedStrategy != null && lastAppliedStrategy.equals(newStrategy)) {

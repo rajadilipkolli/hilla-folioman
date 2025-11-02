@@ -78,7 +78,7 @@ class EvaluatorTest {
     }
 
     @Test
-    void evaluate_shouldReturnReduceCacheSize_whenHitRateAtLowThreshold() {
+    void evaluate_shouldReturnAdjustTTL_whenHitRateAtLowThreshold() {
         Map<String, Object> metrics = new HashMap<>();
         metrics.put("cacheSize", 15000L);
         metrics.put("hitRate", 0.3);
@@ -90,7 +90,7 @@ class EvaluatorTest {
     }
 
     @Test
-    void evaluate_shouldReturnIncreaseCacheSize_whenHitRateAtHighThreshold() {
+    void evaluate_shouldReturnMaintainCurrent_whenHitRateAtHighThreshold() {
         Map<String, Object> metrics = new HashMap<>();
         metrics.put("cacheSize", 5000L);
         metrics.put("hitRate", 0.8);
@@ -102,7 +102,7 @@ class EvaluatorTest {
     }
 
     @Test
-    void evaluate_shouldReturnIncreaseCacheSize_whenMemoryUsageAtThreshold() {
+    void evaluate_shouldReturnMaintainCurrent_whenMemoryUsageAtThreshold() {
         Map<String, Object> metrics = new HashMap<>();
         metrics.put("cacheSize", 5000L);
         metrics.put("hitRate", 0.9);

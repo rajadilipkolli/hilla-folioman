@@ -183,15 +183,13 @@ class AdaptiveStrategySchedulerTest {
     @Test
     void adaptStrategy_NullMetrics_ShouldHandleGracefully() {
         when(monitor.getMetrics()).thenReturn(null);
-        when(evaluator.evaluate(null)).thenReturn("DEFAULT_STRATEGY");
-        when(policyRepository.getPolicy("DEFAULT_STRATEGY")).thenReturn(cachePolicy);
 
         assertDoesNotThrow(() -> adaptiveStrategyScheduler.adaptStrategy());
 
         verify(monitor).getMetrics();
-        verify(evaluator).evaluate(null);
-        verify(policyRepository).getPolicy("DEFAULT_STRATEGY");
-        verify(cacheAdapter).setPolicy(cachePolicy);
+        verify(evaluator, never()).evaluate(null);
+        verify(policyRepository, never()).getPolicy("DEFAULT_STRATEGY");
+        verify(cacheAdapter, never()).setPolicy(cachePolicy);
     }
 
     @Test
