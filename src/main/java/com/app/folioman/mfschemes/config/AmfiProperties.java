@@ -20,7 +20,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "app.amfi")
 public class AmfiProperties {
 
-    @Valid private SchemeProperties scheme;
+    @Valid
+    private SchemeProperties scheme;
 
     private String dataUrl;
 

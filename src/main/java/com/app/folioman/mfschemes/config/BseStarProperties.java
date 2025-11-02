@@ -18,7 +18,8 @@ import org.springframework.validation.annotation.Validated;
 @ConfigurationProperties(prefix = "app.bsestar")
 public class BseStarProperties {
 
-    @Valid private SchemeProperties scheme;
+    @Valid
+    private SchemeProperties scheme;
 
     public SchemeProperties getScheme() {
         return scheme;

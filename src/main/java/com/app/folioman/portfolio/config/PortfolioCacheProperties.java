@@ -1,5 +1,7 @@
 package com.app.folioman.portfolio.config;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
@@ -21,6 +23,7 @@ public class PortfolioCacheProperties {
     /**
      * Configuration properties for cache eviction.
      */
+    @Valid
     private Eviction eviction = new Eviction();
 
     public Eviction getEviction() {
@@ -42,6 +45,7 @@ public class PortfolioCacheProperties {
          * Cron expression for transaction cache eviction job.
          * Default is 6:45 PM UTC daily (00:15 IST).
          */
+        @NotBlank(message = "transactionCron cant be blank")
         private String transactionCron = "0 45 18 * * *";
 
         public int getBatchSize() {
