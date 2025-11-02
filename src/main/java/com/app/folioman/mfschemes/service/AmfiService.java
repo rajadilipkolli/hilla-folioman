@@ -60,6 +60,10 @@ public class AmfiService {
                 CSVReader csvReader = new CSVReader(stringReader)) {
 
             List<String[]> rows = csvReader.readAll();
+            if (rows == null || rows.isEmpty()) {
+                return data;
+            }
+
             String[] headers = rows.getFirst(); // First row is the header
 
             // Process each row (starting from the second row)
