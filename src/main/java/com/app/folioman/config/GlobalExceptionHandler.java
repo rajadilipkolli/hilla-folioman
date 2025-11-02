@@ -34,7 +34,7 @@ class GlobalExceptionHandler {
                             fieldError.getObjectName(),
                             fieldError.getField(),
                             fieldError.getRejectedValue(),
-                            Objects.requireNonNull(fieldError.getDefaultMessage(), ""));
+                            Objects.requireNonNullElse(fieldError.getDefaultMessage(), ""));
                 })
                 .sorted(Comparator.comparing(ApiValidationError::field))
                 .toList();
