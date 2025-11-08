@@ -3,7 +3,6 @@ package com.app.folioman.config.redis;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
@@ -21,6 +20,7 @@ public class AdaptiveStrategyScheduler {
     private final Monitor monitor;
     private final Evaluator evaluator;
     private final PolicyRepository policyRepository;
+    private final RedisAppProperties redisAppProperties;
 
     // Track the last applied strategy to avoid unnecessary changes
     private String lastAppliedStrategy = null;
@@ -28,20 +28,17 @@ public class AdaptiveStrategyScheduler {
     // Counter to track consecutive strategy matches
     private int consecutiveStrategyMatches = 0;
 
-    // Configurable interval for strategy evaluation (default 10 minutes)
-    @Value("${app.cache.adaptive-strategy.interval-ms:600000}")
-    private long adaptiveStrategyIntervalMs;
-
-    // Configurable threshold for strategy stability (default 3)
-    @Value("${app.cache.adaptive-strategy.stability-threshold:3}")
-    private int stabilityThreshold;
-
     public AdaptiveStrategyScheduler(
-            CacheAdapter cacheAdapter, Monitor monitor, Evaluator evaluator, PolicyRepository policyRepository) {
+            CacheAdapter cacheAdapter,
+            Monitor monitor,
+            Evaluator evaluator,
+            PolicyRepository policyRepository,
+            RedisAppProperties redisAppProperties) {
         this.cacheAdapter = cacheAdapter;
         this.monitor = monitor;
         this.evaluator = evaluator;
         this.policyRepository = policyRepository;
+        this.redisAppProperties = redisAppProperties;
     }
 
     /**
@@ -73,7 +70,8 @@ public class AdaptiveStrategyScheduler {
                         "Same strategy detected {} consecutive times: {}", consecutiveStrategyMatches, newStrategy);
 
                 // If stable, reduce frequency of actual policy changes
-                if (consecutiveStrategyMatches < stabilityThreshold) {
+                if (consecutiveStrategyMatches
+                        < redisAppProperties.getAdaptiveStrategy().getStabilityThreshold()) {
                     LOGGER.debug("Skipping policy application until stability threshold reached");
                     return;
                 }
@@ -85,7 +83,8 @@ public class AdaptiveStrategyScheduler {
             // Only apply if strategy has changed, or we've confirmed it's stable
             if (lastAppliedStrategy == null
                     || !lastAppliedStrategy.equals(newStrategy)
-                    || consecutiveStrategyMatches >= stabilityThreshold) {
+                    || consecutiveStrategyMatches
+                            >= redisAppProperties.getAdaptiveStrategy().getStabilityThreshold()) {
                 LOGGER.info("Applying new cache strategy: {}", newStrategy);
                 CachePolicy newPolicy = policyRepository.getPolicy(newStrategy);
                 cacheAdapter.setPolicy(newPolicy);
