@@ -33,7 +33,8 @@ public class CustomRedisCacheManager extends RedisCacheManager {
     @Override
     protected RedisCache createRedisCache(String name, RedisCacheConfiguration cacheConfig) {
         // Configure cache with either provided config or default
-        Duration ttl = cacheConfig != null && cacheConfig.getTtl() != null ? cacheConfig.getTtl() : defaultTtl;
+        Duration ttl =
+                cacheConfig != null ? cacheConfig.getTtlFunction().getTimeToLive(Object.class, null) : defaultTtl;
 
         LOGGER.debug("Creating Redis cache '{}' with TTL: {}", name, ttl);
 

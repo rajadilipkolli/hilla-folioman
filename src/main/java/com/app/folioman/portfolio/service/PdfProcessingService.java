@@ -20,7 +20,7 @@ public class PdfProcessingService {
     private static final Logger LOGGER = LoggerFactory.getLogger(PdfProcessingService.class);
 
     private static final String CASPARSER_COMMAND = "casparser";
-    private static final AtomicBoolean casparserChecked = new AtomicBoolean(false);
+    private static final AtomicBoolean CASPARSER_CHECKED = new AtomicBoolean(false);
 
     private final PortfolioServiceHelper portfolioServiceHelper;
 
@@ -34,7 +34,7 @@ public class PdfProcessingService {
      * @return true if casparser is available (either already installed or successfully installed), false otherwise
      */
     private boolean ensureCasparserInstalled() {
-        if (casparserChecked.get()) {
+        if (CASPARSER_CHECKED.get()) {
             return true;
         }
 
@@ -42,7 +42,7 @@ public class PdfProcessingService {
 
         if (isCasparserAvailable()) {
             LOGGER.info("casparser CLI is already installed");
-            casparserChecked.set(true);
+            CASPARSER_CHECKED.set(true);
             return true;
         }
 

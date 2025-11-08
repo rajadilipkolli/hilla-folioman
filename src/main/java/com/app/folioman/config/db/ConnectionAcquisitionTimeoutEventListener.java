@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 
 public class ConnectionAcquisitionTimeoutEventListener extends EventListener<ConnectionAcquisitionTimeoutEvent> {
 
-    public static final Logger LOGGER = LoggerFactory.getLogger(ConnectionAcquisitionTimeoutEventListener.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConnectionAcquisitionTimeoutEventListener.class);
 
     public ConnectionAcquisitionTimeoutEventListener() {
         super(ConnectionAcquisitionTimeoutEvent.class);

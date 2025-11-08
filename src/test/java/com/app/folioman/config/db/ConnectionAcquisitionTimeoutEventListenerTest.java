@@ -81,12 +81,4 @@ class ConnectionAcquisitionTimeoutEventListenerTest {
     void on_WithNullEvent_ShouldThrowNullPointerException() {
         assertThrows(NullPointerException.class, () -> listener.on(null));
     }
-
-    @Test
-    void logger_ShouldBeStaticAndNotNull() {
-        assertNotNull(ConnectionAcquisitionTimeoutEventListener.LOGGER);
-        assertEquals(
-                "com.app.folioman.config.db.ConnectionAcquisitionTimeoutEventListener",
-                ConnectionAcquisitionTimeoutEventListener.LOGGER.getName());
-    }
 }
