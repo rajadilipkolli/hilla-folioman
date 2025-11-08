@@ -19,7 +19,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RestController;
 
-public class CommonRules {
+public final class CommonRules {
+
+    private CommonRules() {}
 
     // Classes
     static ArchRule interfacesAreOnlyAllowedRule(String packageName, String... excludedPackages) {
@@ -79,7 +81,7 @@ public class CommonRules {
                 .and()
                 .areNotStatic()
                 .should(haveGetter(exclusions))
-                .because("Private fields should have getters in %s" + Arrays.toString(packageNames));
+                .because("Private fields should have getters in %s".formatted(Arrays.toString(packageNames)));
     }
 
     static ArchRule fieldsShouldNotBePublic(String packageName) {

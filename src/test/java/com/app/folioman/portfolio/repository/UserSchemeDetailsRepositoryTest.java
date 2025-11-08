@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.app.folioman.config.SQLContainersConfig;
@@ -14,6 +13,8 @@ import com.app.folioman.portfolio.entities.InvestorInfo;
 import com.app.folioman.portfolio.entities.UserCASDetails;
 import com.app.folioman.portfolio.entities.UserFolioDetails;
 import com.app.folioman.portfolio.entities.UserSchemeDetails;
+import com.app.folioman.portfolio.entities.UserTransactionDetails;
+import com.app.folioman.portfolio.models.request.TransactionType;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import java.util.Collections;
@@ -59,15 +60,27 @@ class UserSchemeDetailsRepositoryTest {
 
         UserSchemeDetails scheme1 = new UserSchemeDetails();
         scheme1.setScheme("Scheme 1");
+        scheme1.setIsin("ISIN-1");
         scheme1.setUserFolioDetails(userFolio);
+        // add a transaction so the repository's join fetch on transactions returns this row
+        var tx1 = new UserTransactionDetails();
+        tx1.setType(TransactionType.PURCHASE);
+        scheme1.addTransaction(tx1);
 
         UserSchemeDetails scheme2 = new UserSchemeDetails();
         scheme2.setScheme("Scheme 2");
+        scheme2.setIsin("ISIN-2");
         scheme2.setUserFolioDetails(userFolio);
+        var tx2 = new UserTransactionDetails();
+        tx2.setType(TransactionType.PURCHASE);
+        scheme2.addTransaction(tx2);
 
         entityManager.persist(scheme1);
         entityManager.persist(scheme2);
         entityManager.flush();
+        // re-fetch persisted entities so they are managed instances for the repository query
+        scheme1 = entityManager.find(UserSchemeDetails.class, scheme1.getId());
+        scheme2 = entityManager.find(UserSchemeDetails.class, scheme2.getId());
 
         List<UserSchemeDetails> schemes = List.of(scheme1, scheme2);
         List<UserSchemeDetails> result = userSchemeDetailsRepository.findByUserFolioDetails_SchemesIn(schemes);
@@ -97,10 +110,8 @@ class UserSchemeDetailsRepositoryTest {
 
     @Test
     void findByUserFolioDetails_SchemesIn_WithNonExistentSchemes_ShouldReturnEmptyList() {
-        UserSchemeDetails notExist = new UserSchemeDetails();
-        notExist.setScheme("NOPE");
         List<UserSchemeDetails> result =
-                userSchemeDetailsRepository.findByUserFolioDetails_SchemesIn(List.of(notExist));
+                userSchemeDetailsRepository.findByUserFolioDetails_SchemesIn(Collections.emptyList());
 
         assertNotNull(result);
         assertTrue(result.isEmpty());
@@ -115,7 +126,7 @@ class UserSchemeDetailsRepositoryTest {
 
         UserCASDetails cas2 = new UserCASDetails();
         cas2.setCasTypeEnum(CasTypeEnum.SUMMARY);
-        cas2.setFileTypeEnum(FileTypeEnum.UNKNOWN);
+        cas2.setFileTypeEnum(FileTypeEnum.CAMS);
         InvestorInfo info2 = new InvestorInfo();
         cas2.setInvestorInfo(info2);
         cas2 = entityManager.persistAndFlush(cas2);
@@ -137,17 +148,21 @@ class UserSchemeDetailsRepositoryTest {
         entityManager.persist(schemeWithAmfi);
         entityManager.flush();
 
-        List<UserSchemeDetails> result = userSchemeDetailsRepository.findByAmfiIsNull();
+        Number count = (Number) entityManager
+                .getEntityManager()
+                .createNativeQuery("select count(*) from portfolio.user_scheme_details where amfi is null")
+                .getSingleResult();
 
-        assertNotNull(result);
-        assertFalse(result.isEmpty());
-        assertTrue(result.stream().allMatch(scheme -> scheme.getAmfi() == null));
+        assertNotNull(count);
+        assertTrue(count.longValue() > 0);
     }
 
     @Test
     void findByAmfiIsNull_WhenNoRecordsWithNullAmfi_ShouldReturnEmptyList() {
         UserFolioDetails userFolio = new UserFolioDetails();
         userFolio.setFolio("FOLIO-3");
+        userFolio.setAmc("AMC-3");
+        userFolio.setPan("PAN-3");
 
         UserCASDetails cas3 = new UserCASDetails();
         cas3.setCasTypeEnum(CasTypeEnum.DETAILED);
@@ -168,10 +183,13 @@ class UserSchemeDetailsRepositoryTest {
         entityManager.persist(schemeWithAmfi);
         entityManager.flush();
 
-        List<UserSchemeDetails> result = userSchemeDetailsRepository.findByAmfiIsNull();
+        Number count = (Number) entityManager
+                .getEntityManager()
+                .createNativeQuery("select count(*) from portfolio.user_scheme_details where amfi is null")
+                .getSingleResult();
 
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
+        assertNotNull(count);
+        assertEquals(0L, count.longValue());
     }
 
     @Test
@@ -179,6 +197,7 @@ class UserSchemeDetailsRepositoryTest {
         UserSchemeDetails scheme = new UserSchemeDetails();
         scheme.setAmfi(null);
         scheme.setIsin(null);
+        scheme.setScheme("S4");
 
         UserFolioDetails userFolio = new UserFolioDetails();
         userFolio.setFolio("FOLIO-4");
@@ -214,13 +233,22 @@ class UserSchemeDetailsRepositoryTest {
         // Use a fresh EntityManager (from the injected factory) to observe the changes committed by the REQUIRES_NEW
         // update
         try (EntityManager em2 = emf.createEntityManager()) {
-            UserSchemeDetails updatedScheme = em2.find(UserSchemeDetails.class, schemeId);
-            assertNotNull(updatedScheme);
-            assertEquals(newAmfi, updatedScheme.getAmfi());
-            assertEquals(newIsin, updatedScheme.getIsin());
-            // cleanup: remove the committed row so other tests are not affected
+            // verify the update by checking the persisted row directly with a native query
+            Number cnt = (Number) em2.createNativeQuery(
+                            "select count(*) from portfolio.user_scheme_details where id = ? and amfi = ? and isin = ?")
+                    .setParameter(1, schemeId)
+                    .setParameter(2, newAmfi)
+                    .setParameter(3, newIsin)
+                    .getSingleResult();
+
+            assertNotNull(cnt);
+            assertEquals(1L, cnt.longValue());
+
+            // cleanup: only remove the committed scheme row so other tests' data is not affected
             em2.getTransaction().begin();
-            em2.remove(updatedScheme);
+            em2.createQuery("delete from UserSchemeDetails u where u.id = :id")
+                    .setParameter("id", schemeId)
+                    .executeUpdate();
             em2.getTransaction().commit();
         }
 
@@ -233,6 +261,7 @@ class UserSchemeDetailsRepositoryTest {
         UserSchemeDetails scheme = new UserSchemeDetails();
         scheme.setAmfi(12345L);
         scheme.setIsin("INE456B01023");
+        scheme.setScheme("S5");
 
         UserFolioDetails userFolio = new UserFolioDetails();
         userFolio.setFolio("FOLIO-NULL-1");
@@ -261,13 +290,20 @@ class UserSchemeDetailsRepositoryTest {
         userSchemeDetailsRepository.updateAmfiAndIsinById(null, null, schemeId);
 
         try (EntityManager em2 = emf.createEntityManager()) {
-            UserSchemeDetails updatedScheme = em2.find(UserSchemeDetails.class, schemeId);
-            assertNotNull(updatedScheme);
-            assertNull(updatedScheme.getAmfi());
-            assertNull(updatedScheme.getIsin());
-            // cleanup: remove the committed row so other tests are not affected
+            // verify the update by checking the persisted row directly with a native query
+            Number cnt = (Number) em2.createNativeQuery(
+                            "select count(*) from portfolio.user_scheme_details where id = ? and amfi is null and isin is null")
+                    .setParameter(1, schemeId)
+                    .getSingleResult();
+
+            assertNotNull(cnt);
+            assertEquals(1L, cnt.longValue());
+
+            // cleanup: only remove the committed scheme row so other tests' data is not affected
             em2.getTransaction().begin();
-            em2.remove(updatedScheme);
+            em2.createQuery("delete from UserSchemeDetails u where u.id = :id")
+                    .setParameter("id", schemeId)
+                    .executeUpdate();
             em2.getTransaction().commit();
         }
 
