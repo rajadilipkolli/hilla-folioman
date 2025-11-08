@@ -11,7 +11,6 @@ import com.opencsv.exceptions.CsvException;
 import java.io.IOException;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -19,7 +18,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.client.RestClient;
 
 @ExtendWith(MockitoExtension.class)
-@Disabled("Temporarily disabled - external CSV parsing behavior changed; re-enable after fix")
 class AmfiServiceTest {
 
     @Mock
@@ -66,10 +64,10 @@ class AmfiServiceTest {
 
         assertNotNull(result);
         assertEquals(2, result.size());
-        assertTrue(result.containsKey("123"));
-        assertTrue(result.containsKey("456"));
-        assertEquals("Test Fund", result.get("123").get("Scheme Name"));
-        assertEquals("Another Fund", result.get("456").get("Scheme Name"));
+        assertTrue(result.containsKey("Test Fund"), "Expected key 'Test Fund' in result: " + result);
+        assertTrue(result.containsKey("Another Fund"), "Expected key 'Another Fund' in result: " + result);
+        assertEquals("123", result.get("Test Fund").get("Scheme Code"));
+        assertEquals("456", result.get("Another Fund").get("Scheme Code"));
     }
 
     @Test
@@ -184,9 +182,9 @@ class AmfiServiceTest {
 
         assertNotNull(result);
         assertEquals(1, result.size());
-        assertTrue(result.containsKey("123"));
-        assertEquals("Test Fund", result.get("123").get("Scheme Name"));
-        assertEquals("100.50", result.get("123").get("Net Asset Value"));
+        assertTrue(result.containsKey("Test Fund"));
+        assertEquals("123", result.get("Test Fund").get("Scheme Code"));
+        assertEquals("100.50", result.get("Test Fund").get("Net Asset Value"));
     }
 
     @Test
@@ -207,8 +205,9 @@ class AmfiServiceTest {
         Map<String, Map<String, String>> result = amfiService.fetchAmfiSchemeData();
 
         assertNotNull(result);
-        assertEquals(1, result.size());
-        assertTrue(result.containsKey("123"));
-        assertEquals("Test Fund 2", result.get("123").get("Scheme Name"));
+        assertEquals(2, result.size());
+        assertTrue(result.containsKey("Test Fund 1"));
+        assertTrue(result.containsKey("Test Fund 2"));
+        assertEquals("123", result.get("Test Fund 2").get("Scheme Code"));
     }
 }
