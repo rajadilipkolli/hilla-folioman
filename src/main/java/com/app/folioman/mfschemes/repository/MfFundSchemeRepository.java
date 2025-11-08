@@ -10,7 +10,9 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public interface MfFundSchemeRepository extends JpaRepository<MfFundScheme, Long> {
 
     @Query("select o.amfiCode from MfFundScheme o")
