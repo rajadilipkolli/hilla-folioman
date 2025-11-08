@@ -213,7 +213,7 @@ public final class CommonRules {
                 .resideInAnyPackage(packageNames)
                 .should()
                 .bePublic()
-                .because("Public methods are only allowed in " + Arrays.toString(packageNames));
+                .because("Public methods are only allowed in %s".formatted(Arrays.toString(packageNames)));
     }
 
     static ArchRule staticMethodsAreOnlyAllowedRule(String packageName) {

@@ -41,7 +41,7 @@ public class NoSQLContainersConfig {
     @Bean
     @ServiceConnection
     LgtmStackContainer lgtmContainer() {
-        return new LgtmStackContainer(DockerImageName.parse("grafana/otel-lgtm:0.11.14"))
+        return new LgtmStackContainer(DockerImageName.parse("grafana/otel-lgtm:0.11.16"))
                 .withStartupTimeout(Duration.ofMinutes(2));
     }
 }
