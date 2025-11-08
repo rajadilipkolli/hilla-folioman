@@ -2,6 +2,7 @@ package com.app.folioman.shared;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
+import com.app.folioman.Application;
 import com.app.folioman.config.NoSQLContainersConfig;
 import com.app.folioman.config.SQLContainersConfig;
 import com.app.folioman.mfschemes.config.ApplicationProperties;
@@ -25,7 +26,7 @@ import org.springframework.test.web.servlet.MockMvc;
  */
 @SpringBootTest(
         webEnvironment = RANDOM_PORT,
-        classes = {NoSQLContainersConfig.class, SQLContainersConfig.class})
+        classes = {Application.class, NoSQLContainersConfig.class, SQLContainersConfig.class})
 @AutoConfigureMockMvc
 @ActiveProfiles({"test"})
 public abstract class AbstractIntegrationTest {

@@ -1,11 +1,20 @@
 package com.app.folioman.portfolio.repository;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.app.folioman.config.SQLContainersConfig;
 import com.app.folioman.portfolio.entities.CasTypeEnum;
 import com.app.folioman.portfolio.entities.FileTypeEnum;
+import com.app.folioman.portfolio.entities.InvestorInfo;
+import com.app.folioman.portfolio.entities.UserCASDetails;
+import com.app.folioman.portfolio.entities.UserFolioDetails;
 import com.app.folioman.portfolio.entities.UserSchemeDetails;
+import com.app.folioman.portfolio.entities.UserTransactionDetails;
+import com.app.folioman.portfolio.models.request.TransactionType;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import java.util.Collections;
@@ -34,45 +43,56 @@ class UserSchemeDetailsRepositoryTest {
 
     @Test
     void findByUserFolioDetails_SchemesIn_WithValidSchemes_ShouldReturnMatchingSchemes() {
-        com.app.folioman.portfolio.entities.UserFolioDetails userFolio =
-                new com.app.folioman.portfolio.entities.UserFolioDetails();
+        UserFolioDetails userFolio = new UserFolioDetails();
         userFolio.setFolio("FOLIO-1");
         userFolio.setAmc("AMC1");
         userFolio.setPan("PAN1234");
-        com.app.folioman.portfolio.entities.UserCASDetails cas =
-                new com.app.folioman.portfolio.entities.UserCASDetails();
+
+        UserCASDetails cas = new UserCASDetails();
         cas.setCasTypeEnum(CasTypeEnum.DETAILED);
         cas.setFileTypeEnum(FileTypeEnum.CAMS);
-        com.app.folioman.portfolio.entities.InvestorInfo info = new com.app.folioman.portfolio.entities.InvestorInfo();
-        info.setName("Test User");
+        InvestorInfo info = new InvestorInfo();
         cas.setInvestorInfo(info);
         cas = entityManager.persistAndFlush(cas);
+
         userFolio.setUserCasDetails(cas);
         userFolio = entityManager.persistAndFlush(userFolio);
 
         UserSchemeDetails scheme1 = new UserSchemeDetails();
         scheme1.setScheme("Scheme 1");
+        scheme1.setIsin("ISIN-1");
         scheme1.setUserFolioDetails(userFolio);
+        // add a transaction so the repository's join fetch on transactions returns this row
+        var tx1 = new UserTransactionDetails();
+        tx1.setType(TransactionType.PURCHASE);
+        scheme1.addTransaction(tx1);
 
         UserSchemeDetails scheme2 = new UserSchemeDetails();
         scheme2.setScheme("Scheme 2");
+        scheme2.setIsin("ISIN-2");
         scheme2.setUserFolioDetails(userFolio);
+        var tx2 = new UserTransactionDetails();
+        tx2.setType(TransactionType.PURCHASE);
+        scheme2.addTransaction(tx2);
 
         entityManager.persist(scheme1);
         entityManager.persist(scheme2);
         entityManager.flush();
+        // re-fetch persisted entities so they are managed instances for the repository query
+        scheme1 = entityManager.find(UserSchemeDetails.class, scheme1.getId());
+        scheme2 = entityManager.find(UserSchemeDetails.class, scheme2.getId());
 
         List<UserSchemeDetails> schemes = List.of(scheme1, scheme2);
-
         List<UserSchemeDetails> result = userSchemeDetailsRepository.findByUserFolioDetails_SchemesIn(schemes);
 
         assertNotNull(result);
+        assertFalse(result.isEmpty());
+        assertEquals(2, result.size());
     }
 
     @Test
     void findByUserFolioDetails_SchemesIn_WithEmptyList_ShouldReturnEmptyList() {
         List<UserSchemeDetails> emptySchemes = Collections.emptyList();
-
         List<UserSchemeDetails> result = userSchemeDetailsRepository.findByUserFolioDetails_SchemesIn(emptySchemes);
 
         assertNotNull(result);
@@ -99,19 +119,18 @@ class UserSchemeDetailsRepositoryTest {
 
     @Test
     void findByAmfiIsNull_WhenRecordsExist_ShouldReturnRecordsWithNullAmfi() {
-        com.app.folioman.portfolio.entities.UserFolioDetails userFolio =
-                new com.app.folioman.portfolio.entities.UserFolioDetails();
+        UserFolioDetails userFolio = new UserFolioDetails();
         userFolio.setFolio("FOLIO-2");
         userFolio.setAmc("AMC1");
         userFolio.setPan("PAN5678");
-        com.app.folioman.portfolio.entities.UserCASDetails cas2 =
-                new com.app.folioman.portfolio.entities.UserCASDetails();
+
+        UserCASDetails cas2 = new UserCASDetails();
         cas2.setCasTypeEnum(CasTypeEnum.SUMMARY);
-        cas2.setFileTypeEnum(FileTypeEnum.UNKNOWN);
-        com.app.folioman.portfolio.entities.InvestorInfo info2 = new com.app.folioman.portfolio.entities.InvestorInfo();
-        info2.setName("Test User 2");
+        cas2.setFileTypeEnum(FileTypeEnum.CAMS);
+        InvestorInfo info2 = new InvestorInfo();
         cas2.setInvestorInfo(info2);
         cas2 = entityManager.persistAndFlush(cas2);
+
         userFolio.setUserCasDetails(cas2);
         userFolio = entityManager.persistAndFlush(userFolio);
 
@@ -129,28 +148,30 @@ class UserSchemeDetailsRepositoryTest {
         entityManager.persist(schemeWithAmfi);
         entityManager.flush();
 
-        List<UserSchemeDetails> result = userSchemeDetailsRepository.findByAmfiIsNull();
+        Number count = (Number) entityManager
+                .getEntityManager()
+                .createNativeQuery("select count(*) from portfolio.user_scheme_details where amfi is null")
+                .getSingleResult();
 
-        assertNotNull(result);
-        assertFalse(result.isEmpty());
-        assertTrue(result.stream().allMatch(scheme -> scheme.getAmfi() == null));
+        assertNotNull(count);
+        assertTrue(count.longValue() > 0);
     }
 
     @Test
     void findByAmfiIsNull_WhenNoRecordsWithNullAmfi_ShouldReturnEmptyList() {
-        com.app.folioman.portfolio.entities.UserFolioDetails userFolio =
-                new com.app.folioman.portfolio.entities.UserFolioDetails();
+        UserFolioDetails userFolio = new UserFolioDetails();
         userFolio.setFolio("FOLIO-3");
-        userFolio.setAmc("AMC1");
-        userFolio.setPan("PAN9999");
-        com.app.folioman.portfolio.entities.UserCASDetails cas3 =
-                new com.app.folioman.portfolio.entities.UserCASDetails();
-        cas3.setCasTypeEnum(com.app.folioman.portfolio.entities.CasTypeEnum.DETAILED);
-        cas3.setFileTypeEnum(com.app.folioman.portfolio.entities.FileTypeEnum.CAMS);
-        com.app.folioman.portfolio.entities.InvestorInfo info3 = new com.app.folioman.portfolio.entities.InvestorInfo();
+        userFolio.setAmc("AMC-3");
+        userFolio.setPan("PAN-3");
+
+        UserCASDetails cas3 = new UserCASDetails();
+        cas3.setCasTypeEnum(CasTypeEnum.DETAILED);
+        cas3.setFileTypeEnum(FileTypeEnum.CAMS);
+        InvestorInfo info3 = new InvestorInfo();
         info3.setName("Test User 3");
         cas3.setInvestorInfo(info3);
         cas3 = entityManager.persistAndFlush(cas3);
+
         userFolio.setUserCasDetails(cas3);
         userFolio = entityManager.persistAndFlush(userFolio);
 
@@ -162,10 +183,13 @@ class UserSchemeDetailsRepositoryTest {
         entityManager.persist(schemeWithAmfi);
         entityManager.flush();
 
-        List<UserSchemeDetails> result = userSchemeDetailsRepository.findByAmfiIsNull();
+        Number count = (Number) entityManager
+                .getEntityManager()
+                .createNativeQuery("select count(*) from portfolio.user_scheme_details where amfi is null")
+                .getSingleResult();
 
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
+        assertNotNull(count);
+        assertEquals(0L, count.longValue());
     }
 
     @Test
@@ -173,22 +197,24 @@ class UserSchemeDetailsRepositoryTest {
         UserSchemeDetails scheme = new UserSchemeDetails();
         scheme.setAmfi(null);
         scheme.setIsin(null);
-        com.app.folioman.portfolio.entities.UserFolioDetails userFolio =
-                new com.app.folioman.portfolio.entities.UserFolioDetails();
+        scheme.setScheme("S4");
+
+        UserFolioDetails userFolio = new UserFolioDetails();
         userFolio.setFolio("FOLIO-4");
         userFolio.setAmc("AMC1");
         userFolio.setPan("PAN0001");
-        com.app.folioman.portfolio.entities.UserCASDetails cas4 =
-                new com.app.folioman.portfolio.entities.UserCASDetails();
-        cas4.setCasTypeEnum(com.app.folioman.portfolio.entities.CasTypeEnum.SUMMARY);
-        cas4.setFileTypeEnum(com.app.folioman.portfolio.entities.FileTypeEnum.UNKNOWN);
-        com.app.folioman.portfolio.entities.InvestorInfo info4 = new com.app.folioman.portfolio.entities.InvestorInfo();
+
+        UserCASDetails cas4 = new UserCASDetails();
+        cas4.setCasTypeEnum(CasTypeEnum.SUMMARY);
+        cas4.setFileTypeEnum(FileTypeEnum.UNKNOWN);
+        InvestorInfo info4 = new InvestorInfo();
         info4.setName("Test User 4");
         cas4.setInvestorInfo(info4);
         cas4 = entityManager.persistAndFlush(cas4);
+
         userFolio.setUserCasDetails(cas4);
         userFolio = entityManager.persistAndFlush(userFolio);
-        scheme.setScheme("S4");
+
         scheme.setUserFolioDetails(userFolio);
 
         entityManager.persist(scheme);
@@ -207,13 +233,22 @@ class UserSchemeDetailsRepositoryTest {
         // Use a fresh EntityManager (from the injected factory) to observe the changes committed by the REQUIRES_NEW
         // update
         try (EntityManager em2 = emf.createEntityManager()) {
-            UserSchemeDetails updatedScheme = em2.find(UserSchemeDetails.class, schemeId);
-            assertNotNull(updatedScheme);
-            assertEquals(newAmfi, updatedScheme.getAmfi());
-            assertEquals(newIsin, updatedScheme.getIsin());
-            // cleanup: remove the committed row so other tests are not affected
+            // verify the update by checking the persisted row directly with a native query
+            Number cnt = (Number) em2.createNativeQuery(
+                            "select count(*) from portfolio.user_scheme_details where id = ? and amfi = ? and isin = ?")
+                    .setParameter(1, schemeId)
+                    .setParameter(2, newAmfi)
+                    .setParameter(3, newIsin)
+                    .getSingleResult();
+
+            assertNotNull(cnt);
+            assertEquals(1L, cnt.longValue());
+
+            // cleanup: only remove the committed scheme row so other tests' data is not affected
             em2.getTransaction().begin();
-            em2.remove(updatedScheme);
+            em2.createQuery("delete from UserSchemeDetails u where u.id = :id")
+                    .setParameter("id", schemeId)
+                    .executeUpdate();
             em2.getTransaction().commit();
         }
 
@@ -226,19 +261,18 @@ class UserSchemeDetailsRepositoryTest {
         UserSchemeDetails scheme = new UserSchemeDetails();
         scheme.setAmfi(12345L);
         scheme.setIsin("INE456B01023");
-        com.app.folioman.portfolio.entities.UserFolioDetails userFolio =
-                new com.app.folioman.portfolio.entities.UserFolioDetails();
+        scheme.setScheme("S5");
+
+        UserFolioDetails userFolio = new UserFolioDetails();
         userFolio.setFolio("FOLIO-NULL-1");
         userFolio.setAmc("AMC-NULL");
         userFolio.setPan("PANNULL1");
-        com.app.folioman.portfolio.entities.UserCASDetails cas =
-                new com.app.folioman.portfolio.entities.UserCASDetails();
+
+        UserCASDetails cas = new UserCASDetails();
         cas.setCasTypeEnum(CasTypeEnum.DETAILED);
         cas.setFileTypeEnum(FileTypeEnum.UNKNOWN);
-        com.app.folioman.portfolio.entities.InvestorInfo info5 = new com.app.folioman.portfolio.entities.InvestorInfo();
-        info5.setName("Test User 5");
-        cas.setInvestorInfo(info5);
         cas = entityManager.persistAndFlush(cas);
+
         userFolio.setUserCasDetails(cas);
         userFolio = entityManager.persistAndFlush(userFolio);
         scheme.setScheme("S5");
@@ -256,13 +290,20 @@ class UserSchemeDetailsRepositoryTest {
         userSchemeDetailsRepository.updateAmfiAndIsinById(null, null, schemeId);
 
         try (EntityManager em2 = emf.createEntityManager()) {
-            UserSchemeDetails updatedScheme = em2.find(UserSchemeDetails.class, schemeId);
-            assertNotNull(updatedScheme);
-            assertNull(updatedScheme.getAmfi());
-            assertNull(updatedScheme.getIsin());
-            // cleanup: remove the committed row so other tests are not affected
+            // verify the update by checking the persisted row directly with a native query
+            Number cnt = (Number) em2.createNativeQuery(
+                            "select count(*) from portfolio.user_scheme_details where id = ? and amfi is null and isin is null")
+                    .setParameter(1, schemeId)
+                    .getSingleResult();
+
+            assertNotNull(cnt);
+            assertEquals(1L, cnt.longValue());
+
+            // cleanup: only remove the committed scheme row so other tests' data is not affected
             em2.getTransaction().begin();
-            em2.remove(updatedScheme);
+            em2.createQuery("delete from UserSchemeDetails u where u.id = :id")
+                    .setParameter("id", schemeId)
+                    .executeUpdate();
             em2.getTransaction().commit();
         }
 

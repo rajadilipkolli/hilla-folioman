@@ -1,8 +1,13 @@
 package com.app.folioman.config.redis;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willThrow;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -32,6 +37,12 @@ class AdaptiveStrategySchedulerTest {
     @Mock
     private CachePolicy cachePolicy;
 
+    @Mock
+    private RedisAppProperties redisAppProperties;
+
+    @Mock
+    private RedisAppProperties.AdaptiveStrategy adaptiveStrategy;
+
     @InjectMocks
     private AdaptiveStrategyScheduler adaptiveStrategyScheduler;
 
@@ -43,17 +54,14 @@ class AdaptiveStrategySchedulerTest {
         testMetrics.put("cacheSize", 1000);
         testMetrics.put("hitRate", 0.85);
         testMetrics.put("memoryUsage", 0.70);
-
-        ReflectionTestUtils.setField(adaptiveStrategyScheduler, "adaptiveStrategyIntervalMs", 600000L);
-        ReflectionTestUtils.setField(adaptiveStrategyScheduler, "stabilityThreshold", 3);
     }
 
     @Test
     void adaptStrategy_FirstExecution_ShouldApplyNewStrategy() {
         String newStrategy = "LRU_STRATEGY";
-        when(monitor.getMetrics()).thenReturn(testMetrics);
-        when(evaluator.evaluate(testMetrics)).thenReturn(newStrategy);
-        when(policyRepository.getPolicy(newStrategy)).thenReturn(cachePolicy);
+        given(monitor.getMetrics()).willReturn(testMetrics);
+        given(evaluator.evaluate(testMetrics)).willReturn(newStrategy);
+        given(policyRepository.getPolicy(newStrategy)).willReturn(cachePolicy);
 
         adaptiveStrategyScheduler.adaptStrategy();
 
@@ -69,8 +77,8 @@ class AdaptiveStrategySchedulerTest {
         ReflectionTestUtils.setField(adaptiveStrategyScheduler, "lastAppliedStrategy", strategy);
         ReflectionTestUtils.setField(adaptiveStrategyScheduler, "consecutiveStrategyMatches", 1);
 
-        when(monitor.getMetrics()).thenReturn(testMetrics);
-        when(evaluator.evaluate(testMetrics)).thenReturn(strategy);
+        given(monitor.getMetrics()).willReturn(testMetrics);
+        given(evaluator.evaluate(testMetrics)).willReturn(strategy);
 
         adaptiveStrategyScheduler.adaptStrategy();
 
@@ -79,18 +87,23 @@ class AdaptiveStrategySchedulerTest {
         verify(policyRepository, never()).getPolicy(anyString());
         verify(cacheAdapter, never()).setPolicy(any());
 
-        assertEquals(2, ReflectionTestUtils.getField(adaptiveStrategyScheduler, "consecutiveStrategyMatches"));
+        assertThat(ReflectionTestUtils.getField(adaptiveStrategyScheduler, "consecutiveStrategyMatches"))
+                .isEqualTo(2);
     }
 
     @Test
     void adaptStrategy_SameStrategyAtThreshold_ShouldApplyStrategy() {
+
+        given(redisAppProperties.getAdaptiveStrategy()).willReturn(adaptiveStrategy);
+        given(adaptiveStrategy.getStabilityThreshold()).willReturn(3);
+
         String strategy = "LRU_STRATEGY";
         ReflectionTestUtils.setField(adaptiveStrategyScheduler, "lastAppliedStrategy", strategy);
         ReflectionTestUtils.setField(adaptiveStrategyScheduler, "consecutiveStrategyMatches", 2);
 
-        when(monitor.getMetrics()).thenReturn(testMetrics);
-        when(evaluator.evaluate(testMetrics)).thenReturn(strategy);
-        when(policyRepository.getPolicy(strategy)).thenReturn(cachePolicy);
+        given(monitor.getMetrics()).willReturn(testMetrics);
+        given(evaluator.evaluate(testMetrics)).willReturn(strategy);
+        given(policyRepository.getPolicy(strategy)).willReturn(cachePolicy);
 
         adaptiveStrategyScheduler.adaptStrategy();
 
@@ -99,7 +112,8 @@ class AdaptiveStrategySchedulerTest {
         verify(policyRepository).getPolicy(strategy);
         verify(cacheAdapter).setPolicy(cachePolicy);
 
-        assertEquals(3, ReflectionTestUtils.getField(adaptiveStrategyScheduler, "consecutiveStrategyMatches"));
+        assertThat(ReflectionTestUtils.getField(adaptiveStrategyScheduler, "consecutiveStrategyMatches"))
+                .isEqualTo(3);
     }
 
     @Test
@@ -109,9 +123,9 @@ class AdaptiveStrategySchedulerTest {
         ReflectionTestUtils.setField(adaptiveStrategyScheduler, "lastAppliedStrategy", oldStrategy);
         ReflectionTestUtils.setField(adaptiveStrategyScheduler, "consecutiveStrategyMatches", 2);
 
-        when(monitor.getMetrics()).thenReturn(testMetrics);
-        when(evaluator.evaluate(testMetrics)).thenReturn(newStrategy);
-        when(policyRepository.getPolicy(newStrategy)).thenReturn(cachePolicy);
+        given(monitor.getMetrics()).willReturn(testMetrics);
+        given(evaluator.evaluate(testMetrics)).willReturn(newStrategy);
+        given(policyRepository.getPolicy(newStrategy)).willReturn(cachePolicy);
 
         adaptiveStrategyScheduler.adaptStrategy();
 
@@ -120,13 +134,15 @@ class AdaptiveStrategySchedulerTest {
         verify(policyRepository).getPolicy(newStrategy);
         verify(cacheAdapter).setPolicy(cachePolicy);
 
-        assertEquals(0, ReflectionTestUtils.getField(adaptiveStrategyScheduler, "consecutiveStrategyMatches"));
-        assertEquals(newStrategy, ReflectionTestUtils.getField(adaptiveStrategyScheduler, "lastAppliedStrategy"));
+        assertThat(ReflectionTestUtils.getField(adaptiveStrategyScheduler, "consecutiveStrategyMatches"))
+                .isEqualTo(0);
+        assertThat(ReflectionTestUtils.getField(adaptiveStrategyScheduler, "lastAppliedStrategy"))
+                .isEqualTo(newStrategy);
     }
 
     @Test
     void adaptStrategy_ExceptionInMonitorGetMetrics_ShouldCatchAndLog() {
-        when(monitor.getMetrics()).thenThrow(new RuntimeException("Monitor error"));
+        given(monitor.getMetrics()).willThrow(new RuntimeException("Monitor error"));
 
         assertDoesNotThrow(() -> adaptiveStrategyScheduler.adaptStrategy());
 
@@ -138,8 +154,8 @@ class AdaptiveStrategySchedulerTest {
 
     @Test
     void adaptStrategy_ExceptionInEvaluator_ShouldCatchAndLog() {
-        when(monitor.getMetrics()).thenReturn(testMetrics);
-        when(evaluator.evaluate(testMetrics)).thenThrow(new RuntimeException("Evaluator error"));
+        given(monitor.getMetrics()).willReturn(testMetrics);
+        given(evaluator.evaluate(testMetrics)).willThrow(new RuntimeException("Evaluator error"));
 
         assertDoesNotThrow(() -> adaptiveStrategyScheduler.adaptStrategy());
 
@@ -152,9 +168,9 @@ class AdaptiveStrategySchedulerTest {
     @Test
     void adaptStrategy_ExceptionInPolicyRepository_ShouldCatchAndLog() {
         String strategy = "LRU_STRATEGY";
-        when(monitor.getMetrics()).thenReturn(testMetrics);
-        when(evaluator.evaluate(testMetrics)).thenReturn(strategy);
-        when(policyRepository.getPolicy(strategy)).thenThrow(new RuntimeException("Policy error"));
+        given(monitor.getMetrics()).willReturn(testMetrics);
+        given(evaluator.evaluate(testMetrics)).willReturn(strategy);
+        given(policyRepository.getPolicy(strategy)).willThrow(new RuntimeException("Policy error"));
 
         assertDoesNotThrow(() -> adaptiveStrategyScheduler.adaptStrategy());
 
@@ -167,10 +183,12 @@ class AdaptiveStrategySchedulerTest {
     @Test
     void adaptStrategy_ExceptionInCacheAdapter_ShouldCatchAndLog() {
         String strategy = "LRU_STRATEGY";
-        when(monitor.getMetrics()).thenReturn(testMetrics);
-        when(evaluator.evaluate(testMetrics)).thenReturn(strategy);
-        when(policyRepository.getPolicy(strategy)).thenReturn(cachePolicy);
-        doThrow(new RuntimeException("Cache adapter error")).when(cacheAdapter).setPolicy(cachePolicy);
+        given(monitor.getMetrics()).willReturn(testMetrics);
+        given(evaluator.evaluate(testMetrics)).willReturn(strategy);
+        given(policyRepository.getPolicy(strategy)).willReturn(cachePolicy);
+        willThrow(new RuntimeException("Cache adapter error"))
+                .given(cacheAdapter)
+                .setPolicy(cachePolicy);
 
         assertDoesNotThrow(() -> adaptiveStrategyScheduler.adaptStrategy());
 
@@ -182,7 +200,7 @@ class AdaptiveStrategySchedulerTest {
 
     @Test
     void adaptStrategy_NullMetrics_ShouldHandleGracefully() {
-        when(monitor.getMetrics()).thenReturn(null);
+        given(monitor.getMetrics()).willReturn(null);
 
         assertDoesNotThrow(() -> adaptiveStrategyScheduler.adaptStrategy());
 
@@ -193,21 +211,13 @@ class AdaptiveStrategySchedulerTest {
     }
 
     @Test
-    void constructor_WithValidDependencies_ShouldCreateInstance() {
-        AdaptiveStrategyScheduler scheduler =
-                new AdaptiveStrategyScheduler(cacheAdapter, monitor, evaluator, policyRepository);
-
-        assertNotNull(scheduler);
-    }
-
-    @Test
     void adaptStrategy_EmptyMetrics_ShouldProcessSuccessfully() {
         Map<String, Object> emptyMetrics = new HashMap<>();
         String strategy = "EMPTY_STRATEGY";
 
-        when(monitor.getMetrics()).thenReturn(emptyMetrics);
-        when(evaluator.evaluate(emptyMetrics)).thenReturn(strategy);
-        when(policyRepository.getPolicy(strategy)).thenReturn(cachePolicy);
+        given(monitor.getMetrics()).willReturn(emptyMetrics);
+        given(evaluator.evaluate(emptyMetrics)).willReturn(strategy);
+        given(policyRepository.getPolicy(strategy)).willReturn(cachePolicy);
 
         adaptiveStrategyScheduler.adaptStrategy();
 

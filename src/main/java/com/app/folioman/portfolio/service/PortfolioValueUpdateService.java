@@ -36,7 +36,7 @@ import org.springframework.util.StopWatch;
 @Service
 public class PortfolioValueUpdateService {
 
-    private static final Logger log = LoggerFactory.getLogger(PortfolioValueUpdateService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(PortfolioValueUpdateService.class);
 
     // Add a constant for excluded transaction types
     private static final EnumSet<TransactionType> TAX_TRANSACTION_TYPES = EnumSet.of(
@@ -67,7 +67,7 @@ public class PortfolioValueUpdateService {
     private void handleDailyPortFolioValueUpdate(UserCASDetails userCASDetails) {
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
-        log.info(
+        LOGGER.info(
                 "Starting portfolio value update for CAS ID: {}, PAN: {}",
                 userCASDetails.getId(),
                 userCASDetails.getFolios().getFirst().getPan());
@@ -78,17 +78,17 @@ public class PortfolioValueUpdateService {
             calculateAndInsertDailyPortfolioValues(transactionList, userCASDetails);
 
             stopWatch.stop();
-            log.info(
+            LOGGER.info(
                     "Completed portfolio value update for CAS ID: {}, took {} seconds",
                     userCASDetails.getId(),
                     stopWatch.getTotalTimeSeconds());
         } catch (Exception e) {
-            log.error("Error updating portfolio values for CAS ID: {}", userCASDetails.getId(), e);
+            LOGGER.error("Error updating portfolio values for CAS ID: {}", userCASDetails.getId(), e);
         }
     }
 
     private List<UserTransactionDetails> collectRelevantTransactions(UserCASDetails userCASDetails) {
-        log.debug("Collecting and filtering transactions for CAS ID: {}", userCASDetails.getId());
+        LOGGER.debug("Collecting and filtering transactions for CAS ID: {}", userCASDetails.getId());
         List<UserTransactionDetails> transactionList = userCASDetails.getFolios().stream()
                 .flatMap(folio -> folio.getSchemes().stream())
                 .flatMap(scheme -> scheme.getTransactions().stream())
@@ -96,7 +96,7 @@ public class PortfolioValueUpdateService {
                 .sorted(Comparator.comparing(UserTransactionDetails::getTransactionDate))
                 .toList();
 
-        log.info("Found {} relevant transactions for CAS ID: {}", transactionList.size(), userCASDetails.getId());
+        LOGGER.info("Found {} relevant transactions for CAS ID: {}", transactionList.size(), userCASDetails.getId());
         return transactionList;
     }
 
@@ -110,7 +110,7 @@ public class PortfolioValueUpdateService {
         LocalDate startDate = transactionList.getFirst().getTransactionDate();
         LocalDate endDate = LocalDateUtility.getYesterday();
 
-        log.debug(
+        LOGGER.debug(
                 "Calculating portfolio values for CAS ID: {} from {} to {}",
                 userCASDetails.getId(),
                 startDate,
@@ -136,7 +136,8 @@ public class PortfolioValueUpdateService {
         userPortfolioValueRepository.saveAll(portfolioValueEntityList);
 
         methodStartTime.stop();
-        log.debug("Portfolio values calculated and inserted, took {} seconds", methodStartTime.getTotalTimeSeconds());
+        LOGGER.debug(
+                "Portfolio values calculated and inserted, took {} seconds", methodStartTime.getTotalTimeSeconds());
     }
 
     private Map<LocalDate, List<UserTransactionDetails>> groupTransactionsByDate(
@@ -155,7 +156,7 @@ public class PortfolioValueUpdateService {
     private Map<Long, Map<LocalDate, MFSchemeNavProjection>> fetchNavData(
             Set<Long> schemeCodes, LocalDate startDate, LocalDate endDate, UserCASDetails userCASDetails) {
 
-        log.debug("Fetching NAVs for {} schemes for CAS ID: {}", schemeCodes.size(), userCASDetails.getId());
+        LOGGER.debug("Fetching NAVs for {} schemes for CAS ID: {}", schemeCodes.size(), userCASDetails.getId());
         StopWatch navFetchStart = new StopWatch();
         navFetchStart.start();
 
@@ -163,7 +164,7 @@ public class PortfolioValueUpdateService {
                 mfNavService.getNavsForSchemesAndDates(schemeCodes, startDate, endDate);
 
         navFetchStart.stop();
-        log.debug(
+        LOGGER.debug(
                 "NAV fetching completed in {} ms for CAS ID: {}",
                 navFetchStart.getTotalTimeMillis(),
                 userCASDetails.getId());
@@ -320,7 +321,7 @@ public class PortfolioValueUpdateService {
         }
 
         if (navOnCurrentDate == null) {
-            log.warn(
+            LOGGER.warn(
                     "NAV not found for scheme {} on date {} after {} attempts - continuing with other schemes",
                     schemeCode,
                     currentDate,
@@ -359,7 +360,7 @@ public class PortfolioValueUpdateService {
 
             Map<LocalDate, MFSchemeNavProjection> navMap = navsBySchemeAndDate.get(schemeCode);
             if (navMap == null) {
-                log.warn(
+                LOGGER.warn(
                         "NAV not found for scheme {} on date {} - skipping cash flow calculation",
                         schemeCode,
                         currentDate);
@@ -430,9 +431,9 @@ public class PortfolioValueUpdateService {
             folioScheme.setValuationDate(endDate);
             folioSchemeRepository.save(folioScheme);
 
-            log.debug("Saved XIRR {} for scheme ID {}", xirrValue, schemeDetailId);
+            LOGGER.debug("Saved XIRR {} for scheme ID {}", xirrValue, schemeDetailId);
         } catch (Exception e) {
-            log.warn("Unable to calculate XIRR for scheme ID {}: {}", schemeDetailId, e.getMessage());
+            LOGGER.warn("Unable to calculate XIRR for scheme ID {}: {}", schemeDetailId, e.getMessage());
         }
     }
 
@@ -448,11 +449,11 @@ public class PortfolioValueUpdateService {
                 if (!portfolioValueEntityList.isEmpty()) {
                     UserPortfolioValue mostRecent = portfolioValueEntityList.getLast();
                     mostRecent.setXirr(overallXirr);
-                    log.debug("Overall portfolio XIRR calculated: {}", overallXirr);
+                    LOGGER.debug("Overall portfolio XIRR calculated: {}", overallXirr);
                 }
             }
         } catch (Exception e) {
-            log.warn("Unable to calculate overall portfolio XIRR: {}", e.getMessage());
+            LOGGER.warn("Unable to calculate overall portfolio XIRR: {}", e.getMessage());
         }
     }
 
@@ -461,7 +462,7 @@ public class PortfolioValueUpdateService {
      */
     private FolioScheme findOrCreateFolioScheme(Long schemeDetailId, UserSchemeDetails userSchemeDetails) {
         String operationId = generateOperationId(schemeDetailId);
-        log.debug("[{}] Looking up FolioScheme for schemeDetailId: {}", operationId, schemeDetailId);
+        LOGGER.debug("[{}] Looking up FolioScheme for schemeDetailId: {}", operationId, schemeDetailId);
 
         FolioScheme folioScheme = findExistingFolioScheme(schemeDetailId, operationId);
         return folioScheme != null ? folioScheme : createNewFolioScheme(schemeDetailId, userSchemeDetails, operationId);
@@ -475,25 +476,25 @@ public class PortfolioValueUpdateService {
         try {
             FolioScheme folioScheme = folioSchemeRepository.findByUserSchemeDetails_Id(schemeDetailId);
             if (folioScheme != null) {
-                log.debug("[{}] Found existing FolioScheme for schemeDetailId: {}", operationId, schemeDetailId);
+                LOGGER.debug("[{}] Found existing FolioScheme for schemeDetailId: {}", operationId, schemeDetailId);
             }
             return folioScheme;
         } catch (Exception e) {
-            log.error("[{}] Error while finding FolioScheme for schemeDetailId: {}", operationId, schemeDetailId, e);
+            LOGGER.error("[{}] Error while finding FolioScheme for schemeDetailId: {}", operationId, schemeDetailId, e);
             throw e;
         }
     }
 
     private FolioScheme createNewFolioScheme(
             Long schemeDetailId, UserSchemeDetails userSchemeDetails, String operationId) {
-        log.debug(
+        LOGGER.debug(
                 "[{}] No existing FolioScheme found, creating new one for schemeDetailId: {}",
                 operationId,
                 schemeDetailId);
         FolioScheme folioScheme = new FolioScheme();
         folioScheme.setUserSchemeDetails(userSchemeDetails);
         folioScheme.setUserFolioDetails(userSchemeDetails.getUserFolioDetails());
-        log.debug("[{}] New FolioScheme created for schemeDetailId: {}", operationId, schemeDetailId);
+        LOGGER.debug("[{}] New FolioScheme created for schemeDetailId: {}", operationId, schemeDetailId);
         return folioScheme;
     }
 }

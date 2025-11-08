@@ -10,7 +10,7 @@ import java.net.ConnectException;
 import java.time.Duration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.cache.Cache;
 import org.springframework.cache.annotation.CachingConfigurer;
 import org.springframework.cache.annotation.EnableCaching;
@@ -29,15 +29,16 @@ import org.springframework.lang.Nullable;
 
 @Configuration(proxyBeanMethods = false)
 @EnableCaching
+@ConfigurationPropertiesScan
 class RedisConfig implements CachingConfigurer {
 
-    private static final Logger log = LoggerFactory.getLogger(RedisConfig.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(RedisConfig.class);
 
-    @Value("${app.cache.compression.enabled:true}")
-    private boolean compressionEnabled;
+    private final RedisAppProperties redisAppProperties;
 
-    @Value("${app.cache.default-ttl:1800}")
-    private long defaultTtlSeconds;
+    RedisConfig(RedisAppProperties redisAppProperties) {
+        this.redisAppProperties = redisAppProperties;
+    }
 
     @Bean
     RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
@@ -69,25 +70,25 @@ class RedisConfig implements CachingConfigurer {
 
         // Create default cache configuration with compression if enabled
         RedisCacheConfiguration cacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
-                .entryTtl(Duration.ofSeconds(defaultTtlSeconds))
+                .entryTtl(Duration.ofSeconds(redisAppProperties.getDefaultTtl()))
                 .serializeKeysWith(
                         RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()));
 
         // Configure serialization based on compression setting
-        if (compressionEnabled) {
+        if (redisAppProperties.isCompressionEnabled()) {
             cacheConfiguration =
                     cacheConfiguration.serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(
                             new CompressedRedisSerializer<>(createOptimizedSerializer())));
-            log.info("Redis value compression enabled for values over 1KB");
+            LOGGER.info("Redis value compression enabled for values over 1KB");
         } else {
             cacheConfiguration = cacheConfiguration.serializeValuesWith(
                     RedisSerializationContext.SerializationPair.fromSerializer(createOptimizedSerializer()));
-            log.info("Redis value compression disabled");
+            LOGGER.info("Redis value compression disabled");
         }
 
         // Create the custom cache manager with our circuit breaker and default TTL
         return new CustomRedisCacheManager(
-                redisCacheWriter, monitor, circuitBreaker, Duration.ofSeconds(defaultTtlSeconds));
+                redisCacheWriter, monitor, circuitBreaker, Duration.ofSeconds(redisAppProperties.getDefaultTtl()));
     }
 
     /**
@@ -135,13 +136,13 @@ class RedisConfig implements CachingConfigurer {
                 String keyString = key != null ? key.toString() : "null";
 
                 if (exception.getCause() instanceof ConnectException) {
-                    log.warn(
+                    LOGGER.warn(
                             "Redis connection issue during {} operation. Cache: {}, Key: {}",
                             operation,
                             cacheName,
                             keyString);
                 } else {
-                    log.error("Cache {} error. Operation: {}, Key: {}", cacheName, operation, keyString, exception);
+                    LOGGER.error("Cache {} error. Operation: {}, Key: {}", cacheName, operation, keyString, exception);
                 }
             }
         };

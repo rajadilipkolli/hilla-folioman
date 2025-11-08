@@ -36,7 +36,7 @@ import org.springframework.web.client.RestClient;
 @Service
 public class BSEStarMasterDataService {
 
-    private static final Logger log = LoggerFactory.getLogger(BSEStarMasterDataService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(BSEStarMasterDataService.class);
 
     private final Pattern delimiterPattern = Pattern.compile("\\|");
 
@@ -62,7 +62,7 @@ public class BSEStarMasterDataService {
     public Map<String, MfFundScheme> fetchBseStarMasterData(
             Map<String, Map<String, String>> amfiDataMap, Map<String, String> amfiCodeIsinMapping)
             throws IOException, CsvException {
-        log.info("BSE Master data Downloading...");
+        LOGGER.info("BSE Master data Downloading...");
 
         // Step 1: Initial GET request to download the page
         String response = restClient
@@ -86,7 +86,7 @@ public class BSEStarMasterDataService {
                 .retrieve()
                 .body(String.class);
 
-        log.info("BSE Master data downloaded successfully.");
+        LOGGER.info("BSE Master data downloaded successfully.");
 
         return parseResponseText(bseMasterData, amfiDataMap, amfiCodeIsinMapping);
     }
@@ -124,7 +124,7 @@ public class BSEStarMasterDataService {
                                 }
                             })
                             .exceptionally(ex -> {
-                                log.error("Error processing scheme data: ", ex);
+                                LOGGER.error("Error processing scheme data: ", ex);
                                 return null;
                             });
                     ;
@@ -152,7 +152,7 @@ public class BSEStarMasterDataService {
                         }
                     })
                     .exceptionally(ex -> {
-                        log.error("Error processing scheme data: ", ex);
+                        LOGGER.error("Error processing scheme data: ", ex);
                         return null;
                     });
             futures.add(future);
@@ -181,7 +181,7 @@ public class BSEStarMasterDataService {
             fallbackScheme.setAmc(amc);
             setMfSchemeCategory(amfiSchemeData, fallbackScheme);
         } else {
-            log.error("amfiSchemeData is null");
+            LOGGER.error("amfiSchemeData is null");
         }
         masterData.put(amfiCode, fallbackScheme);
     }

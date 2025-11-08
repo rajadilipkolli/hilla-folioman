@@ -12,7 +12,7 @@ public class DefaultPolicy implements CachePolicy {
 
     private static final Duration DEFAULT_TTL = Duration.ofMinutes(15);
 
-    private static final Logger log = LoggerFactory.getLogger(DefaultPolicy.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultPolicy.class);
 
     @Override
     public Duration getExpirationTime() {
@@ -21,6 +21,6 @@ public class DefaultPolicy implements CachePolicy {
 
     @Override
     public void apply(RedisTemplate<String, Object> redisTemplate, MeterRegistry meterRegistry) {
-        log.info("Applying default cache policy. No action taken.");
+        LOGGER.info("Applying default cache policy. No action taken.");
     }
 }

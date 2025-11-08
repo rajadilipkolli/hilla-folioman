@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import com.app.folioman.config.SQLContainersConfig;
 import com.app.folioman.mfschemes.MFSchemeNavProjection;
 import com.app.folioman.mfschemes.entities.MFSchemeNav;
+import com.app.folioman.mfschemes.entities.MfAmc;
 import com.app.folioman.mfschemes.entities.MfFundScheme;
 import com.app.folioman.mfschemes.models.projection.NavDateValueProjection;
 import java.math.BigDecimal;
@@ -35,7 +36,7 @@ class MFSchemeNavRepositoryTest {
 
     @BeforeEach
     void setUp() {
-        com.app.folioman.mfschemes.entities.MfAmc amc = new com.app.folioman.mfschemes.entities.MfAmc();
+        MfAmc amc = new MfAmc();
         amc.setCode("AMC001");
         amc = entityManager.persist(amc);
 

@@ -15,7 +15,7 @@ import org.springframework.data.redis.serializer.RedisSerializer;
 
 public class CustomRedisCache extends RedisCache {
 
-    private static final Logger log = LoggerFactory.getLogger(CustomRedisCache.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(CustomRedisCache.class);
     private final Monitor monitor;
     private final CacheCircuitBreaker circuitBreaker;
 
@@ -46,8 +46,8 @@ public class CustomRedisCache extends RedisCache {
             });
 
             // Custom logic after the put operation
-            if (log.isDebugEnabled()) {
-                log.debug("Put operation completed for key: {}", key);
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Put operation completed for key: {}", key);
             }
 
             // Store in local backup cache if Redis was successful and local cache isn't too large
@@ -58,7 +58,7 @@ public class CustomRedisCache extends RedisCache {
             // Record metrics
             recordMetrics(key, "update");
         } catch (Exception e) {
-            log.warn("Failed to put key {} in Redis cache: {}", key, e.getMessage());
+            LOGGER.warn("Failed to put key {} in Redis cache: {}", key, e.getMessage());
             // Still store in local cache as fallback
             if (localCache.size() < MAX_LOCAL_CACHE_SIZE) {
                 localCache.put(key, value);
@@ -94,7 +94,7 @@ public class CustomRedisCache extends RedisCache {
 
             return valueWrapper;
         } catch (Exception e) {
-            log.warn("Failed to get key {} from Redis cache: {}", key, e.getMessage());
+            LOGGER.warn("Failed to get key {} from Redis cache: {}", key, e.getMessage());
 
             // Try local cache as last resort on unexpected errors
             Object value = localCache.get(key);
@@ -114,11 +114,11 @@ public class CustomRedisCache extends RedisCache {
             // Always remove from local cache
             localCache.remove(key);
 
-            if (log.isDebugEnabled()) {
-                log.debug("Evicted key {} from cache", key);
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Evicted key {} from cache", key);
             }
         } catch (Exception e) {
-            log.warn("Failed to evict key {} from Redis cache: {}", key, e.getMessage());
+            LOGGER.warn("Failed to evict key {} from Redis cache: {}", key, e.getMessage());
             // Still remove from local cache
             localCache.remove(key);
         }
@@ -136,9 +136,9 @@ public class CustomRedisCache extends RedisCache {
             // Always clear local cache
             localCache.clear();
 
-            log.info("Cache cleared");
+            LOGGER.info("Cache cleared");
         } catch (Exception e) {
-            log.warn("Failed to clear Redis cache: {}", e.getMessage());
+            LOGGER.warn("Failed to clear Redis cache: {}", e.getMessage());
             // Still clear local cache
             localCache.clear();
         }

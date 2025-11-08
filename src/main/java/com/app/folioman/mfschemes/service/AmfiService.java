@@ -19,7 +19,7 @@ import org.springframework.web.client.RestClient;
 @Transactional(readOnly = true)
 public class AmfiService {
 
-    private static final Logger logger = LoggerFactory.getLogger(AmfiService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AmfiService.class);
 
     private final RestClient restClient;
     private final ApplicationProperties applicationProperties;
@@ -30,7 +30,7 @@ public class AmfiService {
     }
 
     public Map<String, Map<String, String>> fetchAmfiSchemeData() throws IOException, CsvException {
-        logger.info("Downloading AMFI scheme data...");
+        LOGGER.info("Downloading AMFI scheme data...");
         // Prepare a Map to store the scheme data
         Map<String, Map<String, String>> data = new HashMap<>();
 
@@ -42,12 +42,12 @@ public class AmfiService {
                     .uri(applicationProperties.getAmfi().getScheme().getDataUrl())
                     .retrieve()
                     .onStatus(HttpStatusCode::isError, (request, response) -> {
-                        logger.error("Failed to retrieve data. Status: {} ", response.getStatusCode());
+                        LOGGER.error("Failed to retrieve data. Status: {} ", response.getStatusCode());
                     })
                     .body(String.class);
         } catch (Exception e) {
             // website down scenario
-            logger.error("Unable to download data", e);
+            LOGGER.error("Unable to download data", e);
             return data;
         }
 

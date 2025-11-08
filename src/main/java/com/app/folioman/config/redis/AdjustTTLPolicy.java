@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class AdjustTTLPolicy implements CachePolicy {
 
-    private static final Logger log = LoggerFactory.getLogger(AdjustTTLPolicy.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AdjustTTLPolicy.class);
 
     private static final Duration DEFAULT_TTL = Duration.ofMinutes(30);
     private static final Duration MAX_TTL = Duration.ofHours(2);
@@ -27,7 +27,7 @@ public class AdjustTTLPolicy implements CachePolicy {
 
         Set<String> allKeys = redisTemplate.keys("*");
         if (allKeys == null || allKeys.isEmpty()) {
-            log.info("Cache is empty. No TTL adjustments needed.");
+            LOGGER.info("Cache is empty. No TTL adjustments needed.");
             return;
         }
 
@@ -35,7 +35,7 @@ public class AdjustTTLPolicy implements CachePolicy {
             double accessCount = getAccessCountForKey(meterRegistry, key);
             Duration newTTL = determineNewTTL(accessCount);
             redisTemplate.expire(key, newTTL);
-            log.debug("Adjusted TTL for key: {} to {} minutes.", key, newTTL.toMinutes());
+            LOGGER.debug("Adjusted TTL for key: {} to {} minutes.", key, newTTL.toMinutes());
         }
     }
 

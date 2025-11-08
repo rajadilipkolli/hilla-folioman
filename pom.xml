@@ -17,6 +17,8 @@
         <flexy-pool.version>3.0.2</flexy-pool.version>
 
         <spotless.version>3.0.0</spotless.version>
+
+        <archunit.version>1.4.1</archunit.version>
         <properties-maven-plugin.version>1.2.1</properties-maven-plugin.version>
         <sonar-maven-plugin.version>5.2.0.4988</sonar-maven-plugin.version>
         <jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
@@ -246,6 +248,12 @@
         <dependency>
             <groupId>org.testcontainers</groupId>
             <artifactId>selenium</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.tngtech.archunit</groupId>
+            <artifactId>archunit-junit5</artifactId>
+            <version>${archunit.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
