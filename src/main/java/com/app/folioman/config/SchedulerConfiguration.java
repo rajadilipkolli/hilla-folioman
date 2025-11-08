@@ -17,7 +17,7 @@ import org.springframework.context.event.EventListener;
 @Configuration
 public class SchedulerConfiguration {
 
-    private static final Logger log = LoggerFactory.getLogger(SchedulerConfiguration.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SchedulerConfiguration.class);
 
     private final UserSchemeDetailService userSchemeDetailService;
     private final MFNavService mfNavService;
@@ -44,34 +44,34 @@ public class SchedulerConfiguration {
     }
 
     private void scheduleSetAMFIIfNullJob() {
-        log.info("Scheduling setAMFIIfNull job with cron: {}", schedulerProperties.getAmfiJobCron());
+        LOGGER.info("Scheduling setAMFIIfNull job with cron: {}", schedulerProperties.getAmfiJobCron());
         BackgroundJob.scheduleRecurrently(
                 "user-scheme-amfi-update",
                 schedulerProperties.getAmfiJobCron(),
                 userSchemeDetailService::setUserSchemeAMFIIfNull);
-        log.info("setAMFIIfNull job scheduled successfully");
+        LOGGER.info("setAMFIIfNull job scheduled successfully");
     }
 
     private void scheduleNavDataJobs() {
-        log.info("Scheduling loadHistoricalNavJob with cron: {}", schedulerProperties.getHistoricalNavJobCron());
+        LOGGER.info("Scheduling loadHistoricalNavJob with cron: {}", schedulerProperties.getHistoricalNavJobCron());
         BackgroundJob.scheduleRecurrently(
                 "historical-nav-load",
                 schedulerProperties.getHistoricalNavJobCron(),
                 mfNavService::loadHistoricalDataIfNotExists);
-        log.info("loadHistoricalNavJob scheduled successfully");
+        LOGGER.info("loadHistoricalNavJob scheduled successfully");
 
-        log.info("Scheduling loadLastDayDataNav with cron: {}", schedulerProperties.getDailyDataJobCron());
+        LOGGER.info("Scheduling loadLastDayDataNav with cron: {}", schedulerProperties.getDailyDataJobCron());
         BackgroundJob.scheduleRecurrently(
                 "daily-nav-load", schedulerProperties.getDailyDataJobCron(), mfNavService::loadLastDayDataNav);
-        log.info("loadLastDayDataNav scheduled successfully");
+        LOGGER.info("loadLastDayDataNav scheduled successfully");
     }
 
     private void scheduleAdaptiveStrategyJob() {
-        log.info("Scheduling adaptive strategy job with cron: {}", schedulerProperties.getAdaptiveStrategyJobCron());
+        LOGGER.info("Scheduling adaptive strategy job with cron: {}", schedulerProperties.getAdaptiveStrategyJobCron());
         BackgroundJob.scheduleRecurrently(
                 "adaptive-cache-strategy",
                 schedulerProperties.getAdaptiveStrategyJobCron(),
                 adaptiveStrategyScheduler::adaptStrategy);
-        log.info("Adaptive strategy job scheduled successfully");
+        LOGGER.info("Adaptive strategy job scheduled successfully");
     }
 }

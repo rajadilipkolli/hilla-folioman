@@ -19,7 +19,7 @@ import org.springframework.data.redis.serializer.SerializationException;
  */
 public class CompressedRedisSerializer<T> implements RedisSerializer<T> {
 
-    private static final Logger log = LoggerFactory.getLogger(CompressedRedisSerializer.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(CompressedRedisSerializer.class);
     private static final int COMPRESSION_THRESHOLD_BYTES = 1024; // Only compress values > 1KB
 
     private final RedisSerializer<T> delegate;
@@ -48,9 +48,9 @@ public class CompressedRedisSerializer<T> implements RedisSerializer<T> {
                 byte[] compressed = compress(serialized);
 
                 // Log compression ratio for monitoring
-                if (log.isDebugEnabled()) {
+                if (LOGGER.isDebugEnabled()) {
                     double ratio = (double) compressed.length / serialized.length;
-                    log.debug(
+                    LOGGER.debug(
                             "Compressed value from {} bytes to {} bytes (ratio: {:.2f})",
                             serialized.length,
                             compressed.length,
@@ -70,7 +70,7 @@ public class CompressedRedisSerializer<T> implements RedisSerializer<T> {
                 return result;
             }
         } catch (IOException e) {
-            log.error("Error compressing Redis value", e);
+            LOGGER.error("Error compressing Redis value", e);
             throw new SerializationException("Error compressing Redis value", e);
         }
     }
@@ -96,7 +96,7 @@ public class CompressedRedisSerializer<T> implements RedisSerializer<T> {
             // Delegate the deserialization
             return delegate.deserialize(deserialized);
         } catch (IOException e) {
-            log.error("Error decompressing Redis value", e);
+            LOGGER.error("Error decompressing Redis value", e);
             throw new SerializationException("Error decompressing Redis value", e);
         }
     }
@@ -121,7 +121,7 @@ public class CompressedRedisSerializer<T> implements RedisSerializer<T> {
             // Wrap decompression-related IO errors (for example when data is not valid GZIP)
             // into Spring's SerializationException so callers (and tests) see a consistent
             // serialization error type instead of leaking ZipException/IOException.
-            log.error("Error during GZIP decompression", e);
+            LOGGER.error("Error during GZIP decompression", e);
             throw new SerializationException("Error during GZIP decompression", e);
         }
 

@@ -17,7 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 public class PdfProcessingService {
 
-    private static final Logger log = LoggerFactory.getLogger(PdfProcessingService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(PdfProcessingService.class);
 
     private static final String CASPARSER_COMMAND = "casparser";
     private static final AtomicBoolean casparserChecked = new AtomicBoolean(false);
@@ -38,15 +38,15 @@ public class PdfProcessingService {
             return true;
         }
 
-        log.info("Checking if casparser CLI is installed...");
+        LOGGER.info("Checking if casparser CLI is installed...");
 
         if (isCasparserAvailable()) {
-            log.info("casparser CLI is already installed");
+            LOGGER.info("casparser CLI is already installed");
             casparserChecked.set(true);
             return true;
         }
 
-        log.error("casparser CLI is not installed. Please install it as part of the deployment process.");
+        LOGGER.error("casparser CLI is not installed. Please install it as part of the deployment process.");
         return false;
     }
 
@@ -67,7 +67,7 @@ public class PdfProcessingService {
                 while ((line = reader.readLine()) != null) {
                     output.append(line);
                 }
-                log.debug("casparser version check output: {}", output);
+                LOGGER.debug("casparser version check output: {}", output);
             }
 
             int exitCode = process.waitFor();
@@ -90,7 +90,7 @@ public class PdfProcessingService {
      * @throws IOException If there is an error reading or parsing the PDF
      */
     public CasDTO convertPdfCasToJson(MultipartFile pdfFile, String password) throws IOException {
-        log.info(
+        LOGGER.info(
                 "Converting password-protected PDF CAS file to CasDTO Object using python casparser cli: {}",
                 pdfFile.getOriginalFilename());
 
@@ -123,7 +123,7 @@ public class PdfProcessingService {
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
-                    log.debug("casparser output: {}", line);
+                    LOGGER.debug("casparser output: {}", line);
                 }
             }
 
@@ -148,7 +148,7 @@ public class PdfProcessingService {
                 Files.deleteIfExists(tempPdfPath);
                 Files.deleteIfExists(tempJsonPath);
             } catch (IOException e) {
-                log.warn("Could not delete temporary files: {}", e.getMessage());
+                LOGGER.warn("Could not delete temporary files: {}", e.getMessage());
             }
         }
     }

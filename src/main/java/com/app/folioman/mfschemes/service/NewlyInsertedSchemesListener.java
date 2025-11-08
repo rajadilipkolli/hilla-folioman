@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class NewlyInsertedSchemesListener {
 
-    private static final Logger log = LoggerFactory.getLogger(NewlyInsertedSchemesListener.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(NewlyInsertedSchemesListener.class);
 
     private final MFNavService mfNavService;
 
@@ -23,7 +23,7 @@ public class NewlyInsertedSchemesListener {
     @ApplicationModuleListener
     @EventListener
     void onOrderResponseEvent(UploadedSchemesList uploadedSchemesList) {
-        log.info("Received Event :{}", uploadedSchemesList);
+        LOGGER.info("Received Event :{}", uploadedSchemesList);
         // Delegate async processing to the service layer to avoid transactional issues
         mfNavService.processNavsAsync(uploadedSchemesList.schemesList().stream()
                 .filter(Objects::nonNull)

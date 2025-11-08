@@ -18,7 +18,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class Monitor {
 
-    private static final Logger log = LoggerFactory.getLogger(Monitor.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(Monitor.class);
     private static final int SCAN_COUNT = 100; // Process keys in batches of 100
 
     private final RedisTemplate<String, Object> redisTemplate;
@@ -81,7 +81,7 @@ public class Monitor {
             // This is a simplistic approach; in production, you would inject the actual CircuitBreaker
             return "CLOSED"; // Default to closed if we can't determine
         } catch (Exception e) {
-            log.warn("Error getting circuit breaker state", e);
+            LOGGER.warn("Error getting circuit breaker state", e);
             return "UNKNOWN";
         }
     }
@@ -94,7 +94,7 @@ public class Monitor {
         try {
             return scanKeys("*").size();
         } catch (Exception e) {
-            log.error("Error counting Redis keys", e);
+            LOGGER.error("Error counting Redis keys", e);
             return 0;
         }
     }
@@ -124,12 +124,12 @@ public class Monitor {
                         keys.add(new String(cursor.next()));
                     }
                 } catch (Exception e) {
-                    log.error("Error scanning Redis keys", e);
+                    LOGGER.error("Error scanning Redis keys", e);
                 }
                 return null;
             });
         } catch (Exception e) {
-            log.error("Error executing Redis scan operation", e);
+            LOGGER.error("Error executing Redis scan operation", e);
         }
 
         return keys;
@@ -167,7 +167,7 @@ public class Monitor {
 
             return usedMemory != null ? Long.parseLong(usedMemory) : 0L;
         } catch (Exception e) {
-            log.warn("Error getting Redis memory usage", e);
+            LOGGER.warn("Error getting Redis memory usage", e);
             return 0L;
         }
     }

@@ -41,7 +41,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Transactional(readOnly = true)
 public class UserDetailService {
 
-    private static final Logger log = LoggerFactory.getLogger(UserDetailService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(UserDetailService.class);
 
     private final PortfolioServiceHelper portfolioServiceHelper;
     private final CasDetailsMapper casDetailsMapper;
@@ -88,7 +88,7 @@ public class UserDetailService {
      * @return UploadFileResponse with processing statistics
      */
     public UploadFileResponse uploadFromDto(CasDTO casDTO) {
-        log.info("Processing CasDTO from converted source");
+        LOGGER.info("Processing CasDTO from converted source");
         boolean existingUser = validateCasDTO(casDTO);
         return existingUser ? processExistingUser(casDTO) : processNewUser(casDTO);
     }
@@ -106,7 +106,7 @@ public class UserDetailService {
         UserCASDetails userCASDetails = null;
 
         if (userTransactionFromReqCount == userTransactionFromDBCount) {
-            log.info("No new transactions are added");
+            LOGGER.info("No new transactions are added");
         } else {
             userCASDetails = importNewTransaction(
                     casDTO,
@@ -157,7 +157,7 @@ public class UserDetailService {
 
         // Check if all new transactions are added as part of adding schemes
         if (userTransactionFromReqCount == (userTransactionFromDBCount + newTransactions.get())) {
-            log.info("All new transactions are added as part of adding schemes, hence skipping");
+            LOGGER.info("All new transactions are added as part of adding schemes, hence skipping");
         } else {
             // New transactions are added
 
@@ -212,7 +212,7 @@ public class UserDetailService {
                     List<UserTransactionDetails> newTransactionsForScheme = requestTransactions.stream()
                             .filter(dto -> !transactionDateSetDB.contains(dto.date()))
                             .map(dto -> {
-                                log.info(
+                                LOGGER.info(
                                         "New transaction on date: {} created for rtaCode {} that is not present in the database",
                                         dto.date(),
                                         rtaCodeFromRequest);
@@ -242,7 +242,7 @@ public class UserDetailService {
 
             // Save all new transactions in a single batch operation
             if (!allNewTransactions.isEmpty()) {
-                log.info("Batch saving {} new transactions", allNewTransactions.size());
+                LOGGER.info("Batch saving {} new transactions", allNewTransactions.size());
                 userTransactionDetailsService.saveTransactions(allNewTransactions);
             }
         }
@@ -275,7 +275,7 @@ public class UserDetailService {
             Long userTransactionFromDBCount) {
         // Check if all new transactions are added as part of adding folios
         if (userTransactionFromReqCount == (userTransactionFromDBCount + newTransactions.get())) {
-            log.info("All new transactions are added as part of adding folios, hence skipping");
+            LOGGER.info("All new transactions are added as part of adding folios, hence skipping");
         } else {
             // New schemes or transactions are added
 
@@ -322,7 +322,7 @@ public class UserDetailService {
                 List<UserSchemeDetails> newSchemesForFolio = requestSchemes.stream()
                         .filter(scheme -> !rtaCodeSet.contains(scheme.rtaCode()))
                         .map(userSchemeDTO -> {
-                            log.info(
+                            LOGGER.info(
                                     "New RTACode: {} created for folio : {} that is not present in the database",
                                     userSchemeDTO.rtaCode(),
                                     folioFromRequest);

@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 class UserFolioDetailService {
 
-    private static final Logger log = LoggerFactory.getLogger(UserFolioDetailService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(UserFolioDetailService.class);
 
     private final UserFolioDetailsRepository userFolioDetailsRepository;
 
@@ -31,6 +31,6 @@ class UserFolioDetailService {
         UserFolioDetailsPanProjection panProjection =
                 userFolioDetailsRepository.findFirstByUserCasDetails_IdAndPanKyc(userCasID, "OK");
         int rowsUpdated = userFolioDetailsRepository.updatePanByCasId(panProjection.getPan(), userCasID);
-        log.debug("Updated {} rows with PAN", rowsUpdated);
+        LOGGER.debug("Updated {} rows with PAN", rowsUpdated);
     }
 }

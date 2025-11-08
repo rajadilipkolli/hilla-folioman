@@ -33,7 +33,7 @@ import org.springframework.core.annotation.Order;
 @ConditionalOnBean(DataSource.class)
 public class FlexyPoolDataSourceConfig {
 
-    private static final Logger log = LoggerFactory.getLogger(FlexyPoolDataSourceConfig.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(FlexyPoolDataSourceConfig.class);
 
     @Bean
     @Order(Ordered.LOWEST_PRECEDENCE - 2)
@@ -111,7 +111,7 @@ public class FlexyPoolDataSourceConfig {
             if (props.getConnectionLeak().isEnabled()) {
                 hikariDataSource.setLeakDetectionThreshold(
                         props.getConnectionLeak().getThresholdMs());
-                log.info(
+                LOGGER.info(
                         "Enabled connection leak detection for pool '{}' with threshold: {} ms",
                         poolName,
                         props.getConnectionLeak().getThresholdMs());
@@ -121,7 +121,7 @@ public class FlexyPoolDataSourceConfig {
             if (hikariDataSource.getMinimumIdle() == hikariDataSource.getMaximumPoolSize()) {
                 // For better performance under steady load, minimum idle connections should be lower
                 hikariDataSource.setMinimumIdle(Math.max(2, hikariDataSource.getMaximumPoolSize() / 4));
-                log.info(
+                LOGGER.info(
                         "Optimized minimum idle connections for pool '{}': {}",
                         poolName,
                         hikariDataSource.getMinimumIdle());

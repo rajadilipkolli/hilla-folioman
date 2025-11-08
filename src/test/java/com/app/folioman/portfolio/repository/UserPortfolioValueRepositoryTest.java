@@ -121,10 +121,9 @@ class UserPortfolioValueRepositoryTest {
         userPortfolioValue.setDate(java.time.LocalDate.now());
         userPortfolioValue.setInvested(new java.math.BigDecimal("0"));
         userPortfolioValue.setValue(new java.math.BigDecimal("0"));
-        com.app.folioman.portfolio.entities.UserCASDetails cas =
-                new com.app.folioman.portfolio.entities.UserCASDetails();
-        cas.setCasTypeEnum(com.app.folioman.portfolio.entities.CasTypeEnum.DETAILED);
-        cas.setFileTypeEnum(com.app.folioman.portfolio.entities.FileTypeEnum.UNKNOWN);
+        UserCASDetails cas = new UserCASDetails();
+        cas.setCasTypeEnum(CasTypeEnum.DETAILED);
+        cas.setFileTypeEnum(FileTypeEnum.UNKNOWN);
         cas = entityManager.persistAndFlush(cas);
         userPortfolioValue.setUserCasDetails(cas);
         entityManager.persistAndFlush(userPortfolioValue);

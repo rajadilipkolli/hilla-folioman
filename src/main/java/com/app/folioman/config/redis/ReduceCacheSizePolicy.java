@@ -16,7 +16,7 @@ public class ReduceCacheSizePolicy implements CachePolicy {
 
     private static final double REDUCTION_PERCENTAGE = 0.3; // Reduce by 30% instead of 50%
     private static final Duration EXPIRATION_TIME = Duration.ofMinutes(30); // Default expiration time
-    private static final Logger log = LoggerFactory.getLogger(ReduceCacheSizePolicy.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ReduceCacheSizePolicy.class);
     private static final String PROTECTED_KEY_PREFIX = "critical:"; // Keys that should never be evicted
 
     @Override
@@ -31,7 +31,7 @@ public class ReduceCacheSizePolicy implements CachePolicy {
         Set<String> allKeys = monitor.scanKeys("*");
 
         if (allKeys == null || allKeys.isEmpty()) {
-            log.info("Cache is empty, nothing to reduce.");
+            LOGGER.info("Cache is empty, nothing to reduce.");
             return;
         }
 
@@ -39,7 +39,7 @@ public class ReduceCacheSizePolicy implements CachePolicy {
         int totalKeys = allKeys.size();
         int keysToRemove = (int) (totalKeys * REDUCTION_PERCENTAGE);
 
-        log.info("Reducing cache size by removing up to {} entries using LRU strategy.", keysToRemove);
+        LOGGER.info("Reducing cache size by removing up to {} entries using LRU strategy.", keysToRemove);
 
         // Track access counts for keys to implement LRU-like eviction
         List<KeyMetadata> keyMetadataList = getKeyMetadataList(allKeys, meterRegistry, redisTemplate);
@@ -47,7 +47,7 @@ public class ReduceCacheSizePolicy implements CachePolicy {
         // Sort keys by access frequency (least used first) and then by TTL (expiring soon first)
         int removedCount = evictLeastUsedKeys(keyMetadataList, keysToRemove, redisTemplate);
 
-        log.info("Cache reduction complete. Removed {} entries.", removedCount);
+        LOGGER.info("Cache reduction complete. Removed {} entries.", removedCount);
 
         // Apply shorter TTL to remaining keys that had low access counts but weren't evicted
         applyDynamicTTL(keyMetadataList, removedCount, redisTemplate);
@@ -92,7 +92,7 @@ public class ReduceCacheSizePolicy implements CachePolicy {
             removedCount++;
 
             if (removedCount % 100 == 0) {
-                log.debug("Removed {} keys so far", removedCount);
+                LOGGER.debug("Removed {} keys so far", removedCount);
             }
         }
 
@@ -115,7 +115,7 @@ public class ReduceCacheSizePolicy implements CachePolicy {
         }
 
         if (adjustedCount > 0) {
-            log.info("Applied shorter TTL to {} additional low-usage keys", adjustedCount);
+            LOGGER.info("Applied shorter TTL to {} additional low-usage keys", adjustedCount);
         }
     }
 

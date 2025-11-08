@@ -23,7 +23,7 @@ import org.springframework.util.StopWatch;
 @EnableCaching
 public class PortfolioCacheConfig {
 
-    private static final Logger log = LoggerFactory.getLogger(PortfolioCacheConfig.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(PortfolioCacheConfig.class);
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final PortfolioCacheProperties portfolioCacheProperties;
@@ -40,7 +40,7 @@ public class PortfolioCacheConfig {
      */
     @EventListener(ApplicationStartedEvent.class)
     public void scheduleTransactionCacheEvictionJob(ApplicationStartedEvent event) {
-        log.info(
+        LOGGER.info(
                 "Scheduling transaction cache eviction job with cron: {}",
                 portfolioCacheProperties.getEviction().getTransactionCron());
 
@@ -50,7 +50,7 @@ public class PortfolioCacheConfig {
                 portfolioCacheProperties.getEviction().getTransactionCron(),
                 this::evictTransactionCaches);
 
-        log.info("Transaction cache eviction jobs scheduled successfully");
+        LOGGER.info("Transaction cache eviction jobs scheduled successfully");
     }
 
     /**
@@ -62,7 +62,7 @@ public class PortfolioCacheConfig {
             StopWatch stopWatch = new StopWatch();
             stopWatch.start("Transaction Cache Eviction");
             LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
-            log.info("Executing scheduled transaction cache eviction at {}", now);
+            LOGGER.info("Executing scheduled transaction cache eviction at {}", now);
 
             // Evict all entries with "monthly_" and "yearly_" patterns in the TRANSACTION_CACHE
             String cacheKeyPattern = CacheNames.TRANSACTION_CACHE + "::*";
@@ -71,11 +71,11 @@ public class PortfolioCacheConfig {
             Set<String> keys = redisTemplate.keys(cacheKeyPattern);
 
             if (keys.isEmpty()) {
-                log.info("No transaction cache entries found to evict");
+                LOGGER.info("No transaction cache entries found to evict");
                 return;
             }
 
-            log.info("Found {} transaction cache entries to check for eviction", keys.size());
+            LOGGER.info("Found {} transaction cache entries to check for eviction", keys.size());
 
             int evictedCount = 0;
             int batchCount = 0;
@@ -88,7 +88,7 @@ public class PortfolioCacheConfig {
 
                     // Process in batches to avoid Redis blocking for too long
                     if (batchCount >= portfolioCacheProperties.getEviction().getBatchSize()) {
-                        log.debug("Evicted {} cache entries so far", evictedCount);
+                        LOGGER.debug("Evicted {} cache entries so far", evictedCount);
                         batchCount = 0;
                         // Small delay between batches to reduce Redis load
                         Thread.sleep(10);
@@ -97,12 +97,12 @@ public class PortfolioCacheConfig {
             }
 
             stopWatch.stop();
-            log.info(
+            LOGGER.info(
                     "Successfully evicted {} transaction cache entries in {} ms",
                     evictedCount,
                     stopWatch.getTotalTimeMillis());
         } catch (Exception e) {
-            log.error("Error during transaction cache eviction", e);
+            LOGGER.error("Error during transaction cache eviction", e);
         }
     }
 }

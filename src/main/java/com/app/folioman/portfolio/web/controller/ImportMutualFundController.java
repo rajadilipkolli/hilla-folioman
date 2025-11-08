@@ -29,7 +29,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Validated
 public class ImportMutualFundController {
 
-    private static final Logger log = LoggerFactory.getLogger(ImportMutualFundController.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ImportMutualFundController.class);
 
     private final UserDetailService userDetailService;
     private final PdfProcessingService pdfProcessingService;
@@ -41,14 +41,14 @@ public class ImportMutualFundController {
 
     @PostMapping(value = "/api/upload-handler", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     UploadFileResponse upload(@RequestPart("file") MultipartFile multipartFile) throws IOException {
-        log.info("Received file :{} for processing", multipartFile.getOriginalFilename());
+        LOGGER.info("Received file :{} for processing", multipartFile.getOriginalFilename());
         return userDetailService.upload(multipartFile);
     }
 
     @PostMapping(value = "/api/upload-pdf-cas", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public UploadFileResponse uploadPasswordProtectedCasPdf(
             @RequestPart("file") MultipartFile pdfFile, @RequestPart("password") String password) throws IOException {
-        log.info("Received password-protected PDF file: {} for processing", pdfFile.getOriginalFilename());
+        LOGGER.info("Received password-protected PDF file: {} for processing", pdfFile.getOriginalFilename());
 
         // First convert the PDF to CasDTO
         var casDTO = pdfProcessingService.convertPdfCasToJson(pdfFile, password);

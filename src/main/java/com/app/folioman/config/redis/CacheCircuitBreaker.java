@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class CacheCircuitBreaker {
 
-    private static final Logger log = LoggerFactory.getLogger(CacheCircuitBreaker.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(CacheCircuitBreaker.class);
     private final CircuitBreaker circuitBreaker;
 
     public CacheCircuitBreaker(
@@ -47,14 +47,14 @@ public class CacheCircuitBreaker {
         this.circuitBreaker
                 .getEventPublisher()
                 .onStateTransition(event -> {
-                    log.warn(
+                    LOGGER.warn(
                             "Redis circuit breaker state changed from {} to {}",
                             event.getStateTransition().getFromState(),
                             event.getStateTransition().getToState());
                 })
                 .onError(event -> {
-                    if (log.isDebugEnabled()) {
-                        log.debug(
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug(
                                 "Redis circuit breaker recorded error: {}",
                                 event.getThrowable().getMessage());
                     }
@@ -80,7 +80,7 @@ public class CacheCircuitBreaker {
         try {
             return CircuitBreaker.decorateSupplier(circuitBreaker, supplier).get();
         } catch (Exception e) {
-            log.warn("Redis operation failed, using fallback. Error: {}", e.getMessage());
+            LOGGER.warn("Redis operation failed, using fallback. Error: {}", e.getMessage());
             return fallback.get();
         }
     }

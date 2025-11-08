@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class AdaptiveStrategyScheduler {
 
-    private static final Logger log = LoggerFactory.getLogger(AdaptiveStrategyScheduler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AdaptiveStrategyScheduler.class);
 
     private final CacheAdapter cacheAdapter;
     private final Monitor monitor;
@@ -53,14 +53,14 @@ public class AdaptiveStrategyScheduler {
             Map<String, Object> metrics = monitor.getMetrics();
 
             if (metrics == null) {
-                log.debug("Cache metrics are null, skipping evaluation");
+                LOGGER.debug("Cache metrics are null, skipping evaluation");
                 return;
             }
 
             // only evaluate when metrics is non-null
             String newStrategy = evaluator.evaluate(metrics);
 
-            log.debug(
+            LOGGER.debug(
                     "Cache metrics - Size: {}, Hit Rate: {}, Memory Usage: {}",
                     metrics.get("cacheSize"),
                     metrics.get("hitRate"),
@@ -69,11 +69,12 @@ public class AdaptiveStrategyScheduler {
             // Implement circuit breaker pattern to avoid excessive changes
             if (lastAppliedStrategy != null && lastAppliedStrategy.equals(newStrategy)) {
                 consecutiveStrategyMatches++;
-                log.debug("Same strategy detected {} consecutive times: {}", consecutiveStrategyMatches, newStrategy);
+                LOGGER.debug(
+                        "Same strategy detected {} consecutive times: {}", consecutiveStrategyMatches, newStrategy);
 
                 // If stable, reduce frequency of actual policy changes
                 if (consecutiveStrategyMatches < stabilityThreshold) {
-                    log.debug("Skipping policy application until stability threshold reached");
+                    LOGGER.debug("Skipping policy application until stability threshold reached");
                     return;
                 }
             } else {
@@ -85,13 +86,13 @@ public class AdaptiveStrategyScheduler {
             if (lastAppliedStrategy == null
                     || !lastAppliedStrategy.equals(newStrategy)
                     || consecutiveStrategyMatches >= stabilityThreshold) {
-                log.info("Applying new cache strategy: {}", newStrategy);
+                LOGGER.info("Applying new cache strategy: {}", newStrategy);
                 CachePolicy newPolicy = policyRepository.getPolicy(newStrategy);
                 cacheAdapter.setPolicy(newPolicy);
                 lastAppliedStrategy = newStrategy;
             }
         } catch (Exception e) {
-            log.error("Error adapting cache strategy", e);
+            LOGGER.error("Error adapting cache strategy", e);
         }
     }
 }

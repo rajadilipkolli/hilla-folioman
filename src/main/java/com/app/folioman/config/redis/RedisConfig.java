@@ -31,7 +31,7 @@ import org.springframework.lang.Nullable;
 @EnableCaching
 class RedisConfig implements CachingConfigurer {
 
-    private static final Logger log = LoggerFactory.getLogger(RedisConfig.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(RedisConfig.class);
 
     @Value("${app.cache.compression.enabled:true}")
     private boolean compressionEnabled;
@@ -78,11 +78,11 @@ class RedisConfig implements CachingConfigurer {
             cacheConfiguration =
                     cacheConfiguration.serializeValuesWith(RedisSerializationContext.SerializationPair.fromSerializer(
                             new CompressedRedisSerializer<>(createOptimizedSerializer())));
-            log.info("Redis value compression enabled for values over 1KB");
+            LOGGER.info("Redis value compression enabled for values over 1KB");
         } else {
             cacheConfiguration = cacheConfiguration.serializeValuesWith(
                     RedisSerializationContext.SerializationPair.fromSerializer(createOptimizedSerializer()));
-            log.info("Redis value compression disabled");
+            LOGGER.info("Redis value compression disabled");
         }
 
         // Create the custom cache manager with our circuit breaker and default TTL
@@ -135,13 +135,13 @@ class RedisConfig implements CachingConfigurer {
                 String keyString = key != null ? key.toString() : "null";
 
                 if (exception.getCause() instanceof ConnectException) {
-                    log.warn(
+                    LOGGER.warn(
                             "Redis connection issue during {} operation. Cache: {}, Key: {}",
                             operation,
                             cacheName,
                             keyString);
                 } else {
-                    log.error("Cache {} error. Operation: {}, Key: {}", cacheName, operation, keyString, exception);
+                    LOGGER.error("Cache {} error. Operation: {}, Key: {}", cacheName, operation, keyString, exception);
                 }
             }
         };
