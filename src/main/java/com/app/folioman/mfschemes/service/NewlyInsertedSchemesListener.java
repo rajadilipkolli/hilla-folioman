@@ -16,7 +16,7 @@ public class NewlyInsertedSchemesListener {
 
     private final MFNavService mfNavService;
 
-    public NewlyInsertedSchemesListener(MFNavService mfNavService) {
+    NewlyInsertedSchemesListener(MFNavService mfNavService) {
         this.mfNavService = mfNavService;
     }
 

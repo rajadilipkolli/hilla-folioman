@@ -24,7 +24,7 @@ public class AmfiService {
     private final RestClient restClient;
     private final ApplicationProperties applicationProperties;
 
-    public AmfiService(RestClient restClient, ApplicationProperties applicationProperties) {
+    AmfiService(RestClient restClient, ApplicationProperties applicationProperties) {
         this.restClient = restClient;
         this.applicationProperties = applicationProperties;
     }

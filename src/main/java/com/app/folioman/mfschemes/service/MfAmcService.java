@@ -23,7 +23,7 @@ public class MfAmcService {
     // Local cache for AMC entities by name for faster lookup in find-or-create operations
     private final ConcurrentHashMap<String, MfAmc> amcNameCache = new ConcurrentHashMap<>();
 
-    public MfAmcService(MfAmcCacheService mfAmcCacheService) {
+    MfAmcService(MfAmcCacheService mfAmcCacheService) {
         this.mfAmcCacheService = mfAmcCacheService;
     }
 

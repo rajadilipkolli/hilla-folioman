@@ -48,7 +48,7 @@ public class BSEStarMasterDataService {
     // Local cache for AMCs by code to avoid repeated lookups in concurrent processing
     private final ConcurrentHashMap<String, MfAmc> amcCache = new ConcurrentHashMap<>();
 
-    public BSEStarMasterDataService(
+    BSEStarMasterDataService(
             RestClient restClient,
             MfAmcService mfAmcService,
             MfSchemeDtoToEntityMapperHelper mfSchemeDtoToEntityMapperHelper,
