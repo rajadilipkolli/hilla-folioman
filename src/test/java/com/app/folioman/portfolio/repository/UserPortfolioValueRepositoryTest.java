@@ -2,6 +2,10 @@ package com.app.folioman.portfolio.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.app.folioman.config.SQLContainersConfig;
+import com.app.folioman.portfolio.entities.CasTypeEnum;
+import com.app.folioman.portfolio.entities.FileTypeEnum;
+import com.app.folioman.portfolio.entities.UserCASDetails;
 import com.app.folioman.portfolio.entities.UserPortfolioValue;
 import java.util.List;
 import java.util.Optional;
@@ -12,7 +16,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.context.annotation.Import;
 
 @DataJpaTest
-@Import(com.app.folioman.config.SQLContainersConfig.class)
+@Import(SQLContainersConfig.class)
 class UserPortfolioValueRepositoryTest {
 
     @Autowired
@@ -27,10 +31,9 @@ class UserPortfolioValueRepositoryTest {
         userPortfolioValue.setDate(java.time.LocalDate.now());
         userPortfolioValue.setInvested(new java.math.BigDecimal("0"));
         userPortfolioValue.setValue(new java.math.BigDecimal("0"));
-        com.app.folioman.portfolio.entities.UserCASDetails cas =
-                new com.app.folioman.portfolio.entities.UserCASDetails();
-        cas.setCasTypeEnum(com.app.folioman.portfolio.entities.CasTypeEnum.DETAILED);
-        cas.setFileTypeEnum(com.app.folioman.portfolio.entities.FileTypeEnum.UNKNOWN);
+        UserCASDetails cas = new UserCASDetails();
+        cas.setCasTypeEnum(CasTypeEnum.DETAILED);
+        cas.setFileTypeEnum(FileTypeEnum.UNKNOWN);
         cas = entityManager.persistAndFlush(cas);
         userPortfolioValue.setUserCasDetails(cas);
 
@@ -46,10 +49,9 @@ class UserPortfolioValueRepositoryTest {
         userPortfolioValue.setDate(java.time.LocalDate.now());
         userPortfolioValue.setInvested(new java.math.BigDecimal("0"));
         userPortfolioValue.setValue(new java.math.BigDecimal("0"));
-        com.app.folioman.portfolio.entities.UserCASDetails cas =
-                new com.app.folioman.portfolio.entities.UserCASDetails();
-        cas.setCasTypeEnum(com.app.folioman.portfolio.entities.CasTypeEnum.DETAILED);
-        cas.setFileTypeEnum(com.app.folioman.portfolio.entities.FileTypeEnum.CAMS);
+        UserCASDetails cas = new UserCASDetails();
+        cas.setCasTypeEnum(CasTypeEnum.DETAILED);
+        cas.setFileTypeEnum(FileTypeEnum.CAMS);
         cas = entityManager.persistAndFlush(cas);
         userPortfolioValue.setUserCasDetails(cas);
         UserPortfolioValue saved = entityManager.persistAndFlush(userPortfolioValue);
@@ -69,10 +71,9 @@ class UserPortfolioValueRepositoryTest {
 
     @Test
     void testFindAll() {
-        com.app.folioman.portfolio.entities.UserCASDetails cas =
-                new com.app.folioman.portfolio.entities.UserCASDetails();
-        cas.setCasTypeEnum(com.app.folioman.portfolio.entities.CasTypeEnum.DETAILED);
-        cas.setFileTypeEnum(com.app.folioman.portfolio.entities.FileTypeEnum.UNKNOWN);
+        UserCASDetails cas = new UserCASDetails();
+        cas.setCasTypeEnum(CasTypeEnum.DETAILED);
+        cas.setFileTypeEnum(FileTypeEnum.UNKNOWN);
         cas = entityManager.persistAndFlush(cas);
 
         UserPortfolioValue userPortfolioValue1 = new UserPortfolioValue();
@@ -101,10 +102,9 @@ class UserPortfolioValueRepositoryTest {
         userPortfolioValue.setDate(java.time.LocalDate.now());
         userPortfolioValue.setInvested(new java.math.BigDecimal("0"));
         userPortfolioValue.setValue(new java.math.BigDecimal("0"));
-        com.app.folioman.portfolio.entities.UserCASDetails cas =
-                new com.app.folioman.portfolio.entities.UserCASDetails();
-        cas.setCasTypeEnum(com.app.folioman.portfolio.entities.CasTypeEnum.DETAILED);
-        cas.setFileTypeEnum(com.app.folioman.portfolio.entities.FileTypeEnum.UNKNOWN);
+        UserCASDetails cas = new UserCASDetails();
+        cas.setCasTypeEnum(CasTypeEnum.DETAILED);
+        cas.setFileTypeEnum(FileTypeEnum.UNKNOWN);
         cas = entityManager.persistAndFlush(cas);
         userPortfolioValue.setUserCasDetails(cas);
         UserPortfolioValue saved = entityManager.persistAndFlush(userPortfolioValue);
@@ -140,11 +140,10 @@ class UserPortfolioValueRepositoryTest {
         userPortfolioValue.setDate(java.time.LocalDate.now());
         userPortfolioValue.setInvested(new java.math.BigDecimal("0"));
         userPortfolioValue.setValue(new java.math.BigDecimal("0"));
-        com.app.folioman.portfolio.entities.UserCASDetails cas =
-                new com.app.folioman.portfolio.entities.UserCASDetails();
+        UserCASDetails cas = new UserCASDetails();
         // ensure required enum fields are set before persisting
-        cas.setCasTypeEnum(com.app.folioman.portfolio.entities.CasTypeEnum.DETAILED);
-        cas.setFileTypeEnum(com.app.folioman.portfolio.entities.FileTypeEnum.UNKNOWN);
+        cas.setCasTypeEnum(CasTypeEnum.DETAILED);
+        cas.setFileTypeEnum(FileTypeEnum.UNKNOWN);
         cas = entityManager.persistAndFlush(cas);
         userPortfolioValue.setUserCasDetails(cas);
         UserPortfolioValue saved = entityManager.persistAndFlush(userPortfolioValue);

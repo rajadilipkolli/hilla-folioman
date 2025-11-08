@@ -1,10 +1,18 @@
 package com.app.folioman.portfolio.repository;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.app.folioman.config.SQLContainersConfig;
 import com.app.folioman.portfolio.entities.CasTypeEnum;
 import com.app.folioman.portfolio.entities.FileTypeEnum;
+import com.app.folioman.portfolio.entities.InvestorInfo;
+import com.app.folioman.portfolio.entities.UserCASDetails;
+import com.app.folioman.portfolio.entities.UserFolioDetails;
 import com.app.folioman.portfolio.entities.UserSchemeDetails;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -34,19 +42,18 @@ class UserSchemeDetailsRepositoryTest {
 
     @Test
     void findByUserFolioDetails_SchemesIn_WithValidSchemes_ShouldReturnMatchingSchemes() {
-        com.app.folioman.portfolio.entities.UserFolioDetails userFolio =
-                new com.app.folioman.portfolio.entities.UserFolioDetails();
+        UserFolioDetails userFolio = new UserFolioDetails();
         userFolio.setFolio("FOLIO-1");
         userFolio.setAmc("AMC1");
         userFolio.setPan("PAN1234");
-        com.app.folioman.portfolio.entities.UserCASDetails cas =
-                new com.app.folioman.portfolio.entities.UserCASDetails();
+
+        UserCASDetails cas = new UserCASDetails();
         cas.setCasTypeEnum(CasTypeEnum.DETAILED);
         cas.setFileTypeEnum(FileTypeEnum.CAMS);
-        com.app.folioman.portfolio.entities.InvestorInfo info = new com.app.folioman.portfolio.entities.InvestorInfo();
-        info.setName("Test User");
+        InvestorInfo info = new InvestorInfo();
         cas.setInvestorInfo(info);
         cas = entityManager.persistAndFlush(cas);
+
         userFolio.setUserCasDetails(cas);
         userFolio = entityManager.persistAndFlush(userFolio);
 
@@ -63,16 +70,16 @@ class UserSchemeDetailsRepositoryTest {
         entityManager.flush();
 
         List<UserSchemeDetails> schemes = List.of(scheme1, scheme2);
-
         List<UserSchemeDetails> result = userSchemeDetailsRepository.findByUserFolioDetails_SchemesIn(schemes);
 
         assertNotNull(result);
+        assertFalse(result.isEmpty());
+        assertEquals(2, result.size());
     }
 
     @Test
     void findByUserFolioDetails_SchemesIn_WithEmptyList_ShouldReturnEmptyList() {
         List<UserSchemeDetails> emptySchemes = Collections.emptyList();
-
         List<UserSchemeDetails> result = userSchemeDetailsRepository.findByUserFolioDetails_SchemesIn(emptySchemes);
 
         assertNotNull(result);
@@ -90,8 +97,10 @@ class UserSchemeDetailsRepositoryTest {
 
     @Test
     void findByUserFolioDetails_SchemesIn_WithNonExistentSchemes_ShouldReturnEmptyList() {
+        UserSchemeDetails notExist = new UserSchemeDetails();
+        notExist.setScheme("NOPE");
         List<UserSchemeDetails> result =
-                userSchemeDetailsRepository.findByUserFolioDetails_SchemesIn(Collections.emptyList());
+                userSchemeDetailsRepository.findByUserFolioDetails_SchemesIn(List.of(notExist));
 
         assertNotNull(result);
         assertTrue(result.isEmpty());
@@ -99,19 +108,18 @@ class UserSchemeDetailsRepositoryTest {
 
     @Test
     void findByAmfiIsNull_WhenRecordsExist_ShouldReturnRecordsWithNullAmfi() {
-        com.app.folioman.portfolio.entities.UserFolioDetails userFolio =
-                new com.app.folioman.portfolio.entities.UserFolioDetails();
+        UserFolioDetails userFolio = new UserFolioDetails();
         userFolio.setFolio("FOLIO-2");
         userFolio.setAmc("AMC1");
         userFolio.setPan("PAN5678");
-        com.app.folioman.portfolio.entities.UserCASDetails cas2 =
-                new com.app.folioman.portfolio.entities.UserCASDetails();
+
+        UserCASDetails cas2 = new UserCASDetails();
         cas2.setCasTypeEnum(CasTypeEnum.SUMMARY);
         cas2.setFileTypeEnum(FileTypeEnum.UNKNOWN);
-        com.app.folioman.portfolio.entities.InvestorInfo info2 = new com.app.folioman.portfolio.entities.InvestorInfo();
-        info2.setName("Test User 2");
+        InvestorInfo info2 = new InvestorInfo();
         cas2.setInvestorInfo(info2);
         cas2 = entityManager.persistAndFlush(cas2);
+
         userFolio.setUserCasDetails(cas2);
         userFolio = entityManager.persistAndFlush(userFolio);
 
@@ -138,19 +146,17 @@ class UserSchemeDetailsRepositoryTest {
 
     @Test
     void findByAmfiIsNull_WhenNoRecordsWithNullAmfi_ShouldReturnEmptyList() {
-        com.app.folioman.portfolio.entities.UserFolioDetails userFolio =
-                new com.app.folioman.portfolio.entities.UserFolioDetails();
+        UserFolioDetails userFolio = new UserFolioDetails();
         userFolio.setFolio("FOLIO-3");
-        userFolio.setAmc("AMC1");
-        userFolio.setPan("PAN9999");
-        com.app.folioman.portfolio.entities.UserCASDetails cas3 =
-                new com.app.folioman.portfolio.entities.UserCASDetails();
-        cas3.setCasTypeEnum(com.app.folioman.portfolio.entities.CasTypeEnum.DETAILED);
-        cas3.setFileTypeEnum(com.app.folioman.portfolio.entities.FileTypeEnum.CAMS);
-        com.app.folioman.portfolio.entities.InvestorInfo info3 = new com.app.folioman.portfolio.entities.InvestorInfo();
+
+        UserCASDetails cas3 = new UserCASDetails();
+        cas3.setCasTypeEnum(CasTypeEnum.DETAILED);
+        cas3.setFileTypeEnum(FileTypeEnum.CAMS);
+        InvestorInfo info3 = new InvestorInfo();
         info3.setName("Test User 3");
         cas3.setInvestorInfo(info3);
         cas3 = entityManager.persistAndFlush(cas3);
+
         userFolio.setUserCasDetails(cas3);
         userFolio = entityManager.persistAndFlush(userFolio);
 
@@ -173,22 +179,23 @@ class UserSchemeDetailsRepositoryTest {
         UserSchemeDetails scheme = new UserSchemeDetails();
         scheme.setAmfi(null);
         scheme.setIsin(null);
-        com.app.folioman.portfolio.entities.UserFolioDetails userFolio =
-                new com.app.folioman.portfolio.entities.UserFolioDetails();
+
+        UserFolioDetails userFolio = new UserFolioDetails();
         userFolio.setFolio("FOLIO-4");
         userFolio.setAmc("AMC1");
         userFolio.setPan("PAN0001");
-        com.app.folioman.portfolio.entities.UserCASDetails cas4 =
-                new com.app.folioman.portfolio.entities.UserCASDetails();
-        cas4.setCasTypeEnum(com.app.folioman.portfolio.entities.CasTypeEnum.SUMMARY);
-        cas4.setFileTypeEnum(com.app.folioman.portfolio.entities.FileTypeEnum.UNKNOWN);
-        com.app.folioman.portfolio.entities.InvestorInfo info4 = new com.app.folioman.portfolio.entities.InvestorInfo();
+
+        UserCASDetails cas4 = new UserCASDetails();
+        cas4.setCasTypeEnum(CasTypeEnum.SUMMARY);
+        cas4.setFileTypeEnum(FileTypeEnum.UNKNOWN);
+        InvestorInfo info4 = new InvestorInfo();
         info4.setName("Test User 4");
         cas4.setInvestorInfo(info4);
         cas4 = entityManager.persistAndFlush(cas4);
+
         userFolio.setUserCasDetails(cas4);
         userFolio = entityManager.persistAndFlush(userFolio);
-        scheme.setScheme("S4");
+
         scheme.setUserFolioDetails(userFolio);
 
         entityManager.persist(scheme);
@@ -226,19 +233,17 @@ class UserSchemeDetailsRepositoryTest {
         UserSchemeDetails scheme = new UserSchemeDetails();
         scheme.setAmfi(12345L);
         scheme.setIsin("INE456B01023");
-        com.app.folioman.portfolio.entities.UserFolioDetails userFolio =
-                new com.app.folioman.portfolio.entities.UserFolioDetails();
+
+        UserFolioDetails userFolio = new UserFolioDetails();
         userFolio.setFolio("FOLIO-NULL-1");
         userFolio.setAmc("AMC-NULL");
         userFolio.setPan("PANNULL1");
-        com.app.folioman.portfolio.entities.UserCASDetails cas =
-                new com.app.folioman.portfolio.entities.UserCASDetails();
+
+        UserCASDetails cas = new UserCASDetails();
         cas.setCasTypeEnum(CasTypeEnum.DETAILED);
         cas.setFileTypeEnum(FileTypeEnum.UNKNOWN);
-        com.app.folioman.portfolio.entities.InvestorInfo info5 = new com.app.folioman.portfolio.entities.InvestorInfo();
-        info5.setName("Test User 5");
-        cas.setInvestorInfo(info5);
         cas = entityManager.persistAndFlush(cas);
+
         userFolio.setUserCasDetails(cas);
         userFolio = entityManager.persistAndFlush(userFolio);
         scheme.setScheme("S5");
