@@ -25,8 +25,7 @@ public class MfFundSchemeService {
     private final MfFundSchemeRepository mfFundSchemeRepository;
     private final TransactionTemplate transactionTemplate;
 
-    public MfFundSchemeService(
-            MfFundSchemeRepository mfFundSchemeRepository, PlatformTransactionManager transactionManager) {
+    MfFundSchemeService(MfFundSchemeRepository mfFundSchemeRepository, PlatformTransactionManager transactionManager) {
         this.mfFundSchemeRepository = mfFundSchemeRepository;
         this.transactionTemplate = new TransactionTemplate(transactionManager);
         this.transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);

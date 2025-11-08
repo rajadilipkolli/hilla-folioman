@@ -57,7 +57,7 @@ public class MfSchemeServiceImpl implements MfSchemeService {
     private final MFSchemeNavRepository mfSchemeNavRepository;
     private final MfAmcService mfAmcService;
 
-    public MfSchemeServiceImpl(
+    MfSchemeServiceImpl(
             RestClient restClient,
             MfFundSchemeRepository mFSchemeRepository,
             MfSchemeEntityToDtoMapper mfSchemeEntityToDtoMapper,

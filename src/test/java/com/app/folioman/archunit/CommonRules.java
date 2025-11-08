@@ -132,18 +132,6 @@ public final class CommonRules {
     }
 
     // Constructors
-    static ArchRule publicConstructorsRule(String packageName) {
-        return constructors()
-                .that()
-                .areDeclaredInClassesThat()
-                .resideInAPackage(packageName)
-                .and()
-                .areDeclaredInClassesThat()
-                .areNotAnonymousClasses()
-                .should()
-                .bePublic()
-                .because("Public constructors are only allowed in %s".formatted(packageName));
-    }
 
     static ArchRule packagePrivateConstructorsRule(String packageName) {
         return constructors()
@@ -152,7 +140,7 @@ public final class CommonRules {
                 .resideInAPackage(packageName)
                 .and()
                 .areDeclaredInClassesThat()
-                .areNotAnonymousClasses()
+                .areNotMemberClasses()
                 .should()
                 .bePackagePrivate()
                 .because("Package Private constructors are only allowed in %s".formatted(packageName));

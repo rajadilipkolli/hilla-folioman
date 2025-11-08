@@ -12,7 +12,7 @@ public class MFSchemeTypeService {
 
     private final MFSchemeTypeRepository mfSchemeTypeRepository;
 
-    public MFSchemeTypeService(MFSchemeTypeRepository mfSchemeTypeRepository) {
+    MFSchemeTypeService(MFSchemeTypeRepository mfSchemeTypeRepository) {
         this.mfSchemeTypeRepository = mfSchemeTypeRepository;
     }
 
