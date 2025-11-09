@@ -14,7 +14,7 @@
         <vaadin.version>24.9.4</vaadin.version>
         <spring-modulith.version>1.4.4</spring-modulith.version>
         <org.mapstruct.version>1.6.3</org.mapstruct.version>
-        <flexy-pool.version>3.0.2</flexy-pool.version>
+        <flexy-pool.version>3.1.0</flexy-pool.version>
 
         <spotless.version>3.0.0</spotless.version>
 
