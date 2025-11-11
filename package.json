@@ -6,6 +6,7 @@
     "@polymer/polymer": "3.5.2",
     "@vaadin/bundles": "24.9.5",
     "@vaadin/common-frontend": "0.0.19",
+    "@vaadin/cookie-consent": "24.9.4",
     "@vaadin/hilla-file-router": "24.9.5",
     "@vaadin/hilla-frontend": "24.9.5",
     "@vaadin/hilla-lit-form": "24.9.5",
@@ -66,6 +67,7 @@
       "@polymer/polymer": "3.5.2",
       "@vaadin/bundles": "24.7.1",
       "@vaadin/common-frontend": "0.0.19",
+      "@vaadin/cookie-consent": "24.9.4",
       "@vaadin/hilla-file-router": "24.9.4",
       "@vaadin/hilla-frontend": "24.9.4",
       "@vaadin/hilla-lit-form": "24.9.4",
@@ -120,7 +122,7 @@
       "workbox-core": "7.3.0",
       "workbox-precaching": "7.3.0"
     },
-    "hash": "94391c441bdf2c4751e9f81db513ba20ebda46dd575c9ffc755a9889c2322b52"
+    "hash": "dcc0528b029e218da5c4e3bd1785b4f7bd0cfc396505acdec0a9df6ab524f84e"
   },
   "overrides": {
     "@vaadin/bundles": "$@vaadin/bundles",
@@ -217,6 +219,7 @@
     "@vaadin/upload": "24.9.4",
     "@vaadin/router": "2.0.0",
     "@vaadin/vertical-layout": "24.9.4",
-    "@vaadin/virtual-list": "24.9.4"
+    "@vaadin/virtual-list": "24.9.4",
+    "@vaadin/cookie-consent": "$@vaadin/cookie-consent"
   }
 }
