@@ -217,7 +217,7 @@
     "@vaadin/time-picker": "24.9.5",
     "@vaadin/tooltip": "24.9.5",
     "@vaadin/upload": "24.9.5",
-    "@vaadin/router": "2.0.0",
+    "@vaadin/router": "2.0.1",
     "@vaadin/vertical-layout": "24.9.5",
     "@vaadin/virtual-list": "24.9.5",
     "@vaadin/cookie-consent": "$@vaadin/cookie-consent"
