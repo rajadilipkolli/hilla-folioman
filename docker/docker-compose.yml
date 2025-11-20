@@ -74,7 +74,7 @@ services:
   mongodb:
     hostname: mongodb
     container_name: mongodb
-    image: mongo:8.2.1
+    image: mongo:8.2.2
     volumes:
       - mongodb:/data/db
     ports:
