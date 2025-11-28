@@ -27,7 +27,7 @@ public class ApplicationProperties {
         return amfi;
     }
 
-    public void setAmfi(AmfiProperties amfi) {
+    public void setAmfi(@Valid AmfiProperties amfi) {
         this.amfi = amfi;
     }
 
@@ -35,7 +35,7 @@ public class ApplicationProperties {
         return bseStar;
     }
 
-    public void setBseStar(BseStarProperties bseStar) {
+    public void setBseStar(@Valid BseStarProperties bseStar) {
         this.bseStar = bseStar;
     }
 
@@ -43,7 +43,7 @@ public class ApplicationProperties {
         return nav;
     }
 
-    public void setNav(NavProperties nav) {
+    public void setNav(@Valid NavProperties nav) {
         this.nav = nav;
     }
 }

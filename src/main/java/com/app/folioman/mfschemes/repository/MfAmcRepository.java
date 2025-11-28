@@ -4,6 +4,7 @@ import com.app.folioman.mfschemes.entities.MfAmc;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.NativeQuery;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -29,10 +30,8 @@ public interface MfAmcRepository extends JpaRepository<MfAmc, Long> {
      * @param searchTerms Search terms to look for in the AMC name
      * @return List of matching AMCs
      */
-    @Query(
-            value = "SELECT a.* FROM mfschemes.mf_amc a "
+    @NativeQuery("SELECT a.* FROM mfschemes.mf_amc a "
                     + "WHERE a.name_vector @@ to_tsquery('english', :searchTerms) "
-                    + "ORDER BY ts_rank(a.name_vector, to_tsquery('english', :searchTerms)) DESC",
-            nativeQuery = true)
+                    + "ORDER BY ts_rank(a.name_vector, to_tsquery('english', :searchTerms)) DESC")
     List<MfAmc> findByTextSearch(@Param("searchTerms") String searchTerms);
 }

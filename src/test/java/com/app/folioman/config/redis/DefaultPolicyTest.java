@@ -1,7 +1,8 @@
 package com.app.folioman.config.redis;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verifyNoInteractions;
 
 import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Duration;

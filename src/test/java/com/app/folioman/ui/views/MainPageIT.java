@@ -18,14 +18,14 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.testcontainers.Testcontainers;
-import org.testcontainers.containers.BrowserWebDriverContainer;
+import org.testcontainers.selenium.BrowserWebDriverContainer;
 
 class MainPageIT extends AbstractIntegrationTest {
 
     private WebDriver driver;
 
-    static BrowserWebDriverContainer<?> container =
-            new BrowserWebDriverContainer<>().withCapabilities(new ChromeOptions());
+    static BrowserWebDriverContainer container =
+            new BrowserWebDriverContainer().withCapabilities(new ChromeOptions());
 
     @BeforeAll
     static void beforeAll(@Autowired Environment environment) {

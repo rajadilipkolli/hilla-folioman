@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.NativeQuery;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -18,28 +19,22 @@ public interface MfFundSchemeRepository extends JpaRepository<MfFundScheme, Long
     @Query("select o.amfiCode from MfFundScheme o")
     List<Long> findAllSchemeIds();
 
-    @Query(
-            value =
-                    """
+    @NativeQuery("""
             SELECT m.name as schemeName, m.amfi_code as amfiCode, a.name as amcName
             FROM mfschemes.mf_fund_scheme m
             JOIN mfschemes.mf_amc a ON m.mf_amc_id = a.id
             WHERE m.name_tsv @@ plainto_tsquery('english', :query)
             order by m.amfi_code
-            """,
-            nativeQuery = true)
+            """)
     List<FundDetailProjection> searchByFullText(@Param("query") String query);
 
-    @Query(
-            value =
-                    """
+    @NativeQuery("""
             SELECT m.name as schemeName, m.amfi_code as amfiCode, a.name as amcName
             FROM mfschemes.mf_fund_scheme m
             JOIN mfschemes.mf_amc a ON m.mf_amc_id = a.id
             WHERE LOWER(a.name) LIKE LOWER(CONCAT('%', :query, '%'))
             order by m.amfi_code
-            """,
-            nativeQuery = true)
+            """)
     List<FundDetailProjection> searchByAmc(@Param("query") String query);
 
     /**
@@ -48,16 +43,13 @@ public interface MfFundSchemeRepository extends JpaRepository<MfFundScheme, Long
      * @param searchTerms the search terms in PostgreSQL ts_query format (term1 & term2 & ...)
      * @return List of fund details matching the AMC search
      */
-    @Query(
-            value =
-                    """
+    @NativeQuery("""
             SELECT m.name as schemeName, m.amfi_code as amfiCode, a.name as amcName
             FROM mfschemes.mf_fund_scheme m
             JOIN mfschemes.mf_amc a ON m.mf_amc_id = a.id
             WHERE a.name_vector @@ to_tsquery('english', :searchTerms)
             ORDER BY ts_rank(a.name_vector, to_tsquery('english', :searchTerms)) DESC, m.amfi_code
-            """,
-            nativeQuery = true)
+            """)
     List<FundDetailProjection> searchByAmcTextSearch(@Param("searchTerms") String searchTerms);
 
     @Query(

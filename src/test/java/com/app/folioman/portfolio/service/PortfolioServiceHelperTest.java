@@ -11,7 +11,7 @@ import com.app.folioman.portfolio.models.request.UserFolioDTO;
 import com.app.folioman.portfolio.models.request.UserSchemeDTO;
 import com.app.folioman.portfolio.models.request.UserTransactionDTO;
 import com.app.folioman.portfolio.models.response.PortfolioDetailsDTO;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;

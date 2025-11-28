@@ -12,7 +12,7 @@
     <properties>
         <java.version>25</java.version>
         <vaadin.version>24.9.6</vaadin.version>
-        <spring-modulith.version>1.4.5</spring-modulith.version>
+        <spring-modulith.version>2.0.0</spring-modulith.version>
         <org.mapstruct.version>1.6.3</org.mapstruct.version>
         <flexy-pool.version>3.1.0</flexy-pool.version>
 
@@ -79,14 +79,18 @@
             <version>2.1.0</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-restclient</artifactId>
+        </dependency>
         <!-- Persistence -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.liquibase</groupId>
-            <artifactId>liquibase-core</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-liquibase</artifactId>
         </dependency>
         <dependency>
             <groupId>com.vladmihalcea.flexy-pool</groupId>
@@ -116,7 +120,7 @@
 
         <dependency>
             <groupId>org.jobrunr</groupId>
-            <artifactId>jobrunr-spring-boot-3-starter</artifactId>
+            <artifactId>jobrunr-spring-boot-4-starter</artifactId>
             <version>8.3.0</version>
         </dependency>
 
@@ -198,7 +202,7 @@
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
             <scope>test</scope>
         </dependency>
         <!-- Vaadin TestBench for UI integration testing -->
@@ -226,28 +230,28 @@
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
-            <artifactId>postgresql</artifactId>
+            <artifactId>testcontainers-postgresql</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
-            <artifactId>mongodb</artifactId>
+            <artifactId>testcontainers-mongodb</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
-            <artifactId>grafana</artifactId>
+            <artifactId>testcontainers-grafana</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers-selenium</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.redis.testcontainers</groupId>
             <artifactId>testcontainers-redis</artifactId>
             <version>1.6.4</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.testcontainers</groupId>
-            <artifactId>selenium</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
