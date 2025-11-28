@@ -130,7 +130,7 @@ public class Initializer {
             LOGGER.error(
                     "Failed to load mutual fund data after {} attempts", properties.getRetryAttempts(), lastException);
             throw new MutualFundDataException(
-                    String.format("Failed to load mutual fund data after %d attempts", properties.getRetryAttempts()),
+                    "Failed to load mutual fund data after %d attempts".formatted(properties.getRetryAttempts()),
                     lastException);
         }
     }

@@ -18,14 +18,15 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.testcontainers.Testcontainers;
-import org.testcontainers.containers.BrowserWebDriverContainer;
+import org.testcontainers.selenium.BrowserWebDriverContainer;
+import org.testcontainers.utility.DockerImageName;
 
 class MainPageIT extends AbstractIntegrationTest {
 
     private WebDriver driver;
 
-    static BrowserWebDriverContainer<?> container =
-            new BrowserWebDriverContainer<>().withCapabilities(new ChromeOptions());
+    static BrowserWebDriverContainer container =
+            new BrowserWebDriverContainer(DockerImageName.parse("selenium/standalone-edge"));
 
     @BeforeAll
     static void beforeAll(@Autowired Environment environment) {

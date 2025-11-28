@@ -21,8 +21,8 @@ class ThreadPoolConfigTest {
     void tearDown() {
         if (threadPoolConfig != null) {
             TaskExecutor executor = threadPoolConfig.taskExecutor();
-            if (executor instanceof ThreadPoolTaskExecutor) {
-                ((ThreadPoolTaskExecutor) executor).shutdown();
+            if (executor instanceof ThreadPoolTaskExecutor taskExecutor) {
+                taskExecutor.shutdown();
             }
         }
     }

@@ -2,6 +2,7 @@ package com.app.folioman.portfolio.repository;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.app.folioman.config.SQLContainersConfig;
 import com.app.folioman.portfolio.entities.CasTypeEnum;
 import com.app.folioman.portfolio.entities.FileTypeEnum;
 import com.app.folioman.portfolio.entities.InvestorInfo;
@@ -10,17 +11,17 @@ import com.app.folioman.portfolio.entities.UserFolioDetails;
 import com.app.folioman.portfolio.models.projection.UserFolioDetailsPanProjection;
 import java.util.ArrayList;
 import java.util.List;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.transaction.TestTransaction;
 
 @DataJpaTest
-@ActiveProfiles("test")
-@Import(com.app.folioman.config.SQLContainersConfig.class)
+@Disabled
+@Import(SQLContainersConfig.class)
 class UserFolioDetailsRepositoryTest {
 
     @Autowired

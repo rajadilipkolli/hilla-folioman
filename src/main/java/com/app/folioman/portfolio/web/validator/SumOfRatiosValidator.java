@@ -21,7 +21,7 @@ public class SumOfRatiosValidator implements ConstraintValidator<ValidSumOfRatio
         if (!isValid) {
             context.disableDefaultConstraintViolation();
             context.buildConstraintViolationWithTemplate(
-                            "The sum of fund ratios must be 1%. Current sum: " + String.format("%.2f", totalRatio))
+                            "The sum of fund ratios must be 1%. Current sum: " + "%.2f".formatted(totalRatio))
                     .addConstraintViolation();
         }
 

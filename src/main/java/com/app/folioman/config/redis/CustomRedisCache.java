@@ -161,8 +161,8 @@ public class CustomRedisCache extends RedisCache {
      * Normalize key format for metrics
      */
     private String getNormalizedKey(Object key) {
-        if (key instanceof SimpleKey) {
-            return ((SimpleKey) key).toString();
+        if (key instanceof SimpleKey simpleKey) {
+            return simpleKey.toString();
         } else {
             return key.toString();
         }
