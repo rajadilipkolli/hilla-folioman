@@ -1,7 +1,9 @@
 package com.app.folioman.portfolio.service;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.app.folioman.mfschemes.MFNavService;
 import com.app.folioman.mfschemes.MFSchemeDTO;
@@ -11,7 +13,6 @@ import com.app.folioman.portfolio.models.request.UserFolioDTO;
 import com.app.folioman.portfolio.models.request.UserSchemeDTO;
 import com.app.folioman.portfolio.models.request.UserTransactionDTO;
 import com.app.folioman.portfolio.models.response.PortfolioDetailsDTO;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
@@ -24,6 +25,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
 @ExtendWith(MockitoExtension.class)
@@ -49,9 +51,9 @@ class PortfolioServiceHelperTest {
     }
 
     @Test
-    void readValue_ShouldReturnParsedObject_WhenValidBytesProvided() throws IOException {
+    void readValue_ShouldReturnParsedObject_WhenValidBytesProvided() {
         byte[] bytes = "{\"test\":\"value\"}".getBytes();
-        TestClass expected = new TestClass();
+        TestClass expected = new TestClass("value");
         when(mapper.readValue(bytes, TestClass.class)).thenReturn(expected);
 
         TestClass result = portfolioServiceHelper.readValue(bytes, TestClass.class);
@@ -61,11 +63,11 @@ class PortfolioServiceHelperTest {
     }
 
     @Test
-    void readValue_ShouldThrowIOException_WhenMapperThrowsException() throws IOException {
+    void readValue_ShouldThrowJacksonException_WhenMapperThrowsException() {
         byte[] bytes = "invalid json".getBytes();
-        when(mapper.readValue(bytes, TestClass.class)).thenThrow(new IOException("Parse error"));
+        when(mapper.readValue(bytes, TestClass.class)).thenThrow(new JacksonException("Parsing error") {});
 
-        assertThrows(IOException.class, () -> portfolioServiceHelper.readValue(bytes, TestClass.class));
+        assertThrows(JacksonException.class, () -> portfolioServiceHelper.readValue(bytes, TestClass.class));
     }
 
     @Test
@@ -83,8 +85,8 @@ class PortfolioServiceHelperTest {
                 "scheme1", null, 0L, null, null, null, null, null, null, null, null, Collections.emptyList());
         UserSchemeDTO scheme2 = new UserSchemeDTO(
                 "scheme2", null, 0L, null, null, null, null, null, null, null, null, Collections.emptyList());
-        UserFolioDTO folio1 = new UserFolioDTO("folio1", null, null, null, null, Arrays.asList(scheme1));
-        UserFolioDTO folio2 = new UserFolioDTO("folio2", null, null, null, null, Arrays.asList(scheme2));
+        UserFolioDTO folio1 = new UserFolioDTO("folio1", null, null, null, null, List.of(scheme1));
+        UserFolioDTO folio2 = new UserFolioDTO("folio2", null, null, null, null, List.of(scheme2));
         List<UserFolioDTO> folios = Arrays.asList(folio1, folio2);
 
         long result = portfolioServiceHelper.countTransactionsByUserFolioDTOList(folios);
@@ -112,9 +114,20 @@ class PortfolioServiceHelperTest {
                 null,
                 Arrays.asList(transaction1, transaction2));
         UserSchemeDTO scheme2 = new UserSchemeDTO(
-                "scheme2", null, 0L, null, null, null, null, null, null, null, null, Arrays.asList(transaction3));
-        UserFolioDTO folio1 = new UserFolioDTO("folio1", null, null, null, null, Arrays.asList(scheme1));
-        UserFolioDTO folio2 = new UserFolioDTO("folio2", null, null, null, null, Arrays.asList(scheme2));
+                "scheme2",
+                null,
+                0L,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                Collections.singletonList(transaction3));
+        UserFolioDTO folio1 = new UserFolioDTO("folio1", null, null, null, null, List.of(scheme1));
+        UserFolioDTO folio2 = new UserFolioDTO("folio2", null, null, null, null, List.of(scheme2));
         List<UserFolioDTO> folios = Arrays.asList(folio1, folio2);
 
         long result = portfolioServiceHelper.countTransactionsByUserFolioDTOList(folios);
@@ -169,14 +182,14 @@ class PortfolioServiceHelperTest {
         MFSchemeDTO mfSchemeDTO = new MFSchemeDTO(null, 0L, "SCHEME123", "Test Scheme", "15.5", "2023-12-01", null);
 
         when(userCASDetailsService.getPortfolioDetailsByPanAndAsOfDate(panNumber, asOfDate))
-                .thenReturn(Arrays.asList(portfolioDetailsProjection));
+                .thenReturn(Collections.singletonList(portfolioDetailsProjection));
         when(mfNavService.getNavByDateWithRetry(123L, asOfDate)).thenReturn(mfSchemeDTO);
 
         List<PortfolioDetailsDTO> result =
                 portfolioServiceHelper.getPortfolioDetailsByPANAndAsOfDate(panNumber, asOfDate);
 
         assertEquals(1, result.size());
-        PortfolioDetailsDTO dto = result.get(0);
+        PortfolioDetailsDTO dto = result.getFirst();
         assertEquals(BigDecimal.valueOf(1550.0).setScale(4, RoundingMode.HALF_UP), dto.totalValue());
         assertEquals("Test Scheme", dto.schemeName());
         assertEquals("FOLIO123", dto.folioNumber());
@@ -197,7 +210,7 @@ class PortfolioServiceHelperTest {
         when(portfolioDetailsProjection.getFolioNumber()).thenReturn("FOLIO123");
 
         when(userCASDetailsService.getPortfolioDetailsByPanAndAsOfDate(panNumber, asOfDate))
-                .thenReturn(Arrays.asList(portfolioDetailsProjection));
+                .thenReturn(List.of(portfolioDetailsProjection));
         when(mfNavService.getNavByDateWithRetry(123L, asOfDate))
                 .thenThrow(new NavNotFoundException("Nav not found", asOfDate));
 
@@ -205,7 +218,7 @@ class PortfolioServiceHelperTest {
                 portfolioServiceHelper.getPortfolioDetailsByPANAndAsOfDate(panNumber, asOfDate);
 
         assertEquals(1, result.size());
-        PortfolioDetailsDTO dto = result.get(0);
+        PortfolioDetailsDTO dto = result.getFirst();
         assertEquals(BigDecimal.valueOf(1000.0), dto.totalValue());
         assertEquals("Test Scheme", dto.schemeName());
         assertEquals("FOLIO123", dto.folioNumber());
@@ -215,7 +228,7 @@ class PortfolioServiceHelperTest {
         verify(mfNavService).getNavByDateWithRetry(123L, asOfDate);
     }
 
-    private static class TestClass {
+    private static record TestClass(String test) {
         // Test class for readValue method testing
     }
 }

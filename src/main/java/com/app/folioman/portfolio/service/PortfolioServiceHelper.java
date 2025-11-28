@@ -6,7 +6,6 @@ import com.app.folioman.mfschemes.NavNotFoundException;
 import com.app.folioman.portfolio.models.projection.PortfolioDetailsProjection;
 import com.app.folioman.portfolio.models.request.UserFolioDTO;
 import com.app.folioman.portfolio.models.response.PortfolioDetailsDTO;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
@@ -32,7 +31,7 @@ class PortfolioServiceHelper {
         this.mfNavService = mfNavService;
     }
 
-    public <T> T readValue(byte[] bytes, Class<T> responseClassType) throws IOException {
+    public <T> T readValue(byte[] bytes, Class<T> responseClassType) {
         return this.mapper.readValue(bytes, responseClassType);
     }
 
