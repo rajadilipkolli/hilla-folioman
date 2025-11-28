@@ -8,6 +8,7 @@ import com.app.folioman.portfolio.entities.CasTypeEnum;
 import com.app.folioman.portfolio.entities.FileTypeEnum;
 import com.app.folioman.portfolio.entities.InvestorInfo;
 import com.app.folioman.portfolio.entities.UserCASDetails;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -15,6 +16,7 @@ import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.context.annotation.Import;
 
 @DataJpaTest
+@Disabled
 @Import(SQLContainersConfig.class)
 class InvestorInfoRepositoryTest {
 

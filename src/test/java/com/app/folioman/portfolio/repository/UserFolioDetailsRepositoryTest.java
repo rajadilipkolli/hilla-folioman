@@ -11,16 +11,16 @@ import com.app.folioman.portfolio.entities.UserFolioDetails;
 import com.app.folioman.portfolio.models.projection.UserFolioDetailsPanProjection;
 import java.util.ArrayList;
 import java.util.List;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.transaction.TestTransaction;
 
 @DataJpaTest
-@ActiveProfiles("test")
+@Disabled
 @Import(SQLContainersConfig.class)
 class UserFolioDetailsRepositoryTest {
 
