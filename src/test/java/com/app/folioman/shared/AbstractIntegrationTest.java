@@ -9,7 +9,6 @@ import com.app.folioman.mfschemes.config.ApplicationProperties;
 import com.app.folioman.mfschemes.repository.MFSchemeNavRepository;
 import com.app.folioman.portfolio.config.PortfolioCacheProperties;
 import com.app.folioman.portfolio.repository.UserPortfolioValueRepository;
-import tools.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
@@ -18,6 +17,7 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import tools.jackson.databind.ObjectMapper;
 
 /**
  * Base class for integration tests using a hybrid database approach:

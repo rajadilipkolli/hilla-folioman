@@ -1,7 +1,6 @@
 package com.app.folioman.config;
 
 import java.util.List;
-
 import org.springframework.boot.restclient.RestClientCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

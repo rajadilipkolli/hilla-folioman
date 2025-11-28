@@ -20,7 +20,8 @@ public interface UserCASDetailsRepository extends JpaRepository<UserCASDetails, 
               """)
     UserCASDetails findByInvestorEmailAndName(@Param("email") String email, @Param("name") String name);
 
-    @NativeQuery("""
+    @NativeQuery(
+            """
             WITH tempView AS (
                 SELECT utd.balance AS balance,
                        usd.scheme AS schemeName,

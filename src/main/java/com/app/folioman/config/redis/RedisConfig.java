@@ -1,13 +1,6 @@
 package com.app.folioman.config.redis;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.fasterxml.jackson.annotation.PropertyAccessor;
-import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
-
-import tools.jackson.databind.ObjectMapper;
-import tools.jackson.databind.json.JsonMapper;
-
 import java.net.ConnectException;
 import java.time.Duration;
 import org.jspecify.annotations.Nullable;
@@ -24,11 +17,11 @@ import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheWriter;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
+import tools.jackson.databind.json.JsonMapper;
 
 @Configuration(proxyBeanMethods = false)
 @EnableCaching
@@ -100,10 +93,10 @@ class RedisConfig implements CachingConfigurer {
     private RedisSerializer<Object> createOptimizedSerializer() {
         // Create a custom ObjectMapper for JSON serialization
         JsonMapper objectMapper = new JsonMapper();
-        objectMapper.setVisibility(PropertyAccessor.ALL, JsonAutoDetect.Visibility.ANY);
-        objectMapper.activateDefaultTyping(
-                LaissezFaireSubTypeValidator.instance, ObjectMapper.DefaultTyping.NON_FINAL, JsonTypeInfo.As.PROPERTY);
-
+        objectMapper
+                .rebuild()
+                .changeDefaultVisibility(visibilityChecker -> visibilityChecker.with(JsonAutoDetect.Visibility.ANY))
+                .build();
         // Use JSON serialization for better memory efficiency and readability
         return new GenericJacksonJsonRedisSerializer(objectMapper);
     }

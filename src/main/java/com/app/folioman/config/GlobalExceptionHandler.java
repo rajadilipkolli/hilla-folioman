@@ -3,6 +3,7 @@ package com.app.folioman.config;
 import com.app.folioman.mfschemes.NavNotFoundException;
 import com.app.folioman.mfschemes.SchemeNotFoundException;
 import jakarta.validation.ConstraintViolationException;
+import java.net.URI;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -27,6 +28,7 @@ class GlobalExceptionHandler {
         ProblemDetail problemDetail =
                 ProblemDetail.forStatusAndDetail(HttpStatusCode.valueOf(400), "Invalid request content.");
         problemDetail.setTitle("Constraint Violation");
+        problemDetail.setType(URI.create("https://api.hilla-folioman.com/errors/validation-error"));
         List<ApiValidationError> validationErrorsList = methodArgumentNotValidException.getAllErrors().stream()
                 .map(objectError -> {
                     FieldError fieldError = (FieldError) objectError;
@@ -66,6 +68,7 @@ class GlobalExceptionHandler {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
                 HttpStatusCode.valueOf(400), constraintViolationException.getMessage());
         problemDetail.setTitle("Constraint Violation");
+        problemDetail.setType(URI.create("https://api.hilla-folioman.com/errors/validation-error"));
         return problemDetail;
     }
 

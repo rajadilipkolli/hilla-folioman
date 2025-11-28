@@ -1,10 +1,12 @@
 package com.app.folioman.config.db;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
-import io.hypersistence.utils.flexypool.FlexyPoolDataSource;
-import io.hypersistence.utils.flexypool.config.FlexyPoolConfiguration;
+import com.vladmihalcea.flexypool.FlexyPoolDataSource;
+import com.vladmihalcea.flexypool.config.FlexyPoolConfiguration;
 import com.zaxxer.hikari.HikariDataSource;
 import javax.sql.DataSource;
 import org.junit.jupiter.api.BeforeEach;

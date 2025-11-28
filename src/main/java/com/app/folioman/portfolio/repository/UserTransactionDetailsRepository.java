@@ -30,7 +30,8 @@ public interface UserTransactionDetailsRepository extends JpaRepository<UserTran
     List<UserTransactionDetails> findByUserSchemeDetails_IdAndTransactionDateGreaterThanEqual(
             Long id, LocalDate schemeFromDate);
 
-    @NativeQuery("""
+    @NativeQuery(
+            """
                     WITH monthly_totals AS (
                         SELECT DATE_TRUNC('month', transaction_date) AS month,
                                EXTRACT(YEAR FROM transaction_date) AS year,
@@ -53,7 +54,8 @@ public interface UserTransactionDetailsRepository extends JpaRepository<UserTran
                     """)
     List<MonthlyInvestmentResponse> findMonthlyInvestmentsByPan(String pan);
 
-    @NativeQuery("""
+    @NativeQuery(
+            """
                     SELECT EXTRACT(YEAR FROM transaction_date) AS year,
                            SUM(amount) AS yearlyInvestment
                     FROM portfolio.user_transaction_details utd

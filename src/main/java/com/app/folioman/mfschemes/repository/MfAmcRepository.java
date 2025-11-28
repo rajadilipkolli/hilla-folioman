@@ -31,7 +31,7 @@ public interface MfAmcRepository extends JpaRepository<MfAmc, Long> {
      * @return List of matching AMCs
      */
     @NativeQuery("SELECT a.* FROM mfschemes.mf_amc a "
-                    + "WHERE a.name_vector @@ to_tsquery('english', :searchTerms) "
-                    + "ORDER BY ts_rank(a.name_vector, to_tsquery('english', :searchTerms)) DESC")
+            + "WHERE a.name_vector @@ to_tsquery('english', :searchTerms) "
+            + "ORDER BY ts_rank(a.name_vector, to_tsquery('english', :searchTerms)) DESC")
     List<MfAmc> findByTextSearch(@Param("searchTerms") String searchTerms);
 }
