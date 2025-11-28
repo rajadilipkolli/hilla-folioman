@@ -32,7 +32,8 @@ class ReBalanceControllerTest {
                 .perform(post("/api/portfolio/rebalance")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(new InvestmentRequest(
-                                List.of(new Fund(7000, 0.7), new Fund(3000, 0.25), new Fund(500, 0.05)), 1000)))
+                                List.of(new Fund(7000.00, 0.7), new Fund(3000.00, 0.25), new Fund(500.00, 0.05)),
+                                1000.00)))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -59,7 +60,7 @@ class ReBalanceControllerTest {
     void testReBalanceWithEmptyFundsList() throws Exception {
         InvestmentRequest investmentRequest = new InvestmentRequest(
                 List.of(), // Empty funds list
-                1000);
+                1000.00);
 
         mockMvc.perform(post("/api/portfolio/rebalance")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -80,7 +81,7 @@ class ReBalanceControllerTest {
     @Test
     void testReBalanceWithNegativeAmountToInvest() throws Exception {
         InvestmentRequest investmentRequest =
-                new InvestmentRequest(List.of(new Fund(10000, 0.5)), -1000); // Negative amount to invest
+                new InvestmentRequest(List.of(new Fund(10000.00, 0.5)), -1000.00); // Negative amount to invest
 
         mockMvc.perform(post("/api/portfolio/rebalance")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -104,10 +105,10 @@ class ReBalanceControllerTest {
     void testReBalanceWithInvalidFundRatios() throws Exception {
         InvestmentRequest investmentRequest = new InvestmentRequest(
                 List.of(
-                        new Fund(10000, 0.50), new Fund(10000, 0.30)
+                        new Fund(10000.0, 0.50), new Fund(10000.0, 0.30)
                         // Sum of ratios is 0.80, not 1.00
                         ),
-                1000);
+                1000.00);
 
         mockMvc.perform(post("/api/portfolio/rebalance")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -128,8 +129,8 @@ class ReBalanceControllerTest {
     @Test
     void testReBalanceWithNegativeFundValue() throws Exception {
         InvestmentRequest investmentRequest = new InvestmentRequest(
-                List.of(new Fund(-10000, 0.5)), // Negative fund value
-                1000);
+                List.of(new Fund(-10000.00, 0.5)), // Negative fund value
+                1000.00);
 
         mockMvc.perform(post("/api/portfolio/rebalance")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -152,8 +153,8 @@ class ReBalanceControllerTest {
     @Test
     void testReBalanceWithInvalidFundRatio() throws Exception {
         InvestmentRequest investmentRequest = new InvestmentRequest(
-                List.of(new Fund(10000, 1.50)), // Ratio greater than 100
-                1000);
+                List.of(new Fund(10000.00, 1.50)), // Ratio greater than 100
+                1000.00);
 
         mockMvc.perform(post("/api/portfolio/rebalance")
                         .contentType(MediaType.APPLICATION_JSON)

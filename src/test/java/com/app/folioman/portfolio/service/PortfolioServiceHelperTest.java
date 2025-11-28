@@ -228,7 +228,7 @@ class PortfolioServiceHelperTest {
         verify(mfNavService).getNavByDateWithRetry(123L, asOfDate);
     }
 
-    private static record TestClass(String test) {
+    private record TestClass(String test) {
         // Test class for readValue method testing
     }
 }

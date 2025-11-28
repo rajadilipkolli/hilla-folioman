@@ -2,6 +2,7 @@ package com.app.folioman.portfolio.repository;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.app.folioman.config.SQLContainersConfig;
 import com.app.folioman.portfolio.entities.CasTypeEnum;
 import com.app.folioman.portfolio.entities.FileTypeEnum;
 import com.app.folioman.portfolio.entities.InvestorInfo;
@@ -20,7 +21,7 @@ import org.springframework.test.context.transaction.TestTransaction;
 
 @DataJpaTest
 @ActiveProfiles("test")
-@Import(com.app.folioman.config.SQLContainersConfig.class)
+@Import(SQLContainersConfig.class)
 class UserFolioDetailsRepositoryTest {
 
     @Autowired

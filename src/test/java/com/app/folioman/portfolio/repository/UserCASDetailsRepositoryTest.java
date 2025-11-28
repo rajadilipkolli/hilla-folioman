@@ -2,6 +2,8 @@ package com.app.folioman.portfolio.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.app.folioman.config.SQLContainersConfig;
+import com.app.folioman.portfolio.entities.InvestorInfo;
 import com.app.folioman.portfolio.entities.UserCASDetails;
 import com.app.folioman.portfolio.models.projection.PortfolioDetailsProjection;
 import java.time.LocalDate;
@@ -15,7 +17,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 @DataJpaTest
 @ActiveProfiles("test")
-@Import(com.app.folioman.config.SQLContainersConfig.class)
+@Import(SQLContainersConfig.class)
 class UserCASDetailsRepositoryTest {
 
     @Autowired
@@ -26,15 +28,19 @@ class UserCASDetailsRepositoryTest {
 
     @Test
     void findByInvestorEmailAndName_ShouldReturnUserCASDetails_WhenMatchingEmailAndName() {
-        // This test would require setting up test data with UserCASDetails entity
-        // Since the entity structure is not provided, this is a placeholder implementation
         String email = "test@example.com";
         String name = "Test User";
+        UserCASDetails userCASDetails = new UserCASDetails();
+        InvestorInfo investorInfo = new InvestorInfo();
+        investorInfo.setEmail(email);
+        investorInfo.setName(name);
+        userCASDetails.setInvestorInfo(investorInfo);
+        entityManager.persistAndFlush(userCASDetails);
 
         UserCASDetails result = userCASDetailsRepository.findByInvestorEmailAndName(email, name);
 
         // Assertions would depend on the actual entity structure and test data
-        // assertThat(result).isNotNull();
+        assertThat(result).isNotNull();
         // assertThat(result.getInvestorInfo().getEmail()).isEqualTo(email);
         // assertThat(result.getInvestorInfo().getName()).isEqualTo(name);
     }
