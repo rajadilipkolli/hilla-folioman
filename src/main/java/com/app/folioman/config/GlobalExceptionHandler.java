@@ -50,6 +50,7 @@ class GlobalExceptionHandler {
         ProblemDetail problemDetail =
                 ProblemDetail.forStatusAndDetail(HttpStatusCode.valueOf(404), schemeNotFoundException.getMessage());
         problemDetail.setTitle("Scheme NotFound");
+        problemDetail.setType(URI.create("https://api.hilla-folioman.com/errors/scheme-not-found"));
         return problemDetail;
     }
 
@@ -59,6 +60,7 @@ class GlobalExceptionHandler {
         ProblemDetail problemDetail =
                 ProblemDetail.forStatusAndDetail(HttpStatusCode.valueOf(404), navNotFoundException.getMessage());
         problemDetail.setTitle("NAV Not Found");
+        problemDetail.setType(URI.create("https://api.hilla-folioman.com/errors/nav-not-found"));
         return problemDetail;
     }
 

@@ -11,9 +11,7 @@ import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionCallbackWithoutResult;
 import org.springframework.transaction.support.TransactionTemplate;
 
 @Service
@@ -57,32 +55,29 @@ public class MfFundSchemeService {
 
             try {
                 // Execute each batch in a separate transaction
-                transactionTemplate.execute(new TransactionCallbackWithoutResult() {
-                    @Override
-                    protected void doInTransactionWithoutResult(TransactionStatus status) {
-                        try {
-                            // Create a batch list limited to the current batch size
-                            List<MfFundScheme> batch = new ArrayList<>(currentBatchSize);
+                transactionTemplate.execute(status -> {
+                    try {
+                        // Create a batch list limited to the current batch size
+                        List<MfFundScheme> batch = new ArrayList<>(currentBatchSize);
 
-                            for (int i = batchStartIdx; i < batchEndIdx; i++) {
-                                batch.add(mfFundSchemes.get(i));
-                            }
-
-                            mfFundSchemeRepository.saveAll(batch);
-                            successCount.addAndGet(batch.size());
-
-                            LOGGER.debug(
-                                    "Successfully saved batch of {} schemes ({}-{})",
-                                    batch.size(),
-                                    batchStartIdx,
-                                    batchEndIdx - 1);
-                        } catch (Exception e) {
-                            LOGGER.error(
-                                    "Error saving batch {}-{}: {}", batchStartIdx, batchEndIdx - 1, e.getMessage());
-                            status.setRollbackOnly();
-                            throw e;
+                        for (int i = batchStartIdx; i < batchEndIdx; i++) {
+                            batch.add(mfFundSchemes.get(i));
                         }
+
+                        mfFundSchemeRepository.saveAll(batch);
+                        successCount.addAndGet(batch.size());
+
+                        LOGGER.debug(
+                                "Successfully saved batch of {} schemes ({}-{})",
+                                batch.size(),
+                                batchStartIdx,
+                                batchEndIdx - 1);
+                    } catch (Exception e) {
+                        LOGGER.error("Error saving batch {}-{}: {}", batchStartIdx, batchEndIdx - 1, e.getMessage());
+                        status.setRollbackOnly();
+                        throw e;
                     }
+                    return status;
                 });
             } catch (DataAccessException e) {
                 LOGGER.warn("Failed to save batch as a whole, will attempt individual saves");
@@ -92,17 +87,15 @@ public class MfFundSchemeService {
                     final MfFundScheme scheme = mfFundSchemes.get(i);
 
                     try {
-                        transactionTemplate.execute(new TransactionCallbackWithoutResult() {
-                            @Override
-                            protected void doInTransactionWithoutResult(TransactionStatus status) {
-                                try {
-                                    mfFundSchemeRepository.save(scheme);
-                                    successCount.incrementAndGet();
-                                } catch (Exception ex) {
-                                    LOGGER.debug("Could not save individual scheme: {}", ex.getMessage());
-                                    status.setRollbackOnly();
-                                }
+                        transactionTemplate.execute(status -> {
+                            try {
+                                mfFundSchemeRepository.save(scheme);
+                                successCount.incrementAndGet();
+                            } catch (Exception ex) {
+                                LOGGER.debug("Could not save individual scheme: {}", ex.getMessage());
+                                status.setRollbackOnly();
                             }
+                            return status;
                         });
                     } catch (Exception ex) {
                         LOGGER.debug("Failed to save scheme: {}", ex.getMessage());

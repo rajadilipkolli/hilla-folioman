@@ -31,7 +31,7 @@ class UserTransactionsControllerTest {
                 .perform(get("/api/portfolio/investments/{pan}", "ABCD1234EF").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, is(MediaType.APPLICATION_PROBLEM_JSON_VALUE)))
-                .andExpect(jsonPath("$.type", is("about:blank")))
+                .andExpect(jsonPath("$.type", is("https://api.hilla-folioman.com/errors/validation-error")))
                 .andExpect(jsonPath("$.title", is("Constraint Violation")))
                 .andExpect(jsonPath("$.status", is(400)))
                 .andExpect(jsonPath(
@@ -46,7 +46,7 @@ class UserTransactionsControllerTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, is(MediaType.APPLICATION_PROBLEM_JSON_VALUE)))
-                .andExpect(jsonPath("$.type", is("about:blank")))
+                .andExpect(jsonPath("$.type", is("https://api.hilla-folioman.com/errors/validation-error")))
                 .andExpect(jsonPath("$.title", is("Constraint Violation")))
                 .andExpect(jsonPath("$.status", is(400)))
                 .andExpect(jsonPath(

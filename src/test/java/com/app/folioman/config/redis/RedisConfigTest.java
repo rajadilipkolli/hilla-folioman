@@ -19,7 +19,7 @@ import org.springframework.cache.Cache;
 import org.springframework.cache.interceptor.CacheErrorHandler;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @ExtendWith(MockitoExtension.class)
@@ -50,9 +50,9 @@ class RedisConfigTest {
         assertThat(template).isNotNull();
         assertThat(template.getConnectionFactory()).isEqualTo(redisConnectionFactory);
         assertThat(template.getKeySerializer()).isInstanceOf(StringRedisSerializer.class);
-        assertThat(template.getValueSerializer()).isInstanceOf(GenericJackson2JsonRedisSerializer.class);
+        assertThat(template.getValueSerializer()).isInstanceOf(GenericJacksonJsonRedisSerializer.class);
         assertThat(template.getHashKeySerializer()).isInstanceOf(StringRedisSerializer.class);
-        assertThat(template.getHashValueSerializer()).isInstanceOf(GenericJackson2JsonRedisSerializer.class);
+        assertThat(template.getHashValueSerializer()).isInstanceOf(GenericJacksonJsonRedisSerializer.class);
         // Ensure a default serializer is configured (the implementation uses a custom JSON serializer)
         assertThat(template.getDefaultSerializer()).isNotNull();
     }
