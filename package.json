@@ -108,7 +108,7 @@
       "vite-plugin-checker": "0.12.0",
       "workbox-build": "7.4.0"
     },
-    "hash": "f543a6cc752b4f8d283ebbffbc6fb0e7463ef07dd0dc77b8e49e3c47340da918"
+    "hash": "9ecc6cc31cbdf270516f491d0210ff9fdf84a3b4234c1025e1f9fa14c4888582"
   },
   "overrides": {
     "@vaadin/vaadin-development-mode-detector": "$@vaadin/vaadin-development-mode-detector",
