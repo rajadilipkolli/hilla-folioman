@@ -77,7 +77,7 @@ public class MfFundSchemeService {
                         status.setRollbackOnly();
                         throw e;
                     }
-                    return status;
+                    return null;
                 });
             } catch (DataAccessException e) {
                 LOGGER.warn("Failed to save batch as a whole, will attempt individual saves");
@@ -94,7 +94,7 @@ public class MfFundSchemeService {
                             LOGGER.debug("Could not save individual scheme: {}", ex.getMessage());
                             status.setRollbackOnly();
                         }
-                        return status;
+                        return null;
                     });
                 }
             }

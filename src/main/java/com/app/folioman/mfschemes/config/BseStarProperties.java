@@ -27,7 +27,7 @@ public class BseStarProperties {
         return scheme;
     }
 
-    public void setScheme(@Valid SchemeProperties scheme) {
+    public void setScheme(SchemeProperties scheme) {
         this.scheme = scheme;
     }
 }

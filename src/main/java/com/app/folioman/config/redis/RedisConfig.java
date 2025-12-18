@@ -92,9 +92,7 @@ class RedisConfig implements CachingConfigurer {
      */
     private RedisSerializer<Object> createOptimizedSerializer() {
         // Create a custom jsonMapper for JSON serialization
-        JsonMapper jsonMapper = new JsonMapper();
-        jsonMapper
-                .rebuild()
+        JsonMapper jsonMapper = JsonMapper.builder()
                 .changeDefaultVisibility(visibilityChecker -> visibilityChecker.with(JsonAutoDetect.Visibility.ANY))
                 .build();
         // Use JSON serialization for better memory efficiency and readability

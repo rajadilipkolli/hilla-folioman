@@ -39,7 +39,7 @@ public class PortfolioCacheProperties {
         return eviction;
     }
 
-    public void setEviction(@Valid Eviction eviction) {
+    public void setEviction(Eviction eviction) {
         this.eviction = eviction;
     }
 

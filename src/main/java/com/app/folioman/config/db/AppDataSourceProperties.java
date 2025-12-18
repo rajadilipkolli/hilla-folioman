@@ -37,7 +37,7 @@ public class AppDataSourceProperties {
         return acquisitionStrategy;
     }
 
-    public void setAcquisitionStrategy(@Valid AcquisitionStrategy acquisitionStrategy) {
+    public void setAcquisitionStrategy(AcquisitionStrategy acquisitionStrategy) {
         this.acquisitionStrategy = acquisitionStrategy;
     }
 
@@ -45,7 +45,7 @@ public class AppDataSourceProperties {
         return connectionLeak;
     }
 
-    public void setConnectionLeak(@Valid ConnectionLeak connectionLeak) {
+    public void setConnectionLeak(ConnectionLeak connectionLeak) {
         this.connectionLeak = connectionLeak;
     }
 
@@ -53,7 +53,7 @@ public class AppDataSourceProperties {
         return metrics;
     }
 
-    public void setMetrics(@Valid Metrics metrics) {
+    public void setMetrics(Metrics metrics) {
         this.metrics = metrics;
     }
 
