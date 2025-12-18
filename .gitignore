@@ -13,3 +13,4 @@ logs/
 target_test-classes/
 
 node/
+src/main/bundles/prod.bundle
