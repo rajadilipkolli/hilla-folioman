@@ -14,13 +14,13 @@
         <vaadin.version>25.0.0</vaadin.version>
         <spring-modulith.version>2.0.0</spring-modulith.version>
         <org.mapstruct.version>1.6.3</org.mapstruct.version>
-        <flexy-pool.version>3.1.0</flexy-pool.version>
+        <flexy-pool.version>3.1.1</flexy-pool.version>
 
         <spotless.version>3.1.0</spotless.version>
 
         <archunit.version>1.4.1</archunit.version>
         <properties-maven-plugin.version>1.2.1</properties-maven-plugin.version>
-        <sonar-maven-plugin.version>5.3.0.6276</sonar-maven-plugin.version>
+        <sonar-maven-plugin.version>5.5.0.6356</sonar-maven-plugin.version>
         <jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
         <jacoco.minimum.coverage>0.80</jacoco.minimum.coverage>
         <jacoco.utReportFolder>${project.build.directory}/jacoco/test</jacoco.utReportFolder>
@@ -130,7 +130,7 @@
         <dependency>
             <groupId>org.jobrunr</groupId>
             <artifactId>jobrunr-spring-boot-4-starter</artifactId>
-            <version>8.3.0</version>
+            <version>8.3.1</version>
         </dependency>
 
         <dependency>
@@ -182,7 +182,7 @@
         <dependency>
             <groupId>net.ttddyy.observation</groupId>
             <artifactId>datasource-micrometer-spring-boot</artifactId>
-            <version>2.0.0</version>
+            <version>2.0.1</version>
         </dependency>
         <!-- Observability Ends -->
 
