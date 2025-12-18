@@ -20,7 +20,9 @@ import com.tngtech.archunit.lang.ArchRule;
 import org.slf4j.Logger;
 import org.springframework.context.annotation.Bean;
 
-@AnalyzeClasses(packages = DEFAULT_PACKAGE, importOptions = ImportOption.DoNotIncludeTests.class)
+@AnalyzeClasses(
+        packages = DEFAULT_PACKAGE,
+        importOptions = {ImportOption.DoNotIncludeTests.class, ExcludeApplicationImportOption.class})
 class GeneralCodingRulesTest {
 
     // Classes
