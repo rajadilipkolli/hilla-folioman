@@ -14,8 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 public interface UserFolioDetailsRepository extends JpaRepository<UserFolioDetails, Long> {
 
-    @Query(
-            """
+    @Query("""
             select u from UserFolioDetails u left join u.userCasDetails.folios folios join fetch u.schemes where folios in :folios
             """)
     List<UserFolioDetails> findByUserCasDetails_FoliosIn(@Param("folios") List<UserFolioDetails> folios);

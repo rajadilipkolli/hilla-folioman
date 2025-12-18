@@ -1,7 +1,8 @@
 package com.app.folioman.portfolio.service;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.app.folioman.portfolio.repository.InvestorInfoRepository;
 import org.junit.jupiter.api.BeforeEach;

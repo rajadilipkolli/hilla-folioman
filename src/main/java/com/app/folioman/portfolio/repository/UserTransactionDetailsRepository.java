@@ -6,6 +6,7 @@ import com.app.folioman.portfolio.models.projection.YearlyInvestmentResponse;
 import java.time.LocalDate;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.NativeQuery;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -13,8 +14,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface UserTransactionDetailsRepository extends JpaRepository<UserTransactionDetails, Long> {
 
-    @Query(
-            """
+    @Query("""
             select count (u.id) from UserTransactionDetails u
             where upper(u.userSchemeDetails.userFolioDetails.userCasDetails.investorInfo.email) = upper(:email) and u.userSchemeDetails.userFolioDetails.userCasDetails.investorInfo.name = :name and u.transactionDate >= :fromTransactionDate and u.transactionDate <= :toTransactionDate
             """)
@@ -29,10 +29,7 @@ public interface UserTransactionDetailsRepository extends JpaRepository<UserTran
     List<UserTransactionDetails> findByUserSchemeDetails_IdAndTransactionDateGreaterThanEqual(
             Long id, LocalDate schemeFromDate);
 
-    @Query(
-            nativeQuery = true,
-            value =
-                    """
+    @NativeQuery("""
                     WITH monthly_totals AS (
                         SELECT DATE_TRUNC('month', transaction_date) AS month,
                                EXTRACT(YEAR FROM transaction_date) AS year,
@@ -55,10 +52,7 @@ public interface UserTransactionDetailsRepository extends JpaRepository<UserTran
                     """)
     List<MonthlyInvestmentResponse> findMonthlyInvestmentsByPan(String pan);
 
-    @Query(
-            nativeQuery = true,
-            value =
-                    """
+    @NativeQuery("""
                     SELECT EXTRACT(YEAR FROM transaction_date) AS year,
                            SUM(amount) AS yearlyInvestment
                     FROM portfolio.user_transaction_details utd

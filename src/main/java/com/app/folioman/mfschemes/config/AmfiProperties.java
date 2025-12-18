@@ -2,6 +2,7 @@ package com.app.folioman.mfschemes.config;
 
 import jakarta.validation.Valid;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
 /**
  * Configuration properties for AMFI (Association of Mutual Funds in India) related settings.
@@ -21,6 +22,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class AmfiProperties {
 
     @Valid
+    @NestedConfigurationProperty
     private SchemeProperties scheme;
 
     private String dataUrl;

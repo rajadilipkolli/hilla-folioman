@@ -14,8 +14,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface MFSchemeNavRepository extends JpaRepository<MFSchemeNav, Long> {
 
-    @Query(
-            """
+    @Query("""
             SELECT DISTINCT
               ms1.amfiCode
             FROM
@@ -34,8 +33,7 @@ public interface MFSchemeNavRepository extends JpaRepository<MFSchemeNav, Long> 
             """)
     List<Long> findMFSchemeNavsByNavNotLoaded(@Param("asOfDate") LocalDate asOfDate);
 
-    @Query(
-            """
+    @Query("""
             select new com.app.folioman.mfschemes.MFSchemeNavProjection(m.nav, m.navDate, m.mfScheme.amfiCode)
             from MFSchemeNav m
             where m.mfScheme.amfiCode in :amfiCodes and m.navDate >= :startNavDate and m.navDate <= :endNavDate

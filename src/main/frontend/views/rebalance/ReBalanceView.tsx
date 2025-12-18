@@ -96,7 +96,7 @@ export default function ReBalanceView() {
 
     // Recalculate total ratio when ratios change
     if (field === 'ratio') {
-      const newTotalRatio = updatedFunds.reduce((sum, fund) => sum + fund.ratio, 0);
+      const newTotalRatio = updatedFunds.reduce((sum, fund) => sum + (fund.ratio ?? 0), 0);
       setTotalRatio(newTotalRatio);
     }
   };
@@ -107,7 +107,7 @@ export default function ReBalanceView() {
   };
 
   const handleReBalance = async () => {
-    if (funds.some((fund) => fund.value < 0 || fund.ratio < 0 || fund.ratio > 100)) {
+    if (funds.some((fund) => (fund.value ?? 0) < 0 || (fund.ratio ?? 0) < 0 || (fund.ratio ?? 0) > 100)) {
       Notification.show('Invalid fund values or ratios. Please check your inputs.', {
         position: 'middle',
         theme: 'error',
@@ -128,8 +128,8 @@ export default function ReBalanceView() {
     try {
       setIsCalculating(true);
       const fundsData = funds.map((fund) => ({
-        value: fund.value,
-        ratio: fund.ratio / 100, // Convert ratio to fraction
+        value: fund.value ?? 0,
+        ratio: (fund.ratio ?? 0) / 100, // Convert ratio to fraction
       }));
 
       // Call server-side method and get the InvestmentResponse
@@ -217,7 +217,7 @@ export default function ReBalanceView() {
               <FormLayout responsiveSteps={layoutSteps}>
                 <TextField
                   label={`Current Value (₹)`}
-                  value={fund.value.toString()}
+                  value={(fund.value ?? 0).toString()}
                   onChange={(e) => {
                     const value = e.target.value;
                     if (value === '' || validateNumber(value)) {
@@ -230,7 +230,7 @@ export default function ReBalanceView() {
                 />
                 <TextField
                   label={`Desired Ratio (%)`}
-                  value={fund.ratio.toString()}
+                  value={(fund.ratio ?? 0).toString()}
                   onChange={(e) => {
                     const value = e.target.value;
                     if (value === '' || validateNumber(value)) {
@@ -308,11 +308,11 @@ export default function ReBalanceView() {
               <div className="mt-m">
                 <Details summary="Rebalancing Details" opened={false}>
                   <div className="p-s">
-                    <p>Total Current Value: ₹{funds.reduce((sum, fund) => sum + fund.value, 0).toFixed(2)}</p>
+                    <p>Total Current Value: ₹{funds.reduce((sum, fund) => sum + (fund.value ?? 0), 0).toFixed(2)}</p>
                     <p>Additional Investment: ₹{Number(amountToInvest).toFixed(2)}</p>
                     <p>
                       Total Portfolio Value After Rebalance: ₹
-                      {(funds.reduce((sum, fund) => sum + fund.value, 0) + Number(amountToInvest)).toFixed(2)}
+                      {(funds.reduce((sum, fund) => sum + (fund.value ?? 0), 0) + Number(amountToInvest)).toFixed(2)}
                     </p>
                   </div>
                 </Details>

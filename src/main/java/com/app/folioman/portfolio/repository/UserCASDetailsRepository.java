@@ -5,6 +5,7 @@ import com.app.folioman.portfolio.models.projection.PortfolioDetailsProjection;
 import java.time.LocalDate;
 import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.NativeQuery;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -12,17 +13,13 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface UserCASDetailsRepository extends JpaRepository<UserCASDetails, Long> {
 
-    @Query(
-            """
+    @Query("""
               select u from UserCASDetails u join fetch u.folios join fetch u.investorInfo as i
               where i.email = :email and i.name = :name
               """)
     UserCASDetails findByInvestorEmailAndName(@Param("email") String email, @Param("name") String name);
 
-    @Query(
-            nativeQuery = true,
-            value =
-                    """
+    @NativeQuery("""
             WITH tempView AS (
                 SELECT utd.balance AS balance,
                        usd.scheme AS schemeName,

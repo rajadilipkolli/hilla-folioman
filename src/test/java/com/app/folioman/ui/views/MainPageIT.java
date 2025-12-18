@@ -11,21 +11,22 @@ import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.edge.EdgeOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.testcontainers.Testcontainers;
-import org.testcontainers.containers.BrowserWebDriverContainer;
+import org.testcontainers.selenium.BrowserWebDriverContainer;
+import org.testcontainers.utility.DockerImageName;
 
 class MainPageIT extends AbstractIntegrationTest {
 
     private WebDriver driver;
 
-    static BrowserWebDriverContainer<?> container =
-            new BrowserWebDriverContainer<>().withCapabilities(new ChromeOptions());
+    static BrowserWebDriverContainer container =
+            new BrowserWebDriverContainer(DockerImageName.parse("selenium/standalone-edge"));
 
     @BeforeAll
     static void beforeAll(@Autowired Environment environment) {
@@ -42,7 +43,7 @@ class MainPageIT extends AbstractIntegrationTest {
 
     @Test
     void mainPageLoads() {
-        driver = new RemoteWebDriver(container.getSeleniumAddress(), new ChromeOptions());
+        driver = new RemoteWebDriver(container.getSeleniumAddress(), new EdgeOptions());
         driver.get("http://host.testcontainers.internal:" + port);
         assertTrue(driver.getTitle() != null && !driver.getTitle().isEmpty(), "Main page should load and have a title");
 

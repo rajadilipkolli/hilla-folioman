@@ -1,5 +1,6 @@
 package com.app.folioman.config.db;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Positive;
@@ -15,10 +16,13 @@ public class AppDataSourceProperties {
     @Min(value = 5, message = "Min OverGrow size should be 5")
     private int maxOvergrowPoolSize;
 
+    @Valid
     private AcquisitionStrategy acquisitionStrategy;
 
+    @Valid
     private ConnectionLeak connectionLeak = new ConnectionLeak();
 
+    @Valid
     private Metrics metrics = new Metrics();
 
     public int getMaxOvergrowPoolSize() {

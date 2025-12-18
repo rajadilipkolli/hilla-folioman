@@ -1,7 +1,8 @@
 package com.app.folioman.config;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import com.app.folioman.mfschemes.NavNotFoundException;
 import com.app.folioman.mfschemes.SchemeNotFoundException;

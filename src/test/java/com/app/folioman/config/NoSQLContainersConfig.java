@@ -5,8 +5,8 @@ import java.time.Duration;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Bean;
-import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.grafana.LgtmStackContainer;
+import org.testcontainers.mongodb.MongoDBContainer;
 import org.testcontainers.utility.DockerImageName;
 
 /**
@@ -41,7 +41,7 @@ public class NoSQLContainersConfig {
     @Bean
     @ServiceConnection
     LgtmStackContainer lgtmContainer() {
-        return new LgtmStackContainer(DockerImageName.parse("grafana/otel-lgtm:0.11.18"))
+        return new LgtmStackContainer(DockerImageName.parse("grafana/otel-lgtm:0.13.0"))
                 .withStartupTimeout(Duration.ofMinutes(2));
     }
 }

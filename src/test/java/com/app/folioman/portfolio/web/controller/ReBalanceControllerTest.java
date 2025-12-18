@@ -9,32 +9,31 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.app.folioman.portfolio.models.request.Fund;
 import com.app.folioman.portfolio.models.request.InvestmentRequest;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import tools.jackson.databind.json.JsonMapper;
 
 @WebMvcTest(controllers = ReBalanceController.class)
-@AutoConfigureMockMvc
 class ReBalanceControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     @Autowired
-    private ObjectMapper objectMapper;
+    private JsonMapper jsonMapper;
 
     @Test
     void testReBalance() throws Exception {
         this.mockMvc
                 .perform(post("/api/portfolio/rebalance")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(new InvestmentRequest(
-                                List.of(new Fund(7000, 0.7), new Fund(3000, 0.25), new Fund(500, 0.05)), 1000)))
+                        .content(jsonMapper.writeValueAsString(new InvestmentRequest(
+                                List.of(new Fund(7000.00, 0.7), new Fund(3000.00, 0.25), new Fund(500.00, 0.05)),
+                                1000.00)))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -46,29 +45,31 @@ class ReBalanceControllerTest {
         mockMvc.perform(post("/api/portfolio/rebalance").content("{}").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
-                .andExpect(jsonPath("$.type", is("about:blank")))
+                .andExpect(jsonPath("$.type", is("https://api.hilla-folioman.com/errors/validation-error")))
                 .andExpect(jsonPath("$.title", is("Constraint Violation")))
                 .andExpect(jsonPath("$.status", is(400)))
                 .andExpect(jsonPath("$.detail", is("Invalid request content.")))
                 .andExpect(jsonPath("$.instance", is("/api/portfolio/rebalance")))
-                .andExpect(jsonPath("$.violations", hasSize(1)))
-                .andExpect(jsonPath("$.violations[0].field", is("funds")))
+                .andExpect(jsonPath("$.violations", hasSize(2)))
+                .andExpect(jsonPath("$.violations[0].field", is("amountToInvest")))
+                .andExpect(jsonPath("$.violations[0].message", is("Amount to invest cannot be null")))
+                .andExpect(jsonPath("$.violations[1].field", is("funds")))
                 .andExpect(jsonPath(
-                        "$.violations[0].message", is("Investment request and funds list cannot be null or empty")));
+                        "$.violations[1].message", is("Investment request and funds list cannot be null or empty")));
     }
 
     @Test
     void testReBalanceWithEmptyFundsList() throws Exception {
         InvestmentRequest investmentRequest = new InvestmentRequest(
                 List.of(), // Empty funds list
-                1000);
+                1000.00);
 
         mockMvc.perform(post("/api/portfolio/rebalance")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(investmentRequest)))
+                        .content(jsonMapper.writeValueAsString(investmentRequest)))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
-                .andExpect(jsonPath("$.type", is("about:blank")))
+                .andExpect(jsonPath("$.type", is("https://api.hilla-folioman.com/errors/validation-error")))
                 .andExpect(jsonPath("$.title", is("Constraint Violation")))
                 .andExpect(jsonPath("$.status", is(400)))
                 .andExpect(jsonPath("$.detail", is("Invalid request content.")))
@@ -82,14 +83,14 @@ class ReBalanceControllerTest {
     @Test
     void testReBalanceWithNegativeAmountToInvest() throws Exception {
         InvestmentRequest investmentRequest =
-                new InvestmentRequest(List.of(new Fund(10000, 0.5)), -1000); // Negative amount to invest
+                new InvestmentRequest(List.of(new Fund(10000.00, 0.5)), -1000.00); // Negative amount to invest
 
         mockMvc.perform(post("/api/portfolio/rebalance")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(investmentRequest)))
+                        .content(jsonMapper.writeValueAsString(investmentRequest)))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
-                .andExpect(jsonPath("$.type", is("about:blank")))
+                .andExpect(jsonPath("$.type", is("https://api.hilla-folioman.com/errors/validation-error")))
                 .andExpect(jsonPath("$.title", is("Constraint Violation")))
                 .andExpect(jsonPath("$.status", is(400)))
                 .andExpect(jsonPath("$.detail", is("Invalid request content.")))
@@ -106,17 +107,17 @@ class ReBalanceControllerTest {
     void testReBalanceWithInvalidFundRatios() throws Exception {
         InvestmentRequest investmentRequest = new InvestmentRequest(
                 List.of(
-                        new Fund(10000, 0.50), new Fund(10000, 0.30)
+                        new Fund(10000.0, 0.50), new Fund(10000.0, 0.30)
                         // Sum of ratios is 0.80, not 1.00
                         ),
-                1000);
+                1000.00);
 
         mockMvc.perform(post("/api/portfolio/rebalance")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(investmentRequest)))
+                        .content(jsonMapper.writeValueAsString(investmentRequest)))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
-                .andExpect(jsonPath("$.type", is("about:blank")))
+                .andExpect(jsonPath("$.type", is("https://api.hilla-folioman.com/errors/validation-error")))
                 .andExpect(jsonPath("$.title", is("Constraint Violation")))
                 .andExpect(jsonPath("$.status", is(400)))
                 .andExpect(jsonPath("$.detail", is("Invalid request content.")))
@@ -130,15 +131,15 @@ class ReBalanceControllerTest {
     @Test
     void testReBalanceWithNegativeFundValue() throws Exception {
         InvestmentRequest investmentRequest = new InvestmentRequest(
-                List.of(new Fund(-10000, 0.5)), // Negative fund value
-                1000);
+                List.of(new Fund(-10000.00, 0.5)), // Negative fund value
+                1000.00);
 
         mockMvc.perform(post("/api/portfolio/rebalance")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(investmentRequest)))
+                        .content(jsonMapper.writeValueAsString(investmentRequest)))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
-                .andExpect(jsonPath("$.type", is("about:blank")))
+                .andExpect(jsonPath("$.type", is("https://api.hilla-folioman.com/errors/validation-error")))
                 .andExpect(jsonPath("$.title", is("Constraint Violation")))
                 .andExpect(jsonPath("$.status", is(400)))
                 .andExpect(jsonPath("$.detail", is("Invalid request content.")))
@@ -154,15 +155,15 @@ class ReBalanceControllerTest {
     @Test
     void testReBalanceWithInvalidFundRatio() throws Exception {
         InvestmentRequest investmentRequest = new InvestmentRequest(
-                List.of(new Fund(10000, 1.50)), // Ratio greater than 100
-                1000);
+                List.of(new Fund(10000.00, 1.50)), // Ratio greater than 100
+                1000.00);
 
         mockMvc.perform(post("/api/portfolio/rebalance")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(investmentRequest)))
+                        .content(jsonMapper.writeValueAsString(investmentRequest)))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
-                .andExpect(jsonPath("$.type", is("about:blank")))
+                .andExpect(jsonPath("$.type", is("https://api.hilla-folioman.com/errors/validation-error")))
                 .andExpect(jsonPath("$.title", is("Constraint Violation")))
                 .andExpect(jsonPath("$.status", is(400)))
                 .andExpect(jsonPath("$.detail", is("Invalid request content.")))

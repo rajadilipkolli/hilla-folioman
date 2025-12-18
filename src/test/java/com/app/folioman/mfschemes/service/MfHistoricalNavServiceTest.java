@@ -229,21 +229,18 @@ class MfHistoricalNavServiceTest {
     }
 
     private String createMockNavResponse(Long schemeCode, String isin) {
-        return String.format(
-                """
+        return """
             ;
             ;
             Open Ended Schemes ( All Schemes )
             HDFC Asset Management Company Limited
 
             123456;Test Scheme;%s;Growth;10.5000;;INF123456789;03-Jan-2024
-            """,
-                isin != null ? isin : "INF123456789");
+            """.formatted(isin != null ? isin : "INF123456789");
     }
 
     private String createComplexMockNavResponse(Long schemeCode, String isin) {
-        return String.format(
-                """
+        return """
             ;
             ;
             Open Ended Schemes ( All Schemes )
@@ -254,7 +251,6 @@ class MfHistoricalNavServiceTest {
             SBI Mutual Fund
             123456;Test Scheme;%s;Growth;10.5000;;INF123456789;03-Jan-2024
             789012;Another Scheme;INF987654321;Dividend;12.3000;;INF987654321;03-Jan-2024
-            """,
-                isin);
+            """.formatted(isin);
     }
 }
