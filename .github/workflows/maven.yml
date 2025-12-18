@@ -67,4 +67,4 @@ jobs:
 
       - if: ${{ github.ref == 'refs/heads/main' }}
         name: Build Image with Maven
-        run: ./mvnw spring-boot:build-image -Pproduction --file pom.xml
+        run: ./mvnw spring-boot:build-image --file pom.xml
