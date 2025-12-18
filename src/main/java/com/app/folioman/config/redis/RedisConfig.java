@@ -91,14 +91,14 @@ class RedisConfig implements CachingConfigurer {
      * Creates an optimized serializer for Redis values
      */
     private RedisSerializer<Object> createOptimizedSerializer() {
-        // Create a custom ObjectMapper for JSON serialization
-        JsonMapper objectMapper = new JsonMapper();
-        objectMapper
+        // Create a custom jsonMapper for JSON serialization
+        JsonMapper jsonMapper = new JsonMapper();
+        jsonMapper
                 .rebuild()
                 .changeDefaultVisibility(visibilityChecker -> visibilityChecker.with(JsonAutoDetect.Visibility.ANY))
                 .build();
         // Use JSON serialization for better memory efficiency and readability
-        return new GenericJacksonJsonRedisSerializer(objectMapper);
+        return new GenericJacksonJsonRedisSerializer(jsonMapper);
     }
 
     @Override

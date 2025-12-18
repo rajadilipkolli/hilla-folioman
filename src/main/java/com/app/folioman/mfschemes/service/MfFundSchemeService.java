@@ -86,20 +86,16 @@ public class MfFundSchemeService {
                 for (int i = batchStartIdx; i < batchEndIdx; i++) {
                     final MfFundScheme scheme = mfFundSchemes.get(i);
 
-                    try {
-                        transactionTemplate.execute(status -> {
-                            try {
-                                mfFundSchemeRepository.save(scheme);
-                                successCount.incrementAndGet();
-                            } catch (Exception ex) {
-                                LOGGER.debug("Could not save individual scheme: {}", ex.getMessage());
-                                status.setRollbackOnly();
-                            }
-                            return status;
-                        });
-                    } catch (Exception ex) {
-                        LOGGER.debug("Failed to save scheme: {}", ex.getMessage());
-                    }
+                    transactionTemplate.execute(status -> {
+                        try {
+                            mfFundSchemeRepository.save(scheme);
+                            successCount.incrementAndGet();
+                        } catch (Exception ex) {
+                            LOGGER.debug("Could not save individual scheme: {}", ex.getMessage());
+                            status.setRollbackOnly();
+                        }
+                        return status;
+                    });
                 }
             }
         }

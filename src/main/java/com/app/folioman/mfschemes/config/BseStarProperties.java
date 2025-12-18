@@ -2,6 +2,7 @@ package com.app.folioman.mfschemes.config;
 
 import jakarta.validation.Valid;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.validation.annotation.Validated;
 
 /**
@@ -19,6 +20,7 @@ import org.springframework.validation.annotation.Validated;
 public class BseStarProperties {
 
     @Valid
+    @NestedConfigurationProperty
     private SchemeProperties scheme;
 
     public SchemeProperties getScheme() {

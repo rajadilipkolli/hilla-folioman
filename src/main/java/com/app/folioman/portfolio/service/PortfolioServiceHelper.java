@@ -14,18 +14,17 @@ import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @Service
 class PortfolioServiceHelper {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PortfolioServiceHelper.class);
-    private final ObjectMapper mapper;
+    private final JsonMapper mapper;
     private final UserCASDetailsService userCASDetailsService;
     private final MFNavService mfNavService;
 
-    PortfolioServiceHelper(
-            ObjectMapper mapper, UserCASDetailsService userCASDetailsService, MFNavService mfNavService) {
+    PortfolioServiceHelper(JsonMapper mapper, UserCASDetailsService userCASDetailsService, MFNavService mfNavService) {
         this.mapper = mapper;
         this.userCASDetailsService = userCASDetailsService;
         this.mfNavService = mfNavService;

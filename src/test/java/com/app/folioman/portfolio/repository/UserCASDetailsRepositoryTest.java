@@ -43,7 +43,6 @@ class UserCASDetailsRepositoryTest {
         folio.setPan("ABCDE1234F");
 
         UserCASDetails userCASDetails = new UserCASDetails();
-        userCASDetails.setInvestorInfo(investorInfo);
         userCASDetails.setCasTypeEnum(CasTypeEnum.DETAILED);
         userCASDetails.setFileTypeEnum(FileTypeEnum.CAMS);
         userCASDetails.addFolioEntity(folio);

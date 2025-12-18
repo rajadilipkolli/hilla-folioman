@@ -26,13 +26,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import tools.jackson.core.JacksonException;
-import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @ExtendWith(MockitoExtension.class)
 class PortfolioServiceHelperTest {
 
     @Mock
-    private ObjectMapper mapper;
+    private JsonMapper mapper;
 
     @Mock
     private UserCASDetailsService userCASDetailsService;

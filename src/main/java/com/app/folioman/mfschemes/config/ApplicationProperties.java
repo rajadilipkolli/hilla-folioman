@@ -2,6 +2,7 @@ package com.app.folioman.mfschemes.config;
 
 import jakarta.validation.Valid;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.validation.annotation.Validated;
 
@@ -15,12 +16,15 @@ import org.springframework.validation.annotation.Validated;
 public class ApplicationProperties {
 
     @Valid
+    @NestedConfigurationProperty
     private AmfiProperties amfi;
 
     @Valid
+    @NestedConfigurationProperty
     private BseStarProperties bseStar;
 
     @Valid
+    @NestedConfigurationProperty
     private NavProperties nav;
 
     public AmfiProperties getAmfi() {

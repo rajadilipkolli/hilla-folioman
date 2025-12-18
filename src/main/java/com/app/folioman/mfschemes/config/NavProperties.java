@@ -1,6 +1,7 @@
 package com.app.folioman.mfschemes.config;
 
 import jakarta.validation.Valid;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.validation.annotation.Validated;
 
 /**
@@ -10,9 +11,11 @@ import org.springframework.validation.annotation.Validated;
 public class NavProperties {
 
     @Valid
+    @NestedConfigurationProperty
     private AmfiProperties amfi;
 
     @Valid
+    @NestedConfigurationProperty
     private MfApiProperties mfApi;
 
     public AmfiProperties getAmfi() {

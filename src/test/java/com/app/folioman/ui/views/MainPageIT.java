@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.ChromeOptions;
+import org.openqa.selenium.edge.EdgeOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -43,7 +43,7 @@ class MainPageIT extends AbstractIntegrationTest {
 
     @Test
     void mainPageLoads() {
-        driver = new RemoteWebDriver(container.getSeleniumAddress(), new ChromeOptions());
+        driver = new RemoteWebDriver(container.getSeleniumAddress(), new EdgeOptions());
         driver.get("http://host.testcontainers.internal:" + port);
         assertTrue(driver.getTitle() != null && !driver.getTitle().isEmpty(), "Main page should load and have a title");
 
