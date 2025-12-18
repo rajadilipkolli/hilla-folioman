@@ -210,8 +210,7 @@ class UserTransactionsControllerIT extends AbstractIntegrationTest {
         // 1. Create test CAS data with the specific PAN
         File tempFile = File.createTempFile("test-cas", ".json");
         try (FileWriter fileWriter = new FileWriter(tempFile)) {
-            fileWriter.write(
-                    """
+            fileWriter.write("""
                     {
                     	"statement_period": {
                     		"from": "01-Jan-2020",

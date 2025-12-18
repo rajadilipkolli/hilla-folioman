@@ -19,8 +19,7 @@ public interface MfFundSchemeRepository extends JpaRepository<MfFundScheme, Long
     @Query("select o.amfiCode from MfFundScheme o")
     List<Long> findAllSchemeIds();
 
-    @NativeQuery(
-            """
+    @NativeQuery("""
             SELECT m.name as schemeName, m.amfi_code as amfiCode, a.name as amcName
             FROM mfschemes.mf_fund_scheme m
             JOIN mfschemes.mf_amc a ON m.mf_amc_id = a.id
@@ -29,8 +28,7 @@ public interface MfFundSchemeRepository extends JpaRepository<MfFundScheme, Long
             """)
     List<FundDetailProjection> searchByFullText(@Param("query") String query);
 
-    @NativeQuery(
-            """
+    @NativeQuery("""
             SELECT m.name as schemeName, m.amfi_code as amfiCode, a.name as amcName
             FROM mfschemes.mf_fund_scheme m
             JOIN mfschemes.mf_amc a ON m.mf_amc_id = a.id
@@ -45,8 +43,7 @@ public interface MfFundSchemeRepository extends JpaRepository<MfFundScheme, Long
      * @param searchTerms the search terms in PostgreSQL ts_query format (term1 & term2 & ...)
      * @return List of fund details matching the AMC search
      */
-    @NativeQuery(
-            """
+    @NativeQuery("""
             SELECT m.name as schemeName, m.amfi_code as amfiCode, a.name as amcName
             FROM mfschemes.mf_fund_scheme m
             JOIN mfschemes.mf_amc a ON m.mf_amc_id = a.id
@@ -55,8 +52,7 @@ public interface MfFundSchemeRepository extends JpaRepository<MfFundScheme, Long
             """)
     List<FundDetailProjection> searchByAmcTextSearch(@Param("searchTerms") String searchTerms);
 
-    @Query(
-            """
+    @Query("""
             select m from MfFundScheme m inner join fetch m.mfSchemeNavs mfSchemeNavs
             where m.amfiCode = :schemeCode and mfSchemeNavs.navDate = :date
             """)

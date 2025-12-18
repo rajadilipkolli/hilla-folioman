@@ -4,4 +4,5 @@ package com.app.folioman.portfolio.models.request;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 
-public record StatementPeriodDTO(String from, @JsonProperty("to") String myto) implements Serializable {}
+public record StatementPeriodDTO(
+        String from, @JsonProperty("to") String myto) implements Serializable {}

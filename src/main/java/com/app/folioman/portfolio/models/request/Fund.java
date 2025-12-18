@@ -13,6 +13,7 @@ import jakarta.validation.constraints.Positive;
  */
 public record Fund(
         @Positive(message = "Fund value cannot be negative") Double value,
+
         @DecimalMin(value = "0.0", message = "Fund ratio must be between 0 and 1")
-                @DecimalMax(value = "1.0", message = "Fund ratio must be between 0 and 1")
-                Double ratio) {}
+        @DecimalMax(value = "1.0", message = "Fund ratio must be between 0 and 1")
+        Double ratio) {}

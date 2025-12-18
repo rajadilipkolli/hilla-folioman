@@ -36,8 +36,7 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
         long countBeforeInsert = userPortfolioValueRepository.count();
         File tempFile = File.createTempFile("file", ".json");
         try (FileWriter fileWriter = new FileWriter(tempFile)) {
-            fileWriter.write(
-                    """
+            fileWriter.write("""
                     {
                     	"statement_period": {
                     		"from": "01-Jan-1990",
@@ -373,8 +372,7 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
         File initialFile = File.createTempFile("initial-file", ".json");
         try (FileWriter fileWriter = new FileWriter(initialFile)) {
             // Create a CasDTO with an initial set of transactions
-            fileWriter.write(
-                    """
+            fileWriter.write("""
                     {
                     	"statement_period": {
                     		"from": "01-Jan-1990",
@@ -461,8 +459,7 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
         // Now create a second file with the same user but adding one new transaction
         File updatedFile = File.createTempFile("updated-file", ".json");
         try (FileWriter fileWriter = new FileWriter(updatedFile)) {
-            fileWriter.write(
-                    """
+            fileWriter.write("""
                     {
                     	"statement_period": {
                     		"from": "01-Jan-1990",

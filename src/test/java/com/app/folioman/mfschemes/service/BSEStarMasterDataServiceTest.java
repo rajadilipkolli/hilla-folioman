@@ -82,8 +82,7 @@ class BSEStarMasterDataServiceTest {
         schemeData.put("Scheme Type", "Open Ended");
         amfiDataMap.put("12345", schemeData);
 
-        String htmlResponse =
-                """
+        String htmlResponse = """
                 <html>
                 <body>
                 <form id="frmOrdConfirm">
@@ -94,8 +93,7 @@ class BSEStarMasterDataServiceTest {
                 </html>
                 """;
 
-        String csvResponse =
-                """
+        String csvResponse = """
                 Unique No|Scheme Code|ISIN|Scheme Name|AMC Code|AMC Scheme Code|Scheme Plan|RTA Agent Code|Channel Partner Code|Start Date|End Date
                 1|TEST001|INF123456789|Test Scheme Name|AMC001|SC001|DIRECT|RTA001|CP001|Jan 1, 2020|Dec 31, 2025
                 """;
@@ -163,8 +161,7 @@ class BSEStarMasterDataServiceTest {
         Map<String, Map<String, String>> amfiDataMap = new HashMap<>();
         Map<String, String> amfiCodeIsinMapping = new HashMap<>();
 
-        String htmlResponse =
-                """
+        String htmlResponse = """
                 <html>
                 <body>
                 <form id="frmOrdConfirm">
@@ -256,8 +253,7 @@ class BSEStarMasterDataServiceTest {
         schemeData.put("Scheme Type", "Close Ended");
         amfiDataMap.put("54321", schemeData);
 
-        String htmlResponse =
-                """
+        String htmlResponse = """
                 <html>
                 <body>
                 <form id="frmOrdConfirm">

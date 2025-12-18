@@ -13,8 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 public interface UserSchemeDetailsRepository extends JpaRepository<UserSchemeDetails, Long> {
 
-    @Query(
-            """
+    @Query("""
             select u from UserSchemeDetails u left join u.userFolioDetails.schemes schemes join fetch u.transactions where schemes in :schemes
             """)
     List<UserSchemeDetails> findByUserFolioDetails_SchemesIn(@Param("schemes") List<UserSchemeDetails> schemes);

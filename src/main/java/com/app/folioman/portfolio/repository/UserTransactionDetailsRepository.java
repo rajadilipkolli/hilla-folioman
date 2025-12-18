@@ -14,8 +14,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface UserTransactionDetailsRepository extends JpaRepository<UserTransactionDetails, Long> {
 
-    @Query(
-            """
+    @Query("""
             select count (u.id) from UserTransactionDetails u
             where upper(u.userSchemeDetails.userFolioDetails.userCasDetails.investorInfo.email) = upper(:email) and u.userSchemeDetails.userFolioDetails.userCasDetails.investorInfo.name = :name and u.transactionDate >= :fromTransactionDate and u.transactionDate <= :toTransactionDate
             """)
@@ -30,8 +29,7 @@ public interface UserTransactionDetailsRepository extends JpaRepository<UserTran
     List<UserTransactionDetails> findByUserSchemeDetails_IdAndTransactionDateGreaterThanEqual(
             Long id, LocalDate schemeFromDate);
 
-    @NativeQuery(
-            """
+    @NativeQuery("""
                     WITH monthly_totals AS (
                         SELECT DATE_TRUNC('month', transaction_date) AS month,
                                EXTRACT(YEAR FROM transaction_date) AS year,
@@ -54,8 +52,7 @@ public interface UserTransactionDetailsRepository extends JpaRepository<UserTran
                     """)
     List<MonthlyInvestmentResponse> findMonthlyInvestmentsByPan(String pan);
 
-    @NativeQuery(
-            """
+    @NativeQuery("""
                     SELECT EXTRACT(YEAR FROM transaction_date) AS year,
                            SUM(amount) AS yearlyInvestment
                     FROM portfolio.user_transaction_details utd

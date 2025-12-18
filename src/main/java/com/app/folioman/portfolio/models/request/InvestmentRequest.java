@@ -13,5 +13,7 @@ import java.util.List;
  */
 public record InvestmentRequest(
         @NotEmpty(message = "Investment request and funds list cannot be null or empty") @ValidSumOfRatios @Valid
-                List<Fund> funds,
-        @PositiveOrZero(message = "Amount to invest cannot be negative") Double amountToInvest) {}
+        List<Fund> funds,
+
+        @PositiveOrZero(message = "Amount to invest cannot be negative")
+        Double amountToInvest) {}

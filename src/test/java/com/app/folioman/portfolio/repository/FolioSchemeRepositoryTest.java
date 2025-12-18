@@ -3,7 +3,12 @@ package com.app.folioman.portfolio.repository;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.app.folioman.config.SQLContainersConfig;
+import com.app.folioman.portfolio.entities.CasTypeEnum;
+import com.app.folioman.portfolio.entities.FileTypeEnum;
 import com.app.folioman.portfolio.entities.FolioScheme;
+import com.app.folioman.portfolio.entities.UserCASDetails;
+import com.app.folioman.portfolio.entities.UserFolioDetails;
+import com.app.folioman.portfolio.entities.UserSchemeDetails;
 import java.util.List;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -25,21 +30,18 @@ class FolioSchemeRepositoryTest {
 
     @Test
     void findByUserSchemeDetails_Id_ShouldReturnFolioScheme_WhenValidUserSchemeDetailId() {
-        com.app.folioman.portfolio.entities.UserFolioDetails userFolio =
-                new com.app.folioman.portfolio.entities.UserFolioDetails();
+        UserFolioDetails userFolio = new UserFolioDetails();
         userFolio.setFolio("FOLIO-A");
         userFolio.setAmc("AMC-A");
         userFolio.setPan("PAN-A");
-        com.app.folioman.portfolio.entities.UserCASDetails cas =
-                new com.app.folioman.portfolio.entities.UserCASDetails();
-        cas.setCasTypeEnum(com.app.folioman.portfolio.entities.CasTypeEnum.DETAILED);
-        cas.setFileTypeEnum(com.app.folioman.portfolio.entities.FileTypeEnum.UNKNOWN);
+        UserCASDetails cas = new UserCASDetails();
+        cas.setCasTypeEnum(CasTypeEnum.DETAILED);
+        cas.setFileTypeEnum(FileTypeEnum.UNKNOWN);
         cas = entityManager.persistAndFlush(cas);
         userFolio.setUserCasDetails(cas);
         userFolio = entityManager.persistAndFlush(userFolio);
 
-        com.app.folioman.portfolio.entities.UserSchemeDetails userSchemeDetails =
-                new com.app.folioman.portfolio.entities.UserSchemeDetails();
+        UserSchemeDetails userSchemeDetails = new UserSchemeDetails();
         userSchemeDetails.setScheme("SOME SCHEME");
         userSchemeDetails.setUserFolioDetails(userFolio);
         userSchemeDetails = entityManager.persistAndFlush(userSchemeDetails);
@@ -74,21 +76,18 @@ class FolioSchemeRepositoryTest {
 
     @Test
     void findByUserFolioDetails_Id_ShouldReturnListOfFolioScheme_WhenValidId() {
-        com.app.folioman.portfolio.entities.UserFolioDetails userFolio =
-                new com.app.folioman.portfolio.entities.UserFolioDetails();
+        UserFolioDetails userFolio = new UserFolioDetails();
         userFolio.setFolio("FOLIO-B");
         userFolio.setAmc("AMC-B");
         userFolio.setPan("PAN-B");
-        com.app.folioman.portfolio.entities.UserCASDetails cas2 =
-                new com.app.folioman.portfolio.entities.UserCASDetails();
-        cas2.setCasTypeEnum(com.app.folioman.portfolio.entities.CasTypeEnum.SUMMARY);
-        cas2.setFileTypeEnum(com.app.folioman.portfolio.entities.FileTypeEnum.UNKNOWN);
+        UserCASDetails cas2 = new UserCASDetails();
+        cas2.setCasTypeEnum(CasTypeEnum.SUMMARY);
+        cas2.setFileTypeEnum(FileTypeEnum.UNKNOWN);
         cas2 = entityManager.persistAndFlush(cas2);
         userFolio.setUserCasDetails(cas2);
         userFolio = entityManager.persistAndFlush(userFolio);
 
-        com.app.folioman.portfolio.entities.UserSchemeDetails userSchemeDetails =
-                new com.app.folioman.portfolio.entities.UserSchemeDetails();
+        UserSchemeDetails userSchemeDetails = new UserSchemeDetails();
         userSchemeDetails.setScheme("SOME SCHEME");
         userSchemeDetails.setUserFolioDetails(userFolio);
         userSchemeDetails = entityManager.persistAndFlush(userSchemeDetails);
