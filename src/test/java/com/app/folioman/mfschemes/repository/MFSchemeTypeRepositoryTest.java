@@ -5,7 +5,6 @@ import static org.mockito.Mockito.*;
 
 import com.app.folioman.config.SQLContainersConfig;
 import com.app.folioman.mfschemes.entities.MFSchemeType;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -16,7 +15,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @ExtendWith(MockitoExtension.class)
 @DataJpaTest
-@Disabled
 @Import(SQLContainersConfig.class)
 class MFSchemeTypeRepositoryTest {
 

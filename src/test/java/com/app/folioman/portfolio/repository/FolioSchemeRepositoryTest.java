@@ -10,7 +10,6 @@ import com.app.folioman.portfolio.entities.UserCASDetails;
 import com.app.folioman.portfolio.entities.UserFolioDetails;
 import com.app.folioman.portfolio.entities.UserSchemeDetails;
 import java.util.List;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -19,7 +18,6 @@ import org.springframework.context.annotation.Import;
 
 @DataJpaTest
 @Import(SQLContainersConfig.class)
-@Disabled
 class FolioSchemeRepositoryTest {
 
     @Autowired

@@ -6,7 +6,6 @@ import com.app.folioman.config.SQLContainersConfig;
 import com.app.folioman.portfolio.entities.SchemeValue;
 import java.time.LocalDate;
 import java.util.Optional;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -14,7 +13,6 @@ import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.context.annotation.Import;
 
 @DataJpaTest
-@Disabled
 @Import(SQLContainersConfig.class)
 class SchemeValueRepositoryTest {
 
