@@ -18,6 +18,7 @@ import com.app.folioman.portfolio.repository.UserTransactionDetailsRepository;
 import com.app.folioman.portfolio.util.XirrCalculator;
 import com.app.folioman.shared.LocalDateUtility;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.ArrayList;
@@ -148,18 +149,159 @@ public class PortfolioValueUpdateService {
 
     private void updateFolioAndPortfolioValues(List<Map<String, Object>> schemeResults, LocalDate startDateMin) {
         if (schemeResults.isEmpty()) {
-            LOGGER.info("No data found. Exiting...");
+            LOGGER.info("No scheme data to process. Exiting...");
             return;
         }
 
-        LOGGER.info("Importing SchemeValue data...");
-        // Implement logic for bulk insertion of SchemeValue data
+        LOGGER.info("Processing {} schemes for SchemeValue generation", schemeResults.size());
 
-        LOGGER.info("Updating FolioValue...");
-        // Update folio values based on scheme value updates
+        // Step 1: Generate and save SchemeValue entities for all schemes
+        List<SchemeValue> allSchemeValues = new ArrayList<>();
+        Map<Long, FolioScheme> folioSchemeUpdates = new HashMap<>();
 
-        LOGGER.info("Updating PortfolioValue...");
-        // Update portfolio values based on updated folio values
+        for (Map<String, Object> schemeData : schemeResults) {
+            Long schemeId = (Long) schemeData.get("schemeId");
+            Long amfiCode = (Long) schemeData.get("amfiCode");
+            LocalDate fromDate = (LocalDate) schemeData.get("fromDate");
+            LocalDate toDate = (LocalDate) schemeData.get("toDate");
+
+            @SuppressWarnings("unchecked")
+            List<ProcessedTransaction> processedTransactions =
+                    (List<ProcessedTransaction>) schemeData.get("processedTransactions");
+
+            @SuppressWarnings("unchecked")
+            Map<LocalDate, BigDecimal> navsByDate = (Map<LocalDate, BigDecimal>) schemeData.get("navsByDate");
+
+            UserSchemeDetails userSchemeDetails = (UserSchemeDetails) schemeData.get("userSchemeDetails");
+
+            if (processedTransactions == null || processedTransactions.isEmpty()) {
+                LOGGER.warn("No processed transactions for scheme {}, skipping", schemeId);
+                continue;
+            }
+
+            // Generate SchemeValue records for this scheme
+            List<SchemeValue> schemeValues =
+                    generateSchemeValues(processedTransactions, navsByDate, userSchemeDetails, fromDate, toDate);
+            allSchemeValues.addAll(schemeValues);
+
+            // Prepare FolioScheme update with latest valuation
+            if (!schemeValues.isEmpty()) {
+                SchemeValue latestSchemeValue = schemeValues.getLast();
+                FolioScheme folioScheme = findOrCreateFolioScheme(schemeId, userSchemeDetails);
+                folioScheme.setValuation(latestSchemeValue.getValue());
+                folioScheme.setValuationDate(latestSchemeValue.getDate());
+                folioSchemeUpdates.put(schemeId, folioScheme);
+            }
+        }
+
+        // Step 2: Bulk save SchemeValue entities
+        if (!allSchemeValues.isEmpty()) {
+            LOGGER.info("Saving {} SchemeValue records", allSchemeValues.size());
+            schemeValueRepository.saveAll(allSchemeValues);
+            LOGGER.info("SchemeValue data imported successfully");
+        }
+
+        // Step 3: Update FolioScheme entities
+        if (!folioSchemeUpdates.isEmpty()) {
+            LOGGER.info("Updating {} FolioScheme records", folioSchemeUpdates.size());
+            folioSchemeRepository.saveAll(folioSchemeUpdates.values());
+            LOGGER.info("FolioScheme updated successfully");
+        }
+
+        // Note: UserPortfolioValue is already handled in the main handleDailyPortFolioValueUpdate flow
+        LOGGER.info("Portfolio value update completed");
+    }
+
+    /**
+     * Generates SchemeValue records for each day in the date range based on processed transactions and NAV data.
+     */
+    private List<SchemeValue> generateSchemeValues(
+            List<ProcessedTransaction> processedTransactions,
+            Map<LocalDate, BigDecimal> navsByDate,
+            UserSchemeDetails userSchemeDetails,
+            LocalDate fromDate,
+            LocalDate toDate) {
+
+        List<SchemeValue> schemeValues = new ArrayList<>();
+
+        // Create a map of transactions by date for quick lookup
+        Map<LocalDate, ProcessedTransaction> transactionsByDate = processedTransactions.stream()
+                .collect(Collectors.toMap(
+                        ProcessedTransaction::date,
+                        pt -> pt,
+                        (existing, replacement) -> replacement // Keep last transaction if multiple on same date
+                        ));
+
+        // Track the latest known state
+        BigDecimal currentInvested = BigDecimal.ZERO;
+        BigDecimal currentAverage = BigDecimal.ZERO;
+        BigDecimal currentBalance = BigDecimal.ZERO;
+
+        // Generate SchemeValue for each day
+        for (LocalDate date = fromDate; !date.isAfter(toDate); date = date.plusDays(1)) {
+            // Update state if there's a transaction on this date
+            if (transactionsByDate.containsKey(date)) {
+                ProcessedTransaction pt = transactionsByDate.get(date);
+                currentInvested = pt.invested();
+                currentAverage = pt.average();
+                currentBalance = pt.balance();
+            }
+
+            // Skip if no activity yet
+            if (currentBalance.compareTo(BigDecimal.ZERO) == 0 && currentInvested.compareTo(BigDecimal.ZERO) == 0) {
+                continue;
+            }
+
+            // Get NAV for this date (with fallback to previous available NAV)
+            BigDecimal nav = findNavForDate(date, navsByDate);
+
+            if (nav == null) {
+                LOGGER.warn(
+                        "NAV not found for scheme {} on date {}, skipping this date", userSchemeDetails.getId(), date);
+                continue;
+            }
+
+            // Calculate current value: balance * NAV
+            BigDecimal currentValue = currentBalance.multiply(nav).setScale(2, RoundingMode.HALF_UP);
+
+            // Create SchemeValue entity
+            SchemeValue schemeValue = new SchemeValue();
+            schemeValue.setDate(date);
+            schemeValue.setInvested(currentInvested);
+            schemeValue.setValue(currentValue);
+            schemeValue.setAvgNav(currentAverage);
+            schemeValue.setNav(nav);
+            schemeValue.setBalance(currentBalance);
+            schemeValue.setUserSchemeDetails(userSchemeDetails);
+
+            schemeValues.add(schemeValue);
+        }
+
+        return schemeValues;
+    }
+
+    /**
+     * Finds NAV for a specific date, with fallback to the most recent previous NAV if not available.
+     */
+    private BigDecimal findNavForDate(LocalDate date, Map<LocalDate, BigDecimal> navsByDate) {
+        if (navsByDate.containsKey(date)) {
+            return navsByDate.get(date);
+        }
+
+        // Fallback: look for most recent NAV before this date
+        LocalDate checkDate = date.minusDays(1);
+        int attempts = 0;
+        int maxAttempts = 10; // Look back up to 10 days
+
+        while (attempts < maxAttempts) {
+            if (navsByDate.containsKey(checkDate)) {
+                return navsByDate.get(checkDate);
+            }
+            checkDate = checkDate.minusDays(1);
+            attempts++;
+        }
+
+        return null; // No NAV found within lookback period
     }
 
     private Map<String, Object> calculateSchemeData(
@@ -168,22 +310,69 @@ public class PortfolioValueUpdateService {
             Long schemeId,
             List<ProcessedTransaction> transactionsProcessed,
             LocalDate today) {
+
         if (fifo.getBalance().compareTo(BigDecimal.valueOf(1e-3)) <= 0 && schemeValueOpt.isEmpty()) {
-            LOGGER.info("Skipping scheme :: {}", schemeId);
+            LOGGER.info("Skipping scheme {} - no balance and no previous values", schemeId);
             return null;
         }
 
-        LocalDate toDate = calculateToDate(fifo, transactionsProcessed, schemeId, today);
-        // Calculate NAV and scheme value based on the transactions and historical NAVs
-        // Implement logic similar to the Python version, creating data frames or collections for further processing
+        if (transactionsProcessed.isEmpty()) {
+            LOGGER.info("Skipping scheme {} - no processed transactions", schemeId);
+            return null;
+        }
 
-        return Map.of(
-                "schemeId",
-                schemeId,
-                "fromDate",
-                transactionsProcessed.getFirst().date(),
-                "toDate",
-                toDate);
+        LocalDate fromDate = transactionsProcessed.getFirst().date();
+        LocalDate toDate = calculateToDate(fifo, transactionsProcessed, schemeId, today);
+
+        if (toDate == null) {
+            return null;
+        }
+
+        // Fetch NAV data for the date range
+        UserSchemeDetails userSchemeDetails =
+                schemeValueOpt.map(SchemeValue::getUserSchemeDetails).orElse(null);
+
+        if (userSchemeDetails == null) {
+            LOGGER.warn("Cannot find UserSchemeDetails for scheme {}", schemeId);
+            return null;
+        }
+
+        Long amfiCode = userSchemeDetails.getAmfi();
+        if (amfiCode == null) {
+            LOGGER.warn("AMFI code not found for scheme {}, cannot fetch NAVs", schemeId);
+            return null;
+        }
+
+        // Fetch NAVs for this scheme and date range
+        Map<Long, Map<LocalDate, MFSchemeNavProjection>> navData =
+                mfNavService.getNavsForSchemesAndDates(Set.of(amfiCode), fromDate, toDate);
+
+        Map<LocalDate, BigDecimal> navsByDate = new HashMap<>();
+        if (navData.containsKey(amfiCode)) {
+            navData.get(amfiCode).forEach((date, projection) -> navsByDate.put(date, projection.nav()));
+        }
+
+        if (navsByDate.isEmpty()) {
+            LOGGER.warn(
+                    "No NAV data found for scheme {} (AMFI: {}) between {} and {}",
+                    schemeId,
+                    amfiCode,
+                    fromDate,
+                    toDate);
+            return null;
+        }
+
+        // Return comprehensive data for further processing
+        Map<String, Object> result = new HashMap<>();
+        result.put("schemeId", schemeId);
+        result.put("amfiCode", amfiCode);
+        result.put("fromDate", fromDate);
+        result.put("toDate", toDate);
+        result.put("processedTransactions", transactionsProcessed);
+        result.put("navsByDate", navsByDate);
+        result.put("userSchemeDetails", userSchemeDetails);
+
+        return result;
     }
 
     private LocalDate calculateToDate(

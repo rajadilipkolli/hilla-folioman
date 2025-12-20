@@ -28,6 +28,7 @@ import com.app.folioman.portfolio.models.request.TransactionType;
 import com.app.folioman.portfolio.repository.FolioSchemeRepository;
 import com.app.folioman.portfolio.repository.SchemeValueRepository;
 import com.app.folioman.portfolio.repository.UserPortfolioValueRepository;
+import com.app.folioman.portfolio.repository.UserTransactionDetailsRepository;
 import com.app.folioman.portfolio.util.XirrCalculator;
 import com.app.folioman.shared.LocalDateUtility;
 import java.lang.reflect.Method;
@@ -69,6 +70,9 @@ class PortfolioValueUpdateServiceTest {
     @Mock
     private SchemeValueRepository schemeValueRepository;
 
+    @Mock
+    private UserTransactionDetailsRepository userTransactionDetailsRepository;
+
     @InjectMocks
     private PortfolioValueUpdateService portfolioValueUpdateService;
 
@@ -88,6 +92,14 @@ class PortfolioValueUpdateServiceTest {
 
         // Mock MFSchemeNavProjection - only initialize it, don't stub behavior here
         mfSchemeNavProjection = mock(MFSchemeNavProjection.class);
+        when(schemeValueRepository.findFirstByUserSchemeDetails_UserFolioDetails_IdOrderByDateDesc(anyLong()))
+                .thenReturn(null);
+        when(userTransactionDetailsRepository.findByUserSchemeDetails_IdAndTransactionDateBefore(
+                        anyLong(), any(LocalDate.class)))
+                .thenReturn(Collections.emptyList());
+        when(userTransactionDetailsRepository.findByUserSchemeDetails_IdAndTransactionDateGreaterThanEqual(
+                        anyLong(), any(LocalDate.class)))
+                .thenReturn(Collections.emptyList());
     }
 
     @Test
@@ -285,6 +297,7 @@ class PortfolioValueUpdateServiceTest {
         List<UserFolioDetails> folios = new ArrayList<>();
         casDTO.folios().forEach(folioDTO -> {
             UserFolioDetails folio = new UserFolioDetails();
+            folio.setId(1L);
             folio.setFolio(folioDTO.folio());
             folio.setAmc(folioDTO.amc());
             folio.setPan(folioDTO.pan());
