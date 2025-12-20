@@ -1,6 +1,6 @@
 package com.app.folioman.mfschemes.config;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
@@ -16,13 +16,13 @@ class SchemePropertiesTest {
     private static ValidatorFactory factory;
 
     @BeforeAll
-    public static void setupValidatorInstance() {
+    static void setupValidatorInstance() {
         factory = Validation.buildDefaultValidatorFactory();
         validator = factory.getValidator();
     }
 
     @AfterAll
-    public static void cleanupValidatorFactory() {
+    static void cleanupValidatorFactory() {
         factory.close();
     }
 
@@ -32,7 +32,7 @@ class SchemePropertiesTest {
         scheme.setDataUrl("https://example.com/scheme");
 
         Set<ConstraintViolation<SchemeProperties>> violations = validator.validate(scheme);
-        assertTrue(violations.isEmpty());
+        assertThat(violations).isEmpty();
     }
 
     @Test
@@ -41,7 +41,7 @@ class SchemePropertiesTest {
         scheme.setDataUrl("");
 
         Set<ConstraintViolation<SchemeProperties>> violations = validator.validate(scheme);
-        assertFalse(violations.isEmpty());
+        assertThat(violations).isNotEmpty();
     }
 
     @Test
@@ -50,6 +50,6 @@ class SchemePropertiesTest {
         scheme.setDataUrl("invalid-url");
 
         Set<ConstraintViolation<SchemeProperties>> violations = validator.validate(scheme);
-        assertFalse(violations.isEmpty());
+        assertThat(violations).isNotEmpty();
     }
 }

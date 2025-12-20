@@ -1,7 +1,6 @@
 package com.app.folioman.portfolio.models.projection;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -14,101 +13,101 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class YearlyInvestmentResponseTest {
 
     @Test
-    void testGetYear_ReturnsValidYear() {
+    void getYearReturnsValidYear() {
         YearlyInvestmentResponse response = mock(YearlyInvestmentResponse.class);
         when(response.getYear()).thenReturn(2023);
 
         Integer result = response.getYear();
 
-        assertEquals(2023, result);
+        assertThat(result).isEqualTo(2023);
     }
 
     @Test
-    void testGetYear_ReturnsNull() {
+    void getYearReturnsNull() {
         YearlyInvestmentResponse response = mock(YearlyInvestmentResponse.class);
         when(response.getYear()).thenReturn(null);
 
         Integer result = response.getYear();
 
-        assertNull(result);
+        assertThat(result).isNull();
     }
 
     @Test
-    void testGetYear_ReturnsZero() {
+    void getYearReturnsZero() {
         YearlyInvestmentResponse response = mock(YearlyInvestmentResponse.class);
         when(response.getYear()).thenReturn(0);
 
         Integer result = response.getYear();
 
-        assertEquals(0, result);
+        assertThat(result).isZero();
     }
 
     @Test
-    void testGetYear_ReturnsNegativeYear() {
+    void getYearReturnsNegativeYear() {
         YearlyInvestmentResponse response = mock(YearlyInvestmentResponse.class);
         when(response.getYear()).thenReturn(-1);
 
         Integer result = response.getYear();
 
-        assertEquals(-1, result);
+        assertThat(result).isEqualTo(-1);
     }
 
     @Test
-    void testGetYearlyInvestment_ReturnsValidAmount() {
+    void getYearlyInvestmentReturnsValidAmount() {
         YearlyInvestmentResponse response = mock(YearlyInvestmentResponse.class);
         BigDecimal expectedAmount = new BigDecimal("1000.50");
         when(response.getYearlyInvestment()).thenReturn(expectedAmount);
 
         BigDecimal result = response.getYearlyInvestment();
 
-        assertEquals(expectedAmount, result);
+        assertThat(result).isEqualTo(expectedAmount);
     }
 
     @Test
-    void testGetYearlyInvestment_ReturnsNull() {
+    void getYearlyInvestmentReturnsNull() {
         YearlyInvestmentResponse response = mock(YearlyInvestmentResponse.class);
         when(response.getYearlyInvestment()).thenReturn(null);
 
         BigDecimal result = response.getYearlyInvestment();
 
-        assertNull(result);
+        assertThat(result).isNull();
     }
 
     @Test
-    void testGetYearlyInvestment_ReturnsZero() {
+    void getYearlyInvestmentReturnsZero() {
         YearlyInvestmentResponse response = mock(YearlyInvestmentResponse.class);
         BigDecimal expectedAmount = BigDecimal.ZERO;
         when(response.getYearlyInvestment()).thenReturn(expectedAmount);
 
         BigDecimal result = response.getYearlyInvestment();
 
-        assertEquals(expectedAmount, result);
+        assertThat(result).isEqualTo(expectedAmount);
     }
 
     @Test
-    void testGetYearlyInvestment_ReturnsNegativeAmount() {
+    void getYearlyInvestmentReturnsNegativeAmount() {
         YearlyInvestmentResponse response = mock(YearlyInvestmentResponse.class);
         BigDecimal expectedAmount = new BigDecimal("-500.25");
         when(response.getYearlyInvestment()).thenReturn(expectedAmount);
 
         BigDecimal result = response.getYearlyInvestment();
 
-        assertEquals(expectedAmount, result);
+        assertThat(result).isEqualTo(expectedAmount);
     }
 
     @Test
-    void testGetYearlyInvestment_ReturnsLargeAmount() {
+    void getYearlyInvestmentReturnsLargeAmount() {
         YearlyInvestmentResponse response = mock(YearlyInvestmentResponse.class);
         BigDecimal expectedAmount = new BigDecimal("999999999.99");
         when(response.getYearlyInvestment()).thenReturn(expectedAmount);
 
         BigDecimal result = response.getYearlyInvestment();
 
-        assertEquals(expectedAmount, result);
+        assertThat(result).isEqualTo(expectedAmount);
     }
 
     @Test
-    void testBothMethods_WorkTogether() {
+    void bothMethodsWorkTogether() {
         YearlyInvestmentResponse response = mock(YearlyInvestmentResponse.class);
         when(response.getYear()).thenReturn(2024);
         when(response.getYearlyInvestment()).thenReturn(new BigDecimal("5000.00"));
@@ -116,7 +115,7 @@ class YearlyInvestmentResponseTest {
         Integer year = response.getYear();
         BigDecimal investment = response.getYearlyInvestment();
 
-        assertEquals(2024, year);
-        assertEquals(new BigDecimal("5000.00"), investment);
+        assertThat(year).isEqualTo(2024);
+        assertThat(investment).isEqualTo(new BigDecimal("5000.00"));
     }
 }

@@ -1,6 +1,6 @@
 package com.app.folioman.mfschemes.repository;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.app.folioman.config.SQLContainersConfig;
 import com.app.folioman.mfschemes.MFSchemeNavProjection;
@@ -77,10 +77,7 @@ class MFSchemeNavRepositoryTest {
 
         List<Long> result = repository.findMFSchemeNavsByNavNotLoaded(asOfDate);
 
-        assertNotNull(result);
-        assertEquals(2, result.size());
-        assertTrue(result.contains(12345L));
-        assertTrue(result.contains(67890L));
+        assertThat(result).hasSize(2).contains(12345L).contains(67890L);
     }
 
     @Test
@@ -89,8 +86,8 @@ class MFSchemeNavRepositoryTest {
 
         List<Long> result = repository.findMFSchemeNavsByNavNotLoaded(asOfDate);
 
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
+        assertThat(result).isNotNull();
+        assertThat(result).isEmpty();
     }
 
     @Test
@@ -99,8 +96,7 @@ class MFSchemeNavRepositoryTest {
 
         List<Long> result = repository.findMFSchemeNavsByNavNotLoaded(asOfDate);
 
-        assertNotNull(result);
-        assertEquals(2, result.size());
+        assertThat(result).hasSize(2);
     }
 
     @Test
@@ -114,13 +110,13 @@ class MFSchemeNavRepositoryTest {
                 repository.findByMfScheme_AmfiCodeInAndNavDateGreaterThanEqualAndNavDateLessThanEqual(
                         amfiCodes, startDate, endDate);
 
-        assertNotNull(result);
-        assertEquals(3, result.size());
+        assertThat(result).isNotNull();
+        assertThat(result).hasSize(3);
 
         MFSchemeNavProjection projection1 = result.getFirst();
-        assertEquals(12345L, projection1.amfiCode());
-        assertEquals(LocalDate.of(2023, 1, 15), projection1.navDate());
-        assertEquals(0, projection1.nav().compareTo(new BigDecimal("100.50000")));
+        assertThat(projection1.amfiCode()).isEqualTo(12345L);
+        assertThat(projection1.navDate()).isEqualTo(LocalDate.of(2023, 1, 15));
+        assertThat(projection1.nav()).isEqualByComparingTo(new BigDecimal("100.50000"));
     }
 
     @Test
@@ -134,8 +130,8 @@ class MFSchemeNavRepositoryTest {
                 repository.findByMfScheme_AmfiCodeInAndNavDateGreaterThanEqualAndNavDateLessThanEqual(
                         amfiCodes, startDate, endDate);
 
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
+        assertThat(result).isNotNull();
+        assertThat(result).isEmpty();
     }
 
     @Test
@@ -149,8 +145,8 @@ class MFSchemeNavRepositoryTest {
                 repository.findByMfScheme_AmfiCodeInAndNavDateGreaterThanEqualAndNavDateLessThanEqual(
                         amfiCodes, startDate, endDate);
 
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
+        assertThat(result).isNotNull();
+        assertThat(result).isEmpty();
     }
 
     @Test
@@ -164,43 +160,43 @@ class MFSchemeNavRepositoryTest {
                 repository.findByMfScheme_AmfiCodeInAndNavDateGreaterThanEqualAndNavDateLessThanEqual(
                         amfiCodes, startDate, endDate);
 
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
+        assertThat(result).isNotNull();
+        assertThat(result).isEmpty();
     }
 
     @Test
     void findAllNavDateValuesBySchemeId_WithValidSchemeId_ReturnsProjections() {
         List<NavDateValueProjection> result = repository.findAllNavDateValuesBySchemeId(testScheme1.getId());
 
-        assertNotNull(result);
-        assertEquals(2, result.size());
+        assertThat(result).isNotNull();
+        assertThat(result).hasSize(2);
 
         NavDateValueProjection projection1 = result.getFirst();
-        assertEquals(0, projection1.nav().compareTo(new BigDecimal("100.50000")));
-        assertEquals(LocalDate.of(2023, 1, 15), projection1.navDate());
+        assertThat(projection1.nav()).isEqualByComparingTo(new BigDecimal("100.50000"));
+        assertThat(projection1.navDate()).isEqualTo(LocalDate.of(2023, 1, 15));
 
         NavDateValueProjection projection2 = result.get(1);
-        assertEquals(0, projection2.nav().compareTo(new BigDecimal("105.75")));
-        assertEquals(LocalDate.of(2023, 2, 15), projection2.navDate());
+        assertThat(projection2.nav()).isEqualByComparingTo(new BigDecimal("105.75"));
+        assertThat(projection2.navDate()).isEqualTo(LocalDate.of(2023, 2, 15));
     }
 
     @Test
     void findAllNavDateValuesBySchemeId_WithNonExistentSchemeId_ReturnsEmptyList() {
         List<NavDateValueProjection> result = repository.findAllNavDateValuesBySchemeId(99999L);
 
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
+        assertThat(result).isNotNull();
+        assertThat(result).isEmpty();
     }
 
     @Test
     void findAllNavDateValuesBySchemeId_WithSchemeHavingOneNav_ReturnsSingleProjection() {
         List<NavDateValueProjection> result = repository.findAllNavDateValuesBySchemeId(testScheme2.getId());
 
-        assertNotNull(result);
-        assertEquals(1, result.size());
+        assertThat(result).isNotNull();
+        assertThat(result).hasSize(1);
 
         NavDateValueProjection projection = result.getFirst();
-        assertEquals(0, projection.nav().compareTo(new BigDecimal("200.25000")));
-        assertEquals(LocalDate.of(2023, 1, 10), projection.navDate());
+        assertThat(projection.nav()).isEqualByComparingTo(new BigDecimal("200.25000"));
+        assertThat(projection.navDate()).isEqualTo(LocalDate.of(2023, 1, 10));
     }
 }

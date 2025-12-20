@@ -1,6 +1,7 @@
 package com.app.folioman.config.redis;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -10,8 +11,8 @@ class CacheNamesTest {
 
     @Test
     void shouldHaveCorrectCacheNames() {
-        assertEquals("schemeSearchCache", CacheNames.SCHEME_SEARCH_CACHE);
-        assertEquals("transactionCache", CacheNames.TRANSACTION_CACHE);
+        assertThat(CacheNames.SCHEME_SEARCH_CACHE).isEqualTo("schemeSearchCache");
+        assertThat(CacheNames.TRANSACTION_CACHE).isEqualTo("transactionCache");
     }
 
     @Test
@@ -19,15 +20,17 @@ class CacheNamesTest {
         Constructor<CacheNames> constructor = CacheNames.class.getDeclaredConstructor();
         constructor.setAccessible(true);
 
-        InvocationTargetException exception = assertThrows(InvocationTargetException.class, constructor::newInstance);
+        InvocationTargetException exception = assertThatExceptionOfType(InvocationTargetException.class)
+                .isThrownBy(constructor::newInstance)
+                .actual();
 
-        assertInstanceOf(AssertionError.class, exception.getCause());
-        assertEquals("Utility class, do not instantiate", exception.getCause().getMessage());
+        assertThat(exception.getCause()).isInstanceOf(AssertionError.class);
+        assertThat(exception.getCause().getMessage()).isEqualTo("Utility class, do not instantiate");
     }
 
     @Test
     void shouldBeUtilityClass() {
-        assertTrue(CacheNames.class.getDeclaredConstructors().length == 1);
-        assertFalse(CacheNames.class.getDeclaredConstructors()[0].isAccessible());
+        assertThat(CacheNames.class.getDeclaredConstructors().length).isOne();
+        assertThat(CacheNames.class.getDeclaredConstructors()[0].isAccessible()).isFalse();
     }
 }

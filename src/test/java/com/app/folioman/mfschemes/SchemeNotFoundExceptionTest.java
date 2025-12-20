@@ -1,43 +1,43 @@
 package com.app.folioman.mfschemes;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
 class SchemeNotFoundExceptionTest {
 
     @Test
-    void testConstructorWithMessage() {
+    void constructorWithMessage() {
         String message = "Scheme not found";
         SchemeNotFoundException exception = new SchemeNotFoundException(message);
 
-        assertEquals(message, exception.getMessage());
-        assertInstanceOf(RuntimeException.class, exception);
+        assertThat(exception.getMessage()).isEqualTo(message);
+        assertThat(exception).isInstanceOf(RuntimeException.class);
     }
 
     @Test
-    void testConstructorWithNullMessage() {
+    void constructorWithNullMessage() {
         SchemeNotFoundException exception = new SchemeNotFoundException(null);
 
-        assertNull(exception.getMessage());
-        assertInstanceOf(RuntimeException.class, exception);
+        assertThat(exception.getMessage()).isNull();
+        assertThat(exception).isInstanceOf(RuntimeException.class);
     }
 
     @Test
-    void testConstructorWithEmptyMessage() {
+    void constructorWithEmptyMessage() {
         String message = "";
         SchemeNotFoundException exception = new SchemeNotFoundException(message);
 
-        assertEquals(message, exception.getMessage());
-        assertInstanceOf(RuntimeException.class, exception);
+        assertThat(exception.getMessage()).isEqualTo(message);
+        assertThat(exception).isInstanceOf(RuntimeException.class);
     }
 
     @Test
-    void testInheritanceFromRuntimeException() {
+    void inheritanceFromRuntimeException() {
         SchemeNotFoundException exception = new SchemeNotFoundException("test");
 
-        assertTrue(exception instanceof RuntimeException);
-        assertTrue(exception instanceof Exception);
-        assertTrue(exception instanceof Throwable);
+        assertThat(exception).isInstanceOf(RuntimeException.class);
+        assertThat(exception).isInstanceOf(Exception.class);
+        assertThat(exception).isInstanceOf(Throwable.class);
     }
 }

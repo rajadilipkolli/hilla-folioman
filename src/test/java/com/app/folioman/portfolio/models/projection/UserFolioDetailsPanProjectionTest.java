@@ -1,7 +1,6 @@
 package com.app.folioman.portfolio.models.projection;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.Test;
@@ -10,14 +9,14 @@ import org.mockito.Mockito;
 class UserFolioDetailsPanProjectionTest {
 
     @Test
-    void testGetPanMethodExists() {
+    void getPanMethodExists() {
         UserFolioDetailsPanProjection projection = Mockito.mock(UserFolioDetailsPanProjection.class);
 
-        assertNotNull(projection);
+        assertThat(projection).isNotNull();
     }
 
     @Test
-    void testGetPanReturnsString() {
+    void getPanReturnsString() {
         UserFolioDetailsPanProjection projection = Mockito.mock(UserFolioDetailsPanProjection.class);
         String expectedPan = "ABCDE1234F";
 
@@ -25,28 +24,28 @@ class UserFolioDetailsPanProjectionTest {
 
         String actualPan = projection.getPan();
 
-        assertEquals(expectedPan, actualPan);
+        assertThat(actualPan).isEqualTo(expectedPan);
     }
 
     @Test
-    void testGetPanReturnsNull() {
+    void getPanReturnsNull() {
         UserFolioDetailsPanProjection projection = Mockito.mock(UserFolioDetailsPanProjection.class);
 
         when(projection.getPan()).thenReturn(null);
 
         String actualPan = projection.getPan();
 
-        assertEquals(null, actualPan);
+        assertThat(actualPan).isNull();
     }
 
     @Test
-    void testGetPanReturnsEmptyString() {
+    void getPanReturnsEmptyString() {
         UserFolioDetailsPanProjection projection = Mockito.mock(UserFolioDetailsPanProjection.class);
 
         when(projection.getPan()).thenReturn("");
 
         String actualPan = projection.getPan();
 
-        assertEquals("", actualPan);
+        assertThat(actualPan).isEmpty();
     }
 }

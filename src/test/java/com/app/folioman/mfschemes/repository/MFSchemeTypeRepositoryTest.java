@@ -1,6 +1,6 @@
 package com.app.folioman.mfschemes.repository;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 import com.app.folioman.config.SQLContainersConfig;
@@ -25,7 +25,7 @@ class MFSchemeTypeRepositoryTest {
     private CacheManager cacheManager;
 
     @Test
-    void testFindByTypeAndCategoryAndSubCategory_ValidParameters_ReturnsEntity() {
+    void findByTypeAndCategoryAndSubCategoryValidParametersReturnsEntity() {
         String type = "EQUITY";
         String category = "LARGE_CAP";
         String subCategory = "GROWTH";
@@ -39,15 +39,15 @@ class MFSchemeTypeRepositoryTest {
 
         MFSchemeType result = mfSchemeTypeRepository.findByTypeAndCategoryAndSubCategory(type, category, subCategory);
 
-        assertNotNull(result);
-        assertEquals(type, result.getType());
-        assertEquals(category, result.getCategory());
-        assertEquals(subCategory, result.getSubCategory());
+        assertThat(result).isNotNull();
+        assertThat(result.getType()).isEqualTo(type);
+        assertThat(result.getCategory()).isEqualTo(category);
+        assertThat(result.getSubCategory()).isEqualTo(subCategory);
         verify(mfSchemeTypeRepository).findByTypeAndCategoryAndSubCategory(type, category, subCategory);
     }
 
     @Test
-    void testFindByTypeAndCategoryAndSubCategory_NoMatchFound_ReturnsNull() {
+    void findByTypeAndCategoryAndSubCategoryNoMatchFoundReturnsNull() {
         String type = "INVALID";
         String category = "INVALID";
         String subCategory = "INVALID";
@@ -57,23 +57,23 @@ class MFSchemeTypeRepositoryTest {
 
         MFSchemeType result = mfSchemeTypeRepository.findByTypeAndCategoryAndSubCategory(type, category, subCategory);
 
-        assertNull(result);
+        assertThat(result).isNull();
         verify(mfSchemeTypeRepository).findByTypeAndCategoryAndSubCategory(type, category, subCategory);
     }
 
     @Test
-    void testFindByTypeAndCategoryAndSubCategory_NullParameters_HandlesProperly() {
+    void findByTypeAndCategoryAndSubCategoryNullParametersHandlesProperly() {
         when(mfSchemeTypeRepository.findByTypeAndCategoryAndSubCategory(null, null, null))
                 .thenReturn(null);
 
         MFSchemeType result = mfSchemeTypeRepository.findByTypeAndCategoryAndSubCategory(null, null, null);
 
-        assertNull(result);
+        assertThat(result).isNull();
         verify(mfSchemeTypeRepository).findByTypeAndCategoryAndSubCategory(null, null, null);
     }
 
     @Test
-    void testFindByTypeAndCategoryAndSubCategory_EmptyParameters_HandlesProperly() {
+    void findByTypeAndCategoryAndSubCategoryEmptyParametersHandlesProperly() {
         String emptyType = "";
         String emptyCategory = "";
         String emptySubCategory = "";
@@ -84,12 +84,12 @@ class MFSchemeTypeRepositoryTest {
         MFSchemeType result =
                 mfSchemeTypeRepository.findByTypeAndCategoryAndSubCategory(emptyType, emptyCategory, emptySubCategory);
 
-        assertNull(result);
+        assertThat(result).isNull();
         verify(mfSchemeTypeRepository).findByTypeAndCategoryAndSubCategory(emptyType, emptyCategory, emptySubCategory);
     }
 
     @Test
-    void testFindByTypeAndCategoryAndSubCategory_CacheableAnnotation_CachesResult() {
+    void findByTypeAndCategoryAndSubCategoryCacheableAnnotationCachesResult() {
         String type = "DEBT";
         String category = "MEDIUM_TERM";
         String subCategory = "GOVERNMENT";
@@ -106,14 +106,14 @@ class MFSchemeTypeRepositoryTest {
         MFSchemeType secondCall =
                 mfSchemeTypeRepository.findByTypeAndCategoryAndSubCategory(type, category, subCategory);
 
-        assertNotNull(firstCall);
-        assertNotNull(secondCall);
-        assertEquals(firstCall.getType(), secondCall.getType());
+        assertThat(firstCall).isNotNull();
+        assertThat(secondCall).isNotNull();
+        assertThat(secondCall.getType()).isEqualTo(firstCall.getType());
         verify(mfSchemeTypeRepository, times(2)).findByTypeAndCategoryAndSubCategory(type, category, subCategory);
     }
 
     @Test
-    void testFindByTypeAndCategoryAndSubCategory_MixedCaseParameters_ReturnsEntity() {
+    void findByTypeAndCategoryAndSubCategoryMixedCaseParametersReturnsEntity() {
         String type = "equity";
         String category = "LARGE_cap";
         String subCategory = "Growth";
@@ -127,10 +127,10 @@ class MFSchemeTypeRepositoryTest {
 
         MFSchemeType result = mfSchemeTypeRepository.findByTypeAndCategoryAndSubCategory(type, category, subCategory);
 
-        assertNotNull(result);
-        assertEquals(type, result.getType());
-        assertEquals(category, result.getCategory());
-        assertEquals(subCategory, result.getSubCategory());
+        assertThat(result).isNotNull();
+        assertThat(result.getType()).isEqualTo(type);
+        assertThat(result.getCategory()).isEqualTo(category);
+        assertThat(result.getSubCategory()).isEqualTo(subCategory);
         verify(mfSchemeTypeRepository).findByTypeAndCategoryAndSubCategory(type, category, subCategory);
     }
 }

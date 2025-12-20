@@ -67,7 +67,7 @@ class MfSchemeServiceImplTest {
         List<FundDetailProjection> actualResults = mfSchemeService.fetchSchemes(query);
 
         // Assert
-        assertThat(actualResults).isEqualTo(expectedResults);
+        assertThat(actualResults).containsExactlyElementsOf(expectedResults);
         verify(mfSchemeRepository).searchByFullText(eq("sbi & small & cap"));
         verify(mfSchemeRepository, never()).searchByAmc(anyString());
     }
@@ -87,7 +87,7 @@ class MfSchemeServiceImplTest {
         List<FundDetailProjection> actualResults = mfSchemeService.fetchSchemes(query);
 
         // Assert
-        assertThat(actualResults).isEqualTo(expectedResults);
+        assertThat(actualResults).containsExactlyElementsOf(expectedResults);
         verify(mfSchemeRepository).searchByAmc(query);
     }
 
@@ -106,7 +106,7 @@ class MfSchemeServiceImplTest {
         List<FundDetailProjection> actualResults = mfSchemeService.fetchSchemes(query);
 
         // Assert
-        assertThat(actualResults).isEqualTo(expectedResults);
+        assertThat(actualResults).containsExactlyElementsOf(expectedResults);
         verify(mfSchemeRepository).searchByAmc(query);
     }
 
@@ -143,7 +143,7 @@ class MfSchemeServiceImplTest {
         List<FundDetailProjection> actualResults = mfSchemeService.fetchSchemes(query);
 
         // Assert
-        assertThat(actualResults).isEqualTo(expectedResults);
+        assertThat(actualResults).containsExactlyElementsOf(expectedResults);
         verify(mfSchemeRepository, never()).findByAmfiCode(anyLong());
         verify(mfSchemeRepository).searchByFullText(query);
         verify(mfSchemeRepository, never()).searchByAmc(anyString());
@@ -180,7 +180,7 @@ class MfSchemeServiceImplTest {
         List<FundDetailProjection> actualResults = mfSchemeService.fetchSchemes(query);
 
         // Assert
-        assertThat(actualResults).isEqualTo(expectedResults);
+        assertThat(actualResults).containsExactlyElementsOf(expectedResults);
         verify(mfSchemeRepository).searchByAmc(query);
     }
 
@@ -196,7 +196,7 @@ class MfSchemeServiceImplTest {
         List<FundDetailProjection> actualResults = mfSchemeService.fetchSchemes(query);
 
         // Assert
-        assertThat(actualResults).isEqualTo(expectedResults);
+        assertThat(actualResults).containsExactlyElementsOf(expectedResults);
         verify(mfSchemeRepository).searchByFullText(query);
         verify(mfSchemeRepository, never()).searchByAmc(anyString());
         verify(mfSchemeRepository, never()).findByAmfiCode(anyLong());

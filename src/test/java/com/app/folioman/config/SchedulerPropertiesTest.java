@@ -1,6 +1,6 @@
 package com.app.folioman.config;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,122 +15,122 @@ class SchedulerPropertiesTest {
     }
 
     @Test
-    void testDefaultAmfiJobCron() {
-        assertEquals("*/5 * * * *", schedulerProperties.getAmfiJobCron());
+    void defaultAmfiJobCron() {
+        assertThat(schedulerProperties.getAmfiJobCron()).isEqualTo("*/5 * * * *");
     }
 
     @Test
-    void testSetAndGetAmfiJobCron() {
+    void setAndGetAmfiJobCron() {
         String cronExpression = "0 0 12 * * *";
         schedulerProperties.setAmfiJobCron(cronExpression);
-        assertEquals(cronExpression, schedulerProperties.getAmfiJobCron());
+        assertThat(schedulerProperties.getAmfiJobCron()).isEqualTo(cronExpression);
     }
 
     @Test
-    void testSetAmfiJobCronWithNull() {
+    void setAmfiJobCronWithNull() {
         schedulerProperties.setAmfiJobCron(null);
-        assertNull(schedulerProperties.getAmfiJobCron());
+        assertThat(schedulerProperties.getAmfiJobCron()).isNull();
     }
 
     @Test
-    void testSetAmfiJobCronWithEmptyString() {
+    void setAmfiJobCronWithEmptyString() {
         schedulerProperties.setAmfiJobCron("");
-        assertEquals("", schedulerProperties.getAmfiJobCron());
+        assertThat(schedulerProperties.getAmfiJobCron()).isEmpty();
     }
 
     @Test
-    void testDefaultHistoricalNavJobCron() {
-        assertEquals("*/30 * * * *", schedulerProperties.getHistoricalNavJobCron());
+    void defaultHistoricalNavJobCron() {
+        assertThat(schedulerProperties.getHistoricalNavJobCron()).isEqualTo("*/30 * * * *");
     }
 
     @Test
-    void testSetAndGetHistoricalNavJobCron() {
+    void setAndGetHistoricalNavJobCron() {
         String cronExpression = "0 15 10 * * *";
         schedulerProperties.setHistoricalNavJobCron(cronExpression);
-        assertEquals(cronExpression, schedulerProperties.getHistoricalNavJobCron());
+        assertThat(schedulerProperties.getHistoricalNavJobCron()).isEqualTo(cronExpression);
     }
 
     @Test
-    void testSetHistoricalNavJobCronWithNull() {
+    void setHistoricalNavJobCronWithNull() {
         schedulerProperties.setHistoricalNavJobCron(null);
-        assertNull(schedulerProperties.getHistoricalNavJobCron());
+        assertThat(schedulerProperties.getHistoricalNavJobCron()).isNull();
     }
 
     @Test
-    void testSetHistoricalNavJobCronWithEmptyString() {
+    void setHistoricalNavJobCronWithEmptyString() {
         schedulerProperties.setHistoricalNavJobCron("");
-        assertEquals("", schedulerProperties.getHistoricalNavJobCron());
+        assertThat(schedulerProperties.getHistoricalNavJobCron()).isEmpty();
     }
 
     @Test
-    void testDefaultDailyDataJobCron() {
-        assertEquals("0 0 0 * * *", schedulerProperties.getDailyDataJobCron());
+    void defaultDailyDataJobCron() {
+        assertThat(schedulerProperties.getDailyDataJobCron()).isEqualTo("0 0 0 * * *");
     }
 
     @Test
-    void testSetAndGetDailyDataJobCron() {
+    void setAndGetDailyDataJobCron() {
         String cronExpression = "0 30 6 * * *";
         schedulerProperties.setDailyDataJobCron(cronExpression);
-        assertEquals(cronExpression, schedulerProperties.getDailyDataJobCron());
+        assertThat(schedulerProperties.getDailyDataJobCron()).isEqualTo(cronExpression);
     }
 
     @Test
-    void testSetDailyDataJobCronWithNull() {
+    void setDailyDataJobCronWithNull() {
         schedulerProperties.setDailyDataJobCron(null);
-        assertNull(schedulerProperties.getDailyDataJobCron());
+        assertThat(schedulerProperties.getDailyDataJobCron()).isNull();
     }
 
     @Test
-    void testSetDailyDataJobCronWithEmptyString() {
+    void setDailyDataJobCronWithEmptyString() {
         schedulerProperties.setDailyDataJobCron("");
-        assertEquals("", schedulerProperties.getDailyDataJobCron());
+        assertThat(schedulerProperties.getDailyDataJobCron()).isEmpty();
     }
 
     @Test
-    void testDefaultAdaptiveStrategyJobCron() {
-        assertEquals("*/10 * * * *", schedulerProperties.getAdaptiveStrategyJobCron());
+    void defaultAdaptiveStrategyJobCron() {
+        assertThat(schedulerProperties.getAdaptiveStrategyJobCron()).isEqualTo("*/10 * * * *");
     }
 
     @Test
-    void testSetAndGetAdaptiveStrategyJobCron() {
+    void setAndGetAdaptiveStrategyJobCron() {
         String cronExpression = "0 0 */2 * * *";
         schedulerProperties.setAdaptiveStrategyJobCron(cronExpression);
-        assertEquals(cronExpression, schedulerProperties.getAdaptiveStrategyJobCron());
+        assertThat(schedulerProperties.getAdaptiveStrategyJobCron()).isEqualTo(cronExpression);
     }
 
     @Test
-    void testSetAdaptiveStrategyJobCronWithNull() {
+    void setAdaptiveStrategyJobCronWithNull() {
         schedulerProperties.setAdaptiveStrategyJobCron(null);
-        assertNull(schedulerProperties.getAdaptiveStrategyJobCron());
+        assertThat(schedulerProperties.getAdaptiveStrategyJobCron()).isNull();
     }
 
     @Test
-    void testSetAdaptiveStrategyJobCronWithEmptyString() {
+    void setAdaptiveStrategyJobCronWithEmptyString() {
         schedulerProperties.setAdaptiveStrategyJobCron("");
-        assertEquals("", schedulerProperties.getAdaptiveStrategyJobCron());
+        assertThat(schedulerProperties.getAdaptiveStrategyJobCron()).isEmpty();
     }
 
     @Test
-    void testDefaultTransactionCacheEvictionCron() {
-        assertEquals("0 45 18 * * *", schedulerProperties.getTransactionCacheEvictionCron());
+    void defaultTransactionCacheEvictionCron() {
+        assertThat(schedulerProperties.getTransactionCacheEvictionCron()).isEqualTo("0 45 18 * * *");
     }
 
     @Test
-    void testSetAndGetTransactionCacheEvictionCron() {
+    void setAndGetTransactionCacheEvictionCron() {
         String cronExpression = "0 0 20 * * *";
         schedulerProperties.setTransactionCacheEvictionCron(cronExpression);
-        assertEquals(cronExpression, schedulerProperties.getTransactionCacheEvictionCron());
+        assertThat(schedulerProperties.getTransactionCacheEvictionCron()).isEqualTo(cronExpression);
     }
 
     @Test
-    void testSetTransactionCacheEvictionCronWithNull() {
+    void setTransactionCacheEvictionCronWithNull() {
         schedulerProperties.setTransactionCacheEvictionCron(null);
-        assertNull(schedulerProperties.getTransactionCacheEvictionCron());
+        assertThat(schedulerProperties.getTransactionCacheEvictionCron()).isNull();
     }
 
     @Test
-    void testSetTransactionCacheEvictionCronWithEmptyString() {
+    void setTransactionCacheEvictionCronWithEmptyString() {
         schedulerProperties.setTransactionCacheEvictionCron("");
-        assertEquals("", schedulerProperties.getTransactionCacheEvictionCron());
+        assertThat(schedulerProperties.getTransactionCacheEvictionCron()).isEmpty();
     }
 }

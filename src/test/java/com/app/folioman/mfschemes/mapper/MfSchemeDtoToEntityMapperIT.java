@@ -1,6 +1,6 @@
 package com.app.folioman.mfschemes.mapper;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.app.folioman.mfschemes.MFSchemeDTO;
 import com.app.folioman.mfschemes.entities.MfFundScheme;
@@ -16,7 +16,7 @@ class MfSchemeDtoToEntityMapperIT extends AbstractIntegrationTest {
     @Test
     void mapMFSchemeDTOToMfFundScheme_WithNullInput_ReturnsNull() {
         MfFundScheme result = mapper.mapMFSchemeDTOToMfFundScheme(null);
-        assertNull(result);
+        assertThat(result).isNull();
     }
 
     @Test
@@ -33,13 +33,13 @@ class MfSchemeDtoToEntityMapperIT extends AbstractIntegrationTest {
 
         MfFundScheme result = mapper.mapMFSchemeDTOToMfFundScheme(dto);
 
-        assertNotNull(result);
-        assertNotNull(result.getAmc());
+        assertThat(result).isNotNull();
+        assertThat(result.getAmc()).isNotNull();
         // AMC resolution may use fuzzy matching / DB lookup; just ensure an AMC name exists
-        assertNotNull(result.getAmc().getName());
+        assertThat(result.getAmc().getName()).isNotNull();
         // amfiCode maps to Long on entity
-        assertEquals(104706L, result.getAmfiCode());
-        assertEquals("HSBC TAX SAVER EQUITY FUND - IDCW PAYOUT", result.getName());
+        assertThat(result.getAmfiCode()).isEqualTo(104706L);
+        assertThat(result.getName()).isEqualTo("HSBC TAX SAVER EQUITY FUND - IDCW PAYOUT");
     }
 
     @Test
@@ -48,9 +48,9 @@ class MfSchemeDtoToEntityMapperIT extends AbstractIntegrationTest {
 
         MfFundScheme result = mapper.mapMFSchemeDTOToMfFundScheme(dto);
 
-        assertNotNull(result);
-        assertNull(result.getAmfiCode());
-        assertNull(result.getName());
+        assertThat(result).isNotNull();
+        assertThat(result.getAmfiCode()).isNull();
+        assertThat(result.getName()).isNull();
     }
 
     @Test
@@ -60,27 +60,27 @@ class MfSchemeDtoToEntityMapperIT extends AbstractIntegrationTest {
 
         MfFundScheme result = mapper.mapMFSchemeDTOToMfFundScheme(dto);
 
-        assertNotNull(result);
+        assertThat(result).isNotNull();
         // id should be null (not persisted)
-        assertNull(result.getId());
+        assertThat(result.getId()).isNull();
         // sid is primitive int default 0
-        assertEquals(0, result.getSid());
-        assertNull(result.getStartDate());
-        assertNull(result.getEndDate());
-        assertNull(result.getRtaCode());
-        assertNull(result.getRta());
-        assertNull(result.getPlan());
-        assertNull(result.getAmcCode());
-        assertNull(result.getVersion());
+        assertThat(result.getSid()).isZero();
+        assertThat(result.getStartDate()).isNull();
+        assertThat(result.getEndDate()).isNull();
+        assertThat(result.getRtaCode()).isNull();
+        assertThat(result.getRta()).isNull();
+        assertThat(result.getPlan()).isNull();
+        assertThat(result.getAmcCode()).isNull();
+        assertThat(result.getVersion()).isNull();
         // mapper helper creates/assigns scheme type when schemeType present
-        assertNotNull(result.getMfSchemeType());
+        assertThat(result.getMfSchemeType()).isNotNull();
         // mapper helper also adds a nav entry when nav/date provided
-        assertNotNull(result.getMfSchemeNavs());
-        assertFalse(result.getMfSchemeNavs().isEmpty());
-        assertNull(result.getCreatedBy());
-        assertNull(result.getCreatedDate());
-        assertNull(result.getLastModifiedBy());
-        assertNull(result.getLastModifiedDate());
+        assertThat(result.getMfSchemeNavs()).isNotNull();
+        assertThat(result.getMfSchemeNavs()).isNotEmpty();
+        assertThat(result.getCreatedBy()).isNull();
+        assertThat(result.getCreatedDate()).isNull();
+        assertThat(result.getLastModifiedBy()).isNull();
+        assertThat(result.getLastModifiedDate()).isNull();
     }
 
     @Test
@@ -89,12 +89,12 @@ class MfSchemeDtoToEntityMapperIT extends AbstractIntegrationTest {
 
         MfFundScheme result = mapper.mapMFSchemeDTOToMfFundScheme(dto);
 
-        assertNotNull(result);
-        assertNotNull(result.getAmc());
+        assertThat(result).isNotNull();
+        assertThat(result.getAmc()).isNotNull();
         // AMC name may be resolved from DB/cache; ensure an AMC entity exists
-        assertNotNull(result.getAmc().getName());
+        assertThat(result.getAmc().getName()).isNotNull();
         // schemeCode is Long now; null maps to null amfiCode
-        assertNull(result.getAmfiCode());
-        assertEquals("", result.getName());
+        assertThat(result.getAmfiCode()).isNull();
+        assertThat(result.getName()).isEmpty();
     }
 }

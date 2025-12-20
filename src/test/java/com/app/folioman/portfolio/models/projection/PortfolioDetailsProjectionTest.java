@@ -1,7 +1,6 @@
 package com.app.folioman.portfolio.models.projection;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -22,157 +21,157 @@ class PortfolioDetailsProjectionTest {
     }
 
     @Test
-    void testGetSchemeName() {
+    void getSchemeName() {
         String expectedSchemeName = "Test Scheme";
         when(portfolioDetailsProjection.getSchemeName()).thenReturn(expectedSchemeName);
 
         String actualSchemeName = portfolioDetailsProjection.getSchemeName();
 
-        assertEquals(expectedSchemeName, actualSchemeName);
+        assertThat(actualSchemeName).isEqualTo(expectedSchemeName);
     }
 
     @Test
-    void testGetSchemeNameNull() {
+    void getSchemeNameNull() {
         when(portfolioDetailsProjection.getSchemeName()).thenReturn(null);
 
         String actualSchemeName = portfolioDetailsProjection.getSchemeName();
 
-        assertNull(actualSchemeName);
+        assertThat(actualSchemeName).isNull();
     }
 
     @Test
-    void testGetSchemeNameEmpty() {
+    void getSchemeNameEmpty() {
         String expectedSchemeName = "";
         when(portfolioDetailsProjection.getSchemeName()).thenReturn(expectedSchemeName);
 
         String actualSchemeName = portfolioDetailsProjection.getSchemeName();
 
-        assertEquals(expectedSchemeName, actualSchemeName);
+        assertThat(actualSchemeName).isEqualTo(expectedSchemeName);
     }
 
     @Test
-    void testGetFolioNumber() {
+    void getFolioNumber() {
         String expectedFolioNumber = "12345";
         when(portfolioDetailsProjection.getFolioNumber()).thenReturn(expectedFolioNumber);
 
         String actualFolioNumber = portfolioDetailsProjection.getFolioNumber();
 
-        assertEquals(expectedFolioNumber, actualFolioNumber);
+        assertThat(actualFolioNumber).isEqualTo(expectedFolioNumber);
     }
 
     @Test
-    void testGetFolioNumberNull() {
+    void getFolioNumberNull() {
         when(portfolioDetailsProjection.getFolioNumber()).thenReturn(null);
 
         String actualFolioNumber = portfolioDetailsProjection.getFolioNumber();
 
-        assertNull(actualFolioNumber);
+        assertThat(actualFolioNumber).isNull();
     }
 
     @Test
-    void testGetFolioNumberEmpty() {
+    void getFolioNumberEmpty() {
         String expectedFolioNumber = "";
         when(portfolioDetailsProjection.getFolioNumber()).thenReturn(expectedFolioNumber);
 
         String actualFolioNumber = portfolioDetailsProjection.getFolioNumber();
 
-        assertEquals(expectedFolioNumber, actualFolioNumber);
+        assertThat(actualFolioNumber).isEqualTo(expectedFolioNumber);
     }
 
     @Test
-    void testGetBalanceUnits() {
+    void getBalanceUnits() {
         Double expectedBalanceUnits = 100.50;
         when(portfolioDetailsProjection.getBalanceUnits()).thenReturn(expectedBalanceUnits);
 
         Double actualBalanceUnits = portfolioDetailsProjection.getBalanceUnits();
 
-        assertEquals(expectedBalanceUnits, actualBalanceUnits);
+        assertThat(actualBalanceUnits).isEqualTo(expectedBalanceUnits);
     }
 
     @Test
-    void testGetBalanceUnitsNull() {
+    void getBalanceUnitsNull() {
         when(portfolioDetailsProjection.getBalanceUnits()).thenReturn(null);
 
         Double actualBalanceUnits = portfolioDetailsProjection.getBalanceUnits();
 
-        assertNull(actualBalanceUnits);
+        assertThat(actualBalanceUnits).isNull();
     }
 
     @Test
-    void testGetBalanceUnitsZero() {
+    void getBalanceUnitsZero() {
         Double expectedBalanceUnits = 0.0;
         when(portfolioDetailsProjection.getBalanceUnits()).thenReturn(expectedBalanceUnits);
 
         Double actualBalanceUnits = portfolioDetailsProjection.getBalanceUnits();
 
-        assertEquals(expectedBalanceUnits, actualBalanceUnits);
+        assertThat(actualBalanceUnits).isEqualTo(expectedBalanceUnits);
     }
 
     @Test
-    void testGetBalanceUnitsNegative() {
+    void getBalanceUnitsNegative() {
         Double expectedBalanceUnits = -50.25;
         when(portfolioDetailsProjection.getBalanceUnits()).thenReturn(expectedBalanceUnits);
 
         Double actualBalanceUnits = portfolioDetailsProjection.getBalanceUnits();
 
-        assertEquals(expectedBalanceUnits, actualBalanceUnits);
+        assertThat(actualBalanceUnits).isEqualTo(expectedBalanceUnits);
     }
 
     @Test
-    void testGetSchemeId() {
+    void getSchemeId() {
         Long expectedSchemeId = 123L;
         when(portfolioDetailsProjection.getSchemeId()).thenReturn(expectedSchemeId);
 
         Long actualSchemeId = portfolioDetailsProjection.getSchemeId();
 
-        assertEquals(expectedSchemeId, actualSchemeId);
+        assertThat(actualSchemeId).isEqualTo(expectedSchemeId);
     }
 
     @Test
-    void testGetSchemeIdNull() {
+    void getSchemeIdNull() {
         when(portfolioDetailsProjection.getSchemeId()).thenReturn(null);
 
         Long actualSchemeId = portfolioDetailsProjection.getSchemeId();
 
-        assertNull(actualSchemeId);
+        assertThat(actualSchemeId).isNull();
     }
 
     @Test
-    void testGetSchemeIdZero() {
+    void getSchemeIdZero() {
         Long expectedSchemeId = 0L;
         when(portfolioDetailsProjection.getSchemeId()).thenReturn(expectedSchemeId);
 
         Long actualSchemeId = portfolioDetailsProjection.getSchemeId();
 
-        assertEquals(expectedSchemeId, actualSchemeId);
+        assertThat(actualSchemeId).isEqualTo(expectedSchemeId);
     }
 
     @Test
-    void testGetSchemeDetailId() {
+    void getSchemeDetailId() {
         Long expectedSchemeDetailId = 456L;
         when(portfolioDetailsProjection.getSchemeDetailId()).thenReturn(expectedSchemeDetailId);
 
         Long actualSchemeDetailId = portfolioDetailsProjection.getSchemeDetailId();
 
-        assertEquals(expectedSchemeDetailId, actualSchemeDetailId);
+        assertThat(actualSchemeDetailId).isEqualTo(expectedSchemeDetailId);
     }
 
     @Test
-    void testGetSchemeDetailIdNull() {
+    void getSchemeDetailIdNull() {
         when(portfolioDetailsProjection.getSchemeDetailId()).thenReturn(null);
 
         Long actualSchemeDetailId = portfolioDetailsProjection.getSchemeDetailId();
 
-        assertNull(actualSchemeDetailId);
+        assertThat(actualSchemeDetailId).isNull();
     }
 
     @Test
-    void testGetSchemeDetailIdZero() {
+    void getSchemeDetailIdZero() {
         Long expectedSchemeDetailId = 0L;
         when(portfolioDetailsProjection.getSchemeDetailId()).thenReturn(expectedSchemeDetailId);
 
         Long actualSchemeDetailId = portfolioDetailsProjection.getSchemeDetailId();
 
-        assertEquals(expectedSchemeDetailId, actualSchemeDetailId);
+        assertThat(actualSchemeDetailId).isEqualTo(expectedSchemeDetailId);
     }
 }

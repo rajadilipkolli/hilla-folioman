@@ -1,8 +1,7 @@
 package com.app.folioman.mfschemes.web.controller;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -36,7 +35,7 @@ class SchemeControllerTest {
     void constructor_ShouldInitializeWithMfSchemeService() {
         SchemeController controller = new SchemeController(mfSchemeService);
 
-        assertNotNull(controller);
+        assertThat(controller).isNotNull();
     }
 
     @Test
@@ -47,7 +46,7 @@ class SchemeControllerTest {
 
         List<FundDetailProjection> result = schemeController.fetchSchemes(schemeName);
 
-        assertEquals(expectedSchemes, result);
+        assertThat(result).isEqualTo(expectedSchemes);
         verify(mfSchemeService).fetchSchemes(schemeName);
     }
 
@@ -59,7 +58,7 @@ class SchemeControllerTest {
 
         List<FundDetailProjection> result = schemeController.fetchSchemes(schemeName);
 
-        assertEquals(expectedSchemes, result);
+        assertThat(result).isEqualTo(expectedSchemes);
         verify(mfSchemeService).fetchSchemes(schemeName);
     }
 
@@ -71,7 +70,7 @@ class SchemeControllerTest {
 
         List<FundDetailProjection> result = schemeController.fetchSchemes(schemeName);
 
-        assertEquals(expectedSchemes, result);
+        assertThat(result).isEqualTo(expectedSchemes);
         verify(mfSchemeService).fetchSchemes(schemeName);
     }
 
@@ -83,7 +82,7 @@ class SchemeControllerTest {
 
         List<FundDetailProjection> result = schemeController.fetchSchemes(schemeName);
 
-        assertEquals(emptyList, result);
+        assertThat(result).isEqualTo(emptyList);
         verify(mfSchemeService).fetchSchemes(schemeName);
     }
 
@@ -93,10 +92,11 @@ class SchemeControllerTest {
         RuntimeException expectedException = new RuntimeException("Service error");
         when(mfSchemeService.fetchSchemes(schemeName)).thenThrow(expectedException);
 
-        RuntimeException thrownException =
-                assertThrows(RuntimeException.class, () -> schemeController.fetchSchemes(schemeName));
+        RuntimeException thrownException = assertThatExceptionOfType(RuntimeException.class)
+                .isThrownBy(() -> schemeController.fetchSchemes(schemeName))
+                .actual();
 
-        assertEquals(expectedException, thrownException);
+        assertThat(thrownException).isEqualTo(expectedException);
         verify(mfSchemeService).fetchSchemes(schemeName);
     }
 
@@ -108,8 +108,8 @@ class SchemeControllerTest {
 
         List<FundDetailProjection> result = schemeController.fetchSchemes(schemeName);
 
-        assertEquals(expectedSchemes, result);
-        assertEquals(2, result.size());
+        assertThat(result).isEqualTo(expectedSchemes);
+        assertThat(result).hasSize(2);
         verify(mfSchemeService).fetchSchemes(schemeName);
     }
 }

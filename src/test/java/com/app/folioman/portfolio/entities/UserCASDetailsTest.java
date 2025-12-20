@@ -1,6 +1,6 @@
 package com.app.folioman.portfolio.entities;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -29,159 +29,159 @@ class UserCASDetailsTest {
     }
 
     @Test
-    void testGetId() {
-        assertNull(userCASDetails.getId());
+    void getId() {
+        assertThat(userCASDetails.getId()).isNull();
     }
 
     @Test
-    void testSetId() {
+    void setId() {
         Long id = 123L;
         UserCASDetails result = userCASDetails.setId(id);
 
-        assertEquals(id, userCASDetails.getId());
-        assertSame(userCASDetails, result);
+        assertThat(userCASDetails.getId()).isEqualTo(id);
+        assertThat(result).isSameAs(userCASDetails);
     }
 
     @Test
-    void testSetIdWithNull() {
+    void setIdWithNull() {
         UserCASDetails result = userCASDetails.setId(null);
 
-        assertNull(userCASDetails.getId());
-        assertSame(userCASDetails, result);
+        assertThat(userCASDetails.getId()).isNull();
+        assertThat(result).isSameAs(userCASDetails);
     }
 
     @Test
-    void testGetCasTypeEnum() {
-        assertNull(userCASDetails.getCasTypeEnum());
+    void getCasTypeEnum() {
+        assertThat(userCASDetails.getCasTypeEnum()).isNull();
     }
 
     @Test
-    void testSetCasTypeEnum() {
+    void setCasTypeEnum() {
         UserCASDetails result = userCASDetails.setCasTypeEnum(CasTypeEnum.DETAILED);
-        assertEquals(CasTypeEnum.DETAILED, userCASDetails.getCasTypeEnum());
-        assertSame(userCASDetails, result);
+        assertThat(userCASDetails.getCasTypeEnum()).isEqualTo(CasTypeEnum.DETAILED);
+        assertThat(result).isSameAs(userCASDetails);
     }
 
     @Test
-    void testSetCasTypeEnumWithNull() {
+    void setCasTypeEnumWithNull() {
         UserCASDetails result = userCASDetails.setCasTypeEnum(null);
 
-        assertNull(userCASDetails.getCasTypeEnum());
-        assertSame(userCASDetails, result);
+        assertThat(userCASDetails.getCasTypeEnum()).isNull();
+        assertThat(result).isSameAs(userCASDetails);
     }
 
     @Test
-    void testGetFileTypeEnum() {
-        assertNull(userCASDetails.getFileTypeEnum());
+    void getFileTypeEnum() {
+        assertThat(userCASDetails.getFileTypeEnum()).isNull();
     }
 
     @Test
-    void testSetFileTypeEnum() {
+    void setFileTypeEnum() {
         UserCASDetails result = userCASDetails.setFileTypeEnum(FileTypeEnum.CAMS);
 
-        assertEquals(FileTypeEnum.CAMS, userCASDetails.getFileTypeEnum());
-        assertSame(userCASDetails, result);
+        assertThat(userCASDetails.getFileTypeEnum()).isEqualTo(FileTypeEnum.CAMS);
+        assertThat(result).isSameAs(userCASDetails);
     }
 
     @Test
-    void testSetFileTypeEnumWithNull() {
+    void setFileTypeEnumWithNull() {
         UserCASDetails result = userCASDetails.setFileTypeEnum(null);
 
-        assertNull(userCASDetails.getFileTypeEnum());
-        assertSame(userCASDetails, result);
+        assertThat(userCASDetails.getFileTypeEnum()).isNull();
+        assertThat(result).isSameAs(userCASDetails);
     }
 
     @Test
-    void testGetFolios() {
+    void getFolios() {
         List<UserFolioDetails> folios = userCASDetails.getFolios();
 
-        assertNotNull(folios);
-        assertTrue(folios.isEmpty());
+        assertThat(folios).isNotNull();
+        assertThat(folios).isEmpty();
     }
 
     @Test
-    void testSetFolios() {
+    void setFolios() {
         List<UserFolioDetails> folios = new ArrayList<>();
         folios.add(mockUserFolioDetails);
 
         UserCASDetails result = userCASDetails.setFolios(folios);
 
-        assertEquals(folios, userCASDetails.getFolios());
-        assertSame(userCASDetails, result);
+        assertThat(userCASDetails.getFolios()).isEqualTo(folios);
+        assertThat(result).isSameAs(userCASDetails);
     }
 
     @Test
-    void testSetFoliosWithNull() {
+    void setFoliosWithNull() {
         UserCASDetails result = userCASDetails.setFolios(null);
 
-        assertNull(userCASDetails.getFolios());
-        assertSame(userCASDetails, result);
+        assertThat(userCASDetails.getFolios()).isNull();
+        assertThat(result).isSameAs(userCASDetails);
     }
 
     @Test
-    void testGetInvestorInfo() {
-        assertNull(userCASDetails.getInvestorInfo());
+    void getInvestorInfo() {
+        assertThat(userCASDetails.getInvestorInfo()).isNull();
     }
 
     @Test
-    void testSetInvestorInfoWithNonNull() {
+    void setInvestorInfoWithNonNull() {
         UserCASDetails result = userCASDetails.setInvestorInfo(mockInvestorInfo);
 
-        assertEquals(mockInvestorInfo, userCASDetails.getInvestorInfo());
+        assertThat(userCASDetails.getInvestorInfo()).isEqualTo(mockInvestorInfo);
         verify(mockInvestorInfo).setUserCasDetails(userCASDetails);
-        assertSame(userCASDetails, result);
+        assertThat(result).isSameAs(userCASDetails);
     }
 
     @Test
-    void testSetInvestorInfoWithNullWhenCurrentIsNull() {
+    void setInvestorInfoWithNullWhenCurrentIsNull() {
         UserCASDetails result = userCASDetails.setInvestorInfo(null);
 
-        assertNull(userCASDetails.getInvestorInfo());
-        assertSame(userCASDetails, result);
+        assertThat(userCASDetails.getInvestorInfo()).isNull();
+        assertThat(result).isSameAs(userCASDetails);
     }
 
     @Test
-    void testSetInvestorInfoWithNullWhenCurrentIsNotNull() {
+    void setInvestorInfoWithNullWhenCurrentIsNotNull() {
         InvestorInfo currentInvestorInfo = mock(InvestorInfo.class);
         userCASDetails.setInvestorInfo(currentInvestorInfo);
 
         UserCASDetails result = userCASDetails.setInvestorInfo(null);
 
-        assertNull(userCASDetails.getInvestorInfo());
+        assertThat(userCASDetails.getInvestorInfo()).isNull();
         verify(currentInvestorInfo).setUserCasDetails(null);
-        assertSame(userCASDetails, result);
+        assertThat(result).isSameAs(userCASDetails);
     }
 
     @Test
-    void testSetInvestorInfoReplaceExisting() {
+    void setInvestorInfoReplaceExisting() {
         InvestorInfo currentInvestorInfo = mock(InvestorInfo.class);
         userCASDetails.setInvestorInfo(currentInvestorInfo);
 
         UserCASDetails result = userCASDetails.setInvestorInfo(mockInvestorInfo);
 
-        assertEquals(mockInvestorInfo, userCASDetails.getInvestorInfo());
+        assertThat(userCASDetails.getInvestorInfo()).isEqualTo(mockInvestorInfo);
         verify(mockInvestorInfo).setUserCasDetails(userCASDetails);
-        assertSame(userCASDetails, result);
+        assertThat(result).isSameAs(userCASDetails);
     }
 
     @Test
-    void testAddFolioEntity() {
+    void addFolioEntity() {
         userCASDetails.addFolioEntity(mockUserFolioDetails);
 
-        assertTrue(userCASDetails.getFolios().contains(mockUserFolioDetails));
+        assertThat(userCASDetails.getFolios()).contains(mockUserFolioDetails);
         verify(mockUserFolioDetails).setUserCasDetails(userCASDetails);
     }
 
     @Test
-    void testAddMultipleFolioEntities() {
+    void addMultipleFolioEntities() {
         UserFolioDetails anotherMockFolio = mock(UserFolioDetails.class);
 
         userCASDetails.addFolioEntity(mockUserFolioDetails);
         userCASDetails.addFolioEntity(anotherMockFolio);
 
-        assertEquals(2, userCASDetails.getFolios().size());
-        assertTrue(userCASDetails.getFolios().contains(mockUserFolioDetails));
-        assertTrue(userCASDetails.getFolios().contains(anotherMockFolio));
+        assertThat(userCASDetails.getFolios()).hasSize(2);
+        assertThat(userCASDetails.getFolios()).contains(mockUserFolioDetails);
+        assertThat(userCASDetails.getFolios()).contains(anotherMockFolio);
         verify(mockUserFolioDetails).setUserCasDetails(userCASDetails);
         verify(anotherMockFolio).setUserCasDetails(userCASDetails);
     }

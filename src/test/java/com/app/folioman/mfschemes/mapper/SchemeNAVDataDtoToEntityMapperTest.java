@@ -59,7 +59,7 @@ class SchemeNAVDataDtoToEntityMapperTest {
 
         assertThat(result).isNotNull();
         assertThat(result.getMfScheme()).isNotNull();
-        assertThat(result.getMfScheme().getAmfiCode()).isEqualTo(1L);
+        assertThat(result.getMfScheme().getAmfiCode()).isOne();
         assertThat(result.getNavDate()).isEqualTo(LocalDate.of(2023, 12, 15));
         assertThat(result.getNav()).isEqualTo(new BigDecimal("150.75"));
     }

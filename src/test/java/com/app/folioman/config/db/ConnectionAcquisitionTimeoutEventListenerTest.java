@@ -1,6 +1,7 @@
 package com.app.folioman.config.db;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -47,7 +48,7 @@ class ConnectionAcquisitionTimeoutEventListenerTest {
     void constructor_ShouldCreateNonNullInstance() {
         ConnectionAcquisitionTimeoutEventListener newListener = new ConnectionAcquisitionTimeoutEventListener();
 
-        assertNotNull(newListener);
+        assertThat(newListener).isNotNull();
     }
 
     @Test
@@ -57,12 +58,12 @@ class ConnectionAcquisitionTimeoutEventListenerTest {
 
         listener.on(event);
 
-        assertEquals(1, listAppender.list.size());
+        assertThat(listAppender.list).hasSize(1);
         ILoggingEvent loggingEvent = listAppender.list.getFirst();
-        assertEquals(Level.WARN, loggingEvent.getLevel());
-        assertTrue(loggingEvent.getFormattedMessage().contains(poolName));
-        assertTrue(loggingEvent.getFormattedMessage().contains("Connection acquisition timeout occurred"));
-        assertTrue(loggingEvent.getFormattedMessage().contains("connection pool saturation"));
+        assertThat(loggingEvent.getLevel()).isEqualTo(Level.WARN);
+        assertThat(loggingEvent.getFormattedMessage()).contains(poolName);
+        assertThat(loggingEvent.getFormattedMessage()).contains("Connection acquisition timeout occurred");
+        assertThat(loggingEvent.getFormattedMessage()).contains("connection pool saturation");
         verify(event).getUniqueName();
     }
 
@@ -72,14 +73,14 @@ class ConnectionAcquisitionTimeoutEventListenerTest {
 
         listener.on(event);
 
-        assertEquals(1, listAppender.list.size());
+        assertThat(listAppender.list).hasSize(1);
         ILoggingEvent loggingEvent = listAppender.list.getFirst();
-        assertEquals(Level.WARN, loggingEvent.getLevel());
-        assertTrue(loggingEvent.getFormattedMessage().contains("null"));
+        assertThat(loggingEvent.getLevel()).isEqualTo(Level.WARN);
+        assertThat(loggingEvent.getFormattedMessage()).contains("null");
     }
 
     @Test
     void on_WithNullEvent_ShouldThrowNullPointerException() {
-        assertThrows(NullPointerException.class, () -> listener.on(null));
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> listener.on(null));
     }
 }

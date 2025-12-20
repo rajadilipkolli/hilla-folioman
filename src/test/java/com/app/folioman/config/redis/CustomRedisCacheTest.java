@@ -1,6 +1,7 @@
 package com.app.folioman.config.redis;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
@@ -51,8 +52,8 @@ class CustomRedisCacheTest {
 
     @Test
     void constructor_ShouldCreateInstance_WithValidParameters() {
-        assertNotNull(customRedisCache);
-        assertEquals(CACHE_NAME, customRedisCache.getName());
+        assertThat(customRedisCache).isNotNull();
+        assertThat(customRedisCache.getName()).isEqualTo(CACHE_NAME);
     }
 
     @Test
@@ -83,7 +84,7 @@ class CustomRedisCacheTest {
                 .when(circuitBreaker)
                 .execute(any());
 
-        assertDoesNotThrow(() -> customRedisCache.put(key, value));
+        assertThatCode(() -> customRedisCache.put(key, value)).doesNotThrowAnyException();
         verify(circuitBreaker).execute(any());
     }
 
@@ -165,7 +166,7 @@ class CustomRedisCacheTest {
 
         Cache.ValueWrapper res = customRedisCache.get(key);
 
-        assertNull(res);
+        assertThat(res).isNull();
         verify(circuitBreaker).executeWithFallback(any(), any());
     }
 
@@ -193,7 +194,7 @@ class CustomRedisCacheTest {
                 .when(circuitBreaker)
                 .execute(any());
 
-        assertDoesNotThrow(() -> customRedisCache.evict(key));
+        assertThatCode(() -> customRedisCache.evict(key)).doesNotThrowAnyException();
         verify(circuitBreaker).execute(any());
     }
 
@@ -217,7 +218,7 @@ class CustomRedisCacheTest {
                 .when(circuitBreaker)
                 .execute(any());
 
-        assertDoesNotThrow(() -> customRedisCache.clear());
+        assertThatCode(() -> customRedisCache.clear()).doesNotThrowAnyException();
         verify(circuitBreaker).execute(any());
     }
 

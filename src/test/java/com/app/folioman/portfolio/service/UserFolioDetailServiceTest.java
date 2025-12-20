@@ -1,8 +1,7 @@
 package com.app.folioman.portfolio.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -42,25 +41,25 @@ class UserFolioDetailServiceTest {
     }
 
     @Test
-    void testConstructor() {
+    void constructor() {
         UserFolioDetailService service = new UserFolioDetailService(userFolioDetailsRepository);
-        assertNotNull(service);
+        assertThat(service).isNotNull();
     }
 
     @Test
-    void testFindByFoliosIn_WithValidList() {
+    void findByFoliosInWithValidList() {
         List<UserFolioDetails> expectedResult = List.of(testFolio);
         when(userFolioDetailsRepository.findByUserCasDetails_FoliosIn(testFolios))
                 .thenReturn(expectedResult);
 
         List<UserFolioDetails> result = userFolioDetailService.findByFoliosIn(testFolios);
 
-        assertEquals(expectedResult, result);
+        assertThat(result).isEqualTo(expectedResult);
         verify(userFolioDetailsRepository).findByUserCasDetails_FoliosIn(testFolios);
     }
 
     @Test
-    void testFindByFoliosIn_WithEmptyList() {
+    void findByFoliosInWithEmptyList() {
         List<UserFolioDetails> emptyList = Collections.emptyList();
         List<UserFolioDetails> expectedResult = Collections.emptyList();
         when(userFolioDetailsRepository.findByUserCasDetails_FoliosIn(emptyList))
@@ -68,20 +67,21 @@ class UserFolioDetailServiceTest {
 
         List<UserFolioDetails> result = userFolioDetailService.findByFoliosIn(emptyList);
 
-        assertEquals(expectedResult, result);
+        assertThat(result).isEqualTo(expectedResult);
         verify(userFolioDetailsRepository).findByUserCasDetails_FoliosIn(emptyList);
     }
 
     @Test
-    void testFindByFoliosIn_WithNullList() {
+    void findByFoliosInWithNullList() {
         when(userFolioDetailsRepository.findByUserCasDetails_FoliosIn(null))
                 .thenThrow(new IllegalArgumentException("Folios list cannot be null"));
 
-        assertThrows(IllegalArgumentException.class, () -> userFolioDetailService.findByFoliosIn(null));
+        assertThatExceptionOfType(IllegalArgumentException.class)
+                .isThrownBy(() -> userFolioDetailService.findByFoliosIn(null));
     }
 
     @Test
-    void testSetPANIfNotSet_WithValidProjection() {
+    void setPANIfNotSetWithValidProjection() {
         Long userCasID = 123L;
         String testPan = "ABCDE1234F";
         int expectedRowsUpdated = 1;
@@ -99,19 +99,20 @@ class UserFolioDetailServiceTest {
     }
 
     @Test
-    void testSetPANIfNotSet_WithNullProjection() {
+    void setPANIfNotSetWithNullProjection() {
         Long userCasID = 456L;
 
         when(userFolioDetailsRepository.findFirstByUserCasDetails_IdAndPanKyc(userCasID, "OK"))
                 .thenReturn(null);
 
-        assertThrows(NullPointerException.class, () -> userFolioDetailService.setPANIfNotSet(userCasID));
+        assertThatExceptionOfType(NullPointerException.class)
+                .isThrownBy(() -> userFolioDetailService.setPANIfNotSet(userCasID));
 
         verify(userFolioDetailsRepository).findFirstByUserCasDetails_IdAndPanKyc(userCasID, "OK");
     }
 
     @Test
-    void testSetPANIfNotSet_WithZeroRowsUpdated() {
+    void setPANIfNotSetWithZeroRowsUpdated() {
         Long userCasID = 789L;
         String testPan = "XYZ123456Z";
         int expectedRowsUpdated = 0;
@@ -129,10 +130,11 @@ class UserFolioDetailServiceTest {
     }
 
     @Test
-    void testSetPANIfNotSet_WithNullUserCasID() {
+    void setPANIfNotSetWithNullUserCasID() {
         when(userFolioDetailsRepository.findFirstByUserCasDetails_IdAndPanKyc(null, "OK"))
                 .thenThrow(new IllegalArgumentException("UserCasID cannot be null"));
 
-        assertThrows(IllegalArgumentException.class, () -> userFolioDetailService.setPANIfNotSet(null));
+        assertThatExceptionOfType(IllegalArgumentException.class)
+                .isThrownBy(() -> userFolioDetailService.setPANIfNotSet(null));
     }
 }

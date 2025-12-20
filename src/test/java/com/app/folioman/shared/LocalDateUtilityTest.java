@@ -1,7 +1,7 @@
 package com.app.folioman.shared;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mockStatic;
 
 import java.time.DayOfWeek;
@@ -9,13 +9,14 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 import org.mockito.MockedStatic;
 
 class LocalDateUtilityTest {
 
     @Test
-    void testParseWithDefaultFormat() {
+    void parseWithDefaultFormat() {
         // Given a date string in DD-MMM-YYYY format
         String dateString = "26-May-2025";
 
@@ -27,7 +28,7 @@ class LocalDateUtilityTest {
     }
 
     @Test
-    void testParseWithCustomFormat() {
+    void parseWithCustomFormat() {
         // Given a date string in YYYY-MM-DD format
         String dateString = "2025-05-26";
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
@@ -40,7 +41,7 @@ class LocalDateUtilityTest {
     }
 
     @Test
-    void testParseWithExtraSpaces() {
+    void parseWithExtraSpaces() {
         // Given a date string with extra spaces
         String dateString = "26-May-2025  "; // Only adding spaces at the end is supported
 
@@ -52,16 +53,17 @@ class LocalDateUtilityTest {
     }
 
     @Test
-    void testParseInvalidDate() {
+    void parseInvalidDate() {
         // Given an invalid date string
         String dateString = "32-May-2025";
 
         // When parsing the date string, then an exception should be thrown
-        assertThatExceptionOfType(DateTimeParseException.class).isThrownBy(() -> LocalDateUtility.parse(dateString));
+        assertThatThrownBy(() -> LocalDateUtility.parse(dateString))
+                .asInstanceOf(InstanceOfAssertFactories.throwable(DateTimeParseException.class));
     }
 
     @Test
-    void testGetAdjustedDateBeforeElevenThirty() {
+    void getAdjustedDateBeforeElevenThirty() {
         // Given a fixed current date-time before 11:30 PM
         LocalDateTime mockDateTime = LocalDateTime.of(2025, 5, 26, 10, 0); // Monday, May 26, 2025, 10:00 AM
         try (MockedStatic<LocalDateTime> mockedLocalDateTime = mockStatic(LocalDateTime.class)) {
@@ -77,7 +79,7 @@ class LocalDateUtilityTest {
     }
 
     @Test
-    void testGetAdjustedDateAfterElevenThirty() {
+    void getAdjustedDateAfterElevenThirty() {
         // Given a fixed current date-time after 11:30 PM
         LocalDateTime mockDateTime = LocalDateTime.of(2025, 5, 26, 23, 45); // Monday, May 26, 2025, 11:45 PM
         try (MockedStatic<LocalDateTime> mockedLocalDateTime = mockStatic(LocalDateTime.class)) {
@@ -92,7 +94,7 @@ class LocalDateUtilityTest {
     }
 
     @Test
-    void testGetAdjustedDateForWeekend() {
+    void getAdjustedDateForWeekend() {
         // Given a weekend date (Saturday)
         LocalDate saturdayDate = LocalDate.of(2025, 5, 24); // Saturday
 
@@ -105,7 +107,7 @@ class LocalDateUtilityTest {
     }
 
     @Test
-    void testGetAdjustedDateForWeekday() {
+    void getAdjustedDateForWeekday() {
         // Given a weekday date (Wednesday)
         LocalDate wednesdayDate = LocalDate.of(2025, 5, 21); // Wednesday
 
@@ -118,7 +120,7 @@ class LocalDateUtilityTest {
     }
 
     @Test
-    void testGetAdjustedDateOrDefaultWithNullInput() {
+    void getAdjustedDateOrDefaultWithNullInput() {
         // Given a fixed current date
         LocalDateTime mockDateTime = LocalDateTime.of(2025, 5, 26, 10, 0); // Monday
         try (MockedStatic<LocalDateTime> mockedLocalDateTime = mockStatic(LocalDateTime.class)) {
@@ -133,7 +135,7 @@ class LocalDateUtilityTest {
     }
 
     @Test
-    void testGetAdjustedDateOrDefaultWithNonNullInput() {
+    void getAdjustedDateOrDefaultWithNonNullInput() {
         // Given a fixed date
         LocalDate inputDate = LocalDate.of(2025, 5, 24); // Saturday
 
@@ -145,7 +147,7 @@ class LocalDateUtilityTest {
     }
 
     @Test
-    void testGetYesterday() {
+    void getYesterday() {
         // We need a different approach since we're having issues with the static mock
         // Let's just verify that getYesterday returns a date that is 1 day before today
 

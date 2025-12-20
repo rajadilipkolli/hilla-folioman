@@ -1,8 +1,6 @@
 package com.app.folioman.portfolio.entities;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -27,131 +25,131 @@ class UserPortfolioValueTest {
     }
 
     @Test
-    void testGetAndSetId() {
+    void getAndSetId() {
         Long id = 1L;
 
         UserPortfolioValue result = userPortfolioValue.setId(id);
 
-        assertEquals(id, userPortfolioValue.getId());
-        assertSame(userPortfolioValue, result);
+        assertThat(userPortfolioValue.getId()).isEqualTo(id);
+        assertThat(result).isSameAs(userPortfolioValue);
     }
 
     @Test
-    void testGetAndSetIdWithNull() {
+    void getAndSetIdWithNull() {
         UserPortfolioValue result = userPortfolioValue.setId(null);
 
-        assertNull(userPortfolioValue.getId());
-        assertSame(userPortfolioValue, result);
+        assertThat(userPortfolioValue.getId()).isNull();
+        assertThat(result).isSameAs(userPortfolioValue);
     }
 
     @Test
-    void testGetAndSetDate() {
+    void getAndSetDate() {
         LocalDate date = LocalDate.of(2023, 12, 15);
 
         UserPortfolioValue result = userPortfolioValue.setDate(date);
 
-        assertEquals(date, userPortfolioValue.getDate());
-        assertSame(userPortfolioValue, result);
+        assertThat(userPortfolioValue.getDate()).isEqualTo(date);
+        assertThat(result).isSameAs(userPortfolioValue);
     }
 
     @Test
-    void testGetAndSetDateWithNull() {
+    void getAndSetDateWithNull() {
         UserPortfolioValue result = userPortfolioValue.setDate(null);
 
-        assertNull(userPortfolioValue.getDate());
-        assertSame(userPortfolioValue, result);
+        assertThat(userPortfolioValue.getDate()).isNull();
+        assertThat(result).isSameAs(userPortfolioValue);
     }
 
     @Test
-    void testGetAndSetInvested() {
+    void getAndSetInvested() {
         BigDecimal invested = new BigDecimal("10000.50");
 
         UserPortfolioValue result = userPortfolioValue.setInvested(invested);
 
-        assertEquals(invested, userPortfolioValue.getInvested());
-        assertSame(userPortfolioValue, result);
+        assertThat(userPortfolioValue.getInvested()).isEqualTo(invested);
+        assertThat(result).isSameAs(userPortfolioValue);
     }
 
     @Test
-    void testGetAndSetInvestedWithNull() {
+    void getAndSetInvestedWithNull() {
         UserPortfolioValue result = userPortfolioValue.setInvested(null);
 
-        assertNull(userPortfolioValue.getInvested());
-        assertSame(userPortfolioValue, result);
+        assertThat(userPortfolioValue.getInvested()).isNull();
+        assertThat(result).isSameAs(userPortfolioValue);
     }
 
     @Test
-    void testGetAndSetValue() {
+    void getAndSetValue() {
         BigDecimal value = new BigDecimal("12000.75");
 
         UserPortfolioValue result = userPortfolioValue.setValue(value);
 
-        assertEquals(value, userPortfolioValue.getValue());
-        assertSame(userPortfolioValue, result);
+        assertThat(userPortfolioValue.getValue()).isEqualTo(value);
+        assertThat(result).isSameAs(userPortfolioValue);
     }
 
     @Test
-    void testGetAndSetValueWithNull() {
+    void getAndSetValueWithNull() {
         UserPortfolioValue result = userPortfolioValue.setValue(null);
 
-        assertNull(userPortfolioValue.getValue());
-        assertSame(userPortfolioValue, result);
+        assertThat(userPortfolioValue.getValue()).isNull();
+        assertThat(result).isSameAs(userPortfolioValue);
     }
 
     @Test
-    void testGetAndSetXirr() {
+    void getAndSetXirr() {
         BigDecimal xirr = new BigDecimal("15.25");
 
         UserPortfolioValue result = userPortfolioValue.setXirr(xirr);
 
-        assertEquals(xirr, userPortfolioValue.getXirr());
-        assertSame(userPortfolioValue, result);
+        assertThat(userPortfolioValue.getXirr()).isEqualTo(xirr);
+        assertThat(result).isSameAs(userPortfolioValue);
     }
 
     @Test
-    void testGetAndSetXirrWithNull() {
+    void getAndSetXirrWithNull() {
         UserPortfolioValue result = userPortfolioValue.setXirr(null);
 
-        assertNull(userPortfolioValue.getXirr());
-        assertSame(userPortfolioValue, result);
+        assertThat(userPortfolioValue.getXirr()).isNull();
+        assertThat(result).isSameAs(userPortfolioValue);
     }
 
     @Test
-    void testGetAndSetLiveXirr() {
+    void getAndSetLiveXirr() {
         BigDecimal liveXirr = new BigDecimal("16.75");
 
         UserPortfolioValue result = userPortfolioValue.setLiveXirr(liveXirr);
 
-        assertEquals(liveXirr, userPortfolioValue.getLiveXirr());
-        assertSame(userPortfolioValue, result);
+        assertThat(userPortfolioValue.getLiveXirr()).isEqualTo(liveXirr);
+        assertThat(result).isSameAs(userPortfolioValue);
     }
 
     @Test
-    void testGetAndSetLiveXirrWithNull() {
+    void getAndSetLiveXirrWithNull() {
         UserPortfolioValue result = userPortfolioValue.setLiveXirr(null);
 
-        assertNull(userPortfolioValue.getLiveXirr());
-        assertSame(userPortfolioValue, result);
+        assertThat(userPortfolioValue.getLiveXirr()).isNull();
+        assertThat(result).isSameAs(userPortfolioValue);
     }
 
     @Test
-    void testGetAndSetUserCasDetails() {
+    void getAndSetUserCasDetails() {
         UserPortfolioValue result = userPortfolioValue.setUserCasDetails(userCasDetails);
 
-        assertEquals(userCasDetails, userPortfolioValue.getUserCasDetails());
-        assertSame(userPortfolioValue, result);
+        assertThat(userPortfolioValue.getUserCasDetails()).isEqualTo(userCasDetails);
+        assertThat(result).isSameAs(userPortfolioValue);
     }
 
     @Test
-    void testGetAndSetUserCasDetailsWithNull() {
+    void getAndSetUserCasDetailsWithNull() {
         UserPortfolioValue result = userPortfolioValue.setUserCasDetails(null);
 
-        assertNull(userPortfolioValue.getUserCasDetails());
-        assertSame(userPortfolioValue, result);
+        assertThat(userPortfolioValue.getUserCasDetails()).isNull();
+        assertThat(result).isSameAs(userPortfolioValue);
     }
 
     @Test
-    void testMethodChaining() {
+    void methodChaining() {
         Long id = 1L;
         LocalDate date = LocalDate.of(2023, 12, 15);
         BigDecimal invested = new BigDecimal("10000.00");
@@ -168,13 +166,13 @@ class UserPortfolioValueTest {
                 .setLiveXirr(liveXirr)
                 .setUserCasDetails(userCasDetails);
 
-        assertSame(userPortfolioValue, result);
-        assertEquals(id, userPortfolioValue.getId());
-        assertEquals(date, userPortfolioValue.getDate());
-        assertEquals(invested, userPortfolioValue.getInvested());
-        assertEquals(value, userPortfolioValue.getValue());
-        assertEquals(xirr, userPortfolioValue.getXirr());
-        assertEquals(liveXirr, userPortfolioValue.getLiveXirr());
-        assertEquals(userCasDetails, userPortfolioValue.getUserCasDetails());
+        assertThat(result).isSameAs(userPortfolioValue);
+        assertThat(userPortfolioValue.getId()).isEqualTo(id);
+        assertThat(userPortfolioValue.getDate()).isEqualTo(date);
+        assertThat(userPortfolioValue.getInvested()).isEqualTo(invested);
+        assertThat(userPortfolioValue.getValue()).isEqualTo(value);
+        assertThat(userPortfolioValue.getXirr()).isEqualTo(xirr);
+        assertThat(userPortfolioValue.getLiveXirr()).isEqualTo(liveXirr);
+        assertThat(userPortfolioValue.getUserCasDetails()).isEqualTo(userCasDetails);
     }
 }

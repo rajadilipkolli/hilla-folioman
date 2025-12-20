@@ -23,14 +23,14 @@ class SchemeValueRepositoryTest {
     private SchemeValueRepository schemeValueRepository;
 
     @Test
-    void testFindFirstByUserSchemeDetails_UserFolioDetails_IdOrderByDateDesc_WithValidId() {
+    void findFirstByUserSchemeDetailsUserFolioDetailsIdOrderByDateDescWithValidId() {
         SchemeValue result = schemeValueRepository.findFirstByUserSchemeDetails_UserFolioDetails_IdOrderByDateDesc(1L);
 
         assertThat(result).isNull();
     }
 
     @Test
-    void testFindFirstByUserSchemeDetails_UserFolioDetails_IdOrderByDateDesc_WithNullId() {
+    void findFirstByUserSchemeDetailsUserFolioDetailsIdOrderByDateDescWithNullId() {
         SchemeValue result =
                 schemeValueRepository.findFirstByUserSchemeDetails_UserFolioDetails_IdOrderByDateDesc(null);
 
@@ -38,7 +38,7 @@ class SchemeValueRepositoryTest {
     }
 
     @Test
-    void testFindFirstByUserSchemeDetails_UserFolioDetails_IdOrderByDateDesc_WithNonExistentId() {
+    void findFirstByUserSchemeDetailsUserFolioDetailsIdOrderByDateDescWithNonExistentId() {
         SchemeValue result =
                 schemeValueRepository.findFirstByUserSchemeDetails_UserFolioDetails_IdOrderByDateDesc(999L);
 
@@ -46,7 +46,7 @@ class SchemeValueRepositoryTest {
     }
 
     @Test
-    void testFindFirstByUserSchemeDetails_IdAndDateBeforeOrderByDateDesc_WithValidParameters() {
+    void findFirstByUserSchemeDetailsIdAndDateBeforeOrderByDateDescWithValidParameters() {
         LocalDate testDate = LocalDate.now();
         Optional<SchemeValue> result =
                 schemeValueRepository.findFirstByUserSchemeDetails_IdAndDateBeforeOrderByDateDesc(1L, testDate);
@@ -55,7 +55,7 @@ class SchemeValueRepositoryTest {
     }
 
     @Test
-    void testFindFirstByUserSchemeDetails_IdAndDateBeforeOrderByDateDesc_WithNullId() {
+    void findFirstByUserSchemeDetailsIdAndDateBeforeOrderByDateDescWithNullId() {
         LocalDate testDate = LocalDate.now();
         Optional<SchemeValue> result =
                 schemeValueRepository.findFirstByUserSchemeDetails_IdAndDateBeforeOrderByDateDesc(null, testDate);
@@ -64,7 +64,7 @@ class SchemeValueRepositoryTest {
     }
 
     @Test
-    void testFindFirstByUserSchemeDetails_IdAndDateBeforeOrderByDateDesc_WithNullDate() {
+    void findFirstByUserSchemeDetailsIdAndDateBeforeOrderByDateDescWithNullDate() {
         Optional<SchemeValue> result =
                 schemeValueRepository.findFirstByUserSchemeDetails_IdAndDateBeforeOrderByDateDesc(1L, null);
 
@@ -72,7 +72,7 @@ class SchemeValueRepositoryTest {
     }
 
     @Test
-    void testFindFirstByUserSchemeDetails_IdAndDateBeforeOrderByDateDesc_WithBothNullParameters() {
+    void findFirstByUserSchemeDetailsIdAndDateBeforeOrderByDateDescWithBothNullParameters() {
         Optional<SchemeValue> result =
                 schemeValueRepository.findFirstByUserSchemeDetails_IdAndDateBeforeOrderByDateDesc(null, null);
 
@@ -80,7 +80,7 @@ class SchemeValueRepositoryTest {
     }
 
     @Test
-    void testFindFirstByUserSchemeDetails_IdAndDateBeforeOrderByDateDesc_WithNonExistentId() {
+    void findFirstByUserSchemeDetailsIdAndDateBeforeOrderByDateDescWithNonExistentId() {
         LocalDate testDate = LocalDate.now();
         Optional<SchemeValue> result =
                 schemeValueRepository.findFirstByUserSchemeDetails_IdAndDateBeforeOrderByDateDesc(999L, testDate);

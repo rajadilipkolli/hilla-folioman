@@ -1,6 +1,6 @@
 package com.app.folioman.ui.views;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.app.folioman.shared.AbstractIntegrationTest;
 import java.time.Duration;
@@ -45,20 +45,25 @@ class MainPageIT extends AbstractIntegrationTest {
     void mainPageLoads() {
         driver = new RemoteWebDriver(container.getSeleniumAddress(), new EdgeOptions());
         driver.get("http://host.testcontainers.internal:" + port);
-        assertTrue(driver.getTitle() != null && !driver.getTitle().isEmpty(), "Main page should load and have a title");
+        assertThat(driver.getTitle() != null && !driver.getTitle().isEmpty())
+                .as("Main page should load and have a title")
+                .isTrue();
 
         // Click navigation links and verify page changes
         driver.findElement(By.linkText("Import Mutual Funds")).click();
-        assertTrue(
-                driver.getPageSource().contains("Import Mutual Funds"), "Should navigate to Import Mutual Funds page");
+        assertThat(driver.getPageSource().contains("Import Mutual Funds"))
+                .as("Should navigate to Import Mutual Funds page")
+                .isTrue();
         driver.navigate().back();
         driver.findElement(By.linkText("UserPortfolio")).click();
-        assertTrue(driver.getPageSource().contains("UserPortfolio"), "Should navigate to UserPortfolio page");
+        assertThat(driver.getPageSource().contains("UserPortfolio"))
+                .as("Should navigate to UserPortfolio page")
+                .isTrue();
         driver.navigate().back();
         driver.findElement(By.linkText("ReBalance Calculator")).click();
-        assertTrue(
-                driver.getPageSource().contains("ReBalance Calculator"),
-                "Should navigate to ReBalance Calculator page");
+        assertThat(driver.getPageSource().contains("ReBalance Calculator"))
+                .as("Should navigate to ReBalance Calculator page")
+                .isTrue();
         driver.navigate().back();
 
         // Interact with search field
@@ -79,9 +84,9 @@ class MainPageIT extends AbstractIntegrationTest {
 
         String pageSource = driver.getPageSource();
         boolean foundResults = pageSource.contains("Fund") && !pageSource.contains("No schemes found");
-        assertTrue(
-                foundResults || pageSource.contains("No schemes found"),
-                "Search should return results or show 'No schemes found' message");
+        assertThat(foundResults || pageSource.contains("No schemes found"))
+                .as("Search should return results or show 'No schemes found' message")
+                .isTrue();
 
         // Open scheme details dialog if results exist
         List<WebElement> schemeButtons = driver.findElements(By.cssSelector("button[theme='tertiary']"));

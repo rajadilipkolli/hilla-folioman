@@ -14,7 +14,7 @@ import org.springframework.http.MediaType;
 class ReBalanceControllerIT extends AbstractIntegrationTest {
 
     @Test
-    void testRebalanceCalculation() throws Exception {
+    void rebalanceCalculation() throws Exception {
         // Create test data
         List<Fund> funds = List.of(new Fund(5000.0, 0.4), new Fund(3000.0, 0.3), new Fund(2000.0, 0.3));
 
@@ -38,7 +38,7 @@ class ReBalanceControllerIT extends AbstractIntegrationTest {
     }
 
     @Test
-    void testRebalanceWithEmptyFundList() throws Exception {
+    void rebalanceWithEmptyFundList() throws Exception {
         // Create test data with empty fund list
         InvestmentRequest request = new InvestmentRequest(List.of(), 1000.0);
 
@@ -49,7 +49,7 @@ class ReBalanceControllerIT extends AbstractIntegrationTest {
     }
 
     @Test
-    void testRebalanceWithLargeNumbers() throws Exception {
+    void rebalanceWithLargeNumbers() throws Exception {
         // Create test data with larger numbers
         List<Fund> funds = List.of(new Fund(500000.0, 0.5), new Fund(500000.0, 0.5));
 

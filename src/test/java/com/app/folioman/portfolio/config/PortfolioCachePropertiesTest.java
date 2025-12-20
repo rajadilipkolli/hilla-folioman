@@ -1,6 +1,6 @@
 package com.app.folioman.portfolio.config;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,94 +17,94 @@ class PortfolioCachePropertiesTest {
     }
 
     @Test
-    void testDefaultConstructor() {
-        assertNotNull(portfolioCacheProperties.getEviction());
+    void defaultConstructor() {
+        assertThat(portfolioCacheProperties.getEviction()).isNotNull();
     }
 
     @Test
-    void testGetEviction() {
+    void getEviction() {
         PortfolioCacheProperties.Eviction defaultEviction = portfolioCacheProperties.getEviction();
-        assertNotNull(defaultEviction);
-        assertEquals(100, defaultEviction.getBatchSize());
-        assertEquals("0 45 18 * * *", defaultEviction.getTransactionCron());
+        assertThat(defaultEviction).isNotNull();
+        assertThat(defaultEviction.getBatchSize()).isEqualTo(100);
+        assertThat(defaultEviction.getTransactionCron()).isEqualTo("0 45 18 * * *");
     }
 
     @Test
-    void testSetEviction() {
+    void setEviction() {
         PortfolioCacheProperties.Eviction newEviction = new PortfolioCacheProperties.Eviction();
         newEviction.setBatchSize(200);
         newEviction.setTransactionCron("0 30 19 * * *");
 
         portfolioCacheProperties.setEviction(newEviction);
 
-        assertEquals(newEviction, portfolioCacheProperties.getEviction());
-        assertEquals(200, portfolioCacheProperties.getEviction().getBatchSize());
-        assertEquals("0 30 19 * * *", portfolioCacheProperties.getEviction().getTransactionCron());
+        assertThat(portfolioCacheProperties.getEviction()).isEqualTo(newEviction);
+        assertThat(portfolioCacheProperties.getEviction().getBatchSize()).isEqualTo(200);
+        assertThat(portfolioCacheProperties.getEviction().getTransactionCron()).isEqualTo("0 30 19 * * *");
     }
 
     @Test
-    void testSetEvictionWithNull() {
+    void setEvictionWithNull() {
         portfolioCacheProperties.setEviction(null);
-        assertNull(portfolioCacheProperties.getEviction());
+        assertThat(portfolioCacheProperties.getEviction()).isNull();
     }
 
     @Test
-    void testEvictionDefaultValues() {
-        assertEquals(100, eviction.getBatchSize());
-        assertEquals("0 45 18 * * *", eviction.getTransactionCron());
+    void evictionDefaultValues() {
+        assertThat(eviction.getBatchSize()).isEqualTo(100);
+        assertThat(eviction.getTransactionCron()).isEqualTo("0 45 18 * * *");
     }
 
     @Test
-    void testEvictionGetBatchSize() {
-        assertEquals(100, eviction.getBatchSize());
+    void evictionGetBatchSize() {
+        assertThat(eviction.getBatchSize()).isEqualTo(100);
     }
 
     @Test
-    void testEvictionSetBatchSize() {
+    void evictionSetBatchSize() {
         eviction.setBatchSize(250);
-        assertEquals(250, eviction.getBatchSize());
+        assertThat(eviction.getBatchSize()).isEqualTo(250);
     }
 
     @Test
-    void testEvictionSetBatchSizeWithZero() {
+    void evictionSetBatchSizeWithZero() {
         eviction.setBatchSize(0);
-        assertEquals(0, eviction.getBatchSize());
+        assertThat(eviction.getBatchSize()).isZero();
     }
 
     @Test
-    void testEvictionSetBatchSizeWithNegativeValue() {
+    void evictionSetBatchSizeWithNegativeValue() {
         eviction.setBatchSize(-50);
-        assertEquals(-50, eviction.getBatchSize());
+        assertThat(eviction.getBatchSize()).isEqualTo(-50);
     }
 
     @Test
-    void testEvictionGetTransactionCron() {
-        assertEquals("0 45 18 * * *", eviction.getTransactionCron());
+    void evictionGetTransactionCron() {
+        assertThat(eviction.getTransactionCron()).isEqualTo("0 45 18 * * *");
     }
 
     @Test
-    void testEvictionSetTransactionCron() {
+    void evictionSetTransactionCron() {
         String newCron = "0 0 12 * * *";
         eviction.setTransactionCron(newCron);
-        assertEquals(newCron, eviction.getTransactionCron());
+        assertThat(eviction.getTransactionCron()).isEqualTo(newCron);
     }
 
     @Test
-    void testEvictionSetTransactionCronWithNull() {
+    void evictionSetTransactionCronWithNull() {
         eviction.setTransactionCron(null);
-        assertNull(eviction.getTransactionCron());
+        assertThat(eviction.getTransactionCron()).isNull();
     }
 
     @Test
-    void testEvictionSetTransactionCronWithEmptyString() {
+    void evictionSetTransactionCronWithEmptyString() {
         eviction.setTransactionCron("");
-        assertEquals("", eviction.getTransactionCron());
+        assertThat(eviction.getTransactionCron()).isEmpty();
     }
 
     @Test
-    void testEvictionConstructor() {
+    void evictionConstructor() {
         PortfolioCacheProperties.Eviction newEviction = new PortfolioCacheProperties.Eviction();
-        assertEquals(100, newEviction.getBatchSize());
-        assertEquals("0 45 18 * * *", newEviction.getTransactionCron());
+        assertThat(newEviction.getBatchSize()).isEqualTo(100);
+        assertThat(newEviction.getTransactionCron()).isEqualTo("0 45 18 * * *");
     }
 }

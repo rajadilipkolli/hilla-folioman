@@ -1,6 +1,6 @@
 package com.app.folioman.mfschemes.mapper;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.app.folioman.mfschemes.MFSchemeDTO;
 import com.app.folioman.mfschemes.entities.MFSchemeNav;
@@ -19,7 +19,7 @@ class MfSchemeEntityToDtoMapperTest {
     private final MfSchemeEntityToDtoMapper mapper = Mappers.getMapper(MfSchemeEntityToDtoMapper.class);
 
     @Test
-    void testConvertEntityToDto_WithBasicMapping() {
+    void convertEntityToDtoWithBasicMapping() {
         MfFundScheme mfScheme = new MfFundScheme();
         mfScheme.setName("Test Scheme");
         mfScheme.setAmfiCode(123456L);
@@ -34,14 +34,14 @@ class MfSchemeEntityToDtoMapperTest {
         mfScheme.setMfSchemeType(schemeType);
         MFSchemeDTO result = mapper.convertEntityToDto(mfScheme);
 
-        assertNotNull(result);
-        assertEquals("Test Scheme", result.schemeName());
-        assertEquals(123456L, result.schemeCode());
-        assertEquals("Test AMC", result.amc());
+        assertThat(result).isNotNull();
+        assertThat(result.schemeName()).isEqualTo("Test Scheme");
+        assertThat(result.schemeCode()).isEqualTo(123456L);
+        assertThat(result.amc()).isEqualTo("Test AMC");
     }
 
     @Test
-    void testUpdateMFScheme_WithEmptyNavList() {
+    void updateMFSchemeWithEmptyNavList() {
         MfFundScheme mfScheme = new MfFundScheme();
         mfScheme.setMfSchemeNavs(new ArrayList<>());
         MFSchemeType schemeType = new MFSchemeType();
@@ -53,14 +53,14 @@ class MfSchemeEntityToDtoMapperTest {
         MFSchemeDTO inputDto = new MFSchemeDTO("Test", 123L, "", "Test", null, null, null);
         MFSchemeDTO result = mapper.updateMFScheme(mfScheme, inputDto);
 
-        assertNotNull(result);
-        assertEquals("Equity(Large Cap - Growth)", result.schemeType());
-        assertNull(result.nav());
-        assertNull(result.date());
+        assertThat(result).isNotNull();
+        assertThat(result.schemeType()).isEqualTo("Equity(Large Cap - Growth)");
+        assertThat(result.nav()).isNull();
+        assertThat(result.date()).isNull();
     }
 
     @Test
-    void testUpdateMFScheme_WithNavListAndValidDate() {
+    void updateMFSchemeWithNavListAndValidDate() {
         List<MFSchemeNav> navList = new ArrayList<>();
         MFSchemeNav nav = new MFSchemeNav();
         nav.setNavDate(LocalDate.of(2023, 12, 1));
@@ -78,14 +78,14 @@ class MfSchemeEntityToDtoMapperTest {
         MFSchemeDTO inputDto = new MFSchemeDTO("Test", 123L, "", "Test", null, null, null);
         MFSchemeDTO result = mapper.updateMFScheme(mfScheme, inputDto);
 
-        assertNotNull(result);
-        assertEquals("Debt(Corporate Bond - Short Duration)", result.schemeType());
-        assertEquals("100.50", result.nav());
-        assertEquals("2023-12-01", result.date());
+        assertThat(result).isNotNull();
+        assertThat(result.schemeType()).isEqualTo("Debt(Corporate Bond - Short Duration)");
+        assertThat(result.nav()).isEqualTo("100.50");
+        assertThat(result.date()).isEqualTo("2023-12-01");
     }
 
     @Test
-    void testUpdateMFScheme_WithNavListAndNullDate() {
+    void updateMFSchemeWithNavListAndNullDate() {
         List<MFSchemeNav> navList = new ArrayList<>();
         MFSchemeNav nav = new MFSchemeNav();
         nav.setNavDate(null);
@@ -103,14 +103,14 @@ class MfSchemeEntityToDtoMapperTest {
         MFSchemeDTO inputDto = new MFSchemeDTO("Test", 123L, "", "Test", null, null, null);
         MFSchemeDTO result = mapper.updateMFScheme(mfScheme, inputDto);
 
-        assertNotNull(result);
-        assertEquals("Hybrid(Balanced - Conservative)", result.schemeType());
-        assertEquals("75.25", result.nav());
-        assertNull(result.date());
+        assertThat(result).isNotNull();
+        assertThat(result.schemeType()).isEqualTo("Hybrid(Balanced - Conservative)");
+        assertThat(result.nav()).isEqualTo("75.25");
+        assertThat(result.date()).isNull();
     }
 
     @Test
-    void testUpdateMFScheme_WithEmptySubCategory() {
+    void updateMFSchemeWithEmptySubCategory() {
         MfFundScheme mfScheme = new MfFundScheme();
         mfScheme.setMfSchemeNavs(new ArrayList<>());
         MFSchemeType schemeType = new MFSchemeType();
@@ -122,12 +122,12 @@ class MfSchemeEntityToDtoMapperTest {
         MFSchemeDTO inputDto = new MFSchemeDTO("Test", 123L, "", "Test", null, null, null);
         MFSchemeDTO result = mapper.updateMFScheme(mfScheme, inputDto);
 
-        assertNotNull(result);
-        assertEquals("Equity(Large Cap)", result.schemeType());
+        assertThat(result).isNotNull();
+        assertThat(result.schemeType()).isEqualTo("Equity(Large Cap)");
     }
 
     @Test
-    void testUpdateMFScheme_WithNullSubCategory() {
+    void updateMFSchemeWithNullSubCategory() {
         MfFundScheme mfScheme = new MfFundScheme();
         mfScheme.setMfSchemeNavs(new ArrayList<>());
         MFSchemeType schemeType = new MFSchemeType();
@@ -139,12 +139,12 @@ class MfSchemeEntityToDtoMapperTest {
         MFSchemeDTO inputDto = new MFSchemeDTO("Test", 123L, "", "Test", null, null, null);
         MFSchemeDTO result = mapper.updateMFScheme(mfScheme, inputDto);
 
-        assertNotNull(result);
-        assertEquals("Equity(Large Cap)", result.schemeType());
+        assertThat(result).isNotNull();
+        assertThat(result.schemeType()).isEqualTo("Equity(Large Cap)");
     }
 
     @Test
-    void testUpdateMFScheme_WithWhitespaceOnlySubCategory() {
+    void updateMFSchemeWithWhitespaceOnlySubCategory() {
         MfFundScheme mfScheme = new MfFundScheme();
         mfScheme.setMfSchemeNavs(new ArrayList<>());
         MFSchemeType schemeType = new MFSchemeType();
@@ -156,12 +156,12 @@ class MfSchemeEntityToDtoMapperTest {
         MFSchemeDTO inputDto = new MFSchemeDTO("Test", 123L, "", "Test", null, null, null);
         MFSchemeDTO result = mapper.updateMFScheme(mfScheme, inputDto);
 
-        assertNotNull(result);
-        assertEquals("Equity(Mid Cap)", result.schemeType());
+        assertThat(result).isNotNull();
+        assertThat(result.schemeType()).isEqualTo("Equity(Mid Cap)");
     }
 
     @Test
-    void testUpdateMFScheme_CompleteScenario() {
+    void updateMFSchemeCompleteScenario() {
         List<MFSchemeNav> navList = new ArrayList<>();
 
         MFSchemeNav nav = new MFSchemeNav();
@@ -181,9 +181,9 @@ class MfSchemeEntityToDtoMapperTest {
         MFSchemeDTO inputDto = new MFSchemeDTO("Complete Test", 789L, "", "Complete Test", null, null, null);
         MFSchemeDTO result = mapper.updateMFScheme(mfScheme, inputDto);
 
-        assertNotNull(result);
-        assertEquals("Equity(Small Cap - Value)", result.schemeType());
-        assertEquals("250.75", result.nav());
-        assertEquals("2024-01-15", result.date());
+        assertThat(result).isNotNull();
+        assertThat(result.schemeType()).isEqualTo("Equity(Small Cap - Value)");
+        assertThat(result.nav()).isEqualTo("250.75");
+        assertThat(result.date()).isEqualTo("2024-01-15");
     }
 }

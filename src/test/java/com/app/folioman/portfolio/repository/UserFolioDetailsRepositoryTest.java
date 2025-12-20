@@ -1,6 +1,8 @@
 package com.app.folioman.portfolio.repository;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 
 import com.app.folioman.config.SQLContainersConfig;
 import com.app.folioman.portfolio.entities.CasTypeEnum;
@@ -29,24 +31,23 @@ class UserFolioDetailsRepositoryTest {
     private UserFolioDetailsRepository userFolioDetailsRepository;
 
     @Test
-    void testFindByUserCasDetails_FoliosIn_withEmptyList() {
+    void findByUserCasDetailsFoliosInWithEmptyList() {
         List<UserFolioDetails> emptyList = new ArrayList<>();
 
         List<UserFolioDetails> result = userFolioDetailsRepository.findByUserCasDetails_FoliosIn(emptyList);
 
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
+        assertThat(result).isNotNull();
+        assertThat(result).isEmpty();
     }
 
     @Test
-    void testFindByUserCasDetails_FoliosIn_withNullList() {
-        assertThrows(Exception.class, () -> {
-            userFolioDetailsRepository.findByUserCasDetails_FoliosIn(null);
-        });
+    void findByUserCasDetailsFoliosInWithNullList() {
+        assertThatExceptionOfType(Exception.class)
+                .isThrownBy(() -> userFolioDetailsRepository.findByUserCasDetails_FoliosIn(null));
     }
 
     @Test
-    void testFindByUserCasDetails_FoliosIn_withValidFolios() {
+    void findByUserCasDetailsFoliosInWithValidFolios() {
         List<UserFolioDetails> folios = new ArrayList<>();
         UserFolioDetails folio = new UserFolioDetails();
 
@@ -68,43 +69,43 @@ class UserFolioDetailsRepositoryTest {
 
         List<UserFolioDetails> result = userFolioDetailsRepository.findByUserCasDetails_FoliosIn(folios);
 
-        assertNotNull(result);
+        assertThat(result).isNotNull();
     }
 
     @Test
-    void testFindFirstByUserCasDetails_IdAndPanKyc_whenFound() {
+    void findFirstByUserCasDetailsIdAndPanKycWhenFound() {
         Long userCasId = 1L;
         String kycStatus = "OK";
 
         // Result can be null if no data exists in test database; ensure call doesn't throw
-        assertDoesNotThrow(
-                () -> userFolioDetailsRepository.findFirstByUserCasDetails_IdAndPanKyc(userCasId, kycStatus));
+        assertThatCode(() -> userFolioDetailsRepository.findFirstByUserCasDetails_IdAndPanKyc(userCasId, kycStatus))
+                .doesNotThrowAnyException();
     }
 
     @Test
-    void testFindFirstByUserCasDetails_IdAndPanKyc_whenNotFound() {
+    void findFirstByUserCasDetailsIdAndPanKycWhenNotFound() {
         Long nonExistentUserCasId = 999L;
         String kycStatus = "NOT OK";
 
         UserFolioDetailsPanProjection result =
                 userFolioDetailsRepository.findFirstByUserCasDetails_IdAndPanKyc(nonExistentUserCasId, kycStatus);
 
-        assertNull(result);
+        assertThat(result).isNull();
     }
 
     @Test
-    void testFindFirstByUserCasDetails_IdAndPanKyc_withNullParameters() {
+    void findFirstByUserCasDetailsIdAndPanKycWithNullParameters() {
         UserFolioDetailsPanProjection result1 =
                 userFolioDetailsRepository.findFirstByUserCasDetails_IdAndPanKyc(null, "OK");
         UserFolioDetailsPanProjection result2 =
                 userFolioDetailsRepository.findFirstByUserCasDetails_IdAndPanKyc(1L, null);
 
-        assertNull(result1);
-        assertNull(result2);
+        assertThat(result1).isNull();
+        assertThat(result2).isNull();
     }
 
     @Test
-    void testUpdatePanByCasId_withValidParameters() {
+    void updatePanByCasIdWithValidParameters() {
         String pan = "ABCDE1234F";
         // Create and persist a UserCASDetails so we have a real casId
         UserCASDetails userCasDetails = new UserCASDetails();
@@ -139,31 +140,31 @@ class UserFolioDetailsRepositoryTest {
 
         // Invoke the repository update in its own transaction (REQUIRES_NEW).
         int result = userFolioDetailsRepository.updatePanByCasId(pan, casId);
-        assertEquals(1, result);
+        assertThat(result).isOne();
 
         // Start a new test-managed transaction and clear the persistence context
         // so subsequent repository reads reflect the committed DB state.
         TestTransaction.start();
         entityManager.clear();
 
-        assertTrue(userFolioDetailsRepository.findById(entity.getId()).isPresent());
+        assertThat(userFolioDetailsRepository.findById(entity.getId())).isPresent();
         UserFolioDetails updated =
                 userFolioDetailsRepository.findById(entity.getId()).get();
-        assertEquals(pan, updated.getPan());
+        assertThat(updated.getPan()).isEqualTo(pan);
     }
 
     @Test
-    void testUpdatePanByCasId_withNonExistentCasId() {
+    void updatePanByCasIdWithNonExistentCasId() {
         String pan = "ABCDE1234F";
         Long nonExistentCasId = 999L;
 
         int result = userFolioDetailsRepository.updatePanByCasId(pan, nonExistentCasId);
 
-        assertEquals(0, result);
+        assertThat(result).isZero();
     }
 
     @Test
-    void testUpdatePanByCasId_withNullPan() {
+    void updatePanByCasIdWithNullPan() {
         // Create and persist a UserCASDetails so we have a real casId
         UserCASDetails userCasDetails = new UserCASDetails();
         userCasDetails.setCasTypeEnum(CasTypeEnum.DETAILED);
@@ -198,23 +199,23 @@ class UserFolioDetailsRepositoryTest {
         // Invoke the update (runs in REQUIRES_NEW).
         // Use empty string instead of null because 'pan' column is NOT NULL in DB
         int result = userFolioDetailsRepository.updatePanByCasId("", casId);
-        assertEquals(1, result);
+        assertThat(result).isOne();
 
         // Start a new transaction and clear persistence context before verifying.
         TestTransaction.start();
         entityManager.clear();
 
-        assertTrue(userFolioDetailsRepository.findById(entity.getId()).isPresent());
+        assertThat(userFolioDetailsRepository.findById(entity.getId())).isPresent();
         UserFolioDetails updated =
                 userFolioDetailsRepository.findById(entity.getId()).get();
-        assertEquals("", updated.getPan());
+        assertThat(updated.getPan()).isEmpty();
     }
 
     @Test
-    void testUpdatePanByCasId_withNullCasId() {
+    void updatePanByCasIdWithNullCasId() {
         String pan = "ABCDE1234F";
         // Passing null casId should not throw; repository will not update any rows and return 0
         int result = userFolioDetailsRepository.updatePanByCasId(pan, null);
-        assertEquals(0, result);
+        assertThat(result).isZero();
     }
 }

@@ -13,7 +13,6 @@ import com.app.folioman.mfschemes.entities.MfFundScheme;
 import com.app.folioman.mfschemes.service.AmfiService;
 import com.app.folioman.mfschemes.service.BSEStarMasterDataService;
 import com.app.folioman.mfschemes.service.MfFundSchemeService;
-import com.opencsv.exceptions.CsvException;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -50,7 +49,7 @@ class InitializerTest {
     private Initializer initializer;
 
     @Test
-    void testHandleApplicationStartedEventWithNoNewSchemes() throws IOException, CsvException {
+    void handleApplicationStartedEventWithNoNewSchemes() throws Exception {
         // Configure properties needed for this test
         given(properties.getRetryAttempts()).willReturn(2);
 
@@ -68,7 +67,7 @@ class InitializerTest {
     }
 
     @Test
-    void testHandleApplicationStartedEventWithNewSchemes() throws IOException, CsvException {
+    void handleApplicationStartedEventWithNewSchemes() throws Exception {
         // Configure properties needed for this test
         given(properties.getRetryAttempts()).willReturn(2);
         given(properties.getBatchSize()).willReturn(100);
@@ -103,7 +102,7 @@ class InitializerTest {
     }
 
     @Test
-    void testHandleApplicationStartedEventWithRetry() throws IOException, CsvException {
+    void handleApplicationStartedEventWithRetry() throws Exception {
         // Configure properties needed for this test
         given(properties.getRetryAttempts()).willReturn(2);
         given(properties.getRetryDelayMs()).willReturn(10L);

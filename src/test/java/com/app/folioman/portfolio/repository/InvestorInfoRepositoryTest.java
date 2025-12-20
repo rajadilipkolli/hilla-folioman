@@ -1,7 +1,6 @@
 package com.app.folioman.portfolio.repository;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.app.folioman.config.SQLContainersConfig;
 import com.app.folioman.portfolio.entities.CasTypeEnum;
@@ -41,14 +40,14 @@ class InvestorInfoRepositoryTest {
 
         boolean exists = investorInfoRepository.existsByEmailAndName("test@example.com", "John Doe");
 
-        assertTrue(exists);
+        assertThat(exists).isTrue();
     }
 
     @Test
     void existsByEmailAndName_WhenInvestorDoesNotExist_ReturnsFalse() {
         boolean exists = investorInfoRepository.existsByEmailAndName("nonexistent@example.com", "Jane Doe");
 
-        assertFalse(exists);
+        assertThat(exists).isFalse();
     }
 
     @Test
@@ -64,7 +63,7 @@ class InvestorInfoRepositoryTest {
 
         boolean exists = investorInfoRepository.existsByEmailAndName("different@example.com", "John Doe");
 
-        assertFalse(exists);
+        assertThat(exists).isFalse();
     }
 
     @Test
@@ -80,7 +79,7 @@ class InvestorInfoRepositoryTest {
 
         boolean exists = investorInfoRepository.existsByEmailAndName("test@example.com", "Jane Smith");
 
-        assertFalse(exists);
+        assertThat(exists).isFalse();
     }
 
     @Test
@@ -103,37 +102,41 @@ class InvestorInfoRepositoryTest {
         userCas2.setInvestorInfo(investor2);
         entityManager.persistAndFlush(userCas2);
 
-        assertTrue(investorInfoRepository.existsByEmailAndName("test1@example.com", "John Doe"));
-        assertTrue(investorInfoRepository.existsByEmailAndName("test2@example.com", "Jane Smith"));
-        assertFalse(investorInfoRepository.existsByEmailAndName("test1@example.com", "Jane Smith"));
-        assertFalse(investorInfoRepository.existsByEmailAndName("test2@example.com", "John Doe"));
+        assertThat(investorInfoRepository.existsByEmailAndName("test1@example.com", "John Doe"))
+                .isTrue();
+        assertThat(investorInfoRepository.existsByEmailAndName("test2@example.com", "Jane Smith"))
+                .isTrue();
+        assertThat(investorInfoRepository.existsByEmailAndName("test1@example.com", "Jane Smith"))
+                .isFalse();
+        assertThat(investorInfoRepository.existsByEmailAndName("test2@example.com", "John Doe"))
+                .isFalse();
     }
 
     @Test
     void existsByEmailAndName_WithEmptyStrings_ReturnsFalse() {
         boolean exists = investorInfoRepository.existsByEmailAndName("", "");
 
-        assertFalse(exists);
+        assertThat(exists).isFalse();
     }
 
     @Test
     void existsByEmailAndName_WithNullEmail_ReturnsFalse() {
         boolean exists = investorInfoRepository.existsByEmailAndName(null, "John Doe");
 
-        assertFalse(exists);
+        assertThat(exists).isFalse();
     }
 
     @Test
     void existsByEmailAndName_WithNullName_ReturnsFalse() {
         boolean exists = investorInfoRepository.existsByEmailAndName("test@example.com", null);
 
-        assertFalse(exists);
+        assertThat(exists).isFalse();
     }
 
     @Test
     void existsByEmailAndName_WithBothNullParameters_ReturnsFalse() {
         boolean exists = investorInfoRepository.existsByEmailAndName(null, null);
 
-        assertFalse(exists);
+        assertThat(exists).isFalse();
     }
 }

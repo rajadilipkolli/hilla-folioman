@@ -1,6 +1,6 @@
 package com.app.folioman.mfschemes.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.doThrow;
@@ -51,7 +51,7 @@ class MfFundSchemeServiceTest {
     void saveDataInBatches_shouldReturnZero_whenInputIsNull() {
         int result = mfFundSchemeService.saveDataInBatches(null, 10);
 
-        assertEquals(0, result);
+        assertThat(result).isZero();
         verify(mfFundSchemeRepository, never()).saveAll(anyList());
     }
 
@@ -61,7 +61,7 @@ class MfFundSchemeServiceTest {
 
         int result = mfFundSchemeService.saveDataInBatches(emptyList, 10);
 
-        assertEquals(0, result);
+        assertThat(result).isZero();
         verify(mfFundSchemeRepository, never()).saveAll(anyList());
     }
 
@@ -71,7 +71,7 @@ class MfFundSchemeServiceTest {
 
         int result = mfFundSchemeService.saveDataInBatches(schemes, 2);
 
-        assertEquals(3, result);
+        assertThat(result).isEqualTo(3);
         verify(mfFundSchemeRepository, times(2)).saveAll(anyList());
     }
 
@@ -85,7 +85,7 @@ class MfFundSchemeServiceTest {
 
         int result = mfFundSchemeService.saveDataInBatches(schemes, 2);
 
-        assertEquals(2, result);
+        assertThat(result).isEqualTo(2);
         verify(mfFundSchemeRepository, times(1)).saveAll(anyList());
         verify(mfFundSchemeRepository, times(2)).save(any(MfFundScheme.class));
     }
@@ -113,7 +113,7 @@ class MfFundSchemeServiceTest {
 
         int result = mfFundSchemeService.saveDataInBatches(schemes, 2);
 
-        assertEquals(1, result);
+        assertThat(result).isOne();
         verify(mfFundSchemeRepository, times(2)).save(any(MfFundScheme.class));
     }
 
@@ -124,7 +124,7 @@ class MfFundSchemeServiceTest {
 
         int result = mfFundSchemeService.saveDataInBatches(schemes, 2);
 
-        assertEquals(5, result);
+        assertThat(result).isEqualTo(5);
         verify(mfFundSchemeRepository, times(3)).saveAll(anyList());
     }
 
@@ -134,7 +134,7 @@ class MfFundSchemeServiceTest {
 
         int result = mfFundSchemeService.saveDataInBatches(schemes, 10);
 
-        assertEquals(2, result);
+        assertThat(result).isEqualTo(2);
         verify(mfFundSchemeRepository, times(1)).saveAll(anyList());
     }
 
@@ -144,7 +144,7 @@ class MfFundSchemeServiceTest {
 
         long result = mfFundSchemeService.getTotalCount();
 
-        assertEquals(42L, result);
+        assertThat(result).isEqualTo(42L);
         verify(mfFundSchemeRepository).count();
     }
 
@@ -155,7 +155,7 @@ class MfFundSchemeServiceTest {
 
         List<String> result = mfFundSchemeService.findDistinctAmfiCode();
 
-        assertEquals(expectedCodes, result);
+        assertThat(result).containsExactlyElementsOf(expectedCodes);
         verify(mfFundSchemeRepository).findDistinctAmfiCode();
     }
 
@@ -165,7 +165,7 @@ class MfFundSchemeServiceTest {
 
         List<String> result = mfFundSchemeService.findDistinctAmfiCode();
 
-        assertEquals(Collections.emptyList(), result);
+        assertThat(result).containsExactlyElementsOf(Collections.emptyList());
         verify(mfFundSchemeRepository).findDistinctAmfiCode();
     }
 }

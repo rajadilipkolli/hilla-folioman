@@ -171,7 +171,7 @@ class UserTransactionsControllerIT extends AbstractIntegrationTest {
         assertThat(newMonthlyKeyExists).isTrue();
 
         // 7. Verify data was correctly loaded again (ensure same size, even if it's empty)
-        assertThat(monthlyAfter.size()).isEqualTo(monthlyBefore.size());
+        assertThat(monthlyAfter).hasSize(monthlyBefore.size());
     }
 
     @Test

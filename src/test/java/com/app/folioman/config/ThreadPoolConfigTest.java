@@ -31,7 +31,6 @@ class ThreadPoolConfigTest {
     void taskExecutor_ShouldCreateAndConfigureThreadPoolTaskExecutor() {
         TaskExecutor result = threadPoolConfig.taskExecutor();
 
-        assertThat(result).isNotNull();
         assertThat(result).isInstanceOf(ThreadPoolTaskExecutor.class);
 
         ThreadPoolTaskExecutor executor = (ThreadPoolTaskExecutor) result;

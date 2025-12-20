@@ -10,7 +10,6 @@ import com.app.folioman.mfschemes.config.ApplicationProperties;
 import com.app.folioman.mfschemes.entities.MfAmc;
 import com.app.folioman.mfschemes.entities.MfFundScheme;
 import com.app.folioman.mfschemes.mapper.MfSchemeDtoToEntityMapperHelper;
-import com.opencsv.exceptions.CsvException;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
@@ -69,7 +68,7 @@ class BSEStarMasterDataServiceTest {
     }
 
     @Test
-    void fetchBseStarMasterData_ShouldReturnMasterData_WhenValidInputProvided() throws IOException, CsvException {
+    void fetchBseStarMasterData_ShouldReturnMasterData_WhenValidInputProvided() throws Exception {
         // Given
         Map<String, Map<String, String>> amfiDataMap = new HashMap<>();
         Map<String, String> amfiCodeIsinMapping = new HashMap<>();
@@ -126,13 +125,11 @@ class BSEStarMasterDataServiceTest {
         Map<String, MfFundScheme> result =
                 bseStarMasterDataService.fetchBseStarMasterData(amfiDataMap, amfiCodeIsinMapping);
 
-        // Then
-        assertThat(result).isNotEmpty();
         assertThat(result).containsKey("12345");
     }
 
     @Test
-    void fetchBseStarMasterData_ShouldThrowIOException_WhenFormNotFound() throws IOException, CsvException {
+    void fetchBseStarMasterData_ShouldThrowIOException_WhenFormNotFound() throws Exception {
         // Given
         Map<String, Map<String, String>> amfiDataMap = new HashMap<>();
         Map<String, String> amfiCodeIsinMapping = new HashMap<>();
@@ -156,7 +153,7 @@ class BSEStarMasterDataServiceTest {
     }
 
     @Test
-    void fetchBseStarMasterData_ShouldHandleEmptyResponse() throws IOException, CsvException {
+    void fetchBseStarMasterData_ShouldHandleEmptyResponse() throws Exception {
         // Given
         Map<String, Map<String, String>> amfiDataMap = new HashMap<>();
         Map<String, String> amfiCodeIsinMapping = new HashMap<>();
@@ -206,11 +203,12 @@ class BSEStarMasterDataServiceTest {
         // When
         Map<String, Integer> result = bseStarMasterDataService.mapHeaders(headers);
 
-        // Then
-        assertThat(result).hasSize(3);
-        assertThat(result.get("Header1")).isEqualTo(0);
-        assertThat(result.get("Header2")).isEqualTo(1);
-        assertThat(result.get("Header3")).isEqualTo(2);
+        assertThat(result)
+                // Then
+                .hasSize(3)
+                .containsEntry("Header1", 0)
+                .containsEntry("Header2", 1)
+                .containsEntry("Header3", 2);
     }
 
     @Test
@@ -221,9 +219,10 @@ class BSEStarMasterDataServiceTest {
         // When
         Map<String, Integer> result = bseStarMasterDataService.mapHeaders(headers);
 
-        // Then
-        assertThat(result).hasSize(1);
-        assertThat(result.get("SingleHeader")).isEqualTo(0);
+        assertThat(result)
+                // Then
+                .hasSize(1)
+                .containsEntry("SingleHeader", 0);
     }
 
     @Test
@@ -234,13 +233,14 @@ class BSEStarMasterDataServiceTest {
         // When
         Map<String, Integer> result = bseStarMasterDataService.mapHeaders(headers);
 
-        // Then
-        assertThat(result).hasSize(1);
-        assertThat(result.get("")).isEqualTo(0);
+        assertThat(result)
+                // Then
+                .hasSize(1)
+                .containsEntry("", 0);
     }
 
     @Test
-    void fetchBseStarMasterData_ShouldProcessAmfiFallback_WhenSchemeNotInBseData() throws IOException, CsvException {
+    void fetchBseStarMasterData_ShouldProcessAmfiFallback_WhenSchemeNotInBseData() throws Exception {
         // Given
         Map<String, Map<String, String>> amfiDataMap = new HashMap<>();
         Map<String, String> amfiCodeIsinMapping = new HashMap<>();
@@ -293,8 +293,6 @@ class BSEStarMasterDataServiceTest {
         Map<String, MfFundScheme> result =
                 bseStarMasterDataService.fetchBseStarMasterData(amfiDataMap, amfiCodeIsinMapping);
 
-        // Then
-        assertThat(result).isNotEmpty();
         assertThat(result).containsKey("54321");
         MfFundScheme scheme = result.get("54321");
         assertThat(scheme.getAmfiCode()).isEqualTo(54321L);

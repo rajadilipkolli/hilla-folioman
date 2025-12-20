@@ -1,6 +1,6 @@
 package com.app.folioman.portfolio.service;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -27,7 +27,7 @@ class InvestorInfoServiceTest {
     @Test
     void constructor_ShouldCreateInstance_WhenRepositoryIsProvided() {
         InvestorInfoService service = new InvestorInfoService(investorInfoRepository);
-        assertNotNull(service);
+        assertThat(service).isNotNull();
     }
 
     @Test
@@ -38,7 +38,7 @@ class InvestorInfoServiceTest {
 
         boolean result = investorInfoService.existsByEmailAndName(email, name);
 
-        assertTrue(result);
+        assertThat(result).isTrue();
         verify(investorInfoRepository).existsByEmailAndName(email, name);
     }
 
@@ -50,7 +50,7 @@ class InvestorInfoServiceTest {
 
         boolean result = investorInfoService.existsByEmailAndName(email, name);
 
-        assertFalse(result);
+        assertThat(result).isFalse();
         verify(investorInfoRepository).existsByEmailAndName(email, name);
     }
 
@@ -61,7 +61,7 @@ class InvestorInfoServiceTest {
 
         boolean result = investorInfoService.existsByEmailAndName(null, name);
 
-        assertFalse(result);
+        assertThat(result).isFalse();
         verify(investorInfoRepository).existsByEmailAndName(null, name);
     }
 
@@ -72,7 +72,7 @@ class InvestorInfoServiceTest {
 
         boolean result = investorInfoService.existsByEmailAndName(email, null);
 
-        assertFalse(result);
+        assertThat(result).isFalse();
         verify(investorInfoRepository).existsByEmailAndName(email, null);
     }
 
@@ -84,7 +84,7 @@ class InvestorInfoServiceTest {
 
         boolean result = investorInfoService.existsByEmailAndName(email, name);
 
-        assertFalse(result);
+        assertThat(result).isFalse();
         verify(investorInfoRepository).existsByEmailAndName(email, name);
     }
 
@@ -96,7 +96,7 @@ class InvestorInfoServiceTest {
 
         boolean result = investorInfoService.existsByEmailAndName(email, name);
 
-        assertFalse(result);
+        assertThat(result).isFalse();
         verify(investorInfoRepository).existsByEmailAndName(email, name);
     }
 
@@ -106,7 +106,7 @@ class InvestorInfoServiceTest {
 
         boolean result = investorInfoService.existsByEmailAndName(null, null);
 
-        assertFalse(result);
+        assertThat(result).isFalse();
         verify(investorInfoRepository).existsByEmailAndName(null, null);
     }
 }

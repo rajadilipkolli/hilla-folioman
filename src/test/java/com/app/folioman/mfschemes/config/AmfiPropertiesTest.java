@@ -1,6 +1,6 @@
 package com.app.folioman.mfschemes.config;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,59 +15,59 @@ class AmfiPropertiesTest {
     }
 
     @Test
-    void testGetDataUrlInitiallyNull() {
-        assertNull(amfiProperties.getDataUrl());
+    void getDataUrlInitiallyNull() {
+        assertThat(amfiProperties.getDataUrl()).isNull();
     }
 
     @Test
-    void testSetAndGetDataUrl() {
+    void setAndGetDataUrl() {
         String expectedUrl = "https://www.amfiindia.com/data";
         amfiProperties.setDataUrl(expectedUrl);
-        assertEquals(expectedUrl, amfiProperties.getDataUrl());
+        assertThat(amfiProperties.getDataUrl()).isEqualTo(expectedUrl);
     }
 
     @Test
-    void testSetDataUrlWithNull() {
+    void setDataUrlWithNull() {
         amfiProperties.setDataUrl("https://example.com");
         amfiProperties.setDataUrl(null);
-        assertNull(amfiProperties.getDataUrl());
+        assertThat(amfiProperties.getDataUrl()).isNull();
     }
 
     @Test
-    void testSetDataUrlWithEmptyString() {
+    void setDataUrlWithEmptyString() {
         String emptyUrl = "";
         amfiProperties.setDataUrl(emptyUrl);
-        assertEquals(emptyUrl, amfiProperties.getDataUrl());
+        assertThat(amfiProperties.getDataUrl()).isEqualTo(emptyUrl);
     }
 
     @Test
-    void testGetSchemeInitiallyNull() {
-        assertNull(amfiProperties.getScheme());
+    void getSchemeInitiallyNull() {
+        assertThat(amfiProperties.getScheme()).isNull();
     }
 
     @Test
-    void testSetAndGetScheme() {
+    void setAndGetScheme() {
         SchemeProperties expectedScheme = new SchemeProperties();
         amfiProperties.setScheme(expectedScheme);
-        assertEquals(expectedScheme, amfiProperties.getScheme());
+        assertThat(amfiProperties.getScheme()).isEqualTo(expectedScheme);
     }
 
     @Test
-    void testSetSchemeWithNull() {
+    void setSchemeWithNull() {
         amfiProperties.setScheme(new SchemeProperties());
         amfiProperties.setScheme(null);
-        assertNull(amfiProperties.getScheme());
+        assertThat(amfiProperties.getScheme()).isNull();
     }
 
     @Test
-    void testMultipleSettersAndGetters() {
+    void multipleSettersAndGetters() {
         String testUrl = "https://test.amfi.com";
         SchemeProperties testScheme = new SchemeProperties();
 
         amfiProperties.setDataUrl(testUrl);
         amfiProperties.setScheme(testScheme);
 
-        assertEquals(testUrl, amfiProperties.getDataUrl());
-        assertEquals(testScheme, amfiProperties.getScheme());
+        assertThat(amfiProperties.getDataUrl()).isEqualTo(testUrl);
+        assertThat(amfiProperties.getScheme()).isEqualTo(testScheme);
     }
 }

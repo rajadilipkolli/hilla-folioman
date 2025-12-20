@@ -27,7 +27,7 @@ class ReBalanceControllerTest {
     private JsonMapper jsonMapper;
 
     @Test
-    void testReBalance() throws Exception {
+    void reBalance() throws Exception {
         this.mockMvc
                 .perform(post("/api/portfolio/rebalance")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -41,7 +41,7 @@ class ReBalanceControllerTest {
     }
 
     @Test
-    void testReBalanceWithNullInvestmentRequest() throws Exception {
+    void reBalanceWithNullInvestmentRequest() throws Exception {
         mockMvc.perform(post("/api/portfolio/rebalance").content("{}").contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
@@ -59,7 +59,7 @@ class ReBalanceControllerTest {
     }
 
     @Test
-    void testReBalanceWithEmptyFundsList() throws Exception {
+    void reBalanceWithEmptyFundsList() throws Exception {
         InvestmentRequest investmentRequest = new InvestmentRequest(
                 List.of(), // Empty funds list
                 1000.00);
@@ -81,7 +81,7 @@ class ReBalanceControllerTest {
     }
 
     @Test
-    void testReBalanceWithNegativeAmountToInvest() throws Exception {
+    void reBalanceWithNegativeAmountToInvest() throws Exception {
         InvestmentRequest investmentRequest =
                 new InvestmentRequest(List.of(new Fund(10000.00, 0.5)), -1000.00); // Negative amount to invest
 
@@ -104,7 +104,7 @@ class ReBalanceControllerTest {
     }
 
     @Test
-    void testReBalanceWithInvalidFundRatios() throws Exception {
+    void reBalanceWithInvalidFundRatios() throws Exception {
         InvestmentRequest investmentRequest = new InvestmentRequest(
                 List.of(
                         new Fund(10000.0, 0.50), new Fund(10000.0, 0.30)
@@ -129,7 +129,7 @@ class ReBalanceControllerTest {
     }
 
     @Test
-    void testReBalanceWithNegativeFundValue() throws Exception {
+    void reBalanceWithNegativeFundValue() throws Exception {
         InvestmentRequest investmentRequest = new InvestmentRequest(
                 List.of(new Fund(-10000.00, 0.5)), // Negative fund value
                 1000.00);
@@ -153,7 +153,7 @@ class ReBalanceControllerTest {
     }
 
     @Test
-    void testReBalanceWithInvalidFundRatio() throws Exception {
+    void reBalanceWithInvalidFundRatio() throws Exception {
         InvestmentRequest investmentRequest = new InvestmentRequest(
                 List.of(new Fund(10000.00, 1.50)), // Ratio greater than 100
                 1000.00);

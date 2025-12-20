@@ -1,8 +1,6 @@
 package com.app.folioman.portfolio.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -77,8 +75,8 @@ class UserCASDetailsServiceTest {
 
         UserCASDetails result = userCASDetailsService.saveEntity(userCASDetails);
 
-        assertNotNull(result);
-        assertEquals(userCASDetails, result);
+        assertThat(result).isNotNull();
+        assertThat(result).isEqualTo(userCASDetails);
         verify(userCASDetailsRepository).save(userCASDetails);
     }
 
@@ -88,7 +86,7 @@ class UserCASDetailsServiceTest {
 
         UserCASDetails result = userCASDetailsService.saveEntity(null);
 
-        assertNull(result);
+        assertThat(result).isNull();
         verify(userCASDetailsRepository).save(null);
     }
 
@@ -100,8 +98,8 @@ class UserCASDetailsServiceTest {
 
         UserCASDetails result = userCASDetailsService.findByInvestorEmailAndName(email, name);
 
-        assertNotNull(result);
-        assertEquals(userCASDetails, result);
+        assertThat(result).isNotNull();
+        assertThat(result).isEqualTo(userCASDetails);
         verify(userCASDetailsRepository).findByInvestorEmailAndName(email, name);
     }
 
@@ -112,7 +110,7 @@ class UserCASDetailsServiceTest {
 
         UserCASDetails result = userCASDetailsService.findByInvestorEmailAndName(null, name);
 
-        assertNull(result);
+        assertThat(result).isNull();
         verify(userCASDetailsRepository).findByInvestorEmailAndName(null, name);
     }
 
@@ -123,7 +121,7 @@ class UserCASDetailsServiceTest {
 
         UserCASDetails result = userCASDetailsService.findByInvestorEmailAndName(email, null);
 
-        assertNull(result);
+        assertThat(result).isNull();
         verify(userCASDetailsRepository).findByInvestorEmailAndName(email, null);
     }
 
@@ -133,7 +131,7 @@ class UserCASDetailsServiceTest {
 
         UserCASDetails result = userCASDetailsService.findByInvestorEmailAndName("", "");
 
-        assertNull(result);
+        assertThat(result).isNull();
         verify(userCASDetailsRepository).findByInvestorEmailAndName("", "");
     }
 
@@ -147,9 +145,9 @@ class UserCASDetailsServiceTest {
         List<PortfolioDetailsProjection> result =
                 userCASDetailsService.getPortfolioDetailsByPanAndAsOfDate(panNumber, asOfDate);
 
-        assertNotNull(result);
-        assertEquals(1, result.size());
-        assertEquals(expectedList, result);
+        assertThat(result).isNotNull();
+        assertThat(result).hasSize(1);
+        assertThat(result).isEqualTo(expectedList);
         verify(userCASDetailsRepository).getPortfolioDetails(panNumber, asOfDate);
     }
 
@@ -161,8 +159,8 @@ class UserCASDetailsServiceTest {
         List<PortfolioDetailsProjection> result =
                 userCASDetailsService.getPortfolioDetailsByPanAndAsOfDate(null, asOfDate);
 
-        assertNotNull(result);
-        assertEquals(0, result.size());
+        assertThat(result).isNotNull();
+        assertThat(result).hasSize(0);
         verify(userCASDetailsRepository).getPortfolioDetails(null, asOfDate);
     }
 
@@ -174,8 +172,8 @@ class UserCASDetailsServiceTest {
         List<PortfolioDetailsProjection> result =
                 userCASDetailsService.getPortfolioDetailsByPanAndAsOfDate(panNumber, null);
 
-        assertNotNull(result);
-        assertEquals(0, result.size());
+        assertThat(result).isNotNull();
+        assertThat(result).hasSize(0);
         verify(userCASDetailsRepository).getPortfolioDetails(panNumber, null);
     }
 
@@ -187,8 +185,8 @@ class UserCASDetailsServiceTest {
         List<PortfolioDetailsProjection> result =
                 userCASDetailsService.getPortfolioDetailsByPanAndAsOfDate("", asOfDate);
 
-        assertNotNull(result);
-        assertEquals(0, result.size());
+        assertThat(result).isNotNull();
+        assertThat(result).hasSize(0);
         verify(userCASDetailsRepository).getPortfolioDetails("", asOfDate);
     }
 }

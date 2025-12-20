@@ -1,7 +1,6 @@
 package com.app.folioman.portfolio.config;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -13,12 +12,14 @@ class PortfolioCachePropertiesConfigTest {
 
     @Test
     void shouldHaveConfigurationAnnotation() {
-        assertTrue(PortfolioCachePropertiesConfig.class.isAnnotationPresent(Configuration.class));
+        assertThat(PortfolioCachePropertiesConfig.class.isAnnotationPresent(Configuration.class))
+                .isTrue();
     }
 
     @Test
     void shouldHaveEnableConfigurationPropertiesAnnotation() {
-        assertTrue(PortfolioCachePropertiesConfig.class.isAnnotationPresent(EnableConfigurationProperties.class));
+        assertThat(PortfolioCachePropertiesConfig.class.isAnnotationPresent(EnableConfigurationProperties.class))
+                .isTrue();
     }
 
     @Test
@@ -26,15 +27,15 @@ class PortfolioCachePropertiesConfigTest {
         EnableConfigurationProperties annotation =
                 PortfolioCachePropertiesConfig.class.getAnnotation(EnableConfigurationProperties.class);
 
-        assertNotNull(annotation);
+        assertThat(annotation).isNotNull();
         Class<?>[] value = annotation.value();
-        assertTrue(value.length > 0);
-        assertTrue(java.util.Arrays.asList(value).contains(PortfolioCacheProperties.class));
+        assertThat(value.length).isGreaterThan(0);
+        assertThat(java.util.Arrays.asList(value)).contains(PortfolioCacheProperties.class);
     }
 
     @Test
     void shouldInstantiateSuccessfully() {
         PortfolioCachePropertiesConfig config = new PortfolioCachePropertiesConfig();
-        assertNotNull(config);
+        assertThat(config).isNotNull();
     }
 }

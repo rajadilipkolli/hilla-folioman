@@ -1,6 +1,7 @@
 package com.app.folioman.portfolio.service;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -58,7 +59,7 @@ class PortfolioServiceHelperTest {
 
         TestClass result = portfolioServiceHelper.readValue(bytes, TestClass.class);
 
-        assertEquals(expected, result);
+        assertThat(result).isEqualTo(expected);
         verify(mapper).readValue(bytes, TestClass.class);
     }
 
@@ -67,7 +68,8 @@ class PortfolioServiceHelperTest {
         byte[] bytes = "invalid json".getBytes();
         when(mapper.readValue(bytes, TestClass.class)).thenThrow(new JacksonException("Parsing error") {});
 
-        assertThrows(JacksonException.class, () -> portfolioServiceHelper.readValue(bytes, TestClass.class));
+        assertThatExceptionOfType(JacksonException.class)
+                .isThrownBy(() -> portfolioServiceHelper.readValue(bytes, TestClass.class));
     }
 
     @Test
@@ -76,7 +78,7 @@ class PortfolioServiceHelperTest {
 
         long result = portfolioServiceHelper.countTransactionsByUserFolioDTOList(emptyFolios);
 
-        assertEquals(0, result);
+        assertThat(result).isZero();
     }
 
     @Test
@@ -91,7 +93,7 @@ class PortfolioServiceHelperTest {
 
         long result = portfolioServiceHelper.countTransactionsByUserFolioDTOList(folios);
 
-        assertEquals(0, result);
+        assertThat(result).isZero();
     }
 
     @Test
@@ -132,7 +134,7 @@ class PortfolioServiceHelperTest {
 
         long result = portfolioServiceHelper.countTransactionsByUserFolioDTOList(folios);
 
-        assertEquals(3, result);
+        assertThat(result).isEqualTo(3);
     }
 
     @Test
@@ -141,7 +143,7 @@ class PortfolioServiceHelperTest {
 
         List<String> result = portfolioServiceHelper.joinFutures(emptyFutures);
 
-        assertTrue(result.isEmpty());
+        assertThat(result).isEmpty();
     }
 
     @Test
@@ -152,7 +154,7 @@ class PortfolioServiceHelperTest {
 
         List<String> result = portfolioServiceHelper.joinFutures(futures);
 
-        assertEquals(Arrays.asList("value1", "value2"), result);
+        assertThat(result).containsExactlyElementsOf(Arrays.asList("value1", "value2"));
     }
 
     @Test
@@ -165,7 +167,7 @@ class PortfolioServiceHelperTest {
         List<PortfolioDetailsDTO> result =
                 portfolioServiceHelper.getPortfolioDetailsByPANAndAsOfDate(panNumber, asOfDate);
 
-        assertTrue(result.isEmpty());
+        assertThat(result).isEmpty();
         verify(userCASDetailsService).getPortfolioDetailsByPanAndAsOfDate(panNumber, asOfDate);
     }
 
@@ -188,13 +190,13 @@ class PortfolioServiceHelperTest {
         List<PortfolioDetailsDTO> result =
                 portfolioServiceHelper.getPortfolioDetailsByPANAndAsOfDate(panNumber, asOfDate);
 
-        assertEquals(1, result.size());
+        assertThat(result).hasSize(1);
         PortfolioDetailsDTO dto = result.getFirst();
-        assertEquals(BigDecimal.valueOf(1550.0).setScale(4, RoundingMode.HALF_UP), dto.totalValue());
-        assertEquals("Test Scheme", dto.schemeName());
-        assertEquals("FOLIO123", dto.folioNumber());
-        assertEquals("2023-12-01", dto.date());
-        assertEquals(0.0, dto.xirr());
+        assertThat(dto.totalValue()).isEqualTo(BigDecimal.valueOf(1550.0).setScale(4, RoundingMode.HALF_UP));
+        assertThat(dto.schemeName()).isEqualTo("Test Scheme");
+        assertThat(dto.folioNumber()).isEqualTo("FOLIO123");
+        assertThat(dto.date()).isEqualTo("2023-12-01");
+        assertThat(dto.xirr()).isZero();
 
         verify(mfNavService).getNavByDateWithRetry(123L, asOfDate);
     }
@@ -217,13 +219,13 @@ class PortfolioServiceHelperTest {
         List<PortfolioDetailsDTO> result =
                 portfolioServiceHelper.getPortfolioDetailsByPANAndAsOfDate(panNumber, asOfDate);
 
-        assertEquals(1, result.size());
+        assertThat(result).hasSize(1);
         PortfolioDetailsDTO dto = result.getFirst();
-        assertEquals(BigDecimal.valueOf(1000.0), dto.totalValue());
-        assertEquals("Test Scheme", dto.schemeName());
-        assertEquals("FOLIO123", dto.folioNumber());
-        assertEquals("2023-12-01", dto.date());
-        assertEquals(0.0, dto.xirr());
+        assertThat(dto.totalValue()).isEqualTo(BigDecimal.valueOf(1000.0));
+        assertThat(dto.schemeName()).isEqualTo("Test Scheme");
+        assertThat(dto.folioNumber()).isEqualTo("FOLIO123");
+        assertThat(dto.date()).isEqualTo("2023-12-01");
+        assertThat(dto.xirr()).isZero();
 
         verify(mfNavService).getNavByDateWithRetry(123L, asOfDate);
     }

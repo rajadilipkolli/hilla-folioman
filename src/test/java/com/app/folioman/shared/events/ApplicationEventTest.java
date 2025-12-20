@@ -1,6 +1,6 @@
 package com.app.folioman.shared.events;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Instant;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,18 +26,18 @@ class ApplicationEventTest {
     void constructor_ShouldInitializeAllFields() {
         TestApplicationEvent event = new TestApplicationEvent(mockSource);
 
-        assertNotNull(event.getEventId());
-        assertNotNull(event.getTimestamp());
-        assertSame(mockSource, event.getSource());
+        assertThat(event.getEventId()).isNotNull();
+        assertThat(event.getTimestamp()).isNotNull();
+        assertThat(event.getSource()).isSameAs(mockSource);
     }
 
     @Test
     void constructor_WithNullSource_ShouldAcceptNullSource() {
         TestApplicationEvent event = new TestApplicationEvent(null);
 
-        assertNotNull(event.getEventId());
-        assertNotNull(event.getTimestamp());
-        assertNull(event.getSource());
+        assertThat(event.getEventId()).isNotNull();
+        assertThat(event.getTimestamp()).isNotNull();
+        assertThat(event.getSource()).isNull();
     }
 
     @Test
@@ -48,10 +48,9 @@ class ApplicationEventTest {
         String eventId1 = event1.getEventId();
         String eventId2 = event2.getEventId();
 
-        assertNotNull(eventId1);
-        assertNotNull(eventId2);
-        assertNotEquals(eventId1, eventId2);
-        assertTrue(eventId1.matches("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"));
+        assertThat(eventId1).isNotNull();
+        assertThat(eventId2).isNotEqualTo(eventId1);
+        assertThat(eventId1).matches("[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}");
     }
 
     @Test
@@ -59,7 +58,7 @@ class ApplicationEventTest {
         String eventId1 = applicationEvent.getEventId();
         String eventId2 = applicationEvent.getEventId();
 
-        assertEquals(eventId1, eventId2);
+        assertThat(eventId2).isEqualTo(eventId1);
     }
 
     @Test
@@ -70,9 +69,9 @@ class ApplicationEventTest {
 
         Instant timestamp = event.getTimestamp();
 
-        assertNotNull(timestamp);
-        assertTrue(timestamp.isAfter(before) || timestamp.equals(before));
-        assertTrue(timestamp.isBefore(after) || timestamp.equals(after));
+        assertThat(timestamp).isNotNull();
+        assertThat(timestamp.isAfter(before) || timestamp.equals(before)).isTrue();
+        assertThat(timestamp.isBefore(after) || timestamp.equals(after)).isTrue();
     }
 
     @Test
@@ -80,14 +79,14 @@ class ApplicationEventTest {
         Instant timestamp1 = applicationEvent.getTimestamp();
         Instant timestamp2 = applicationEvent.getTimestamp();
 
-        assertEquals(timestamp1, timestamp2);
+        assertThat(timestamp2).isEqualTo(timestamp1);
     }
 
     @Test
     void getSource_ShouldReturnProvidedSource() {
         Object source = applicationEvent.getSource();
 
-        assertSame(mockSource, source);
+        assertThat(source).isSameAs(mockSource);
     }
 
     @Test
@@ -96,8 +95,8 @@ class ApplicationEventTest {
 
         TestApplicationEvent event2 = new TestApplicationEvent(mockSource);
 
-        assertNotEquals(event1.getEventId(), event2.getEventId());
-        assertFalse(event2.getTimestamp().isBefore(event1.getTimestamp()));
+        assertThat(event2.getEventId()).isNotEqualTo(event1.getEventId());
+        assertThat(event2.getTimestamp()).isAfterOrEqualTo(event1.getTimestamp());
     }
 
     private static class TestApplicationEvent extends ApplicationEvent {

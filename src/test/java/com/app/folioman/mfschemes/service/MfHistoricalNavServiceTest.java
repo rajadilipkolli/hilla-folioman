@@ -1,9 +1,7 @@
 package com.app.folioman.mfschemes.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.never;
@@ -72,7 +70,7 @@ class MfHistoricalNavServiceTest {
 
         String result = mfHistoricalNavService.getHistoricalNav(schemeCode, navDate);
 
-        assertEquals("123456", result);
+        assertThat(result).isEqualTo("123456");
         verify(mfSchemeService).findBySchemeCode(schemeCode);
     }
 
@@ -92,7 +90,7 @@ class MfHistoricalNavServiceTest {
 
         String result = mfHistoricalNavService.getHistoricalNav(schemeCode, navDate);
 
-        assertEquals("123456", result);
+        assertThat(result).isEqualTo("123456");
         verify(mfSchemeService).findBySchemeCode(schemeCode);
         verify(mfSchemeService).saveEntity(mfFundScheme);
     }
@@ -112,7 +110,7 @@ class MfHistoricalNavServiceTest {
 
         String result = mfHistoricalNavService.getHistoricalNav(schemeCode, navDate);
 
-        assertNull(result);
+        assertThat(result).isNull();
         verify(mfSchemeService).findBySchemeCode(schemeCode);
     }
 
@@ -132,7 +130,7 @@ class MfHistoricalNavServiceTest {
         // Current implementation returns null when data is present but cannot be parsed
         // Adjust test to assert null to reflect production behavior without changing main code
         String result = mfHistoricalNavService.getHistoricalNav(schemeCode, navDate);
-        assertNull(result);
+        assertThat(result).isNull();
         verify(mfSchemeService).findBySchemeCode(schemeCode);
     }
 
@@ -154,9 +152,9 @@ class MfHistoricalNavServiceTest {
             fail("Expected NavNotFoundException but none thrown");
         } catch (NavNotFoundException exception) {
             String expectedPrefix = "Nav Not Found for schemeCode - ";
-            assertTrue(exception.getMessage().startsWith(expectedPrefix));
+            assertThat(exception.getMessage()).startsWith(expectedPrefix);
             // service sets a navDate adjusted by -6 days
-            assertEquals(navDate.minusDays(6), exception.getNavDate());
+            assertThat(exception.getNavDate()).isEqualTo(navDate.minusDays(6));
             verify(mfSchemeService).findBySchemeCode(schemeCode);
         }
     }
@@ -179,8 +177,8 @@ class MfHistoricalNavServiceTest {
             fail("Expected NavNotFoundException but none thrown");
         } catch (NavNotFoundException exception) {
             String expectedPrefix = "Nav Not Found for schemeCode - ";
-            assertTrue(exception.getMessage().startsWith(expectedPrefix));
-            assertEquals(navDate.minusDays(6), exception.getNavDate());
+            assertThat(exception.getMessage()).startsWith(expectedPrefix);
+            assertThat(exception.getNavDate()).isEqualTo(navDate.minusDays(6));
             verify(mfSchemeService).findBySchemeCode(schemeCode);
         }
     }
@@ -202,7 +200,7 @@ class MfHistoricalNavServiceTest {
 
         String result = mfHistoricalNavService.getHistoricalNav(schemeCode, navDate);
 
-        assertEquals("123456", result);
+        assertThat(result).isEqualTo("123456");
         verify(mfSchemeService).findBySchemeCode(schemeCode);
         verify(mfSchemeService, never()).saveEntity(any());
     }
@@ -224,7 +222,7 @@ class MfHistoricalNavServiceTest {
 
         // When the scheme is not found in the returned data, current behaviour is to return null
         String result = mfHistoricalNavService.getHistoricalNav(schemeCode, navDate);
-        assertNull(result);
+        assertThat(result).isNull();
         verify(mfSchemeService).findBySchemeCode(schemeCode);
     }
 

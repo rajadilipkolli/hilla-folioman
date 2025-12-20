@@ -1,6 +1,6 @@
 package com.app.folioman.config.redis;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.argThat;
@@ -49,7 +49,7 @@ class AdjustTTLPolicyTest {
     @Test
     void getExpirationTime_ShouldReturnDefaultTTL() {
         Duration result = adjustTTLPolicy.getExpirationTime();
-        assertEquals(Duration.ofMinutes(30), result);
+        assertThat(result).isEqualTo(Duration.ofMinutes(30));
     }
 
     @Test
