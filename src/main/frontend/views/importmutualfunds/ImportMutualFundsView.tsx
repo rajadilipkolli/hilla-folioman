@@ -1,6 +1,16 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Button, FormLayout, FormLayoutResponsiveStep, Notification, PasswordField } from '@vaadin/react-components';
-import { Upload, UploadMaxFilesReachedChangedEvent, UploadBeforeEvent } from '@vaadin/react-components/Upload';
+import {
+  Button,
+  FormLayout,
+  FormLayoutResponsiveStep,
+  Notification,
+  PasswordField,
+} from '@vaadin/react-components';
+import {
+  Upload,
+  UploadMaxFilesReachedChangedEvent,
+  UploadBeforeEvent,
+} from '@vaadin/react-components/Upload';
 import { ImportMutualFundController } from 'Frontend/generated/endpoints';
 import './import-mutual-funds.css';
 
@@ -47,7 +57,10 @@ export default function ImportMutualFundsView() {
     if (password) {
       inactivityTimerRef.current = window.setTimeout(() => {
         setPassword('');
-        Notification.show('Password cleared due to inactivity', { position: 'bottom-end', duration: 3000 });
+        Notification.show('Password cleared due to inactivity', {
+          position: 'bottom-end',
+          duration: 3000,
+        });
       }, PASSWORD_INACTIVITY_TIMEOUT);
     }
 
@@ -70,10 +83,14 @@ export default function ImportMutualFundsView() {
   }, []);
 
   const fileRejectHandler = (event: any) => {
-    Notification.show(`Error: ${event.detail.error} '${event.detail.file.name}'`);
+    Notification.show(
+      `Error: ${event.detail.error} '${event.detail.file.name}'`,
+    );
   };
 
-  const maxFilesReachedChangedHandler = (event: UploadMaxFilesReachedChangedEvent) => {
+  const maxFilesReachedChangedHandler = (
+    event: UploadMaxFilesReachedChangedEvent,
+  ) => {
     maxFilesReached.current = event.detail.value;
   };
 
@@ -82,7 +99,10 @@ export default function ImportMutualFundsView() {
   };
 
   // Generic file selection handler
-  const handleFileSelection = (event: UploadBeforeEvent, setFile: (file: File | null) => void) => {
+  const handleFileSelection = (
+    event: UploadBeforeEvent,
+    setFile: (file: File | null) => void,
+  ) => {
     event.preventDefault();
     const file = event.detail.file;
     if (file) {
@@ -99,7 +119,10 @@ export default function ImportMutualFundsView() {
   };
 
   // Common function to handle upload success
-  const handleUploadSuccess = (response: UploadResponse, fileType: 'pdf' | 'json') => {
+  const handleUploadSuccess = (
+    response: UploadResponse,
+    fileType: 'pdf' | 'json',
+  ) => {
     setNewFolios(response.newFolios);
     setNewSchemes(response.newSchemes);
     setNewTransactions(response.newTransactions);
@@ -122,7 +145,9 @@ export default function ImportMutualFundsView() {
 
   // Generic error handler for file uploads
   const handleUploadError = (error: unknown) => {
-    Notification.show(`Error uploading file: ${error instanceof Error ? error.message : String(error)}`);
+    Notification.show(
+      `Error uploading file: ${error instanceof Error ? error.message : String(error)}`,
+    );
     setIsUploading(false);
   };
 
@@ -189,7 +214,10 @@ export default function ImportMutualFundsView() {
         return true;
       },
       async () => {
-        return await ImportMutualFundController.uploadPasswordProtectedCasPdf(pdfFile!, password);
+        return await ImportMutualFundController.uploadPasswordProtectedCasPdf(
+          pdfFile!,
+          password,
+        );
       },
     );
   };
@@ -258,7 +286,9 @@ export default function ImportMutualFundsView() {
           <div className="p-m">
             <h3>Upload Password Protected CAS PDF</h3>
             <p>Accepted file formats: PDF (.pdf)</p>
-            <label htmlFor="pdf-upload-drop-enabled">Drag and drop enabled</label>
+            <label htmlFor="pdf-upload-drop-enabled">
+              Drag and drop enabled
+            </label>
 
             <Upload
               id="pdf-upload-drop-enabled"
@@ -269,7 +299,10 @@ export default function ImportMutualFundsView() {
               onMaxFilesReachedChanged={maxFilesReachedChangedHandler}
               onUploadBefore={handleBeforeUpload}
               ref={pdfUploadRef}>
-              <Button slot="add-button" theme="primary" disabled={maxFilesReached.current || isUploading}>
+              <Button
+                slot="add-button"
+                theme="primary"
+                disabled={maxFilesReached.current || isUploading}>
                 Select PDF...
               </Button>
             </Upload>
@@ -280,7 +313,9 @@ export default function ImportMutualFundsView() {
               </div>
             )}
 
-            <div className="password-field-container" style={{ position: 'relative', marginTop: '16px' }}>
+            <div
+              className="password-field-container"
+              style={{ position: 'relative', marginTop: '16px' }}>
               <PasswordField
                 label="PDF Password"
                 value={password}
@@ -291,7 +326,10 @@ export default function ImportMutualFundsView() {
             </div>
 
             <div style={{ marginTop: '16px' }}>
-              <Button theme="primary" onClick={handlePdfUpload} disabled={isUploading || !pdfFile}>
+              <Button
+                theme="primary"
+                onClick={handlePdfUpload}
+                disabled={isUploading || !pdfFile}>
                 {isUploading ? 'Uploading...' : 'Upload Protected CAS PDF'}
               </Button>
             </div>
@@ -311,7 +349,10 @@ export default function ImportMutualFundsView() {
               onMaxFilesReachedChanged={maxFilesReachedChangedHandler}
               onUploadBefore={handleJsonBeforeUpload}
               ref={jsonUploadRef}>
-              <Button slot="add-button" theme="primary" disabled={maxFilesReached.current || isUploading}>
+              <Button
+                slot="add-button"
+                theme="primary"
+                disabled={maxFilesReached.current || isUploading}>
                 Select JSON File...
               </Button>
             </Upload>
@@ -321,7 +362,10 @@ export default function ImportMutualFundsView() {
                 <p>Selected file: {jsonFile.name}</p>
 
                 <div style={{ marginTop: '16px' }}>
-                  <Button theme="primary" onClick={handleJsonUpload} disabled={isUploading}>
+                  <Button
+                    theme="primary"
+                    onClick={handleJsonUpload}
+                    disabled={isUploading}>
                     {isUploading ? 'Uploading...' : 'Upload JSON File'}
                   </Button>
                 </div>

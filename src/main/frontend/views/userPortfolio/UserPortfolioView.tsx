@@ -24,7 +24,10 @@ import {
 import './user-portfolio.css';
 
 // Helper function to validate PAN is provided
-function ensurePanIsProvided(pan: string, setErrorFn: (msg: string | null) => void): boolean {
+function ensurePanIsProvided(
+  pan: string,
+  setErrorFn: (msg: string | null) => void,
+): boolean {
   if (!pan) {
     setErrorFn('PAN is required');
     return false;
@@ -37,8 +40,12 @@ export default function UserPortfolioView() {
   const [pan, setPan] = useState<string>('');
   const [asOfDate, setAsOfDate] = useState<Date | null>(null);
   const [portfolio, setPortfolio] = useState<PortfolioResponse | null>(null);
-  const [monthlyInvestments, setMonthlyInvestments] = useState<MonthlyInvestmentResponseDTO[] | null>(null);
-  const [yearlyInvestments, setYearlyInvestments] = useState<{ year: number; amount: number }[]>([]);
+  const [monthlyInvestments, setMonthlyInvestments] = useState<
+    MonthlyInvestmentResponseDTO[] | null
+  >(null);
+  const [yearlyInvestments, setYearlyInvestments] = useState<
+    { year: number; amount: number }[]
+  >([]);
   const [error, setError] = useState<string | null>(null);
   const [showYearlyChart, setShowYearlyChart] = useState<boolean>(false);
   const [showMonthlyData, setShowMonthlyData] = useState<boolean>(false);
@@ -51,7 +58,9 @@ export default function UserPortfolioView() {
     setShowMonthlyData(false); // Hide monthly data
     try {
       // Convert Date to string format expected by backend API if it exists
-      const dateStr = asOfDate ? asOfDate.toISOString().split('T')[0] : undefined;
+      const dateStr = asOfDate
+        ? asOfDate.toISOString().split('T')[0]
+        : undefined;
       const response = await getPortfolio(pan, dateStr);
       setPortfolio(response || null);
       setError(null);
@@ -67,7 +76,9 @@ export default function UserPortfolioView() {
     try {
       const response = await getTotalInvestmentsByPanPerMonth(pan);
       setMonthlyInvestments(
-        (response || []).filter((item): item is MonthlyInvestmentResponseDTO => item !== undefined),
+        (response || []).filter(
+          (item): item is MonthlyInvestmentResponseDTO => item !== undefined,
+        ),
       );
       setShowMonthlyData(true); // Show monthly data
       setError(null);
@@ -86,7 +97,9 @@ export default function UserPortfolioView() {
       // Direct call to backend for yearly investment data
       const response = await getTotalInvestmentsByPanPerYear(pan);
       const yearlyData = (response || [])
-        .filter((item): item is YearlyInvestmentResponseDTO => item !== undefined)
+        .filter(
+          (item): item is YearlyInvestmentResponseDTO => item !== undefined,
+        )
         .map((item) => ({
           year: item.year ?? DEFAULT_YEAR,
           amount: item.yearlyInvestment ?? 0,
@@ -115,7 +128,9 @@ export default function UserPortfolioView() {
         }))
         .sort((a, b) => {
           if (a.year === b.year) {
-            return direction === 'asc' ? a.monthNumber - b.monthNumber : b.monthNumber - a.monthNumber;
+            return direction === 'asc'
+              ? a.monthNumber - b.monthNumber
+              : b.monthNumber - a.monthNumber;
           }
           return direction === 'asc' ? a.year - b.year : b.year - a.year;
         }) ?? [];
@@ -136,15 +151,22 @@ export default function UserPortfolioView() {
       );
     }
 
-    const maxValue = Math.max(...yearlyInvestments.map((item) => item.amount), 1); // Ensure non-zero for division
+    const maxValue = Math.max(
+      ...yearlyInvestments.map((item) => item.amount),
+      1,
+    ); // Ensure non-zero for division
     const barHeight = 300; // Maximum height for the tallest bar
 
     // Calculate Y-axis tick values (from bottom to top)
-    const yAxisValues = [0, 0.25, 0.5, 0.75, 1].map((ratio) => maxValue * ratio);
+    const yAxisValues = [0, 0.25, 0.5, 0.75, 1].map(
+      (ratio) => maxValue * ratio,
+    );
 
     return (
       <Card className="fade-in">
-        <h3 style={{ textAlign: 'center', margin: 'var(--lumo-space-m) 0' }}>Yearly Investment Summary</h3>
+        <h3 style={{ textAlign: 'center', margin: 'var(--lumo-space-m) 0' }}>
+          Yearly Investment Summary
+        </h3>
         <div
           className="chart-inner"
           ref={chartRef}
@@ -159,7 +181,10 @@ export default function UserPortfolioView() {
           </div>
           {yearlyInvestments.map((item, index) => {
             const heightPercentage = (item.amount / maxValue) * 100;
-            const barHeightPx = Math.max((heightPercentage / 100) * barHeight, 1); // Ensure at least 1px height for visibility
+            const barHeightPx = Math.max(
+              (heightPercentage / 100) * barHeight,
+              1,
+            ); // Ensure at least 1px height for visibility
 
             return (
               <div key={index} className="chart-bar-group">
@@ -183,7 +208,9 @@ export default function UserPortfolioView() {
                       valueElement.style.opacity = '0';
                     }
                   }}>
-                  <div className="chart-bar-value">₹{item.amount.toLocaleString()}</div>
+                  <div className="chart-bar-value">
+                    ₹{item.amount.toLocaleString()}
+                  </div>
                 </div>
                 <div className="chart-bar-label">{item.year}</div>
               </div>
@@ -196,7 +223,9 @@ export default function UserPortfolioView() {
   };
 
   return (
-    <VerticalLayout className="fade-in" style={{ margin: '0 auto', maxWidth: '1200px' }}>
+    <VerticalLayout
+      className="fade-in"
+      style={{ margin: '0 auto', maxWidth: '1200px' }}>
       <h2
         style={{
           fontSize: 'var(--lumo-font-size-xxl)',
@@ -216,14 +245,20 @@ export default function UserPortfolioView() {
           <TextField
             label="PAN"
             value={pan}
-            onValueChanged={(e: CustomEvent) => setPan((e.target as HTMLInputElement).value)}
+            onValueChanged={(e: CustomEvent) =>
+              setPan((e.target as HTMLInputElement).value)
+            }
             required
           />
           <DatePicker
             label="As of Date (optional)"
             value={asOfDate ? asOfDate.toISOString().split('T')[0] : ''}
             onValueChanged={(e: CustomEvent) =>
-              setAsOfDate((e.target as HTMLInputElement).value ? new Date((e.target as HTMLInputElement).value) : null)
+              setAsOfDate(
+                (e.target as HTMLInputElement).value
+                  ? new Date((e.target as HTMLInputElement).value)
+                  : null,
+              )
             }
             placeholder="YYYY-MM-DD"
           />
@@ -252,14 +287,20 @@ export default function UserPortfolioView() {
             marginTop: 'var(--lumo-space-m)',
           }}>
           {/* Use Notification component for error message */}
-          <Notification theme="error" duration={0} opened={!!error} position="middle">
+          <Notification
+            theme="error"
+            duration={0}
+            opened={!!error}
+            position="middle">
             {error}
           </Notification>
         </div>
       )}
 
       {portfolio && (
-        <Card className="fade-in" style={{ marginTop: 'var(--lumo-space-m)', width: '100%' }}>
+        <Card
+          className="fade-in"
+          style={{ marginTop: 'var(--lumo-space-m)', width: '100%' }}>
           <HorizontalLayout
             style={{
               padding: 'var(--lumo-space-m)',
@@ -291,16 +332,24 @@ export default function UserPortfolioView() {
               flexGrow={2}
               autoWidth={false}
               renderer={({ item }) => (
-                <span style={{ whiteSpace: 'normal', overflow: 'visible' }}>{item.schemeName}</span>
+                <span style={{ whiteSpace: 'normal', overflow: 'visible' }}>
+                  {item.schemeName}
+                </span>
               )}
             />
-            <GridSortColumn path="folioNumber" header="Folio Number" flexGrow={1} />
+            <GridSortColumn
+              path="folioNumber"
+              header="Folio Number"
+              flexGrow={1}
+            />
             <GridSortColumn
               path="totalValue"
               header="Total Value"
               flexGrow={1}
               textAlign="end"
-              renderer={({ item }) => `₹${item.totalValue?.toLocaleString() || '0'}`}
+              renderer={({ item }) =>
+                `₹${item.totalValue?.toLocaleString() || '0'}`
+              }
             />
             <GridSortColumn path="date" header="As of Date" flexGrow={1} />
           </Grid>
@@ -308,7 +357,9 @@ export default function UserPortfolioView() {
       )}
 
       {showMonthlyData && monthlyInvestments && (
-        <Card className="fade-in" style={{ marginTop: 'var(--lumo-space-m)', width: '100%' }}>
+        <Card
+          className="fade-in"
+          style={{ marginTop: 'var(--lumo-space-m)', width: '100%' }}>
           <h3
             style={{
               fontSize: 'var(--lumo-font-size-xl)',
@@ -340,14 +391,18 @@ export default function UserPortfolioView() {
               header="Amount Invested In Current Month"
               flexGrow={2}
               textAlign="end"
-              renderer={({ item }) => `₹${item.investmentPerMonth?.toLocaleString() || '0'}`}
+              renderer={({ item }) =>
+                `₹${item.investmentPerMonth?.toLocaleString() || '0'}`
+              }
             />
             <GridColumn
               path="cumulativeInvestment"
               header="Total Cumulative Investment"
               flexGrow={2}
               textAlign="end"
-              renderer={({ item }) => `₹${item.cumulativeInvestment?.toLocaleString() || '0'}`}
+              renderer={({ item }) =>
+                `₹${item.cumulativeInvestment?.toLocaleString() || '0'}`
+              }
             />
           </Grid>
         </Card>
