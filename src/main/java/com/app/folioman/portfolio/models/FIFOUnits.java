@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Deque;
 import java.util.LinkedList;
+import java.util.NoSuchElementException;
 
 public class FIFOUnits {
 
@@ -24,6 +25,7 @@ public class FIFOUnits {
                 new BigDecimal(txn.getNav() == null ? "0.0000" : txn.getNav().toString());
 
         if (txn.getAmount() == null) {
+            // Skip transactions with no amount (e.g., certain corporate actions)
             return;
         } else if (txn.getAmount().compareTo(BigDecimal.ZERO) > 0
                 && !"STT_TAX".equals(txn.getType().name())) {
@@ -52,7 +54,7 @@ public class FIFOUnits {
                 }
                 pendingUnits = pendingUnits.subtract(units);
 
-            } catch (Exception e) {
+            } catch (NoSuchElementException e) {
                 // Break if transactions are empty
                 break;
             }
@@ -75,9 +77,7 @@ public class FIFOUnits {
     private void buy(BigDecimal quantity, BigDecimal nav, BigDecimal amount) {
         balance = balance.add(quantity);
 
-        if (amount != null) {
-            invested = invested.add(amount).setScale(2, RoundingMode.HALF_UP);
-        }
+        invested = invested.add(amount).setScale(2, RoundingMode.HALF_UP);
 
         if (balance.abs().compareTo(BALANCE_THRESHOLD) > 0) {
             average = invested.divide(balance, 4, RoundingMode.HALF_UP);

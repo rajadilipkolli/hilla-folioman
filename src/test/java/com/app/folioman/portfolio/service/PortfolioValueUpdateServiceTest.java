@@ -26,12 +26,14 @@ import com.app.folioman.portfolio.entities.UserTransactionDetails;
 import com.app.folioman.portfolio.models.request.CasDTO;
 import com.app.folioman.portfolio.models.request.TransactionType;
 import com.app.folioman.portfolio.repository.FolioSchemeRepository;
+import com.app.folioman.portfolio.repository.SchemeValueRepository;
 import com.app.folioman.portfolio.repository.UserPortfolioValueRepository;
 import com.app.folioman.portfolio.util.XirrCalculator;
 import com.app.folioman.shared.LocalDateUtility;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -63,6 +65,9 @@ class PortfolioValueUpdateServiceTest {
 
     @Mock
     private FolioSchemeRepository folioSchemeRepository;
+
+    @Mock
+    private SchemeValueRepository schemeValueRepository;
 
     @InjectMocks
     private PortfolioValueUpdateService portfolioValueUpdateService;
@@ -298,6 +303,7 @@ class PortfolioValueUpdateServiceTest {
                 scheme.setRta(schemeDTO.rta());
                 scheme.setType(schemeDTO.type());
                 scheme.setUserFolioDetails(folio);
+                scheme.setCreatedDate(LocalDateTime.now().minusMonths(1));
 
                 List<UserTransactionDetails> transactions = new ArrayList<>();
                 schemeDTO.transactions().forEach(transactionDTO -> {
