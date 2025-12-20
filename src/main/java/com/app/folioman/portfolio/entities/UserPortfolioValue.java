@@ -118,6 +118,7 @@ public class UserPortfolioValue {
 
     @Override
     public final boolean equals(Object o) {
+        if (this == o) return true;
         if (!(o instanceof UserPortfolioValue that)) return false;
 
         return Objects.equals(getDate(), that.getDate())
