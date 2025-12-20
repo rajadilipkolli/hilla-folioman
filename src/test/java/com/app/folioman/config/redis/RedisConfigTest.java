@@ -1,7 +1,7 @@
 package com.app.folioman.config.redis;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.mock;
 
@@ -80,7 +80,8 @@ class RedisConfigTest {
         RuntimeException exception = new RuntimeException(new ConnectException("Connection failed"));
         CacheErrorHandler errorHandler = redisConfig.errorHandler();
 
-        assertDoesNotThrow(() -> errorHandler.handleCacheGetError(exception, cache, "testKey"));
+        assertThatCode(() -> errorHandler.handleCacheGetError(exception, cache, "testKey"))
+                .doesNotThrowAnyException();
     }
 
     @ParameterizedTest
@@ -91,7 +92,8 @@ class RedisConfigTest {
         }
         CacheErrorHandler errorHandler = redisConfig.errorHandler();
 
-        assertDoesNotThrow(() -> errorHandler.handleCacheGetError(exception, cache, key));
+        assertThatCode(() -> errorHandler.handleCacheGetError(exception, cache, key))
+                .doesNotThrowAnyException();
     }
 
     private static Stream<Arguments> provideExceptionsForGetError() {

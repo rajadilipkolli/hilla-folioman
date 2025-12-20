@@ -1,8 +1,6 @@
 package com.app.folioman.portfolio.util;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.assertj.core.api.Assertions.within;
+import static org.assertj.core.api.Assertions.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -10,6 +8,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -252,18 +251,18 @@ class XirrCalculatorTest {
     @DisplayName("Should throw exception for invalid inputs - null lists")
     void calculateXirr_nullInputs_throwsIllegalArgumentException() {
         // Act & Assert - null cash flows
-        assertThatExceptionOfType(IllegalArgumentException.class)
-                .isThrownBy(() -> XirrCalculator.xirr(null))
-                .withMessageContaining("Input map cannot be null or empty");
+        assertThatThrownBy(() -> XirrCalculator.xirr(null))
+                .asInstanceOf(InstanceOfAssertFactories.throwable(IllegalArgumentException.class))
+                .hasMessageContaining("Input map cannot be null or empty");
     }
 
     @Test
     @DisplayName("Should throw exception for invalid inputs - empty lists")
     void calculateXirr_emptyInputs_throwsIllegalArgumentException() {
         // Act & Assert - empty lists
-        assertThatExceptionOfType(IllegalArgumentException.class)
-                .isThrownBy(() -> XirrCalculator.xirr(Collections.emptyMap()))
-                .withMessageContaining("Input map cannot be null or empty");
+        assertThatThrownBy(() -> XirrCalculator.xirr(Collections.emptyMap()))
+                .asInstanceOf(InstanceOfAssertFactories.throwable(IllegalArgumentException.class))
+                .hasMessageContaining("Input map cannot be null or empty");
     }
 
     @Test
@@ -290,9 +289,9 @@ class XirrCalculatorTest {
                 LocalDate.of(2020, 7, 1), new BigDecimal("-500"));
 
         // Act & Assert
-        assertThatExceptionOfType(IllegalArgumentException.class)
-                .isThrownBy(() -> XirrCalculator.xirr(valuesPerDate))
-                .withMessageContaining("Cash flows must have at least one positive");
+        assertThatThrownBy(() -> XirrCalculator.xirr(valuesPerDate))
+                .asInstanceOf(InstanceOfAssertFactories.throwable(IllegalArgumentException.class))
+                .hasMessageContaining("Cash flows must have at least one positive");
     }
 
     @Test
@@ -304,9 +303,9 @@ class XirrCalculatorTest {
                 LocalDate.of(2020, 7, 1), new BigDecimal("500"));
 
         // Act & Assert
-        assertThatExceptionOfType(IllegalArgumentException.class)
-                .isThrownBy(() -> XirrCalculator.xirr(valuesPerDate))
-                .withMessageContaining("Cash flows must have at least one negative value");
+        assertThatThrownBy(() -> XirrCalculator.xirr(valuesPerDate))
+                .asInstanceOf(InstanceOfAssertFactories.throwable(IllegalArgumentException.class))
+                .hasMessageContaining("Cash flows must have at least one negative value");
     }
 
     @Test
@@ -710,6 +709,6 @@ class XirrCalculatorTest {
         BigDecimal result = XirrCalculator.xirr(valuesPerDate);
 
         // Assert
-        assertThat(result).isGreaterThanOrEqualTo(BigDecimal.ZERO); // Should return a positive rate, not throw
+        assertThat(result).isNotNegative(); // Should return a positive rate, not throw
     }
 }

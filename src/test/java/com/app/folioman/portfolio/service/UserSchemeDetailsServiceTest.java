@@ -12,13 +12,13 @@ class UserSchemeDetailsServiceTest {
     private UserSchemeDetailServiceImpl userSchemeDetailsService;
 
     @BeforeEach
-    public void setUp() {
+    void setUp() {
         // Initialize UserSchemeDetailsService with mock dependencies or nulls
         userSchemeDetailsService = new UserSchemeDetailServiceImpl(null, null);
     }
 
     @Test
-    public void testIsMatchingScheme() throws Exception {
+    void isMatchingScheme() throws Exception {
         // Access the private isMatchingScheme method using reflection
         Method method = UserSchemeDetailServiceImpl.class.getDeclaredMethod(
                 "isMatchingScheme", String.class, FundDetailProjection.class);

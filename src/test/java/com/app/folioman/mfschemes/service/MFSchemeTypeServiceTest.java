@@ -1,7 +1,6 @@
 package com.app.folioman.mfschemes.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -41,7 +40,7 @@ class MFSchemeTypeServiceTest {
 
         MFSchemeType result = mfSchemeTypeService.findByTypeAndCategoryAndSubCategory(type, category, subCategory);
 
-        assertEquals(testMFSchemeType, result);
+        assertThat(result).isEqualTo(testMFSchemeType);
         verify(mfSchemeTypeRepository).findByTypeAndCategoryAndSubCategory(type, category, subCategory);
     }
 
@@ -56,7 +55,7 @@ class MFSchemeTypeServiceTest {
 
         MFSchemeType result = mfSchemeTypeService.findByTypeAndCategoryAndSubCategory(type, category, subCategory);
 
-        assertNull(result);
+        assertThat(result).isNull();
         verify(mfSchemeTypeRepository).findByTypeAndCategoryAndSubCategory(type, category, subCategory);
     }
 
@@ -67,7 +66,7 @@ class MFSchemeTypeServiceTest {
 
         MFSchemeType result = mfSchemeTypeService.findByTypeAndCategoryAndSubCategory(null, null, null);
 
-        assertNull(result);
+        assertThat(result).isNull();
         verify(mfSchemeTypeRepository).findByTypeAndCategoryAndSubCategory(null, null, null);
     }
 
@@ -77,7 +76,7 @@ class MFSchemeTypeServiceTest {
 
         MFSchemeType result = mfSchemeTypeService.saveCategory(testMFSchemeType);
 
-        assertEquals(testMFSchemeType, result);
+        assertThat(result).isEqualTo(testMFSchemeType);
         verify(mfSchemeTypeRepository).save(testMFSchemeType);
     }
 
@@ -87,7 +86,7 @@ class MFSchemeTypeServiceTest {
 
         MFSchemeType result = mfSchemeTypeService.saveCategory(null);
 
-        assertNull(result);
+        assertThat(result).isNull();
         verify(mfSchemeTypeRepository).save(null);
     }
 }

@@ -1,8 +1,6 @@
 package com.app.folioman.mfschemes.config;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
@@ -21,13 +19,13 @@ class MfApiPropertiesTest {
     private static ValidatorFactory factory;
 
     @BeforeAll
-    public static void setupValidatorInstance() {
+    static void setupValidatorInstance() {
         factory = Validation.buildDefaultValidatorFactory();
         validator = factory.getValidator();
     }
 
     @AfterAll
-    public static void closeValidatorFactory() {
+    static void closeValidatorFactory() {
         if (factory != null) {
             factory.close();
         }
@@ -46,7 +44,7 @@ class MfApiPropertiesTest {
         mfApi.setDataUrl(url);
 
         Set<ConstraintViolation<MfApiProperties>> violations = validator.validate(mfApi);
-        assertTrue(violations.isEmpty());
+        assertThat(violations).isEmpty();
     }
 
     @Test
@@ -55,7 +53,7 @@ class MfApiPropertiesTest {
         mfApi.setDataUrl("");
 
         Set<ConstraintViolation<MfApiProperties>> violations = validator.validate(mfApi);
-        assertFalse(violations.isEmpty());
+        assertThat(violations).isNotEmpty();
     }
 
     @ParameterizedTest
@@ -65,9 +63,9 @@ class MfApiPropertiesTest {
         mfApi.setDataUrl(invalidUrl);
 
         Set<ConstraintViolation<MfApiProperties>> violations = validator.validate(mfApi);
-        assertFalse(violations.isEmpty());
+        assertThat(violations).isNotEmpty();
         ConstraintViolation<MfApiProperties> violation = violations.iterator().next();
-        assertEquals("Data URL must be a valid HTTP(S) URL", violation.getMessage());
-        assertEquals("dataUrl", violation.getPropertyPath().toString());
+        assertThat(violation.getMessage()).isEqualTo("Data URL must be a valid HTTP(S) URL");
+        assertThat(violation.getPropertyPath()).hasToString("dataUrl");
     }
 }

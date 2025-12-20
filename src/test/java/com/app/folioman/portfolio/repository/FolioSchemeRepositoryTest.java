@@ -1,6 +1,6 @@
 package com.app.folioman.portfolio.repository;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.app.folioman.config.SQLContainersConfig;
 import com.app.folioman.portfolio.entities.CasTypeEnum;
@@ -53,14 +53,14 @@ class FolioSchemeRepositoryTest {
 
         FolioScheme result = folioSchemeRepository.findByUserSchemeDetails_Id(userSchemeDetailId);
 
-        assertNotNull(result);
+        assertThat(result).isNotNull();
     }
 
     @Test
     void findByUserSchemeDetails_Id_ShouldReturnNull_WhenNullUserSchemeDetailId() {
         FolioScheme result = folioSchemeRepository.findByUserSchemeDetails_Id(null);
 
-        assertNull(result);
+        assertThat(result).isNull();
     }
 
     @Test
@@ -69,7 +69,7 @@ class FolioSchemeRepositoryTest {
 
         FolioScheme result = folioSchemeRepository.findByUserSchemeDetails_Id(nonExistentId);
 
-        assertNull(result);
+        assertThat(result).isNull();
     }
 
     @Test
@@ -99,16 +99,16 @@ class FolioSchemeRepositoryTest {
 
         List<FolioScheme> result = folioSchemeRepository.findByUserFolioDetails_Id(id);
 
-        assertNotNull(result);
-        assertTrue(result instanceof List);
+        assertThat(result).isNotNull();
+        assertThat(result).isInstanceOf(List.class);
     }
 
     @Test
     void findByUserFolioDetails_Id_ShouldReturnEmptyList_WhenNullId() {
         List<FolioScheme> result = folioSchemeRepository.findByUserFolioDetails_Id(null);
 
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
+        assertThat(result).isNotNull();
+        assertThat(result).isEmpty();
     }
 
     @Test
@@ -117,7 +117,7 @@ class FolioSchemeRepositoryTest {
 
         List<FolioScheme> result = folioSchemeRepository.findByUserFolioDetails_Id(nonExistentId);
 
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
+        assertThat(result).isNotNull();
+        assertThat(result).isEmpty();
     }
 }

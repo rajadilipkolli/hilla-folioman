@@ -1,6 +1,7 @@
 package com.app.folioman.config.redis;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 import static org.mockito.Mockito.*;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -27,13 +28,13 @@ class CompressedRedisSerializerTest {
     @Test
     void constructor_ShouldSetDelegate() {
         CompressedRedisSerializer<String> serializer = new CompressedRedisSerializer<>(delegate);
-        assertNotNull(serializer);
+        assertThat(serializer).isNotNull();
     }
 
     @Test
     void serialize_WithNullValue_ShouldReturnNull() {
         byte[] result = compressedSerializer.serialize(null);
-        assertNull(result);
+        assertThat(result).isNull();
         verifyNoInteractions(delegate);
     }
 
@@ -45,13 +46,13 @@ class CompressedRedisSerializerTest {
 
         byte[] result = compressedSerializer.serialize(smallValue);
 
-        assertNotNull(result);
-        assertEquals(0, result[0]); // Not compressed marker
-        assertEquals(smallSerialized.length + 1, result.length);
+        assertThat(result).isNotNull();
+        assertThat(result[0]).isEqualTo(0); // Not compressed marker
+        assertThat(result.length).isEqualTo(smallSerialized.length + 1);
 
         byte[] actualData = new byte[result.length - 1];
         System.arraycopy(result, 1, actualData, 0, actualData.length);
-        assertArrayEquals(smallSerialized, actualData);
+        assertThat(actualData).containsExactly(smallSerialized);
     }
 
     @Test
@@ -62,9 +63,9 @@ class CompressedRedisSerializerTest {
 
         byte[] result = compressedSerializer.serialize(largeValue);
 
-        assertNotNull(result);
-        assertEquals(1, result[0]); // Compressed marker
-        assertTrue(result.length < largeSerialized.length + 1); // Should be smaller due to compression
+        assertThat(result).isNotNull();
+        assertThat(result[0]).isEqualTo(1); // Compressed marker
+        assertThat(result.length).isLessThan(largeSerialized.length + 1); // Should be smaller due to compression
     }
 
     @Test
@@ -74,9 +75,9 @@ class CompressedRedisSerializerTest {
 
         byte[] result = compressedSerializer.serialize(value);
 
-        assertNotNull(result);
-        assertEquals(1, result.length);
-        assertEquals(0, result[0]); // Not compressed marker
+        assertThat(result).isNotNull();
+        assertThat(result.length).isOne();
+        assertThat(result[0]).isEqualTo(0); // Not compressed marker
     }
 
     @Test
@@ -87,20 +88,20 @@ class CompressedRedisSerializerTest {
 
         CompressedRedisSerializer<String> serializer = new CompressedRedisSerializer<>(faultyDelegate);
 
-        assertThrows(RuntimeException.class, () -> serializer.serialize(value));
+        assertThatExceptionOfType(RuntimeException.class).isThrownBy(() -> serializer.serialize(value));
     }
 
     @Test
     void deserialize_WithNullBytes_ShouldReturnNull() {
         String result = compressedSerializer.deserialize(null);
-        assertNull(result);
+        assertThat(result).isNull();
         verifyNoInteractions(delegate);
     }
 
     @Test
     void deserialize_WithEmptyBytes_ShouldReturnNull() {
         String result = compressedSerializer.deserialize(new byte[0]);
-        assertNull(result);
+        assertThat(result).isNull();
         verifyNoInteractions(delegate);
     }
 
@@ -116,7 +117,7 @@ class CompressedRedisSerializerTest {
 
         String result = compressedSerializer.deserialize(bytesWithMarker);
 
-        assertEquals(expectedValue, result);
+        assertThat(result).isEqualTo(expectedValue);
         verify(delegate).deserialize(originalData);
     }
 
@@ -133,7 +134,7 @@ class CompressedRedisSerializerTest {
         // Then deserialize
         String result = compressedSerializer.deserialize(compressed);
 
-        assertEquals(originalValue, result);
+        assertThat(result).isEqualTo(originalValue);
     }
 
     @Test
@@ -146,7 +147,7 @@ class CompressedRedisSerializerTest {
         byte[] compressed = compressedSerializer.serialize(originalValue);
         String result = compressedSerializer.deserialize(compressed);
 
-        assertEquals(originalValue, result);
+        assertThat(result).isEqualTo(originalValue);
     }
 
     @Test
@@ -159,7 +160,7 @@ class CompressedRedisSerializerTest {
         byte[] compressed = compressedSerializer.serialize(originalValue);
         String result = compressedSerializer.deserialize(compressed);
 
-        assertEquals(originalValue, result);
+        assertThat(result).isEqualTo(originalValue);
     }
 
     @Test
@@ -168,7 +169,8 @@ class CompressedRedisSerializerTest {
         corruptedData[0] = 1; // Compressed marker
         // Rest is random data that cannot be decompressed
 
-        assertThrows(SerializationException.class, () -> compressedSerializer.deserialize(corruptedData));
+        assertThatExceptionOfType(SerializationException.class)
+                .isThrownBy(() -> compressedSerializer.deserialize(corruptedData));
     }
 
     @Test
@@ -179,8 +181,8 @@ class CompressedRedisSerializerTest {
 
         byte[] result = compressedSerializer.serialize(value);
 
-        assertNotNull(result);
-        assertEquals(0, result[0]); // Not compressed marker
+        assertThat(result).isNotNull();
+        assertThat(result[0]).isEqualTo(0); // Not compressed marker
     }
 
     @Test
@@ -191,7 +193,7 @@ class CompressedRedisSerializerTest {
 
         byte[] result = compressedSerializer.serialize(value);
 
-        assertNotNull(result);
-        assertEquals(1, result[0]); // Compressed marker
+        assertThat(result).isNotNull();
+        assertThat(result[0]).isEqualTo(1); // Compressed marker
     }
 }

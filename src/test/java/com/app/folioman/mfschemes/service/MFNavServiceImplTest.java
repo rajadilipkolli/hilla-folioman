@@ -1,6 +1,8 @@
 package com.app.folioman.mfschemes.service;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -100,7 +102,7 @@ class MFNavServiceImplTest {
     }
 
     @Test
-    void testGetNav() {
+    void getNav() {
         Long schemeCode = 123456L;
         LocalDate adjustedDate = LocalDate.of(2024, 1, 15);
         MFSchemeDTO expectedDto = new MFSchemeDTO(null, 0L, null, null, null, null, null);
@@ -111,13 +113,13 @@ class MFNavServiceImplTest {
 
             MFSchemeDTO result = mfNavService.getNav(schemeCode);
 
-            assertEquals(expectedDto, result);
+            assertThat(result).isEqualTo(expectedDto);
             verify(cachedNavService).getNavForDate(schemeCode, adjustedDate);
         }
     }
 
     @Test
-    void testGetNavOnDate() {
+    void getNavOnDate() {
         Long schemeCode = 123456L;
         LocalDate inputDate = LocalDate.of(2024, 1, 14);
         LocalDate adjustedDate = LocalDate.of(2024, 1, 15);
@@ -129,13 +131,13 @@ class MFNavServiceImplTest {
 
             MFSchemeDTO result = mfNavService.getNavOnDate(schemeCode, inputDate);
 
-            assertEquals(expectedDto, result);
+            assertThat(result).isEqualTo(expectedDto);
             verify(cachedNavService).getNavForDate(schemeCode, adjustedDate);
         }
     }
 
     @Test
-    void testGetNavByDateWithRetry_Success() {
+    void getNavByDateWithRetrySuccess() {
         Long schemeCode = 123456L;
         LocalDate navDate = LocalDate.of(2024, 1, 15);
         MFSchemeDTO expectedDto = new MFSchemeDTO(null, 0L, null, null, null, null, null);
@@ -144,12 +146,12 @@ class MFNavServiceImplTest {
 
         MFSchemeDTO result = mfNavService.getNavByDateWithRetry(schemeCode, navDate);
 
-        assertEquals(expectedDto, result);
+        assertThat(result).isEqualTo(expectedDto);
         verify(cachedNavService).getNavForDate(schemeCode, navDate);
     }
 
     @Test
-    void testGetNavByDateWithRetry_FirstRetryWithHistoricalData() {
+    void getNavByDateWithRetryFirstRetryWithHistoricalData() {
         Long schemeCode = 123456L;
         LocalDate navDate = LocalDate.of(2024, 1, 15);
         LocalDate retryDate = LocalDate.of(2024, 1, 14);
@@ -177,12 +179,12 @@ class MFNavServiceImplTest {
             // Call the method under test and verify side-effects (historical lookup and fetch)
             MFSchemeDTO result = mfNavService.getNavByDateWithRetry(schemeCode, navDate);
             // Ensure the method eventually returned the expected DTO after retries
-            assertEquals(expectedDto, result);
+            assertThat(result).isEqualTo(expectedDto);
         }
     }
 
     @Test
-    void testGetNavByDateWithRetry_FirstRetryWithoutHistoricalData() {
+    void getNavByDateWithRetryFirstRetryWithoutHistoricalData() {
         Long schemeCode = 123456L;
         LocalDate navDate = LocalDate.of(2024, 1, 15);
         LocalDate retryDate = LocalDate.of(2024, 1, 14);
@@ -212,7 +214,7 @@ class MFNavServiceImplTest {
     }
 
     @Test
-    void testGetNavByDateWithRetry_MaxRetriesExceeded() {
+    void getNavByDateWithRetryMaxRetriesExceeded() {
         Long schemeCode = 123456L;
         LocalDate navDate = LocalDate.of(2024, 1, 15);
         NavNotFoundException exception = new NavNotFoundException("Nav not found", navDate);
@@ -227,12 +229,13 @@ class MFNavServiceImplTest {
             when(historicalNavService.getHistoricalNav(anyLong(), any(LocalDate.class)))
                     .thenReturn("");
 
-            assertThrows(NavNotFoundException.class, () -> mfNavService.getNavByDateWithRetry(schemeCode, navDate));
+            assertThatExceptionOfType(NavNotFoundException.class)
+                    .isThrownBy(() -> mfNavService.getNavByDateWithRetry(schemeCode, navDate));
         }
     }
 
     @Test
-    void testLoadLastDayDataNav_WithData() {
+    void loadLastDayDataNavWithData() {
         List<Long> schemeIds = Arrays.asList(123456L, 654321L);
         String allNavs = "123456;ISIN1;ISIN2;Scheme1;10.5;15-Jan-2024\n654321;ISIN3;ISIN4;Scheme2;20.75;15-Jan-2024";
         MfFundScheme scheme1 = new MfFundScheme();
@@ -277,7 +280,7 @@ class MFNavServiceImplTest {
     }
 
     @Test
-    void testLoadLastDayDataNav_EmptySchemeList() {
+    void loadLastDayDataNavEmptySchemeList() {
         when(mfSchemeNavRepository.findMFSchemeNavsByNavNotLoaded(any(LocalDate.class)))
                 .thenReturn(Collections.emptyList());
 
@@ -288,7 +291,7 @@ class MFNavServiceImplTest {
     }
 
     @Test
-    void testLoadHistoricalDataIfNotExists_WithData() {
+    void loadHistoricalDataIfNotExistsWithData() {
         List<Long> schemeIds = Arrays.asList(123456L, 654321L);
 
         when(mfSchemeNavRepository.findMFSchemeNavsByNavNotLoaded(any(LocalDate.class)))
@@ -301,7 +304,7 @@ class MFNavServiceImplTest {
     }
 
     @Test
-    void testLoadHistoricalDataIfNotExists_EmptyList() {
+    void loadHistoricalDataIfNotExistsEmptyList() {
         when(mfSchemeNavRepository.findMFSchemeNavsByNavNotLoaded(any(LocalDate.class)))
                 .thenReturn(Collections.emptyList());
 
@@ -311,7 +314,7 @@ class MFNavServiceImplTest {
     }
 
     @Test
-    void testGetAmfiCodeIsinMap() {
+    void getAmfiCodeIsinMap() {
         String allNavs = "123456;ISIN1;ISIN2;Scheme1;10.5;15-Jan-2024\n654321;ISIN3;-;Scheme2;20.75;15-Jan-2024";
 
         doReturn(requestHeadersUriSpec).when(restClient).get();
@@ -327,14 +330,15 @@ class MFNavServiceImplTest {
 
         Map<String, String> result = mfNavService.getAmfiCodeIsinMap();
 
-        assertEquals("123456", result.get("ISIN1"));
-        assertEquals("123456", result.get("ISIN2"));
-        assertEquals("654321", result.get("ISIN3"));
-        assertFalse(result.containsKey("-"));
+        assertThat(result)
+                .containsEntry("ISIN1", "123456")
+                .containsEntry("ISIN2", "123456")
+                .containsEntry("ISIN3", "654321")
+                .doesNotContainKey("-");
     }
 
     @Test
-    void testGetAmfiCodeIsinMap_RestClientException() {
+    void getAmfiCodeIsinMapRestClientException() {
         doReturn(requestHeadersUriSpec).when(restClient).get();
         doReturn(requestHeadersSpec).when(requestHeadersUriSpec).uri(anyString());
         doReturn(requestHeadersSpec).when(requestHeadersSpec).headers(any());
@@ -348,25 +352,25 @@ class MFNavServiceImplTest {
 
         Map<String, String> result = mfNavService.getAmfiCodeIsinMap();
 
-        assertTrue(result.isEmpty());
+        assertThat(result).isEmpty();
     }
 
     @Test
-    void testProcessNavsAsync_NullInput() {
+    void processNavsAsyncNullInput() {
         mfNavService.processNavsAsync(null);
 
         verify(cachedNavService, never()).getNavForDate(anyLong(), any(LocalDate.class));
     }
 
     @Test
-    void testProcessNavsAsync_EmptyInput() {
+    void processNavsAsyncEmptyInput() {
         mfNavService.processNavsAsync(Collections.emptyList());
 
         verify(cachedNavService, never()).getNavForDate(anyLong(), any(LocalDate.class));
     }
 
     @Test
-    void testProcessNavsAsync_WithData() {
+    void processNavsAsyncWithData() {
         List<Long> schemeCodes = Arrays.asList(123456L, 654321L);
         MFSchemeDTO dto = new MFSchemeDTO(null, 0L, null, null, null, null, null);
 
@@ -382,7 +386,7 @@ class MFNavServiceImplTest {
     }
 
     @Test
-    void testProcessNavsAsync_WithException() {
+    void processNavsAsyncWithException() {
         List<Long> schemeCodes = Arrays.asList(123456L);
 
         try (MockedStatic<LocalDateUtility> mockedStatic = mockStatic(LocalDateUtility.class)) {
@@ -390,12 +394,12 @@ class MFNavServiceImplTest {
             when(cachedNavService.getNavForDate(anyLong(), any(LocalDate.class)))
                     .thenThrow(new RuntimeException("Test exception"));
 
-            assertDoesNotThrow(() -> mfNavService.processNavsAsync(schemeCodes));
+            assertThatCode(() -> mfNavService.processNavsAsync(schemeCodes)).doesNotThrowAnyException();
         }
     }
 
     @Test
-    void testGetNavsForSchemesAndDates_Success() {
+    void getNavsForSchemesAndDatesSuccess() {
         Set<Long> schemeCodes = Set.of(123456L, 654321L);
         LocalDate startDate = LocalDate.of(2024, 1, 1);
         LocalDate endDate = LocalDate.of(2024, 1, 31);
@@ -416,14 +420,14 @@ class MFNavServiceImplTest {
             Map<Long, Map<LocalDate, MFSchemeNavProjection>> result =
                     mfNavService.getNavsForSchemesAndDates(schemeCodes, startDate, endDate);
 
-            assertEquals(2, result.size());
-            assertTrue(result.containsKey(123456L));
-            assertTrue(result.containsKey(654321L));
+            assertThat(result).hasSize(2);
+            assertThat(result).containsKey(123456L);
+            assertThat(result).containsKey(654321L);
         }
     }
 
     @Test
-    void testGetNavsForSchemesAndDates_WithNavNotFoundException() {
+    void getNavsForSchemesAndDatesWithNavNotFoundException() {
         Set<Long> schemeCodes = Set.of(123456L);
         LocalDate startDate = LocalDate.of(2024, 1, 1);
         LocalDate endDate = LocalDate.of(2024, 1, 31);
@@ -439,12 +443,12 @@ class MFNavServiceImplTest {
             Map<Long, Map<LocalDate, MFSchemeNavProjection>> result =
                     mfNavService.getNavsForSchemesAndDates(schemeCodes, startDate, endDate);
 
-            assertTrue(result.isEmpty());
+            assertThat(result).isEmpty();
         }
     }
 
     @Test
-    void testGetNavsForSchemesAndDates_WithGenericException() {
+    void getNavsForSchemesAndDatesWithGenericException() {
         Set<Long> schemeCodes = Set.of(123456L);
         LocalDate startDate = LocalDate.of(2024, 1, 1);
         LocalDate endDate = LocalDate.of(2024, 1, 31);
@@ -460,7 +464,7 @@ class MFNavServiceImplTest {
             Map<Long, Map<LocalDate, MFSchemeNavProjection>> result =
                     mfNavService.getNavsForSchemesAndDates(schemeCodes, startDate, endDate);
 
-            assertTrue(result.isEmpty());
+            assertThat(result).isEmpty();
         }
     }
 

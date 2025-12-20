@@ -1,8 +1,6 @@
 package com.app.folioman.shared;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,99 +18,99 @@ class AuditableTest {
     }
 
     @Test
-    void testGetCreatedBy_WhenNotSet_ShouldReturnNull() {
-        assertNull(auditable.getCreatedBy());
+    void getCreatedByWhenNotSetShouldReturnNull() {
+        assertThat(auditable.getCreatedBy()).isNull();
     }
 
     @Test
-    void testSetCreatedBy_ShouldSetValueAndReturnThis() {
+    void setCreatedByShouldSetValueAndReturnThis() {
         String creator = "testUser";
 
         TestableAuditable result = (TestableAuditable) auditable.setCreatedBy(creator);
 
-        assertEquals(creator, auditable.getCreatedBy());
-        assertSame(auditable, result);
+        assertThat(auditable.getCreatedBy()).isEqualTo(creator);
+        assertThat(result).isSameAs(auditable);
     }
 
     @Test
-    void testSetCreatedBy_WithNull_ShouldSetNull() {
+    void setCreatedByWithNullShouldSetNull() {
         auditable.setCreatedBy("user");
 
         auditable.setCreatedBy(null);
 
-        assertNull(auditable.getCreatedBy());
+        assertThat(auditable.getCreatedBy()).isNull();
     }
 
     @Test
-    void testGetCreatedDate_WhenNotSet_ShouldReturnNull() {
-        assertNull(auditable.getCreatedDate());
+    void getCreatedDateWhenNotSetShouldReturnNull() {
+        assertThat(auditable.getCreatedDate()).isNull();
     }
 
     @Test
-    void testSetCreatedDate_ShouldSetValueAndReturnThis() {
+    void setCreatedDateShouldSetValueAndReturnThis() {
         TestableAuditable result = (TestableAuditable) auditable.setCreatedDate(testDate);
 
-        assertEquals(testDate, auditable.getCreatedDate());
-        assertSame(auditable, result);
+        assertThat(auditable.getCreatedDate()).isEqualTo(testDate);
+        assertThat(result).isSameAs(auditable);
     }
 
     @Test
-    void testSetCreatedDate_WithNull_ShouldSetNull() {
+    void setCreatedDateWithNullShouldSetNull() {
         auditable.setCreatedDate(testDate);
 
         auditable.setCreatedDate(null);
 
-        assertNull(auditable.getCreatedDate());
+        assertThat(auditable.getCreatedDate()).isNull();
     }
 
     @Test
-    void testGetLastModifiedBy_WhenNotSet_ShouldReturnNull() {
-        assertNull(auditable.getLastModifiedBy());
+    void getLastModifiedByWhenNotSetShouldReturnNull() {
+        assertThat(auditable.getLastModifiedBy()).isNull();
     }
 
     @Test
-    void testSetLastModifiedBy_ShouldSetValueAndReturnThis() {
+    void setLastModifiedByShouldSetValueAndReturnThis() {
         String modifier = "testUser";
 
         TestableAuditable result = (TestableAuditable) auditable.setLastModifiedBy(modifier);
 
-        assertEquals(modifier, auditable.getLastModifiedBy());
-        assertSame(auditable, result);
+        assertThat(auditable.getLastModifiedBy()).isEqualTo(modifier);
+        assertThat(result).isSameAs(auditable);
     }
 
     @Test
-    void testSetLastModifiedBy_WithNull_ShouldSetNull() {
+    void setLastModifiedByWithNullShouldSetNull() {
         auditable.setLastModifiedBy("user");
 
         auditable.setLastModifiedBy(null);
 
-        assertNull(auditable.getLastModifiedBy());
+        assertThat(auditable.getLastModifiedBy()).isNull();
     }
 
     @Test
-    void testGetLastModifiedDate_WhenNotSet_ShouldReturnNull() {
-        assertNull(auditable.getLastModifiedDate());
+    void getLastModifiedDateWhenNotSetShouldReturnNull() {
+        assertThat(auditable.getLastModifiedDate()).isNull();
     }
 
     @Test
-    void testSetLastModifiedDate_ShouldSetValueAndReturnThis() {
+    void setLastModifiedDateShouldSetValueAndReturnThis() {
         TestableAuditable result = (TestableAuditable) auditable.setLastModifiedDate(testDate);
 
-        assertEquals(testDate, auditable.getLastModifiedDate());
-        assertSame(auditable, result);
+        assertThat(auditable.getLastModifiedDate()).isEqualTo(testDate);
+        assertThat(result).isSameAs(auditable);
     }
 
     @Test
-    void testSetLastModifiedDate_WithNull_ShouldSetNull() {
+    void setLastModifiedDateWithNullShouldSetNull() {
         auditable.setLastModifiedDate(testDate);
 
         auditable.setLastModifiedDate(null);
 
-        assertNull(auditable.getLastModifiedDate());
+        assertThat(auditable.getLastModifiedDate()).isNull();
     }
 
     @Test
-    void testMethodChaining() {
+    void methodChaining() {
         String user = "testUser";
         LocalDateTime created = LocalDateTime.now();
         LocalDateTime modified = LocalDateTime.now().plusMinutes(1);
@@ -123,11 +121,11 @@ class AuditableTest {
                 .setLastModifiedBy(user)
                 .setLastModifiedDate(modified);
 
-        assertSame(auditable, result);
-        assertEquals(user, auditable.getCreatedBy());
-        assertEquals(created, auditable.getCreatedDate());
-        assertEquals(user, auditable.getLastModifiedBy());
-        assertEquals(modified, auditable.getLastModifiedDate());
+        assertThat(result).isSameAs(auditable);
+        assertThat(auditable.getCreatedBy()).isEqualTo(user);
+        assertThat(auditable.getCreatedDate()).isEqualTo(created);
+        assertThat(auditable.getLastModifiedBy()).isEqualTo(user);
+        assertThat(auditable.getLastModifiedDate()).isEqualTo(modified);
     }
 
     private static class TestableAuditable extends Auditable<String> {}

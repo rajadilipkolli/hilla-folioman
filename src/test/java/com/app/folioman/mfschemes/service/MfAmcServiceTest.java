@@ -58,7 +58,7 @@ public class MfAmcServiceTest {
             List<MfAmc> actualResults = mfAmcService.findByTextSearch(searchTerms);
 
             // Assert
-            assertThat(actualResults).isEqualTo(expectedResults);
+            assertThat(actualResults).containsExactlyElementsOf(expectedResults);
             verify(mfAmcCacheService).findByTextSearch(searchTerms);
         }
 
@@ -77,7 +77,7 @@ public class MfAmcServiceTest {
             List<MfAmc> actualResults = mfAmcService.findByTextSearch(searchTerms);
 
             // Assert
-            assertThat(actualResults).isEqualTo(expectedResults);
+            assertThat(actualResults).containsExactlyElementsOf(expectedResults);
             verify(mfAmcCacheService).findByTextSearch(searchTerms);
             verify(mfAmcCacheService).findByTextSearch(firstTerm);
         }
@@ -118,7 +118,7 @@ public class MfAmcServiceTest {
             List<MfAmc> actualResults = mfAmcService.findBySearchTerms(searchTerms);
 
             // Assert
-            assertThat(actualResults).isEqualTo(expectedResults);
+            assertThat(actualResults).containsExactlyElementsOf(expectedResults);
             verify(mfAmcCacheService, never()).findAllAmcs();
         }
 

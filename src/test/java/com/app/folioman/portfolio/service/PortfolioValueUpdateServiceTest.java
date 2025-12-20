@@ -87,7 +87,7 @@ class PortfolioValueUpdateServiceTest {
 
     @Test
     @DisplayName("Test updatePortfolioValue with CAS data")
-    void testUpdatePortfolioValueWithCasData() {
+    void updatePortfolioValueWithCasData() {
         // Given
         when(userPortfolioValueRepository.saveAll(anyList())).thenReturn(Collections.emptyList());
         when(mfSchemeNavProjection.nav()).thenReturn(BigDecimal.valueOf(12.50));
@@ -130,7 +130,7 @@ class PortfolioValueUpdateServiceTest {
 
     @Test
     @DisplayName("Test addFinalValuationCashFlows uses merge instead of put")
-    void testAddFinalValuationCashFlows() throws Exception {
+    void addFinalValuationCashFlows() throws Exception {
         // Given
         Method addFinalValuationMethod = PortfolioValueUpdateService.class.getDeclaredMethod(
                 "addFinalValuationCashFlows",
@@ -195,7 +195,7 @@ class PortfolioValueUpdateServiceTest {
 
     @Test
     @DisplayName("Test processTransaction uses computeIfAbsent")
-    void testProcessTransaction() throws Exception {
+    void processTransaction() throws Exception {
         // Given
         Method processTransactionMethod = PortfolioValueUpdateService.class.getDeclaredMethod(
                 "processTransaction",
@@ -228,13 +228,12 @@ class PortfolioValueUpdateServiceTest {
 
         // Verify recordCashFlows added the transaction correctly
         Map<LocalDate, BigDecimal> schemeCashFlows = cashFlowsByScheme.get(amfiCode);
-        assertThat(schemeCashFlows).isNotNull();
         assertThat(schemeCashFlows).containsKey(transaction.getTransactionDate());
     }
 
     @Test
     @DisplayName("Test generateOperationId uses UUID")
-    void testGenerateOperationId() throws Exception {
+    void generateOperationId() throws Exception {
         // Given
         Method generateOperationIdMethod =
                 PortfolioValueUpdateService.class.getDeclaredMethod("generateOperationId", Long.class);

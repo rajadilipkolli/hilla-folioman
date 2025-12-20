@@ -1,6 +1,6 @@
 package com.app.folioman.mfschemes.mapper;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -80,12 +80,12 @@ class MfSchemeDtoToEntityMapperHelperTest {
 
         mapperHelper.updateMFScheme(mfSchemeDTO, mfScheme);
 
-        assertEquals(mockSchemeType, mfScheme.getMfSchemeType());
-        assertEquals(mockAmc, mfScheme.getAmc());
-        assertFalse(mfScheme.getMfSchemeNavs().isEmpty());
+        assertThat(mfScheme.getMfSchemeType()).isEqualTo(mockSchemeType);
+        assertThat(mfScheme.getAmc()).isEqualTo(mockAmc);
+        assertThat(mfScheme.getMfSchemeNavs()).isNotEmpty();
         MFSchemeNav nav = mfScheme.getMfSchemeNavs().get(0);
-        assertEquals(new BigDecimal("25.50"), nav.getNav());
-        assertEquals(LocalDate.of(2024, 1, 1), nav.getNavDate());
+        assertThat(nav.getNav()).isEqualTo(new BigDecimal("25.50"));
+        assertThat(nav.getNavDate()).isEqualTo(LocalDate.of(2024, 1, 1));
     }
 
     @Test
@@ -100,7 +100,7 @@ class MfSchemeDtoToEntityMapperHelperTest {
         mapperHelper.updateMFScheme(mfSchemeDTO, mfScheme);
 
         MFSchemeNav nav = mfScheme.getMfSchemeNavs().get(0);
-        assertEquals(BigDecimal.ZERO, nav.getNav());
+        assertThat(nav.getNav()).isEqualTo(BigDecimal.ZERO);
     }
 
     @Test
@@ -114,9 +114,8 @@ class MfSchemeDtoToEntityMapperHelperTest {
 
         mapperHelper.updateMFScheme(mfSchemeDTO, mfScheme);
 
-        assertEquals(mockSchemeType, mfScheme.getMfSchemeType());
-        assertEquals(
-                LocalDate.of(2024, 2, 15), mfScheme.getMfSchemeNavs().get(0).getNavDate());
+        assertThat(mfScheme.getMfSchemeType()).isEqualTo(mockSchemeType);
+        assertThat(mfScheme.getMfSchemeNavs().get(0).getNavDate()).isEqualTo(LocalDate.of(2024, 2, 15));
     }
 
     @Test
@@ -148,7 +147,7 @@ class MfSchemeDtoToEntityMapperHelperTest {
 
         mapperHelper.updateMFScheme(mfSchemeDTO, mfScheme);
 
-        assertNull(mfScheme.getMfSchemeType());
+        assertThat(mfScheme.getMfSchemeType()).isNull();
         verify(mFSchemeTypeService, never()).findByTypeAndCategoryAndSubCategory(anyString(), anyString(), anyString());
     }
 
@@ -166,7 +165,7 @@ class MfSchemeDtoToEntityMapperHelperTest {
         mapperHelper.updateMFScheme(mfSchemeDTO, mfScheme);
 
         verify(mfAmcService).findOrCreateByName("New AMC");
-        assertEquals(mockAmc, mfScheme.getAmc());
+        assertThat(mfScheme.getAmc()).isEqualTo(mockAmc);
     }
 
     @Test
@@ -191,7 +190,7 @@ class MfSchemeDtoToEntityMapperHelperTest {
 
         MFSchemeType result = mapperHelper.findOrCreateMFSchemeTypeEntity("Equity", "Large Cap", "Growth");
 
-        assertEquals(mockSchemeType, result);
+        assertThat(result).isEqualTo(mockSchemeType);
         verify(mFSchemeTypeService).findByTypeAndCategoryAndSubCategory("Equity", "Large Cap", "Growth");
         verify(mFSchemeTypeService, never()).saveCategory(any());
     }
@@ -204,7 +203,7 @@ class MfSchemeDtoToEntityMapperHelperTest {
 
         MFSchemeType result = mapperHelper.findOrCreateMFSchemeTypeEntity("Equity", "Mid Cap", "Value");
 
-        assertEquals(mockSchemeType, result);
+        assertThat(result).isEqualTo(mockSchemeType);
         verify(mFSchemeTypeService).findByTypeAndCategoryAndSubCategory("Equity", "Mid Cap", "Value");
         verify(mFSchemeTypeService).saveCategory(any(MFSchemeType.class));
     }
@@ -216,7 +215,7 @@ class MfSchemeDtoToEntityMapperHelperTest {
 
         MFSchemeType result = mapperHelper.findOrCreateMFSchemeTypeEntity("Debt", "Long Term", null);
 
-        assertEquals(mockSchemeType, result);
+        assertThat(result).isEqualTo(mockSchemeType);
         verify(mFSchemeTypeService).findByTypeAndCategoryAndSubCategory("Debt", "Long Term", null);
     }
 
@@ -228,9 +227,9 @@ class MfSchemeDtoToEntityMapperHelperTest {
         MFSchemeType result1 = mapperHelper.findOrCreateMFSchemeTypeEntity("Equity", "Large Cap", "Growth");
         MFSchemeType result2 = mapperHelper.findOrCreateMFSchemeTypeEntity("Equity", "Large Cap", "Growth");
 
-        assertEquals(mockSchemeType, result1);
-        assertEquals(mockSchemeType, result2);
-        assertSame(result1, result2);
+        assertThat(result1).isEqualTo(mockSchemeType);
+        assertThat(result2).isEqualTo(mockSchemeType);
+        assertThat(result2).isSameAs(result1);
         verify(mFSchemeTypeService, times(1)).findByTypeAndCategoryAndSubCategory("Equity", "Large Cap", "Growth");
     }
 }

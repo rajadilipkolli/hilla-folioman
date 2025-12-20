@@ -61,7 +61,7 @@ class SchemeControllerIntTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void testFetchSchemesWithNoResults() throws Exception {
+    void fetchSchemesWithNoResults() throws Exception {
         // Test with a query that should not match any schemes or amcs
         String nonExistentSchemeName = "ThisSchemeDoesNotExistAnywhere12345amc";
 
@@ -71,7 +71,7 @@ class SchemeControllerIntTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void testFetchSchemesWithPartialMatch() throws Exception {
+    void fetchSchemesWithPartialMatch() throws Exception {
         // Test with partial name that should match multiple schemes
         mockMvc.perform(get("/api/scheme/{schemeName}", "equity"))
                 .andExpect(status().isOk())

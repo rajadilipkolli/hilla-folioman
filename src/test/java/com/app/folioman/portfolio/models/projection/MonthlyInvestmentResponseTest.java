@@ -1,16 +1,18 @@
 package com.app.folioman.portfolio.models.projection;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import java.math.BigDecimal;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class MonthlyInvestmentResponseTest {
 
     @Mock
@@ -22,98 +24,98 @@ class MonthlyInvestmentResponseTest {
     }
 
     @Test
-    void testGetYear() {
+    void getYear() {
         when(monthlyInvestmentResponse.getYear()).thenReturn(2023);
-        assertEquals(2023, monthlyInvestmentResponse.getYear());
+        assertThat(monthlyInvestmentResponse.getYear()).isEqualTo(2023);
     }
 
     @Test
-    void testGetYearReturnsNull() {
+    void getYearReturnsNull() {
         when(monthlyInvestmentResponse.getYear()).thenReturn(null);
-        assertNull(monthlyInvestmentResponse.getYear());
+        assertThat(monthlyInvestmentResponse.getYear()).isNull();
     }
 
     @Test
-    void testGetMonthNumber() {
+    void getMonthNumber() {
         when(monthlyInvestmentResponse.getMonthNumber()).thenReturn(12);
-        assertEquals(12, monthlyInvestmentResponse.getMonthNumber());
+        assertThat(monthlyInvestmentResponse.getMonthNumber()).isEqualTo(12);
     }
 
     @Test
-    void testGetMonthNumberReturnsNull() {
+    void getMonthNumberReturnsNull() {
         when(monthlyInvestmentResponse.getMonthNumber()).thenReturn(null);
-        assertNull(monthlyInvestmentResponse.getMonthNumber());
+        assertThat(monthlyInvestmentResponse.getMonthNumber()).isNull();
     }
 
     @Test
-    void testGetInvestmentPerMonth() {
+    void getInvestmentPerMonth() {
         BigDecimal investment = new BigDecimal("1000.50");
         when(monthlyInvestmentResponse.getInvestmentPerMonth()).thenReturn(investment);
-        assertEquals(investment, monthlyInvestmentResponse.getInvestmentPerMonth());
+        assertThat(monthlyInvestmentResponse.getInvestmentPerMonth()).isEqualTo(investment);
     }
 
     @Test
-    void testGetInvestmentPerMonthReturnsNull() {
+    void getInvestmentPerMonthReturnsNull() {
         when(monthlyInvestmentResponse.getInvestmentPerMonth()).thenReturn(null);
-        assertNull(monthlyInvestmentResponse.getInvestmentPerMonth());
+        assertThat(monthlyInvestmentResponse.getInvestmentPerMonth()).isNull();
     }
 
     @Test
-    void testGetInvestmentPerMonthWithZero() {
+    void getInvestmentPerMonthWithZero() {
         BigDecimal zero = BigDecimal.ZERO;
         when(monthlyInvestmentResponse.getInvestmentPerMonth()).thenReturn(zero);
-        assertEquals(zero, monthlyInvestmentResponse.getInvestmentPerMonth());
+        assertThat(monthlyInvestmentResponse.getInvestmentPerMonth()).isEqualTo(zero);
     }
 
     @Test
-    void testGetInvestmentPerMonthWithNegativeValue() {
+    void getInvestmentPerMonthWithNegativeValue() {
         BigDecimal negative = new BigDecimal("-500.25");
         when(monthlyInvestmentResponse.getInvestmentPerMonth()).thenReturn(negative);
-        assertEquals(negative, monthlyInvestmentResponse.getInvestmentPerMonth());
+        assertThat(monthlyInvestmentResponse.getInvestmentPerMonth()).isEqualTo(negative);
     }
 
     @Test
-    void testGetCumulativeInvestment() {
+    void getCumulativeInvestment() {
         BigDecimal cumulative = new BigDecimal("12000.75");
         when(monthlyInvestmentResponse.getCumulativeInvestment()).thenReturn(cumulative);
-        assertEquals(cumulative, monthlyInvestmentResponse.getCumulativeInvestment());
+        assertThat(monthlyInvestmentResponse.getCumulativeInvestment()).isEqualTo(cumulative);
     }
 
     @Test
-    void testGetCumulativeInvestmentReturnsNull() {
+    void getCumulativeInvestmentReturnsNull() {
         when(monthlyInvestmentResponse.getCumulativeInvestment()).thenReturn(null);
-        assertNull(monthlyInvestmentResponse.getCumulativeInvestment());
+        assertThat(monthlyInvestmentResponse.getCumulativeInvestment()).isNull();
     }
 
     @Test
-    void testGetCumulativeInvestmentWithZero() {
+    void getCumulativeInvestmentWithZero() {
         BigDecimal zero = BigDecimal.ZERO;
         when(monthlyInvestmentResponse.getCumulativeInvestment()).thenReturn(zero);
-        assertEquals(zero, monthlyInvestmentResponse.getCumulativeInvestment());
+        assertThat(monthlyInvestmentResponse.getCumulativeInvestment()).isEqualTo(zero);
     }
 
     @Test
-    void testGetCumulativeInvestmentWithNegativeValue() {
+    void getCumulativeInvestmentWithNegativeValue() {
         BigDecimal negative = new BigDecimal("-1500.50");
         when(monthlyInvestmentResponse.getCumulativeInvestment()).thenReturn(negative);
-        assertEquals(negative, monthlyInvestmentResponse.getCumulativeInvestment());
+        assertThat(monthlyInvestmentResponse.getCumulativeInvestment()).isEqualTo(negative);
     }
 
     @Test
-    void testAllMethodsWithValidData() {
+    void allMethodsWithValidData() {
         when(monthlyInvestmentResponse.getYear()).thenReturn(2023);
         when(monthlyInvestmentResponse.getMonthNumber()).thenReturn(6);
         when(monthlyInvestmentResponse.getInvestmentPerMonth()).thenReturn(new BigDecimal("2500.00"));
         when(monthlyInvestmentResponse.getCumulativeInvestment()).thenReturn(new BigDecimal("15000.00"));
 
-        assertEquals(2023, monthlyInvestmentResponse.getYear());
-        assertEquals(6, monthlyInvestmentResponse.getMonthNumber());
-        assertEquals(new BigDecimal("2500.00"), monthlyInvestmentResponse.getInvestmentPerMonth());
-        assertEquals(new BigDecimal("15000.00"), monthlyInvestmentResponse.getCumulativeInvestment());
+        assertThat(monthlyInvestmentResponse.getYear()).isEqualTo(2023);
+        assertThat(monthlyInvestmentResponse.getMonthNumber()).isEqualTo(6);
+        assertThat(monthlyInvestmentResponse.getInvestmentPerMonth()).isEqualTo(new BigDecimal("2500.00"));
+        assertThat(monthlyInvestmentResponse.getCumulativeInvestment()).isEqualTo(new BigDecimal("15000.00"));
     }
 
     @Test
-    void testInterfaceContract() {
+    void interfaceContract() {
         MonthlyInvestmentResponse mockResponse = mock(MonthlyInvestmentResponse.class);
 
         when(mockResponse.getYear()).thenReturn(2024);
@@ -121,9 +123,9 @@ class MonthlyInvestmentResponseTest {
         when(mockResponse.getInvestmentPerMonth()).thenReturn(BigDecimal.TEN);
         when(mockResponse.getCumulativeInvestment()).thenReturn(BigDecimal.ONE);
 
-        assertEquals(2024, mockResponse.getYear());
-        assertEquals(1, mockResponse.getMonthNumber());
-        assertEquals(BigDecimal.TEN, mockResponse.getInvestmentPerMonth());
-        assertEquals(BigDecimal.ONE, mockResponse.getCumulativeInvestment());
+        assertThat(mockResponse.getYear()).isEqualTo(2024);
+        assertThat(mockResponse.getMonthNumber()).isOne();
+        assertThat(mockResponse.getInvestmentPerMonth()).isEqualTo(BigDecimal.TEN);
+        assertThat(mockResponse.getCumulativeInvestment()).isEqualTo(BigDecimal.ONE);
     }
 }

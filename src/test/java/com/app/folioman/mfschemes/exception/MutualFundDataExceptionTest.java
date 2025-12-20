@@ -1,71 +1,71 @@
 package com.app.folioman.mfschemes.exception;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.Test;
 
 class MutualFundDataExceptionTest {
 
     @Test
-    void testConstructorWithMessage() {
+    void constructorWithMessage() {
         String message = "Test error message";
         MutualFundDataException exception = new MutualFundDataException(message);
 
-        assertEquals(message, exception.getMessage());
-        assertNull(exception.getCause());
+        assertThat(exception.getMessage()).isEqualTo(message);
+        assertThat(exception.getCause()).isNull();
     }
 
     @Test
-    void testConstructorWithNullMessage() {
+    void constructorWithNullMessage() {
         MutualFundDataException exception = new MutualFundDataException(null);
 
-        assertNull(exception.getMessage());
-        assertNull(exception.getCause());
+        assertThat(exception.getMessage()).isNull();
+        assertThat(exception.getCause()).isNull();
     }
 
     @Test
-    void testConstructorWithEmptyMessage() {
+    void constructorWithEmptyMessage() {
         String message = "";
         MutualFundDataException exception = new MutualFundDataException(message);
 
-        assertEquals(message, exception.getMessage());
-        assertNull(exception.getCause());
+        assertThat(exception.getMessage()).isEqualTo(message);
+        assertThat(exception.getCause()).isNull();
     }
 
     @Test
-    void testConstructorWithMessageAndCause() {
+    void constructorWithMessageAndCause() {
         String message = "Test error message";
         Throwable cause = new IllegalArgumentException("Root cause");
         MutualFundDataException exception = new MutualFundDataException(message, cause);
 
-        assertEquals(message, exception.getMessage());
-        assertEquals(cause, exception.getCause());
+        assertThat(exception.getMessage()).isEqualTo(message);
+        assertThat(exception.getCause()).isEqualTo(cause);
     }
 
     @Test
-    void testConstructorWithMessageAndNullCause() {
+    void constructorWithMessageAndNullCause() {
         String message = "Test error message";
         MutualFundDataException exception = new MutualFundDataException(message, null);
 
-        assertEquals(message, exception.getMessage());
-        assertNull(exception.getCause());
+        assertThat(exception.getMessage()).isEqualTo(message);
+        assertThat(exception.getCause()).isNull();
     }
 
     @Test
-    void testConstructorWithNullMessageAndCause() {
+    void constructorWithNullMessageAndCause() {
         Throwable cause = new IllegalArgumentException("Root cause");
         MutualFundDataException exception = new MutualFundDataException(null, cause);
 
-        assertNull(exception.getMessage());
-        assertEquals(cause, exception.getCause());
+        assertThat(exception.getMessage()).isNull();
+        assertThat(exception.getCause()).isEqualTo(cause);
     }
 
     @Test
-    void testInheritanceFromRuntimeException() {
+    void inheritanceFromRuntimeException() {
         MutualFundDataException exception = new MutualFundDataException("Test");
 
-        assertTrue(exception instanceof RuntimeException);
-        assertTrue(exception instanceof Exception);
-        assertTrue(exception instanceof Throwable);
+        assertThat(exception).isInstanceOf(RuntimeException.class);
+        assertThat(exception).isInstanceOf(Exception.class);
+        assertThat(exception).isInstanceOf(Throwable.class);
     }
 }

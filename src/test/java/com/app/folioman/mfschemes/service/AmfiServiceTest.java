@@ -1,14 +1,13 @@
 package com.app.folioman.mfschemes.service;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import com.app.folioman.mfschemes.config.AmfiProperties;
 import com.app.folioman.mfschemes.config.ApplicationProperties;
 import com.app.folioman.mfschemes.config.SchemeProperties;
-import com.opencsv.exceptions.CsvException;
-import java.io.IOException;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,7 +45,7 @@ class AmfiServiceTest {
     }
 
     @Test
-    void fetchAmfiSchemeData_SuccessfulRetrieval() throws IOException, CsvException {
+    void fetchAmfiSchemeData_SuccessfulRetrieval() throws Exception {
         String csvContent =
                 "Scheme Code,Scheme Name,Net Asset Value,Date\n123,Test Fund,100.50,01-Jan-2024\n456,Another Fund,200.75,01-Jan-2024";
         String dataUrl = "http://test-url.com/data.csv";
@@ -62,16 +61,19 @@ class AmfiServiceTest {
 
         Map<String, Map<String, String>> result = amfiService.fetchAmfiSchemeData();
 
-        assertNotNull(result);
-        assertEquals(2, result.size());
-        assertTrue(result.containsKey("Test Fund"), "Expected key 'Test Fund' in result: " + result);
-        assertTrue(result.containsKey("Another Fund"), "Expected key 'Another Fund' in result: " + result);
-        assertEquals("123", result.get("Test Fund").get("Scheme Code"));
-        assertEquals("456", result.get("Another Fund").get("Scheme Code"));
+        assertThat(result).hasSize(2);
+        assertThat(result.containsKey("Test Fund"))
+                .as("Expected key 'Test Fund' in result: " + result)
+                .isTrue();
+        assertThat(result.containsKey("Another Fund"))
+                .as("Expected key 'Another Fund' in result: " + result)
+                .isTrue();
+        assertThat(result.get("Test Fund")).containsEntry("Scheme Code", "123");
+        assertThat(result.get("Another Fund")).containsEntry("Scheme Code", "456");
     }
 
     @Test
-    void fetchAmfiSchemeData_RestClientException() throws IOException, CsvException {
+    void fetchAmfiSchemeData_RestClientException() throws Exception {
         String dataUrl = "http://test-url.com/data.csv";
 
         when(applicationProperties.getAmfi()).thenReturn(amfi);
@@ -85,8 +87,8 @@ class AmfiServiceTest {
 
         Map<String, Map<String, String>> result = amfiService.fetchAmfiSchemeData();
 
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
+        assertThat(result).isNotNull();
+        assertThat(result).isEmpty();
     }
 
     @Test
@@ -102,9 +104,10 @@ class AmfiServiceTest {
         doReturn(responseSpec).when(responseSpec).onStatus(any(), any());
         doReturn(null).when(responseSpec).body(String.class);
 
-        IllegalStateException exception =
-                assertThrows(IllegalStateException.class, () -> amfiService.fetchAmfiSchemeData());
-        assertEquals("Invalid response! No data received.", exception.getMessage());
+        IllegalStateException exception = assertThatExceptionOfType(IllegalStateException.class)
+                .isThrownBy(() -> amfiService.fetchAmfiSchemeData())
+                .actual();
+        assertThat(exception.getMessage()).isEqualTo("Invalid response! No data received.");
     }
 
     @Test
@@ -120,9 +123,10 @@ class AmfiServiceTest {
         doReturn(responseSpec).when(responseSpec).onStatus(any(), any());
         doReturn("   ").when(responseSpec).body(String.class);
 
-        IllegalStateException exception =
-                assertThrows(IllegalStateException.class, () -> amfiService.fetchAmfiSchemeData());
-        assertEquals("Invalid response! No data received.", exception.getMessage());
+        IllegalStateException exception = assertThatExceptionOfType(IllegalStateException.class)
+                .isThrownBy(() -> amfiService.fetchAmfiSchemeData())
+                .actual();
+        assertThat(exception.getMessage()).isEqualTo("Invalid response! No data received.");
     }
 
     @Test
@@ -138,13 +142,14 @@ class AmfiServiceTest {
         doReturn(responseSpec).when(responseSpec).onStatus(any(), any());
         doReturn("").when(responseSpec).body(String.class);
 
-        IllegalStateException exception =
-                assertThrows(IllegalStateException.class, () -> amfiService.fetchAmfiSchemeData());
-        assertEquals("Invalid response! No data received.", exception.getMessage());
+        IllegalStateException exception = assertThatExceptionOfType(IllegalStateException.class)
+                .isThrownBy(() -> amfiService.fetchAmfiSchemeData())
+                .actual();
+        assertThat(exception.getMessage()).isEqualTo("Invalid response! No data received.");
     }
 
     @Test
-    void fetchAmfiSchemeData_OnlyHeaders() throws IOException, CsvException {
+    void fetchAmfiSchemeData_OnlyHeaders() throws Exception {
         String csvContent = "Scheme Code,Scheme Name,Net Asset Value,Date";
         String dataUrl = "http://test-url.com/data.csv";
 
@@ -159,12 +164,12 @@ class AmfiServiceTest {
 
         Map<String, Map<String, String>> result = amfiService.fetchAmfiSchemeData();
 
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
+        assertThat(result).isNotNull();
+        assertThat(result).isEmpty();
     }
 
     @Test
-    void fetchAmfiSchemeData_WithWhitespaceInData() throws IOException, CsvException {
+    void fetchAmfiSchemeData_WithWhitespaceInData() throws Exception {
         String csvContent =
                 "Scheme Code,Scheme Name,Net Asset Value,Date\n  123  ,  Test Fund  ,  100.50  ,  01-Jan-2024  ";
         String dataUrl = "http://test-url.com/data.csv";
@@ -180,15 +185,13 @@ class AmfiServiceTest {
 
         Map<String, Map<String, String>> result = amfiService.fetchAmfiSchemeData();
 
-        assertNotNull(result);
-        assertEquals(1, result.size());
-        assertTrue(result.containsKey("Test Fund"));
-        assertEquals("123", result.get("Test Fund").get("Scheme Code"));
-        assertEquals("100.50", result.get("Test Fund").get("Net Asset Value"));
+        assertThat(result).hasSize(1).containsKey("Test Fund");
+        assertThat(result.get("Test Fund")).containsEntry("Scheme Code", "123");
+        assertThat(result.get("Test Fund")).containsEntry("Net Asset Value", "100.50");
     }
 
     @Test
-    void fetchAmfiSchemeData_MultipleRowsSameCode() throws IOException, CsvException {
+    void fetchAmfiSchemeData_MultipleRowsSameCode() throws Exception {
         String csvContent =
                 "Scheme Code,Scheme Name,Net Asset Value,Date\n123,Test Fund 1,100.50,01-Jan-2024\n123,Test Fund 2,200.75,02-Jan-2024";
         String dataUrl = "http://test-url.com/data.csv";
@@ -204,10 +207,7 @@ class AmfiServiceTest {
 
         Map<String, Map<String, String>> result = amfiService.fetchAmfiSchemeData();
 
-        assertNotNull(result);
-        assertEquals(2, result.size());
-        assertTrue(result.containsKey("Test Fund 1"));
-        assertTrue(result.containsKey("Test Fund 2"));
-        assertEquals("123", result.get("Test Fund 2").get("Scheme Code"));
+        assertThat(result).hasSize(2).containsKey("Test Fund 1").containsKey("Test Fund 2");
+        assertThat(result.get("Test Fund 2")).containsEntry("Scheme Code", "123");
     }
 }

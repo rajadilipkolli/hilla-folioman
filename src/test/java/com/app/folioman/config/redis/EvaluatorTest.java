@@ -1,7 +1,7 @@
 package com.app.folioman.config.redis;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -26,7 +26,7 @@ class EvaluatorTest {
 
         String result = evaluator.evaluate(metrics);
 
-        assertEquals("REDUCE_CACHE_SIZE", result);
+        assertThat(result).isEqualTo("REDUCE_CACHE_SIZE");
     }
 
     @Test
@@ -38,7 +38,7 @@ class EvaluatorTest {
 
         String result = evaluator.evaluate(metrics);
 
-        assertEquals("INCREASE_CACHE_SIZE", result);
+        assertThat(result).isEqualTo("INCREASE_CACHE_SIZE");
     }
 
     @Test
@@ -50,7 +50,7 @@ class EvaluatorTest {
 
         String result = evaluator.evaluate(metrics);
 
-        assertEquals("ADJUST_TTL", result);
+        assertThat(result).isEqualTo("ADJUST_TTL");
     }
 
     @Test
@@ -62,7 +62,7 @@ class EvaluatorTest {
 
         String result = evaluator.evaluate(metrics);
 
-        assertEquals("MAINTAIN_CURRENT", result);
+        assertThat(result).isEqualTo("MAINTAIN_CURRENT");
     }
 
     @Test
@@ -74,7 +74,7 @@ class EvaluatorTest {
 
         String result = evaluator.evaluate(metrics);
 
-        assertEquals("MAINTAIN_CURRENT", result);
+        assertThat(result).isEqualTo("MAINTAIN_CURRENT");
     }
 
     @Test
@@ -86,7 +86,7 @@ class EvaluatorTest {
 
         String result = evaluator.evaluate(metrics);
 
-        assertEquals("ADJUST_TTL", result);
+        assertThat(result).isEqualTo("ADJUST_TTL");
     }
 
     @Test
@@ -98,7 +98,7 @@ class EvaluatorTest {
 
         String result = evaluator.evaluate(metrics);
 
-        assertEquals("MAINTAIN_CURRENT", result);
+        assertThat(result).isEqualTo("MAINTAIN_CURRENT");
     }
 
     @Test
@@ -110,7 +110,7 @@ class EvaluatorTest {
 
         String result = evaluator.evaluate(metrics);
 
-        assertEquals("MAINTAIN_CURRENT", result);
+        assertThat(result).isEqualTo("MAINTAIN_CURRENT");
     }
 
     @Test
@@ -119,10 +119,11 @@ class EvaluatorTest {
         metrics.put("hitRate", 0.5);
         metrics.put("memoryUsage", 500000000L);
 
-        IllegalArgumentException exception =
-                assertThrows(IllegalArgumentException.class, () -> evaluator.evaluate(metrics));
+        IllegalArgumentException exception = assertThatExceptionOfType(IllegalArgumentException.class)
+                .isThrownBy(() -> evaluator.evaluate(metrics))
+                .actual();
 
-        assertEquals("Input map does not contain the expected keys", exception.getMessage());
+        assertThat(exception.getMessage()).isEqualTo("Input map does not contain the expected keys");
     }
 
     @Test
@@ -131,10 +132,11 @@ class EvaluatorTest {
         metrics.put("cacheSize", 5000L);
         metrics.put("memoryUsage", 500000000L);
 
-        IllegalArgumentException exception =
-                assertThrows(IllegalArgumentException.class, () -> evaluator.evaluate(metrics));
+        IllegalArgumentException exception = assertThatExceptionOfType(IllegalArgumentException.class)
+                .isThrownBy(() -> evaluator.evaluate(metrics))
+                .actual();
 
-        assertEquals("Input map does not contain the expected keys", exception.getMessage());
+        assertThat(exception.getMessage()).isEqualTo("Input map does not contain the expected keys");
     }
 
     @Test
@@ -143,10 +145,11 @@ class EvaluatorTest {
         metrics.put("cacheSize", 5000L);
         metrics.put("hitRate", 0.5);
 
-        IllegalArgumentException exception =
-                assertThrows(IllegalArgumentException.class, () -> evaluator.evaluate(metrics));
+        IllegalArgumentException exception = assertThatExceptionOfType(IllegalArgumentException.class)
+                .isThrownBy(() -> evaluator.evaluate(metrics))
+                .actual();
 
-        assertEquals("Input map does not contain the expected keys", exception.getMessage());
+        assertThat(exception.getMessage()).isEqualTo("Input map does not contain the expected keys");
     }
 
     @Test
@@ -156,10 +159,11 @@ class EvaluatorTest {
         metrics.put("hitRate", 0.5);
         metrics.put("memoryUsage", 500000000L);
 
-        IllegalArgumentException exception =
-                assertThrows(IllegalArgumentException.class, () -> evaluator.evaluate(metrics));
+        IllegalArgumentException exception = assertThatExceptionOfType(IllegalArgumentException.class)
+                .isThrownBy(() -> evaluator.evaluate(metrics))
+                .actual();
 
-        assertEquals("Invalid metric values", exception.getMessage());
+        assertThat(exception.getMessage()).isEqualTo("Invalid metric values");
     }
 
     @Test
@@ -169,10 +173,11 @@ class EvaluatorTest {
         metrics.put("hitRate", -0.1);
         metrics.put("memoryUsage", 500000000L);
 
-        IllegalArgumentException exception =
-                assertThrows(IllegalArgumentException.class, () -> evaluator.evaluate(metrics));
+        IllegalArgumentException exception = assertThatExceptionOfType(IllegalArgumentException.class)
+                .isThrownBy(() -> evaluator.evaluate(metrics))
+                .actual();
 
-        assertEquals("Invalid metric values", exception.getMessage());
+        assertThat(exception.getMessage()).isEqualTo("Invalid metric values");
     }
 
     @Test
@@ -182,10 +187,11 @@ class EvaluatorTest {
         metrics.put("hitRate", 1.1);
         metrics.put("memoryUsage", 500000000L);
 
-        IllegalArgumentException exception =
-                assertThrows(IllegalArgumentException.class, () -> evaluator.evaluate(metrics));
+        IllegalArgumentException exception = assertThatExceptionOfType(IllegalArgumentException.class)
+                .isThrownBy(() -> evaluator.evaluate(metrics))
+                .actual();
 
-        assertEquals("Invalid metric values", exception.getMessage());
+        assertThat(exception.getMessage()).isEqualTo("Invalid metric values");
     }
 
     @Test
@@ -195,10 +201,11 @@ class EvaluatorTest {
         metrics.put("hitRate", 0.5);
         metrics.put("memoryUsage", -1L);
 
-        IllegalArgumentException exception =
-                assertThrows(IllegalArgumentException.class, () -> evaluator.evaluate(metrics));
+        IllegalArgumentException exception = assertThatExceptionOfType(IllegalArgumentException.class)
+                .isThrownBy(() -> evaluator.evaluate(metrics))
+                .actual();
 
-        assertEquals("Invalid metric values", exception.getMessage());
+        assertThat(exception.getMessage()).isEqualTo("Invalid metric values");
     }
 
     @Test
@@ -210,7 +217,7 @@ class EvaluatorTest {
 
         String result = evaluator.evaluate(metrics);
 
-        assertEquals("ADJUST_TTL", result);
+        assertThat(result).isEqualTo("ADJUST_TTL");
     }
 
     @Test
@@ -222,7 +229,7 @@ class EvaluatorTest {
 
         String result = evaluator.evaluate(metrics);
 
-        assertEquals("INCREASE_CACHE_SIZE", result);
+        assertThat(result).isEqualTo("INCREASE_CACHE_SIZE");
     }
 
     @Test
@@ -234,7 +241,7 @@ class EvaluatorTest {
 
         String result = evaluator.evaluate(metrics);
 
-        assertEquals("MAINTAIN_CURRENT", result);
+        assertThat(result).isEqualTo("MAINTAIN_CURRENT");
     }
 
     @Test
@@ -246,6 +253,6 @@ class EvaluatorTest {
 
         String result = evaluator.evaluate(metrics);
 
-        assertEquals("INCREASE_CACHE_SIZE", result);
+        assertThat(result).isEqualTo("INCREASE_CACHE_SIZE");
     }
 }

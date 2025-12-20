@@ -53,7 +53,7 @@ public class MfAmcCacheServiceTest {
             List<MfAmc> actualResults = mfAmcCacheService.findByTextSearch(searchTerms);
 
             // Assert
-            assertThat(actualResults).isEqualTo(expectedResults);
+            assertThat(actualResults).containsExactlyElementsOf(expectedResults);
             verify(mfAmcRepository).findByTextSearch(expectedTsQueryFormat);
         }
 
@@ -93,7 +93,7 @@ public class MfAmcCacheServiceTest {
             List<MfAmc> actualResults = mfAmcCacheService.findByTextSearch(searchTerms);
 
             // Assert
-            assertThat(actualResults).isEqualTo(expectedResults);
+            assertThat(actualResults).containsExactlyElementsOf(expectedResults);
             verify(mfAmcRepository).findByTextSearch(expectedTsQueryFormat);
         }
 
@@ -111,7 +111,7 @@ public class MfAmcCacheServiceTest {
             List<MfAmc> actualResults = mfAmcCacheService.findByTextSearch(searchTerms);
 
             // Assert
-            assertThat(actualResults).isEqualTo(expectedResults);
+            assertThat(actualResults).containsExactlyElementsOf(expectedResults);
             verify(mfAmcRepository).findByTextSearch(expectedTsQueryFormat);
         }
 
@@ -144,7 +144,7 @@ public class MfAmcCacheServiceTest {
             List<MfAmc> actualResults = mfAmcCacheService.findByTextSearch(searchTerms);
 
             // Assert
-            assertThat(actualResults).isEqualTo(expectedResults);
+            assertThat(actualResults).containsExactlyElementsOf(expectedResults);
             verify(mfAmcRepository).findByTextSearch(expectedTsQueryFormat);
         }
 
@@ -162,7 +162,7 @@ public class MfAmcCacheServiceTest {
             List<MfAmc> actualResults = mfAmcCacheService.findByTextSearch(searchTerms);
 
             // Assert
-            assertThat(actualResults).isEqualTo(expectedResults);
+            assertThat(actualResults).containsExactlyElementsOf(expectedResults);
             verify(mfAmcRepository).findByTextSearch(expectedTsQueryFormat);
         }
     }
@@ -229,7 +229,7 @@ public class MfAmcCacheServiceTest {
             List<MfAmc> result = mfAmcCacheService.findAllAmcs();
 
             // Assert
-            assertThat(result).isEqualTo(expectedList);
+            assertThat(result).containsExactlyElementsOf(expectedList);
             verify(mfAmcRepository).findAll();
         }
     }

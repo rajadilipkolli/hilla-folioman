@@ -1,6 +1,7 @@
 package com.app.folioman.config.redis;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import java.util.function.Supplier;
@@ -26,16 +27,16 @@ class CacheCircuitBreakerTest {
     void constructor_WithDefaultValues_ShouldCreateCircuitBreaker() {
         CacheCircuitBreaker circuitBreaker = new CacheCircuitBreaker(50.0f, 30, 100);
 
-        assertNotNull(circuitBreaker);
-        assertEquals(CircuitBreaker.State.CLOSED, circuitBreaker.getState());
+        assertThat(circuitBreaker).isNotNull();
+        assertThat(circuitBreaker.getState()).isEqualTo(CircuitBreaker.State.CLOSED);
     }
 
     @Test
     void constructor_WithCustomValues_ShouldCreateCircuitBreaker() {
         CacheCircuitBreaker circuitBreaker = new CacheCircuitBreaker(75.0f, 60, 200);
 
-        assertNotNull(circuitBreaker);
-        assertEquals(CircuitBreaker.State.CLOSED, circuitBreaker.getState());
+        assertThat(circuitBreaker).isNotNull();
+        assertThat(circuitBreaker.getState()).isEqualTo(CircuitBreaker.State.CLOSED);
     }
 
     @Test
@@ -45,7 +46,7 @@ class CacheCircuitBreakerTest {
 
         String result = cacheCircuitBreaker.executeWithFallback(supplier, fallback);
 
-        assertEquals("success", result);
+        assertThat(result).isEqualTo("success");
     }
 
     @Test
@@ -57,7 +58,7 @@ class CacheCircuitBreakerTest {
 
         String result = cacheCircuitBreaker.executeWithFallback(supplier, fallback);
 
-        assertEquals("fallback", result);
+        assertThat(result).isEqualTo("fallback");
     }
 
     @Test
@@ -69,7 +70,7 @@ class CacheCircuitBreakerTest {
 
         String result = cacheCircuitBreaker.executeWithFallback(supplier, fallback);
 
-        assertEquals("fallback", result);
+        assertThat(result).isEqualTo("fallback");
     }
 
     @Test
@@ -81,7 +82,7 @@ class CacheCircuitBreakerTest {
 
         String result = cacheCircuitBreaker.executeWithFallback(supplier, fallback);
 
-        assertEquals("fallback", result);
+        assertThat(result).isEqualTo("fallback");
     }
 
     @Test
@@ -91,7 +92,7 @@ class CacheCircuitBreakerTest {
 
         Integer result = cacheCircuitBreaker.executeWithFallback(supplier, fallback);
 
-        assertEquals(42, result);
+        assertThat(result).isEqualTo(42);
     }
 
     @Test
@@ -100,7 +101,7 @@ class CacheCircuitBreakerTest {
 
         String result = cacheCircuitBreaker.execute(supplier);
 
-        assertEquals("success", result);
+        assertThat(result).isEqualTo("success");
     }
 
     @Test
@@ -111,7 +112,7 @@ class CacheCircuitBreakerTest {
 
         String result = cacheCircuitBreaker.execute(supplier);
 
-        assertNull(result);
+        assertThat(result).isNull();
     }
 
     @Test
@@ -120,7 +121,7 @@ class CacheCircuitBreakerTest {
 
         Integer result = cacheCircuitBreaker.execute(supplier);
 
-        assertEquals(100, result);
+        assertThat(result).isEqualTo(100);
     }
 
     @Test
@@ -131,15 +132,15 @@ class CacheCircuitBreakerTest {
 
         Integer result = cacheCircuitBreaker.execute(supplier);
 
-        assertNull(result);
+        assertThat(result).isNull();
     }
 
     @Test
     void getState_ShouldReturnCurrentCircuitBreakerState() {
         CircuitBreaker.State state = cacheCircuitBreaker.getState();
 
-        assertNotNull(state);
-        assertEquals(CircuitBreaker.State.CLOSED, state);
+        assertThat(state).isNotNull();
+        assertThat(state).isEqualTo(CircuitBreaker.State.CLOSED);
     }
 
     @Test
@@ -151,24 +152,20 @@ class CacheCircuitBreakerTest {
             throw new RuntimeException("Fallback failed");
         };
 
-        assertThrows(RuntimeException.class, () -> {
-            cacheCircuitBreaker.executeWithFallback(supplier, fallback);
-        });
+        assertThatExceptionOfType(RuntimeException.class)
+                .isThrownBy(() -> cacheCircuitBreaker.executeWithFallback(supplier, fallback));
     }
 
     @Test
     void executeWithFallback_WithNullSupplier_ShouldThrowException() {
         Supplier<String> fallback = () -> "fallback";
 
-        assertThrows(NullPointerException.class, () -> {
-            cacheCircuitBreaker.executeWithFallback(null, fallback);
-        });
+        assertThatExceptionOfType(NullPointerException.class)
+                .isThrownBy(() -> cacheCircuitBreaker.executeWithFallback(null, fallback));
     }
 
     @Test
     void execute_WithNullSupplier_ShouldThrowException() {
-        assertThrows(NullPointerException.class, () -> {
-            cacheCircuitBreaker.execute(null);
-        });
+        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> cacheCircuitBreaker.execute(null));
     }
 }

@@ -221,6 +221,12 @@
             <artifactId>vaadin-testbench</artifactId>
             <version>${vaadin.version}</version>
             <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>junit</groupId>
+                    <artifactId>junit</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
         <!-- Selenium WebDriver for TestBench -->
         <dependency>

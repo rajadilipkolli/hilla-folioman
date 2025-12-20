@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test;
 class UploadedSchemesListTest {
 
     @Test
-    void testCreationWithMultipleSchemes() {
+    void creationWithMultipleSchemes() {
         // Given a list of scheme IDs
         List<Long> schemeIds = Arrays.asList(1L, 2L, 3L);
 
@@ -18,11 +18,11 @@ class UploadedSchemesListTest {
         UploadedSchemesList uploadedSchemesList = new UploadedSchemesList(schemeIds);
 
         // Then the list should be accessible via the accessor method
-        assertThat(uploadedSchemesList.schemesList()).isNotNull().hasSize(3).containsExactly(1L, 2L, 3L);
+        assertThat(uploadedSchemesList.schemesList()).containsExactly(1L, 2L, 3L);
     }
 
     @Test
-    void testCreationWithEmptyList() {
+    void creationWithEmptyList() {
         // Given an empty list
         List<Long> emptyList = Collections.emptyList();
 
@@ -30,11 +30,11 @@ class UploadedSchemesListTest {
         UploadedSchemesList uploadedSchemesList = new UploadedSchemesList(emptyList);
 
         // Then the list should be accessible and empty
-        assertThat(uploadedSchemesList.schemesList()).isNotNull().isEmpty();
+        assertThat(uploadedSchemesList.schemesList()).isEmpty();
     }
 
     @Test
-    void testEquality() {
+    void equality() {
         // Given two UploadedSchemesList instances with the same content
         UploadedSchemesList list1 = new UploadedSchemesList(Arrays.asList(1L, 2L, 3L));
         UploadedSchemesList list2 = new UploadedSchemesList(Arrays.asList(1L, 2L, 3L));

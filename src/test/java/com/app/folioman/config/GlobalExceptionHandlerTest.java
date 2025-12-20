@@ -1,6 +1,6 @@
 package com.app.folioman.config;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -36,20 +36,20 @@ class GlobalExceptionHandlerTest {
 
         ProblemDetail result = globalExceptionHandler.onException(methodArgumentNotValidException);
 
-        assertNotNull(result);
-        assertEquals(400, result.getStatus());
-        assertEquals("Invalid request content.", result.getDetail());
-        assertEquals("Constraint Violation", result.getTitle());
-        assertNotNull(result.getProperties().get("violations"));
+        assertThat(result).isNotNull();
+        assertThat(result.getStatus()).isEqualTo(400);
+        assertThat(result.getDetail()).isEqualTo("Invalid request content.");
+        assertThat(result.getTitle()).isEqualTo("Constraint Violation");
+        assertThat(result.getProperties().get("violations")).isNotNull();
 
         @SuppressWarnings("unchecked")
         List<GlobalExceptionHandler.ApiValidationError> violations = (List<GlobalExceptionHandler.ApiValidationError>)
                 result.getProperties().get("violations");
-        assertEquals(1, violations.size());
-        assertEquals("testObject", violations.getFirst().object());
-        assertEquals("testField", violations.getFirst().field());
-        assertEquals("rejectedValue", violations.getFirst().rejectedValue());
-        assertEquals("Test error message", violations.getFirst().message());
+        assertThat(violations).hasSize(1);
+        assertThat(violations.getFirst().object()).isEqualTo("testObject");
+        assertThat(violations.getFirst().field()).isEqualTo("testField");
+        assertThat(violations.getFirst().rejectedValue()).isEqualTo("rejectedValue");
+        assertThat(violations.getFirst().message()).isEqualTo("Test error message");
     }
 
     @Test
@@ -64,11 +64,11 @@ class GlobalExceptionHandlerTest {
 
         ProblemDetail result = globalExceptionHandler.onException(methodArgumentNotValidException);
 
-        assertNotNull(result);
+        assertThat(result).isNotNull();
         @SuppressWarnings("unchecked")
         List<GlobalExceptionHandler.ApiValidationError> violations = (List<GlobalExceptionHandler.ApiValidationError>)
                 result.getProperties().get("violations");
-        assertEquals("", violations.getFirst().message());
+        assertThat(violations.getFirst().message()).isEmpty();
     }
 
     @Test
@@ -94,9 +94,9 @@ class GlobalExceptionHandlerTest {
         @SuppressWarnings("unchecked")
         List<GlobalExceptionHandler.ApiValidationError> violations = (List<GlobalExceptionHandler.ApiValidationError>)
                 result.getProperties().get("violations");
-        assertEquals(2, violations.size());
-        assertEquals("aField", violations.get(0).field());
-        assertEquals("zField", violations.get(1).field());
+        assertThat(violations).hasSize(2);
+        assertThat(violations.get(0).field()).isEqualTo("aField");
+        assertThat(violations.get(1).field()).isEqualTo("zField");
     }
 
     @Test
@@ -106,10 +106,10 @@ class GlobalExceptionHandlerTest {
 
         ProblemDetail result = globalExceptionHandler.onException(exception);
 
-        assertNotNull(result);
-        assertEquals(404, result.getStatus());
-        assertEquals(errorMessage, result.getDetail());
-        assertEquals("Scheme NotFound", result.getTitle());
+        assertThat(result).isNotNull();
+        assertThat(result.getStatus()).isEqualTo(404);
+        assertThat(result.getDetail()).isEqualTo(errorMessage);
+        assertThat(result.getTitle()).isEqualTo("Scheme NotFound");
     }
 
     @Test
@@ -119,10 +119,10 @@ class GlobalExceptionHandlerTest {
 
         ProblemDetail result = globalExceptionHandler.onException(exception);
 
-        assertNotNull(result);
-        assertEquals(404, result.getStatus());
-        assertEquals(errorMessage + " on 2025-11-02", result.getDetail());
-        assertEquals("NAV Not Found", result.getTitle());
+        assertThat(result).isNotNull();
+        assertThat(result.getStatus()).isEqualTo(404);
+        assertThat(result.getDetail()).isEqualTo(errorMessage + " on 2025-11-02");
+        assertThat(result.getTitle()).isEqualTo("NAV Not Found");
     }
 
     @Test
@@ -132,9 +132,9 @@ class GlobalExceptionHandlerTest {
 
         ProblemDetail result = globalExceptionHandler.onException(exception);
 
-        assertNotNull(result);
-        assertEquals(400, result.getStatus());
-        assertEquals(errorMessage, result.getDetail());
-        assertEquals("Constraint Violation", result.getTitle());
+        assertThat(result).isNotNull();
+        assertThat(result.getStatus()).isEqualTo(400);
+        assertThat(result.getDetail()).isEqualTo(errorMessage);
+        assertThat(result.getTitle()).isEqualTo("Constraint Violation");
     }
 }

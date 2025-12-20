@@ -27,7 +27,7 @@ class SchemaValidationPostgresTest {
 
     @Test
     void validateJpaMappingsWithDbSchema() {
-        assertThat(dataSource).isNotNull().isInstanceOf(HikariDataSource.class);
+        assertThat(dataSource).isInstanceOf(HikariDataSource.class);
 
         // Verify entity-to-table mappings
         Metamodel metamodel = entityManager.getMetamodel();

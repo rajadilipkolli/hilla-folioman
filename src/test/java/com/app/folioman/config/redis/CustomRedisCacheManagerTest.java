@@ -1,6 +1,6 @@
 package com.app.folioman.config.redis;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Duration;
 import org.junit.jupiter.api.Test;
@@ -43,7 +43,7 @@ class CustomRedisCacheManagerTest {
         CustomRedisCache cache = new CustomRedisCache(
                 "testCache", redisCacheWriter, SIMPLE_SERIALIZER, customTtl, monitor, circuitBreaker);
 
-        assertNotNull(cache);
+        assertThat(cache).isNotNull();
     }
 
     @Test
@@ -52,7 +52,7 @@ class CustomRedisCacheManagerTest {
         CustomRedisCache cache = new CustomRedisCache(
                 "testCache", redisCacheWriter, SIMPLE_SERIALIZER, Duration.ofMinutes(10), monitor, circuitBreaker);
 
-        assertNotNull(cache);
+        assertThat(cache).isNotNull();
     }
 
     @Test
@@ -62,7 +62,7 @@ class CustomRedisCacheManagerTest {
         CustomRedisCache result = new CustomRedisCache(
                 cacheName, redisCacheWriter, SIMPLE_SERIALIZER, Duration.ofMinutes(5), monitor, circuitBreaker);
 
-        assertNotNull(result);
+        assertThat(result).isNotNull();
     }
 
     @Test
@@ -73,7 +73,7 @@ class CustomRedisCacheManagerTest {
         CustomRedisCache result = new CustomRedisCache(
                 cacheName, redisCacheWriter, SIMPLE_SERIALIZER, Duration.ofMinutes(5), monitor, circuitBreaker);
 
-        assertNotNull(result);
+        assertThat(result).isNotNull();
     }
 
     @Test
@@ -84,6 +84,6 @@ class CustomRedisCacheManagerTest {
         CustomRedisCache result = new CustomRedisCache(
                 cacheName, redisCacheWriter, SIMPLE_SERIALIZER, configTtl, monitor, circuitBreaker);
 
-        assertNotNull(result);
+        assertThat(result).isNotNull();
     }
 }

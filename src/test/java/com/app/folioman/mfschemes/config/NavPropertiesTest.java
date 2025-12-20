@@ -1,6 +1,6 @@
 package com.app.folioman.mfschemes.config;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,14 +26,14 @@ class NavPropertiesTest {
 
     @Test
     void getAmfi_shouldReturnNull_whenNotSet() {
-        assertNull(navProperties.getAmfi());
+        assertThat(navProperties.getAmfi()).isNull();
     }
 
     @Test
     void setAmfi_shouldSetAmfiProperties() {
         navProperties.setAmfi(mockAmfiProperties);
 
-        assertEquals(mockAmfiProperties, navProperties.getAmfi());
+        assertThat(navProperties.getAmfi()).isEqualTo(mockAmfiProperties);
     }
 
     @Test
@@ -41,19 +41,19 @@ class NavPropertiesTest {
         navProperties.setAmfi(mockAmfiProperties);
         navProperties.setAmfi(null);
 
-        assertNull(navProperties.getAmfi());
+        assertThat(navProperties.getAmfi()).isNull();
     }
 
     @Test
     void getMfApi_shouldReturnNull_whenNotSet() {
-        assertNull(navProperties.getMfApi());
+        assertThat(navProperties.getMfApi()).isNull();
     }
 
     @Test
     void setMfApi_shouldSetMfApiProperties() {
         navProperties.setMfApi(mockMfApiProperties);
 
-        assertEquals(mockMfApiProperties, navProperties.getMfApi());
+        assertThat(navProperties.getMfApi()).isEqualTo(mockMfApiProperties);
     }
 
     @Test
@@ -61,20 +61,20 @@ class NavPropertiesTest {
         navProperties.setMfApi(mockMfApiProperties);
         navProperties.setMfApi(null);
 
-        assertNull(navProperties.getMfApi());
+        assertThat(navProperties.getMfApi()).isNull();
     }
 
     @Test
     void getAmfi_shouldReturnSetValue_afterSettingAmfiProperties() {
         navProperties.setAmfi(mockAmfiProperties);
 
-        assertSame(mockAmfiProperties, navProperties.getAmfi());
+        assertThat(navProperties.getAmfi()).isSameAs(mockAmfiProperties);
     }
 
     @Test
     void getMfApi_shouldReturnSetValue_afterSettingMfApiProperties() {
         navProperties.setMfApi(mockMfApiProperties);
 
-        assertSame(mockMfApiProperties, navProperties.getMfApi());
+        assertThat(navProperties.getMfApi()).isSameAs(mockMfApiProperties);
     }
 }

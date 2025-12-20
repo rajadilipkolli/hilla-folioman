@@ -1,10 +1,7 @@
 package com.app.folioman.portfolio.repository;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 import com.app.folioman.config.SQLContainersConfig;
 import com.app.folioman.portfolio.entities.CasTypeEnum;
@@ -83,9 +80,9 @@ class UserSchemeDetailsRepositoryTest {
         List<UserSchemeDetails> schemes = List.of(scheme1, scheme2);
         List<UserSchemeDetails> result = userSchemeDetailsRepository.findByUserFolioDetails_SchemesIn(schemes);
 
-        assertNotNull(result);
-        assertFalse(result.isEmpty());
-        assertEquals(2, result.size());
+        assertThat(result).isNotNull();
+        assertThat(result).isNotEmpty();
+        assertThat(result).hasSize(2);
     }
 
     @Test
@@ -93,8 +90,8 @@ class UserSchemeDetailsRepositoryTest {
         List<UserSchemeDetails> emptySchemes = Collections.emptyList();
         List<UserSchemeDetails> result = userSchemeDetailsRepository.findByUserFolioDetails_SchemesIn(emptySchemes);
 
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
+        assertThat(result).isNotNull();
+        assertThat(result).isEmpty();
     }
 
     @Test
@@ -102,8 +99,8 @@ class UserSchemeDetailsRepositoryTest {
         List<UserSchemeDetails> result =
                 userSchemeDetailsRepository.findByUserFolioDetails_SchemesIn(Collections.emptyList());
 
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
+        assertThat(result).isNotNull();
+        assertThat(result).isEmpty();
     }
 
     @Test
@@ -111,8 +108,8 @@ class UserSchemeDetailsRepositoryTest {
         List<UserSchemeDetails> result =
                 userSchemeDetailsRepository.findByUserFolioDetails_SchemesIn(Collections.emptyList());
 
-        assertNotNull(result);
-        assertTrue(result.isEmpty());
+        assertThat(result).isNotNull();
+        assertThat(result).isEmpty();
     }
 
     @Test
@@ -151,8 +148,8 @@ class UserSchemeDetailsRepositoryTest {
                 .createNativeQuery("select count(*) from portfolio.user_scheme_details where amfi is null")
                 .getSingleResult();
 
-        assertNotNull(count);
-        assertTrue(count.longValue() > 0);
+        assertThat(count).isNotNull();
+        assertThat(count.longValue()).isGreaterThan(0);
     }
 
     @Test
@@ -186,8 +183,8 @@ class UserSchemeDetailsRepositoryTest {
                 .createNativeQuery("select count(*) from portfolio.user_scheme_details where amfi is null")
                 .getSingleResult();
 
-        assertNotNull(count);
-        assertEquals(0L, count.longValue());
+        assertThat(count).isNotNull();
+        assertThat(count.longValue()).isZero();
     }
 
     @Test
@@ -239,8 +236,8 @@ class UserSchemeDetailsRepositoryTest {
                     .setParameter(3, newIsin)
                     .getSingleResult();
 
-            assertNotNull(cnt);
-            assertEquals(1L, cnt.longValue());
+            assertThat(cnt).isNotNull();
+            assertThat(cnt.longValue()).isOne();
 
             // cleanup: only remove the committed scheme row so other tests' data is not affected
             em2.getTransaction().begin();
@@ -294,8 +291,8 @@ class UserSchemeDetailsRepositoryTest {
                     .setParameter(1, schemeId)
                     .getSingleResult();
 
-            assertNotNull(cnt);
-            assertEquals(1L, cnt.longValue());
+            assertThat(cnt).isNotNull();
+            assertThat(cnt.longValue()).isOne();
 
             // cleanup: only remove the committed scheme row so other tests' data is not affected
             em2.getTransaction().begin();
@@ -314,8 +311,9 @@ class UserSchemeDetailsRepositoryTest {
         Long newAmfi = 54321L;
         String newIsin = "INE123A01012";
 
-        assertDoesNotThrow(() -> {
-            userSchemeDetailsRepository.updateAmfiAndIsinById(newAmfi, newIsin, nonExistentId);
-        });
+        assertThatCode(() -> {
+                    userSchemeDetailsRepository.updateAmfiAndIsinById(newAmfi, newIsin, nonExistentId);
+                })
+                .doesNotThrowAnyException();
     }
 }

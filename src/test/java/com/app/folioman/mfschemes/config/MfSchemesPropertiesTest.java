@@ -1,6 +1,6 @@
 package com.app.folioman.mfschemes.config;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -15,89 +15,89 @@ class MfSchemesPropertiesTest {
     }
 
     @Test
-    void testGetBatchSize_DefaultValue() {
-        assertEquals(500, mfSchemesProperties.getBatchSize());
+    void getBatchSizeDefaultValue() {
+        assertThat(mfSchemesProperties.getBatchSize()).isEqualTo(500);
     }
 
     @Test
-    void testSetBatchSize_PositiveValue() {
+    void setBatchSizePositiveValue() {
         mfSchemesProperties.setBatchSize(1000);
-        assertEquals(1000, mfSchemesProperties.getBatchSize());
+        assertThat(mfSchemesProperties.getBatchSize()).isEqualTo(1000);
     }
 
     @Test
-    void testSetBatchSize_Zero() {
+    void setBatchSizeZero() {
         mfSchemesProperties.setBatchSize(0);
-        assertEquals(0, mfSchemesProperties.getBatchSize());
+        assertThat(mfSchemesProperties.getBatchSize()).isZero();
     }
 
     @Test
-    void testSetBatchSize_NegativeValue() {
+    void setBatchSizeNegativeValue() {
         mfSchemesProperties.setBatchSize(-100);
-        assertEquals(-100, mfSchemesProperties.getBatchSize());
+        assertThat(mfSchemesProperties.getBatchSize()).isEqualTo(-100);
     }
 
     @Test
-    void testSetBatchSize_LargeValue() {
+    void setBatchSizeLargeValue() {
         mfSchemesProperties.setBatchSize(Integer.MAX_VALUE);
-        assertEquals(Integer.MAX_VALUE, mfSchemesProperties.getBatchSize());
+        assertThat(mfSchemesProperties.getBatchSize()).isEqualTo(Integer.MAX_VALUE);
     }
 
     @Test
-    void testGetRetryAttempts_DefaultValue() {
-        assertEquals(3, mfSchemesProperties.getRetryAttempts());
+    void getRetryAttemptsDefaultValue() {
+        assertThat(mfSchemesProperties.getRetryAttempts()).isEqualTo(3);
     }
 
     @Test
-    void testSetRetryAttempts_PositiveValue() {
+    void setRetryAttemptsPositiveValue() {
         mfSchemesProperties.setRetryAttempts(5);
-        assertEquals(5, mfSchemesProperties.getRetryAttempts());
+        assertThat(mfSchemesProperties.getRetryAttempts()).isEqualTo(5);
     }
 
     @Test
-    void testSetRetryAttempts_Zero() {
+    void setRetryAttemptsZero() {
         mfSchemesProperties.setRetryAttempts(0);
-        assertEquals(0, mfSchemesProperties.getRetryAttempts());
+        assertThat(mfSchemesProperties.getRetryAttempts()).isZero();
     }
 
     @Test
-    void testSetRetryAttempts_NegativeValue() {
+    void setRetryAttemptsNegativeValue() {
         mfSchemesProperties.setRetryAttempts(-1);
-        assertEquals(-1, mfSchemesProperties.getRetryAttempts());
+        assertThat(mfSchemesProperties.getRetryAttempts()).isEqualTo(-1);
     }
 
     @Test
-    void testSetRetryAttempts_LargeValue() {
+    void setRetryAttemptsLargeValue() {
         mfSchemesProperties.setRetryAttempts(Integer.MAX_VALUE);
-        assertEquals(Integer.MAX_VALUE, mfSchemesProperties.getRetryAttempts());
+        assertThat(mfSchemesProperties.getRetryAttempts()).isEqualTo(Integer.MAX_VALUE);
     }
 
     @Test
-    void testGetRetryDelayMs_DefaultValue() {
-        assertEquals(1000L, mfSchemesProperties.getRetryDelayMs());
+    void getRetryDelayMsDefaultValue() {
+        assertThat(mfSchemesProperties.getRetryDelayMs()).isEqualTo(1000L);
     }
 
     @Test
-    void testSetRetryDelayMs_PositiveValue() {
+    void setRetryDelayMsPositiveValue() {
         mfSchemesProperties.setRetryDelayMs(2000L);
-        assertEquals(2000L, mfSchemesProperties.getRetryDelayMs());
+        assertThat(mfSchemesProperties.getRetryDelayMs()).isEqualTo(2000L);
     }
 
     @Test
-    void testSetRetryDelayMs_Zero() {
+    void setRetryDelayMsZero() {
         mfSchemesProperties.setRetryDelayMs(0L);
-        assertEquals(0L, mfSchemesProperties.getRetryDelayMs());
+        assertThat(mfSchemesProperties.getRetryDelayMs()).isZero();
     }
 
     @Test
-    void testSetRetryDelayMs_NegativeValue() {
+    void setRetryDelayMsNegativeValue() {
         mfSchemesProperties.setRetryDelayMs(-500L);
-        assertEquals(-500L, mfSchemesProperties.getRetryDelayMs());
+        assertThat(mfSchemesProperties.getRetryDelayMs()).isEqualTo(-500L);
     }
 
     @Test
-    void testSetRetryDelayMs_LargeValue() {
+    void setRetryDelayMsLargeValue() {
         mfSchemesProperties.setRetryDelayMs(Long.MAX_VALUE);
-        assertEquals(Long.MAX_VALUE, mfSchemesProperties.getRetryDelayMs());
+        assertThat(mfSchemesProperties.getRetryDelayMs()).isEqualTo(Long.MAX_VALUE);
     }
 }

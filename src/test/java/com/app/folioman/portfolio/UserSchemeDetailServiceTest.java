@@ -15,7 +15,7 @@ class UserSchemeDetailServiceTest {
     private UserSchemeDetailService userSchemeDetailService;
 
     @Test
-    void testSetUserSchemeAMFIIfNull() {
+    void setUserSchemeAMFIIfNull() {
         doNothing().when(userSchemeDetailService).setUserSchemeAMFIIfNull();
 
         userSchemeDetailService.setUserSchemeAMFIIfNull();

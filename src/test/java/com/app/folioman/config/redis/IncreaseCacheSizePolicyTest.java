@@ -1,6 +1,6 @@
 package com.app.folioman.config.redis;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -48,7 +48,7 @@ class IncreaseCacheSizePolicyTest {
     @Test
     void getExpirationTime_ShouldReturnTwoHours() {
         Duration result = increaseCacheSizePolicy.getExpirationTime();
-        assertEquals(Duration.ofHours(2), result);
+        assertThat(result).isEqualTo(Duration.ofHours(2));
     }
 
     @Test

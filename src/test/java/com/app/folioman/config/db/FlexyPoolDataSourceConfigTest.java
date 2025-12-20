@@ -1,6 +1,6 @@
 package com.app.folioman.config.db;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
@@ -70,8 +70,8 @@ class FlexyPoolDataSourceConfigTest {
     void flexyPoolDataSourceBeanPostProcessor_shouldReturnBeanPostProcessor() {
         BeanPostProcessor result = FlexyPoolDataSourceConfig.flexyPoolDataSourceBeanPostProcessor(mockObjectProvider);
 
-        assertNotNull(result);
-        assertInstanceOf(FlexyPoolDataSourceConfig.FlexyPoolDataSourceBeanPostProcessor.class, result);
+        assertThat(result).isNotNull();
+        assertThat(result).isInstanceOf(FlexyPoolDataSourceConfig.FlexyPoolDataSourceBeanPostProcessor.class);
     }
 
     @Test
@@ -82,8 +82,8 @@ class FlexyPoolDataSourceConfigTest {
 
         Object result = processor.postProcessAfterInitialization(mockHikariDataSource, "testBean");
 
-        assertNotNull(result);
-        assertInstanceOf(FlexyPoolDataSource.class, result);
+        assertThat(result).isNotNull();
+        assertThat(result).isInstanceOf(FlexyPoolDataSource.class);
         verify(mockHikariDataSource).setLeakDetectionThreshold(60000L);
         verify(mockHikariDataSource).setMinimumIdle(2);
         verify(mockHikariDataSource).setConnectionTestQuery(null);
@@ -93,7 +93,7 @@ class FlexyPoolDataSourceConfigTest {
     void postProcessAfterInitialization_withNonHikariDataSource_shouldReturnOriginalBean() {
         Object result = processor.postProcessAfterInitialization(mockDataSource, "testBean");
 
-        assertSame(mockDataSource, result);
+        assertThat(result).isSameAs(mockDataSource);
     }
 
     @Test
@@ -102,7 +102,7 @@ class FlexyPoolDataSourceConfigTest {
 
         Object result = processor.postProcessAfterInitialization(mockHikariDataSource, scopedBeanName);
 
-        assertSame(mockHikariDataSource, result);
+        assertThat(result).isSameAs(mockHikariDataSource);
     }
 
     @Test
@@ -111,21 +111,21 @@ class FlexyPoolDataSourceConfigTest {
 
         Object result = processor.postProcessAfterInitialization(nonDataSource, "testBean");
 
-        assertSame(nonDataSource, result);
+        assertThat(result).isSameAs(nonDataSource);
     }
 
     @Test
     void getHikariDataSource_withHikariDataSource_shouldReturnHikariDataSource() {
         HikariDataSource result = processor.getHikariDataSource(mockHikariDataSource);
 
-        assertSame(mockHikariDataSource, result);
+        assertThat(result).isSameAs(mockHikariDataSource);
     }
 
     @Test
     void getHikariDataSource_withNonHikariDataSource_shouldReturnNull() {
         HikariDataSource result = processor.getHikariDataSource(mockDataSource);
 
-        assertNull(result);
+        assertThat(result).isNull();
     }
 
     @Test
@@ -185,7 +185,7 @@ class FlexyPoolDataSourceConfigTest {
     void getAppDataSourceProperties_shouldReturnPropertiesFromProvider() {
         AppDataSourceProperties result = processor.getAppDataSourceProperties();
 
-        assertSame(mockAppDataSourceProperties, result);
+        assertThat(result).isSameAs(mockAppDataSourceProperties);
         verify(mockObjectProvider).getIfAvailable();
     }
 
@@ -195,7 +195,7 @@ class FlexyPoolDataSourceConfigTest {
 
         AppDataSourceProperties result = processor.getAppDataSourceProperties();
 
-        assertNull(result);
+        assertThat(result).isNull();
     }
 
     @Test
@@ -203,7 +203,7 @@ class FlexyPoolDataSourceConfigTest {
         FlexyPoolConfiguration<HikariDataSource> result =
                 processor.buildFlexyPoolConfiguration(mockHikariDataSource, mockAppDataSourceProperties, "testBean");
 
-        assertNotNull(result);
+        assertThat(result).isNotNull();
         verify(mockMetrics).getReportingIntervalMs();
         verify(mockMetrics, times(2)).isDetailed();
         verify(mockAcquisitionStrategy).getAcquisitionTimeout();
@@ -219,6 +219,6 @@ class FlexyPoolDataSourceConfigTest {
         FlexyPoolDataSource<HikariDataSource> result =
                 processor.createFlexyPoolDataSource(realConfig, mockAppDataSourceProperties);
 
-        assertNotNull(result);
+        assertThat(result).isNotNull();
     }
 }

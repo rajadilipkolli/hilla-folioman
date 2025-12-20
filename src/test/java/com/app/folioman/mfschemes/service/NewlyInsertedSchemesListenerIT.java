@@ -15,7 +15,7 @@ import org.junit.jupiter.api.Test;
 class NewlyInsertedSchemesListenerIT extends AbstractIntegrationTest {
 
     @Test
-    void testAsyncNavProcessingTriggeredByEvent() {
+    void asyncNavProcessingTriggeredByEvent() {
         // Given
         List<Long> schemeCodes = List.of(118272L, 120503L);
         UploadedSchemesList event = new UploadedSchemesList(schemeCodes);

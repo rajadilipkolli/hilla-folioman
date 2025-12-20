@@ -1,6 +1,6 @@
 package com.app.folioman.config.redis;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verifyNoInteractions;
 
@@ -22,7 +22,7 @@ class DefaultPolicyTest {
     void getExpirationTime_ShouldReturnFifteenMinutes() {
         Duration result = defaultPolicy.getExpirationTime();
 
-        assertEquals(Duration.ofMinutes(15), result);
+        assertThat(result).isEqualTo(Duration.ofMinutes(15));
     }
 
     @Test

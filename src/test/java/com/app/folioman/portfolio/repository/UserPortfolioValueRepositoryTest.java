@@ -26,7 +26,7 @@ class UserPortfolioValueRepositoryTest {
     private UserPortfolioValueRepository userPortfolioValueRepository;
 
     @Test
-    void testSave() {
+    void save() {
         UserPortfolioValue userPortfolioValue = new UserPortfolioValue();
         userPortfolioValue.setDate(java.time.LocalDate.now());
         userPortfolioValue.setInvested(new java.math.BigDecimal("0"));
@@ -44,7 +44,7 @@ class UserPortfolioValueRepositoryTest {
     }
 
     @Test
-    void testFindById_ExistingId() {
+    void findByIdExistingId() {
         UserPortfolioValue userPortfolioValue = new UserPortfolioValue();
         userPortfolioValue.setDate(java.time.LocalDate.now());
         userPortfolioValue.setInvested(new java.math.BigDecimal("0"));
@@ -63,14 +63,14 @@ class UserPortfolioValueRepositoryTest {
     }
 
     @Test
-    void testFindById_NonExistentId() {
+    void findByIdNonExistentId() {
         Optional<UserPortfolioValue> found = userPortfolioValueRepository.findById(999L);
 
         assertThat(found).isEmpty();
     }
 
     @Test
-    void testFindAll() {
+    void findAll() {
         UserCASDetails cas = new UserCASDetails();
         cas.setCasTypeEnum(CasTypeEnum.DETAILED);
         cas.setFileTypeEnum(FileTypeEnum.UNKNOWN);
@@ -97,7 +97,7 @@ class UserPortfolioValueRepositoryTest {
     }
 
     @Test
-    void testDeleteById() {
+    void deleteById() {
         UserPortfolioValue userPortfolioValue = new UserPortfolioValue();
         userPortfolioValue.setDate(java.time.LocalDate.now());
         userPortfolioValue.setInvested(new java.math.BigDecimal("0"));
@@ -116,7 +116,7 @@ class UserPortfolioValueRepositoryTest {
     }
 
     @Test
-    void testCount() {
+    void count() {
         UserPortfolioValue userPortfolioValue = new UserPortfolioValue();
         userPortfolioValue.setDate(java.time.LocalDate.now());
         userPortfolioValue.setInvested(new java.math.BigDecimal("0"));
@@ -130,11 +130,11 @@ class UserPortfolioValueRepositoryTest {
 
         long count = userPortfolioValueRepository.count();
 
-        assertThat(count).isEqualTo(1L);
+        assertThat(count).isOne();
     }
 
     @Test
-    void testExistsById() {
+    void existsById() {
         UserPortfolioValue userPortfolioValue = new UserPortfolioValue();
         userPortfolioValue.setDate(java.time.LocalDate.now());
         userPortfolioValue.setInvested(new java.math.BigDecimal("0"));
@@ -153,7 +153,7 @@ class UserPortfolioValueRepositoryTest {
     }
 
     @Test
-    void testExistsById_NonExistentId() {
+    void existsByIdNonExistentId() {
         boolean exists = userPortfolioValueRepository.existsById(999L);
 
         assertThat(exists).isFalse();

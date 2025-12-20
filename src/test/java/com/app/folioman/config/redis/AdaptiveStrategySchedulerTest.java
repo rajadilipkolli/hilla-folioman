@@ -1,7 +1,7 @@
 package com.app.folioman.config.redis;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.BDDMockito.given;
@@ -144,7 +144,7 @@ class AdaptiveStrategySchedulerTest {
     void adaptStrategy_ExceptionInMonitorGetMetrics_ShouldCatchAndLog() {
         given(monitor.getMetrics()).willThrow(new RuntimeException("Monitor error"));
 
-        assertDoesNotThrow(() -> adaptiveStrategyScheduler.adaptStrategy());
+        assertThatCode(() -> adaptiveStrategyScheduler.adaptStrategy()).doesNotThrowAnyException();
 
         verify(monitor).getMetrics();
         verify(evaluator, never()).evaluate(any());
@@ -157,7 +157,7 @@ class AdaptiveStrategySchedulerTest {
         given(monitor.getMetrics()).willReturn(testMetrics);
         given(evaluator.evaluate(testMetrics)).willThrow(new RuntimeException("Evaluator error"));
 
-        assertDoesNotThrow(() -> adaptiveStrategyScheduler.adaptStrategy());
+        assertThatCode(() -> adaptiveStrategyScheduler.adaptStrategy()).doesNotThrowAnyException();
 
         verify(monitor).getMetrics();
         verify(evaluator).evaluate(testMetrics);
@@ -172,7 +172,7 @@ class AdaptiveStrategySchedulerTest {
         given(evaluator.evaluate(testMetrics)).willReturn(strategy);
         given(policyRepository.getPolicy(strategy)).willThrow(new RuntimeException("Policy error"));
 
-        assertDoesNotThrow(() -> adaptiveStrategyScheduler.adaptStrategy());
+        assertThatCode(() -> adaptiveStrategyScheduler.adaptStrategy()).doesNotThrowAnyException();
 
         verify(monitor).getMetrics();
         verify(evaluator).evaluate(testMetrics);
@@ -190,7 +190,7 @@ class AdaptiveStrategySchedulerTest {
                 .given(cacheAdapter)
                 .setPolicy(cachePolicy);
 
-        assertDoesNotThrow(() -> adaptiveStrategyScheduler.adaptStrategy());
+        assertThatCode(() -> adaptiveStrategyScheduler.adaptStrategy()).doesNotThrowAnyException();
 
         verify(monitor).getMetrics();
         verify(evaluator).evaluate(testMetrics);
@@ -202,7 +202,7 @@ class AdaptiveStrategySchedulerTest {
     void adaptStrategy_NullMetrics_ShouldHandleGracefully() {
         given(monitor.getMetrics()).willReturn(null);
 
-        assertDoesNotThrow(() -> adaptiveStrategyScheduler.adaptStrategy());
+        assertThatCode(() -> adaptiveStrategyScheduler.adaptStrategy()).doesNotThrowAnyException();
 
         verify(monitor).getMetrics();
         verify(evaluator, never()).evaluate(any());

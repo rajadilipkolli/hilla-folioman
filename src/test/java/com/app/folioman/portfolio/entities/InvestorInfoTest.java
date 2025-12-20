@@ -1,10 +1,6 @@
 package com.app.folioman.portfolio.entities;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -24,187 +20,187 @@ class InvestorInfoTest {
     }
 
     @Test
-    void testGetId() {
-        assertNull(investorInfo.getId());
+    void getId() {
+        assertThat(investorInfo.getId()).isNull();
     }
 
     @Test
-    void testSetId() {
+    void setId() {
         Long id = 1L;
         InvestorInfo result = investorInfo.setId(id);
-        assertEquals(id, investorInfo.getId());
-        assertSame(investorInfo, result);
+        assertThat(investorInfo.getId()).isEqualTo(id);
+        assertThat(result).isSameAs(investorInfo);
     }
 
     @Test
-    void testGetEmail() {
-        assertNull(investorInfo.getEmail());
+    void getEmail() {
+        assertThat(investorInfo.getEmail()).isNull();
     }
 
     @Test
-    void testSetEmail() {
+    void setEmail() {
         String email = "test@example.com";
         InvestorInfo result = investorInfo.setEmail(email);
-        assertEquals(email, investorInfo.getEmail());
-        assertSame(investorInfo, result);
+        assertThat(investorInfo.getEmail()).isEqualTo(email);
+        assertThat(result).isSameAs(investorInfo);
     }
 
     @Test
-    void testSetEmailWithNull() {
+    void setEmailWithNull() {
         InvestorInfo result = investorInfo.setEmail(null);
-        assertNull(investorInfo.getEmail());
-        assertSame(investorInfo, result);
+        assertThat(investorInfo.getEmail()).isNull();
+        assertThat(result).isSameAs(investorInfo);
     }
 
     @Test
-    void testGetName() {
-        assertNull(investorInfo.getName());
+    void getName() {
+        assertThat(investorInfo.getName()).isNull();
     }
 
     @Test
-    void testSetName() {
+    void setName() {
         String name = "John Doe";
         InvestorInfo result = investorInfo.setName(name);
-        assertEquals(name, investorInfo.getName());
-        assertSame(investorInfo, result);
+        assertThat(investorInfo.getName()).isEqualTo(name);
+        assertThat(result).isSameAs(investorInfo);
     }
 
     @Test
-    void testSetNameWithNull() {
+    void setNameWithNull() {
         InvestorInfo result = investorInfo.setName(null);
-        assertNull(investorInfo.getName());
-        assertSame(investorInfo, result);
+        assertThat(investorInfo.getName()).isNull();
+        assertThat(result).isSameAs(investorInfo);
     }
 
     @Test
-    void testGetMobile() {
-        assertNull(investorInfo.getMobile());
+    void getMobile() {
+        assertThat(investorInfo.getMobile()).isNull();
     }
 
     @Test
-    void testSetMobile() {
+    void setMobile() {
         String mobile = "1234567890";
         InvestorInfo result = investorInfo.setMobile(mobile);
-        assertEquals(mobile, investorInfo.getMobile());
-        assertSame(investorInfo, result);
+        assertThat(investorInfo.getMobile()).isEqualTo(mobile);
+        assertThat(result).isSameAs(investorInfo);
     }
 
     @Test
-    void testSetMobileWithNull() {
+    void setMobileWithNull() {
         InvestorInfo result = investorInfo.setMobile(null);
-        assertNull(investorInfo.getMobile());
-        assertSame(investorInfo, result);
+        assertThat(investorInfo.getMobile()).isNull();
+        assertThat(result).isSameAs(investorInfo);
     }
 
     @Test
-    void testGetAddress() {
-        assertNull(investorInfo.getAddress());
+    void getAddress() {
+        assertThat(investorInfo.getAddress()).isNull();
     }
 
     @Test
-    void testSetAddress() {
+    void setAddress() {
         String address = "123 Main St";
         InvestorInfo result = investorInfo.setAddress(address);
-        assertEquals(address, investorInfo.getAddress());
-        assertSame(investorInfo, result);
+        assertThat(investorInfo.getAddress()).isEqualTo(address);
+        assertThat(result).isSameAs(investorInfo);
     }
 
     @Test
-    void testSetAddressWithNull() {
+    void setAddressWithNull() {
         InvestorInfo result = investorInfo.setAddress(null);
-        assertNull(investorInfo.getAddress());
-        assertSame(investorInfo, result);
+        assertThat(investorInfo.getAddress()).isNull();
+        assertThat(result).isSameAs(investorInfo);
     }
 
     @Test
-    void testGetUserCasDetails() {
-        assertNull(investorInfo.getUserCasDetails());
+    void getUserCasDetails() {
+        assertThat(investorInfo.getUserCasDetails()).isNull();
     }
 
     @Test
-    void testSetUserCasDetails() {
+    void setUserCasDetails() {
         InvestorInfo result = investorInfo.setUserCasDetails(userCasDetails);
-        assertEquals(userCasDetails, investorInfo.getUserCasDetails());
-        assertSame(investorInfo, result);
+        assertThat(investorInfo.getUserCasDetails()).isEqualTo(userCasDetails);
+        assertThat(result).isSameAs(investorInfo);
     }
 
     @Test
-    void testSetUserCasDetailsWithNull() {
+    void setUserCasDetailsWithNull() {
         InvestorInfo result = investorInfo.setUserCasDetails(null);
-        assertNull(investorInfo.getUserCasDetails());
-        assertSame(investorInfo, result);
+        assertThat(investorInfo.getUserCasDetails()).isNull();
+        assertThat(result).isSameAs(investorInfo);
     }
 
     @Test
-    void testEqualsSameObject() {
-        assertTrue(investorInfo.equals(investorInfo));
+    void equalsSameObject() {
+        assertThat(investorInfo).isEqualTo(investorInfo);
     }
 
     @Test
-    void testEqualsWithNull() {
-        assertFalse(investorInfo.equals(null));
+    void equalsWithNull() {
+        assertThat(investorInfo).isNotEqualTo(null);
     }
 
     @Test
-    void testEqualsWithDifferentClass() {
+    void equalsWithDifferentClass() {
         Object different = "string";
-        assertFalse(investorInfo.getClass().equals(different.getClass()));
-        assertFalse(investorInfo.equals(different));
+        assertThat(different.getClass()).isNotEqualTo(investorInfo.getClass());
+        assertThat(different).isNotEqualTo(investorInfo);
     }
 
     @Test
-    void testEqualsWithNullId() {
+    void equalsWithNullId() {
         InvestorInfo other = new InvestorInfo();
         other.setEmail("test@example.com");
         // both have null id -> should not be equal
-        assertFalse(investorInfo.equals(other));
+        assertThat(other).isNotEqualTo(investorInfo);
     }
 
     @Test
-    void testEqualsWithSameEmail() {
+    void equalsWithSameEmail() {
         investorInfo.setId(1L).setEmail("test@example.com");
         InvestorInfo other = new InvestorInfo();
         other.setId(1L).setEmail("test@example.com");
-        assertEquals(investorInfo.getClass(), other.getClass());
-        assertTrue(investorInfo.equals(other));
+        assertThat(other.getClass()).isEqualTo(investorInfo.getClass());
+        assertThat(other).isEqualTo(investorInfo);
     }
 
     @Test
-    void testEqualsWithDifferentEmail() {
+    void equalsWithDifferentEmail() {
         investorInfo.setId(1L).setEmail("test1@example.com");
         InvestorInfo other = new InvestorInfo();
         other.setId(1L).setEmail("test2@example.com");
-        assertEquals(investorInfo.getClass(), other.getClass());
-        assertFalse(investorInfo.equals(other));
+        assertThat(other.getClass()).isEqualTo(investorInfo.getClass());
+        assertThat(other).isNotEqualTo(investorInfo);
     }
 
     @Test
-    void testEqualsWithNullEmails() {
+    void equalsWithNullEmails() {
         investorInfo.setId(1L);
         InvestorInfo other = new InvestorInfo();
         other.setId(1L);
-        assertEquals(investorInfo.getClass(), other.getClass());
-        assertTrue(investorInfo.equals(other));
+        assertThat(other.getClass()).isEqualTo(investorInfo.getClass());
+        assertThat(other).isEqualTo(investorInfo);
     }
 
     @Test
     void testHashCode() {
         int hashCode1 = investorInfo.hashCode();
         int hashCode2 = investorInfo.hashCode();
-        assertEquals(hashCode1, hashCode2);
-        assertEquals(InvestorInfo.class.hashCode(), hashCode1);
+        assertThat(hashCode2).isEqualTo(hashCode1);
+        assertThat(hashCode1).isEqualTo(InvestorInfo.class.hashCode());
     }
 
     @Test
-    void testHashCodeConsistency() {
+    void hashCodeConsistency() {
         investorInfo.setEmail("test@example.com");
         int hashCode1 = investorInfo.hashCode();
         int hashCode2 = investorInfo.hashCode();
-        assertEquals(hashCode1, hashCode2);
+        assertThat(hashCode2).isEqualTo(hashCode1);
     }
 
     @Test
-    void testFluentInterfaceChaining() {
+    void fluentInterfaceChaining() {
         InvestorInfo result = investorInfo
                 .setId(1L)
                 .setEmail("test@example.com")
@@ -213,12 +209,12 @@ class InvestorInfoTest {
                 .setAddress("123 Main St")
                 .setUserCasDetails(userCasDetails);
 
-        assertSame(investorInfo, result);
-        assertEquals(1L, investorInfo.getId());
-        assertEquals("test@example.com", investorInfo.getEmail());
-        assertEquals("John Doe", investorInfo.getName());
-        assertEquals("1234567890", investorInfo.getMobile());
-        assertEquals("123 Main St", investorInfo.getAddress());
-        assertEquals(userCasDetails, investorInfo.getUserCasDetails());
+        assertThat(result).isSameAs(investorInfo);
+        assertThat(investorInfo.getId()).isOne();
+        assertThat(investorInfo.getEmail()).isEqualTo("test@example.com");
+        assertThat(investorInfo.getName()).isEqualTo("John Doe");
+        assertThat(investorInfo.getMobile()).isEqualTo("1234567890");
+        assertThat(investorInfo.getAddress()).isEqualTo("123 Main St");
+        assertThat(investorInfo.getUserCasDetails()).isEqualTo(userCasDetails);
     }
 }

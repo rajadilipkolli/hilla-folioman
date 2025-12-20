@@ -1,10 +1,6 @@
 package com.app.folioman.config.db;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mockStatic;
 
 import net.ttddyy.dsproxy.support.ProxyDataSource;
@@ -34,8 +30,8 @@ class LazyConnectionDataSourceProxyConfigTest {
     @Test
     void lazyConnectionDataSourceProxyBeanPostProcessor_ShouldReturnBeanPostProcessor() {
         BeanPostProcessor result = LazyConnectionDataSourceProxyConfig.lazyConnectionDataSourceProxyBeanPostProcessor();
-        assertNotNull(result);
-        assertInstanceOf(BeanPostProcessor.class, result);
+        assertThat(result).isNotNull();
+        assertThat(result).isInstanceOf(BeanPostProcessor.class);
     }
 
     @Test
@@ -50,9 +46,9 @@ class LazyConnectionDataSourceProxyConfigTest {
 
             Object result = beanPostProcessor.postProcessAfterInitialization(mockProxyDataSource, beanName);
             LazyConnectionDataSourceProxy proxy = (LazyConnectionDataSourceProxy) result;
-            assertEquals(mockProxyDataSource, proxy.getTargetDataSource());
-            assertNotNull(result);
-            assertInstanceOf(LazyConnectionDataSourceProxy.class, result);
+            assertThat(proxy.getTargetDataSource()).isEqualTo(mockProxyDataSource);
+            assertThat(result).isNotNull();
+            assertThat(result).isInstanceOf(LazyConnectionDataSourceProxy.class);
         }
     }
 
@@ -66,7 +62,7 @@ class LazyConnectionDataSourceProxyConfigTest {
                     .thenReturn(true);
 
             Object result = beanPostProcessor.postProcessAfterInitialization(mockProxyDataSource, beanName);
-            assertSame(mockProxyDataSource, result);
+            assertThat(result).isSameAs(mockProxyDataSource);
         }
     }
 
@@ -76,7 +72,7 @@ class LazyConnectionDataSourceProxyConfigTest {
         String beanName = "testBean";
 
         Object result = beanPostProcessor.postProcessAfterInitialization(nonProxyDataSource, beanName);
-        assertSame(nonProxyDataSource, result);
+        assertThat(result).isSameAs(nonProxyDataSource);
     }
 
     @Test
@@ -84,7 +80,7 @@ class LazyConnectionDataSourceProxyConfigTest {
         String beanName = "testBean";
 
         Object result = beanPostProcessor.postProcessAfterInitialization(null, beanName);
-        assertNull(result);
+        assertThat(result).isNull();
     }
 
     @Test
@@ -97,9 +93,9 @@ class LazyConnectionDataSourceProxyConfigTest {
 
             Object result = beanPostProcessor.postProcessAfterInitialization(mockProxyDataSource, null);
             LazyConnectionDataSourceProxy proxy = (LazyConnectionDataSourceProxy) result;
-            assertEquals(mockProxyDataSource, proxy.getTargetDataSource());
-            assertNotNull(result);
-            assertInstanceOf(LazyConnectionDataSourceProxy.class, result);
+            assertThat(proxy.getTargetDataSource()).isEqualTo(mockProxyDataSource);
+            assertThat(result).isNotNull();
+            assertThat(result).isInstanceOf(LazyConnectionDataSourceProxy.class);
         }
     }
 }

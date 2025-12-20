@@ -1,6 +1,7 @@
 package com.app.folioman.portfolio.service;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -100,7 +101,7 @@ class UserDetailServiceTest {
     }
 
     @Test
-    void upload_NewUser_ShouldReturnUploadFileResponse() throws IOException {
+    void upload_NewUser_ShouldReturnUploadFileResponse() throws Exception {
         byte[] fileBytes = "test content".getBytes();
         when(multipartFile.getBytes()).thenReturn(fileBytes);
         when(portfolioServiceHelper.readValue(fileBytes, CasDTO.class)).thenReturn(casDTO);
@@ -113,7 +114,7 @@ class UserDetailServiceTest {
 
         UploadFileResponse result = userDetailService.upload(multipartFile);
 
-        assertNotNull(result);
+        assertThat(result).isNotNull();
         verify(portfolioServiceHelper).readValue(fileBytes, CasDTO.class);
         verify(investorInfoService).existsByEmailAndName("test@example.com", "Test User");
         verify(casDetailsMapper)
@@ -123,7 +124,7 @@ class UserDetailServiceTest {
     }
 
     @Test
-    void upload_ExistingUser_ShouldReturnUploadFileResponse() throws IOException {
+    void upload_ExistingUser_ShouldReturnUploadFileResponse() throws Exception {
         byte[] fileBytes = "test content".getBytes();
         when(multipartFile.getBytes()).thenReturn(fileBytes);
         when(portfolioServiceHelper.readValue(fileBytes, CasDTO.class)).thenReturn(casDTO);
@@ -137,32 +138,33 @@ class UserDetailServiceTest {
 
         UploadFileResponse result = userDetailService.upload(multipartFile);
 
-        assertNotNull(result);
-        assertEquals(0, result.newFolios());
-        assertEquals(0, result.newSchemes());
-        assertEquals(0, result.newTransactions());
-        assertEquals(0L, result.userCASDetailsId());
+        assertThat(result).isNotNull();
+        assertThat(result.newFolios()).isZero();
+        assertThat(result.newSchemes()).isZero();
+        assertThat(result.newTransactions()).isZero();
+        assertThat(result.userCASDetailsId()).isZero();
         verify(portfolioServiceHelper).readValue(fileBytes, CasDTO.class);
         verify(investorInfoService).existsByEmailAndName("test@example.com", "Test User");
     }
 
     @Test
-    void upload_IOExceptionThrown_ShouldPropagateException() throws IOException {
+    void upload_IOExceptionThrown_ShouldPropagateException() throws Exception {
         when(multipartFile.getBytes()).thenThrow(new IOException("File read error"));
 
-        assertThrows(IOException.class, () -> userDetailService.upload(multipartFile));
+        assertThatExceptionOfType(IOException.class).isThrownBy(() -> userDetailService.upload(multipartFile));
 
         verify(multipartFile).getBytes();
     }
 
     @Test
-    void upload_InvalidCasDTO_ShouldThrowIllegalArgumentException() throws IOException {
+    void upload_InvalidCasDTO_ShouldThrowIllegalArgumentException() throws Exception {
         CasDTO invalidCasDTO = new CasDTO(null, null, null, null, null);
         byte[] fileBytes = "test content".getBytes();
         when(multipartFile.getBytes()).thenReturn(fileBytes);
         when(portfolioServiceHelper.readValue(fileBytes, CasDTO.class)).thenReturn(invalidCasDTO);
 
-        assertThrows(IllegalArgumentException.class, () -> userDetailService.upload(multipartFile));
+        assertThatExceptionOfType(IllegalArgumentException.class)
+                .isThrownBy(() -> userDetailService.upload(multipartFile));
 
         verify(portfolioServiceHelper).readValue(fileBytes, CasDTO.class);
     }
@@ -178,7 +180,7 @@ class UserDetailServiceTest {
 
         UploadFileResponse result = userDetailService.uploadFromDto(casDTO);
 
-        assertNotNull(result);
+        assertThat(result).isNotNull();
         verify(investorInfoService).existsByEmailAndName("test@example.com", "Test User");
         verify(casDetailsMapper)
                 .convert(eq(casDTO), any(AtomicInteger.class), any(AtomicInteger.class), any(AtomicInteger.class));
@@ -198,11 +200,11 @@ class UserDetailServiceTest {
 
         UploadFileResponse result = userDetailService.uploadFromDto(casDTO);
 
-        assertNotNull(result);
-        assertEquals(0, result.newFolios());
-        assertEquals(0, result.newSchemes());
-        assertEquals(0, result.newTransactions());
-        assertEquals(0L, result.userCASDetailsId());
+        assertThat(result).isNotNull();
+        assertThat(result.newFolios()).isZero();
+        assertThat(result.newSchemes()).isZero();
+        assertThat(result.newTransactions()).isZero();
+        assertThat(result.userCASDetailsId()).isZero();
         verify(investorInfoService).existsByEmailAndName("test@example.com", "Test User");
     }
 
@@ -210,7 +212,8 @@ class UserDetailServiceTest {
     void uploadFromDto_InvalidCasDTO_ShouldThrowIllegalArgumentException() {
         CasDTO invalidCasDTO = new CasDTO(null, null, null, null, null);
 
-        assertThrows(IllegalArgumentException.class, () -> userDetailService.uploadFromDto(invalidCasDTO));
+        assertThatExceptionOfType(IllegalArgumentException.class)
+                .isThrownBy(() -> userDetailService.uploadFromDto(invalidCasDTO));
     }
 
     @Test
@@ -227,10 +230,11 @@ class UserDetailServiceTest {
 
         PortfolioResponse result = userDetailService.getPortfolioByPAN(panNumber, evaluationDate);
 
-        assertNotNull(result);
+        assertThat(result).isNotNull();
         // The service sums the provided totalValue fields. Expect 10000 + 5000 = 15000
-        assertEquals(BigDecimal.valueOf(15000.0000).setScale(4), result.totalPortfolioValue());
-        assertEquals(2, result.portfolioDetailsDTOS().size());
+        assertThat(result.totalPortfolioValue())
+                .isEqualTo(BigDecimal.valueOf(15000.0000).setScale(4));
+        assertThat(result.portfolioDetailsDTOS()).hasSize(2);
         verify(portfolioServiceHelper).getPortfolioDetailsByPANAndAsOfDate(eq(panNumber), any(LocalDate.class));
     }
 
@@ -246,9 +250,9 @@ class UserDetailServiceTest {
 
         PortfolioResponse result = userDetailService.getPortfolioByPAN(panNumber, evaluationDate);
 
-        assertNotNull(result);
-        assertEquals(BigDecimal.ZERO.setScale(4), result.totalPortfolioValue());
-        assertTrue(result.portfolioDetailsDTOS().isEmpty());
+        assertThat(result).isNotNull();
+        assertThat(result.totalPortfolioValue()).isEqualTo(BigDecimal.ZERO.setScale(4));
+        assertThat(result.portfolioDetailsDTOS()).isEmpty();
         verify(portfolioServiceHelper).getPortfolioDetailsByPANAndAsOfDate(eq(panNumber), any(LocalDate.class));
     }
 }

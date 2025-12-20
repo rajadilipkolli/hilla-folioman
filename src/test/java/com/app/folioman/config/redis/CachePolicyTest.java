@@ -1,6 +1,6 @@
 package com.app.folioman.config.redis;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -31,7 +31,7 @@ class CachePolicyTest {
 
         Duration result = cachePolicy.getExpirationTime();
 
-        assertNotNull(result);
+        assertThat(result).isNotNull();
         verify(cachePolicy).getExpirationTime();
     }
 

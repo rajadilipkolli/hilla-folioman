@@ -1,6 +1,6 @@
 package com.app.folioman.mfschemes.config;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,7 +16,7 @@ class BseStarPropertiesTest {
 
     @Test
     void getScheme_shouldReturnNullInitially() {
-        assertNull(bseStarProperties.getScheme());
+        assertThat(bseStarProperties.getScheme()).isNull();
     }
 
     @Test
@@ -24,14 +24,14 @@ class BseStarPropertiesTest {
         SchemeProperties schemeProperties = new SchemeProperties();
         bseStarProperties.setScheme(schemeProperties);
 
-        assertEquals(schemeProperties, bseStarProperties.getScheme());
+        assertThat(bseStarProperties.getScheme()).isEqualTo(schemeProperties);
     }
 
     @Test
     void setScheme_shouldSetNullValue() {
         bseStarProperties.setScheme(null);
 
-        assertNull(bseStarProperties.getScheme());
+        assertThat(bseStarProperties.getScheme()).isNull();
     }
 
     @Test
@@ -40,7 +40,7 @@ class BseStarPropertiesTest {
 
         bseStarProperties.setScheme(schemeProperties);
 
-        assertEquals(schemeProperties, bseStarProperties.getScheme());
+        assertThat(bseStarProperties.getScheme()).isEqualTo(schemeProperties);
     }
 
     @Test
@@ -51,7 +51,7 @@ class BseStarPropertiesTest {
         bseStarProperties.setScheme(firstScheme);
         bseStarProperties.setScheme(secondScheme);
 
-        assertEquals(secondScheme, bseStarProperties.getScheme());
-        assertNotEquals(firstScheme, bseStarProperties.getScheme());
+        assertThat(bseStarProperties.getScheme()).isEqualTo(secondScheme);
+        assertThat(bseStarProperties.getScheme()).isNotEqualTo(firstScheme);
     }
 }
