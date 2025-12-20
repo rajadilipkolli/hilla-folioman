@@ -7,13 +7,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+@Repository
 public interface UserFolioDetailsRepository extends JpaRepository<UserFolioDetails, Long> {
 
-    @Query(
-            """
+    @Query("""
             select u from UserFolioDetails u left join u.userCasDetails.folios folios join fetch u.schemes where folios in :folios
             """)
     List<UserFolioDetails> findByUserCasDetails_FoliosIn(@Param("folios") List<UserFolioDetails> folios);

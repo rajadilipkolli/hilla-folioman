@@ -4,8 +4,10 @@ import static com.app.folioman.mfschemes.util.SchemeConstants.FLEXIBLE_DATE_FORM
 
 import com.app.folioman.mfschemes.MFNavService;
 import com.app.folioman.mfschemes.MFSchemeDTO;
+import com.app.folioman.mfschemes.MFSchemeNavProjection;
 import com.app.folioman.mfschemes.MfSchemeService;
 import com.app.folioman.mfschemes.NavNotFoundException;
+import com.app.folioman.mfschemes.config.ApplicationProperties;
 import com.app.folioman.mfschemes.entities.MFSchemeNav;
 import com.app.folioman.mfschemes.repository.MFSchemeNavRepository;
 import com.app.folioman.mfschemes.repository.MfFundSchemeRepository;
@@ -18,18 +20,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.Set;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.StringUtils;
@@ -47,11 +52,11 @@ public class MFNavServiceImpl implements MFNavService {
     private final MfHistoricalNavService historicalNavService;
     private final MFSchemeNavRepository mfSchemeNavRepository;
     private final MfFundSchemeRepository mFSchemeRepository;
-    private final TaskExecutor taskExecutor;
     private final RestClient restClient;
     private final TransactionTemplate transactionTemplate;
 
     private final Pattern schemeCodePattern = Pattern.compile("\\d{6}");
+    private final ApplicationProperties applicationProperties;
 
     MFNavServiceImpl(
             CachedNavService cachedNavService,
@@ -59,22 +64,23 @@ public class MFNavServiceImpl implements MFNavService {
             MfHistoricalNavService historicalNavService,
             MFSchemeNavRepository mfSchemeNavRepository,
             MfFundSchemeRepository mFSchemeRepository,
-            @Qualifier("taskExecutor") TaskExecutor taskExecutor,
             RestClient restClient,
-            PlatformTransactionManager transactionManager) {
+            PlatformTransactionManager transactionManager,
+            ApplicationProperties applicationProperties) {
         this.cachedNavService = cachedNavService;
         this.mfSchemeService = mfSchemeService;
         this.historicalNavService = historicalNavService;
         this.mfSchemeNavRepository = mfSchemeNavRepository;
         this.mFSchemeRepository = mFSchemeRepository;
-        this.taskExecutor = taskExecutor;
         this.restClient = restClient;
         // Create a new TransactionTemplate with the desired propagation behavior
         this.transactionTemplate = new TransactionTemplate(transactionManager);
         this.transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+        this.applicationProperties = applicationProperties;
     }
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public MFSchemeDTO getNav(Long schemeCode) {
         return getNavByDateWithRetry(schemeCode, LocalDateUtility.getAdjustedDate());
     }
@@ -98,7 +104,7 @@ public class MFNavServiceImpl implements MFNavService {
             } catch (NavNotFoundException navNotFoundException) {
                 LOGGER.error("NavNotFoundException occurred: {}", navNotFoundException.getMessage());
 
-                LocalDate currentNavDate = navNotFoundException.getDate();
+                LocalDate currentNavDate = navNotFoundException.getNavDate();
                 if (retryCount == SchemeConstants.FIRST_RETRY || retryCount == SchemeConstants.THIRD_RETRY) {
                     // make a call to get historical Data and persist
                     String oldSchemeCode = historicalNavService.getHistoricalNav(schemeCode, navDate);
@@ -151,13 +157,9 @@ public class MFNavServiceImpl implements MFNavService {
     public void loadHistoricalDataIfNotExists() {
         List<Long> historicalDataNotLoadedSchemeIdList = getHistoricalDataNotLoadedSchemeIdList();
         if (!historicalDataNotLoadedSchemeIdList.isEmpty()) {
-            List<CompletableFuture<Void>> allSchemesWhereHistoricalDetailsNotLoadedCf =
-                    historicalDataNotLoadedSchemeIdList.stream()
-                            .map(schemeId -> CompletableFuture.runAsync(
-                                    () -> mfSchemeService.fetchSchemeDetails(schemeId), taskExecutor))
-                            .toList();
-            CompletableFuture.allOf(allSchemesWhereHistoricalDetailsNotLoadedCf.toArray(new CompletableFuture<?>[0]))
-                    .join();
+            for (Long schemeId : historicalDataNotLoadedSchemeIdList) {
+                mfSchemeService.fetchSchemeDetails(schemeId);
+            }
             LOGGER.info("Completed loading HistoricalData for schemes that don't exist");
         }
     }
@@ -171,6 +173,61 @@ public class MFNavServiceImpl implements MFNavService {
     @Override
     public Optional<MFSchemeDTO> findTopBySchemeIdOrderByDateDesc(Long schemeId) {
         return Optional.ofNullable(getNav(schemeId));
+    }
+  
+    /**
+     * Process NAVs for a list of scheme codes asynchronously.
+     * This method should handle parallel processing and transactional boundaries.
+     */
+    @Override
+    @Async("taskExecutor")
+    public void processNavsAsync(List<Long> schemeCodes) {
+        if (schemeCodes == null || schemeCodes.isEmpty()) {
+            LOGGER.info("No scheme codes provided for NAV processing.");
+            return;
+        }
+        LOGGER.info("Processing NAVs asynchronously for scheme codes: {}", schemeCodes);
+        for (Long schemeCode : schemeCodes) {
+            try {
+                LOGGER.info("Processing NAV for scheme code: {}", schemeCode);
+                getNav(schemeCode);
+            } catch (Exception e) {
+                LOGGER.error("Error processing NAV for scheme code: {}", schemeCode, e);
+            }
+        }
+    }
+
+    @Override
+    public Map<Long, Map<LocalDate, MFSchemeNavProjection>> getNavsForSchemesAndDates(
+            Set<Long> schemeCodes, LocalDate startDate, LocalDate endDate) {
+        // Try to prefetch NAVs but handle exceptions for each scheme code individually
+        for (Long schemeCode : schemeCodes) {
+            try {
+                getNav(schemeCode);
+            } catch (NavNotFoundException e) {
+                // Log the exception but continue with other scheme codes
+                LOGGER.warn(
+                        "Could not find NAV for scheme {}: {}. Continuing with other schemes.",
+                        schemeCode,
+                        e.getMessage());
+            } catch (Exception e) {
+                // Log any other exceptions but continue with other scheme codes
+                LOGGER.error(
+                        "Error while fetching NAV for scheme {}: {}. Continuing with other schemes.",
+                        schemeCode,
+                        e.getMessage());
+            }
+        }
+
+        // Fetch NAVs in bulk for all schemes and dates
+        LOGGER.info("Fetching Nav for amfiCodes: {} from {} to {}", schemeCodes, startDate, endDate);
+        return mfSchemeNavRepository
+                .findByMfScheme_AmfiCodeInAndNavDateGreaterThanEqualAndNavDateLessThanEqual(
+                        schemeCodes, startDate, endDate)
+                .stream()
+                .collect(Collectors.groupingBy(
+                        MFSchemeNavProjection::amfiCode,
+                        Collectors.toMap(MFSchemeNavProjection::navDate, Function.identity())));
     }
 
     private Map<String, String> getAmfiCodeIsinMap(String allNAVs) {
@@ -198,7 +255,7 @@ public class MFNavServiceImpl implements MFNavService {
         try {
             allNAVs = restClient
                     .get()
-                    .uri(SchemeConstants.AMFI_WEBSITE_LINK)
+                    .uri(applicationProperties.getNav().getAmfi().getDataUrl())
                     .headers(HttpHeaders::clearContentHeaders)
                     .header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE)
                     .retrieve()

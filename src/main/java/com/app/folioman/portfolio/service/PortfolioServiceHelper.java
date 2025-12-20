@@ -6,8 +6,6 @@ import com.app.folioman.mfschemes.NavNotFoundException;
 import com.app.folioman.portfolio.models.projection.PortfolioDetailsProjection;
 import com.app.folioman.portfolio.models.request.UserFolioDTO;
 import com.app.folioman.portfolio.models.response.PortfolioDetailsDTO;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
@@ -15,31 +13,24 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
+import tools.jackson.databind.json.JsonMapper;
 
 @Service
 class PortfolioServiceHelper {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PortfolioServiceHelper.class);
-    private final ObjectMapper mapper;
+    private final JsonMapper mapper;
     private final UserCASDetailsService userCASDetailsService;
     private final MFNavService mfNavService;
-    private final TaskExecutor taskExecutor;
 
-    PortfolioServiceHelper(
-            ObjectMapper mapper,
-            UserCASDetailsService userCASDetailsService,
-            MFNavService mfNavService,
-            @Qualifier("taskExecutor") TaskExecutor taskExecutor) {
+    PortfolioServiceHelper(JsonMapper mapper, UserCASDetailsService userCASDetailsService, MFNavService mfNavService) {
         this.mapper = mapper;
         this.userCASDetailsService = userCASDetailsService;
         this.mfNavService = mfNavService;
-        this.taskExecutor = taskExecutor;
     }
 
-    public <T> T readValue(byte[] bytes, Class<T> responseClassType) throws IOException {
+    public <T> T readValue(byte[] bytes, Class<T> responseClassType) {
         return this.mapper.readValue(bytes, responseClassType);
     }
 
@@ -58,7 +49,7 @@ class PortfolioServiceHelper {
         List<CompletableFuture<PortfolioDetailsDTO>> completableFutureList =
                 userCASDetailsService.getPortfolioDetailsByPanAndAsOfDate(panNumber, asOfDate).stream()
                         .map(portfolioDetails -> CompletableFuture.supplyAsync(
-                                () -> createPortfolioDetailsDTO(portfolioDetails, asOfDate), taskExecutor))
+                                () -> createPortfolioDetailsDTO(portfolioDetails, asOfDate)))
                         .toList();
         return joinFutures(completableFutureList);
     }

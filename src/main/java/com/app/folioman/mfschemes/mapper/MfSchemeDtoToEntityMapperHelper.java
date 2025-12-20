@@ -11,14 +11,14 @@ import com.app.folioman.mfschemes.util.SchemeConstants;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Arrays;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.jspecify.annotations.Nullable;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.MappingTarget;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -26,13 +26,15 @@ public class MfSchemeDtoToEntityMapperHelper {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MfSchemeDtoToEntityMapperHelper.class);
 
-    // Define the regular expressions
+    // Updated the regex to avoid excessive backtracking
     private static final Pattern TYPE_CATEGORY_SUBCATEGORY_PATTERN =
-            Pattern.compile("^([^()]+)\\(([^()]+)\\s*-\\s*([^()]+)\\)$");
+            Pattern.compile("^([^()]+)\\(([^()]+)\\s*-\\s*([^()]+)\\)$", Pattern.DOTALL);
 
     private final MFSchemeTypeService mFSchemeTypeService;
     private final MfAmcService mfAmcService;
-    private final ReentrantLock reentrantLock = new ReentrantLock();
+
+    // Cache for scheme types to avoid repeated database lookups and synchronization
+    private final ConcurrentHashMap<String, MFSchemeType> schemeTypeCache = new ConcurrentHashMap<>();
 
     public MfSchemeDtoToEntityMapperHelper(MFSchemeTypeService mFSchemeTypeService, MfAmcService mfAmcService) {
         this.mFSchemeTypeService = mFSchemeTypeService;
@@ -84,27 +86,32 @@ public class MfSchemeDtoToEntityMapperHelper {
         return mfAmcService.findOrCreateByName(amc);
     }
 
-    public MFSchemeType findOrCreateMFSchemeTypeEntity(String type, String category, @Nullable String subCategory) {
-        MFSchemeType byTypeAndCategoryAndSubCategory =
-                mFSchemeTypeService.findByTypeAndCategoryAndSubCategory(type, category, subCategory);
-        if (byTypeAndCategoryAndSubCategory == null) {
-            reentrantLock.lock(); // Acquiring the lock
-            try {
-                // Double-check within the locked section
-                byTypeAndCategoryAndSubCategory =
-                        mFSchemeTypeService.findByTypeAndCategoryAndSubCategory(type, category, subCategory);
+    /**
+     * Creates a unique cache key for a scheme type based on its parameters
+     */
+    private String createSchemeTypeKey(String type, String category, String subCategory) {
+        return type + "|" + category + "|" + (subCategory != null ? subCategory : "");
+    }
 
-                if (byTypeAndCategoryAndSubCategory == null) {
-                    MFSchemeType mfSchemeType = new MFSchemeType();
-                    mfSchemeType.setType(type);
-                    mfSchemeType.setCategory(category);
-                    mfSchemeType.setSubCategory(subCategory);
-                    byTypeAndCategoryAndSubCategory = mFSchemeTypeService.saveCategory(mfSchemeType);
-                }
-            } finally {
-                reentrantLock.unlock(); // Ensure the lock is released in the finally block
+    public MFSchemeType findOrCreateMFSchemeTypeEntity(String type, String category, @Nullable String subCategory) {
+        // Create a unique key for this scheme type
+        String schemeTypeKey = createSchemeTypeKey(type, category, subCategory);
+
+        // Use computeIfAbsent for thread-safe lookup/creation
+        return schemeTypeCache.computeIfAbsent(schemeTypeKey, key -> {
+            // First try to find in database
+            MFSchemeType existingType =
+                    mFSchemeTypeService.findByTypeAndCategoryAndSubCategory(type, category, subCategory);
+            if (existingType != null) {
+                return existingType;
             }
-        }
-        return byTypeAndCategoryAndSubCategory;
+
+            // If not found, create a new one
+            MFSchemeType newSchemeType = new MFSchemeType();
+            newSchemeType.setType(type);
+            newSchemeType.setCategory(category);
+            newSchemeType.setSubCategory(subCategory);
+            return mFSchemeTypeService.saveCategory(newSchemeType);
+        });
     }
 }

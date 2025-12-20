@@ -19,7 +19,7 @@ import org.springframework.util.StringUtils;
 @Transactional(readOnly = true)
 class UserSchemeDetailServiceImpl implements UserSchemeDetailService {
 
-    private static final Logger log = LoggerFactory.getLogger(UserSchemeDetailServiceImpl.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(UserSchemeDetailServiceImpl.class);
 
     private final UserSchemeDetailsRepository userSchemeDetailsRepository;
     private final MfSchemeService mfSchemeService;
@@ -46,12 +46,12 @@ class UserSchemeDetailServiceImpl implements UserSchemeDetailService {
             String trimmedRtaCode = rtaCode.substring(0, rtaCode.length() - 1);
             processRtaCode(userSchemeDetails, trimmedRtaCode);
         } else {
-            log.warn("rtaCode is too short: {}", rtaCode);
+            LOGGER.warn("rtaCode is too short: {}", rtaCode);
         }
     }
 
     private void processRtaCode(UserSchemeDetails userSchemeDetails, String rtaCode) {
-        log.debug("RTA code for userSchemeDetailsEntity with id: {} is {}", userSchemeDetails.getId(), rtaCode);
+        LOGGER.debug("RTA code for userSchemeDetailsEntity with id: {} is {}", userSchemeDetails.getId(), rtaCode);
         List<MFSchemeProjection> mfSchemeEntityList = mfSchemeService.fetchSchemesByRtaCode(rtaCode);
         if (!mfSchemeEntityList.isEmpty()) {
             handleNonEmptyMfSchemeList(userSchemeDetails, mfSchemeEntityList);
@@ -63,9 +63,9 @@ class UserSchemeDetailServiceImpl implements UserSchemeDetailService {
     private void handleEmptyMfSchemeList(UserSchemeDetails userSchemeDetails) {
         String scheme = userSchemeDetails.getScheme();
         if (scheme == null) {
-            log.warn("Scheme is null for userSchemeDetailsEntity with id: {}", userSchemeDetails.getId());
+            LOGGER.warn("Scheme is null for userSchemeDetailsEntity with id: {}", userSchemeDetails.getId());
         } else {
-            log.info("AMFI is null for scheme: {}", scheme);
+            LOGGER.info("AMFI is null for scheme: {}", scheme);
             if (scheme.contains("ISIN:")) {
                 extractAndProcessIsin(userSchemeDetails, scheme);
             } else {
@@ -91,7 +91,7 @@ class UserSchemeDetailServiceImpl implements UserSchemeDetailService {
             mfSchemeEntity.ifPresent(schemeEntity ->
                     updateUserSchemeDetails(userSchemeDetails.getId(), schemeEntity.getAmfiCode(), isin));
         } else {
-            log.warn("ISIN is null after extraction for scheme: {}", scheme);
+            LOGGER.warn("ISIN is null after extraction for scheme: {}", scheme);
         }
     }
 
@@ -105,7 +105,7 @@ class UserSchemeDetailServiceImpl implements UserSchemeDetailService {
                 mfSchemeProjection -> updateUserSchemeDetails(
                         userSchemeDetails.getId(), mfSchemeProjection.getAmfiCode(), mfSchemeProjection.getIsin()),
                 () -> {
-                    log.debug("ISIN not found in the list of schemes");
+                    LOGGER.debug("ISIN not found in the list of schemes");
                     MFSchemeProjection firstScheme = mfSchemeEntityList.getFirst();
                     updateUserSchemeDetails(
                             userSchemeDetails.getId(), firstScheme.getAmfiCode(), firstScheme.getIsin());

@@ -1,8 +1,10 @@
 package com.app.folioman.mfschemes;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 public interface MFNavService {
 
@@ -19,4 +21,20 @@ public interface MFNavService {
     Map<String, String> getAmfiCodeIsinMap();
 
     Optional<MFSchemeDTO> findTopBySchemeIdOrderByDateDesc(Long schemeId);
+    /**
+     * Process NAVs for a list of scheme codes asynchronously.
+     * This method should handle parallel processing and transactional boundaries.
+     */
+    void processNavsAsync(List<Long> schemeCodes);
+
+    /**
+     * Retrieves NAV projections for multiple schemes over a date range.
+     *
+     * @param schemeCodes Set of scheme codes to retrieve NAVs for
+     * @param startDate The start date of the date range (inclusive)
+     * @param endDate The end date of the date range (inclusive)
+     * @return A map of scheme codes to their NAV projections over the date range
+     */
+    Map<Long, Map<LocalDate, MFSchemeNavProjection>> getNavsForSchemesAndDates(
+            Set<Long> schemeCodes, LocalDate startDate, LocalDate endDate);
 }

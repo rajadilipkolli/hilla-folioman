@@ -4,8 +4,7 @@ import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import com.app.folioman.common.AbstractIntegrationTest;
-import org.junit.jupiter.api.Disabled;
+import com.app.folioman.shared.AbstractIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -18,7 +17,7 @@ class NavControllerIT extends AbstractIntegrationTest {
                 .perform(get("/api/nav/{schemeCode}", 159999).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, is(MediaType.APPLICATION_PROBLEM_JSON_VALUE)))
-                .andExpect(jsonPath("$.type", is("about:blank")))
+                .andExpect(jsonPath("$.type", is("https://api.hilla-folioman.com/errors/nav-not-found")))
                 .andExpect(jsonPath("$.title", is("NAV Not Found")))
                 .andExpect(jsonPath("$.status", is(404)))
                 .andExpect(jsonPath("$.detail", containsString("Nav Not Found for schemeCode - 159999 on")))
@@ -77,7 +76,7 @@ class NavControllerIT extends AbstractIntegrationTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, is(MediaType.APPLICATION_PROBLEM_JSON_VALUE)))
-                .andExpect(jsonPath("$.type", is("about:blank")))
+                .andExpect(jsonPath("$.type", is("https://api.hilla-folioman.com/errors/nav-not-found")))
                 .andExpect(jsonPath("$.title", is("NAV Not Found")))
                 .andExpect(jsonPath("$.status", is(404)))
                 .andExpect(jsonPath("$.detail", is("Nav Not Found for schemeCode - 144610 on 2023-07-06")))
@@ -91,7 +90,7 @@ class NavControllerIT extends AbstractIntegrationTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, is(MediaType.APPLICATION_PROBLEM_JSON_VALUE)))
-                .andExpect(jsonPath("$.type", is("about:blank")))
+                .andExpect(jsonPath("$.type", is("https://api.hilla-folioman.com/errors/nav-not-found")))
                 .andExpect(jsonPath("$.title", is("NAV Not Found")))
                 .andExpect(jsonPath("$.status", is(404)))
                 .andExpect(jsonPath("$.detail", is("Nav Not Found for schemeCode - 141565 on 2017-09-25")))
@@ -99,7 +98,6 @@ class NavControllerIT extends AbstractIntegrationTest {
     }
 
     @Test
-    @Disabled
     void shouldLoadDataWhenSchemeMergedWithOtherFundHouse() throws Exception {
         this.mockMvc
                 .perform(get("/api/nav/{schemeCode}/{date}", 151113, "2022-10-20")
@@ -108,8 +106,8 @@ class NavControllerIT extends AbstractIntegrationTest {
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, is(MediaType.APPLICATION_JSON_VALUE)))
                 .andExpect(jsonPath("$.schemeCode", is(151113L), Long.class))
                 .andExpect(jsonPath("$.isin", is("INF917K01HD4")))
-                .andExpect(jsonPath("$.schemeName", is("HSBC Value Fund - Direct Growth")))
-                .andExpect(jsonPath("$.nav", is("63.1620")))
+                .andExpect(jsonPath("$.schemeName", is("HSBC VALUE FUND DIRECT PLAN - GROWTH")))
+                .andExpect(jsonPath("$.nav", is("63.16200")))
                 .andExpect(jsonPath("$.date", is("2022-10-20")))
                 .andExpect(jsonPath("$.schemeType", is("Open Ended(Equity Scheme - Value Fund)")));
     }

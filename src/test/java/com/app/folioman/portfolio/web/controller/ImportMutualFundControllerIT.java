@@ -1,5 +1,7 @@
 package com.app.folioman.portfolio.web.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -9,11 +11,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.app.folioman.common.AbstractIntegrationTest;
 import com.app.folioman.portfolio.TestData;
+import com.app.folioman.shared.AbstractIntegrationTest;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
+import java.time.Duration;
 import java.time.LocalDate;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -30,10 +33,10 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
     @Order(1)
     void uploadFile() throws Exception {
 
+        long countBeforeInsert = userPortfolioValueRepository.count();
         File tempFile = File.createTempFile("file", ".json");
         try (FileWriter fileWriter = new FileWriter(tempFile)) {
-            fileWriter.write(
-                    """
+            fileWriter.write("""
                     {
                     	"statement_period": {
                     		"from": "01-Jan-1990",
@@ -55,7 +58,7 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
                     				{
                     					"scheme": "ICICI Prudential Nifty Next 50 Index Fund - Direct Plan - Growth (Non-Demat) - ISIN: INF109K01Y80",
                     					"isin": "INF109K01Y80",
-                    					"amfi": null,
+                    					"amfi": 120684,
                     					"advisor": "INA200005166",
                     					"type": "EQUITY",
                     					"rta": "CAMS",
@@ -147,10 +150,15 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
                     .andExpect(jsonPath("$.newFolios", is(1)))
                     .andExpect(jsonPath("$.newSchemes", is(1)))
                     .andExpect(jsonPath("$.newTransactions", is(5)))
-                    .andExpect(jsonPath("$.casId", notNullValue()));
+                    .andExpect(jsonPath("$.userCASDetailsId", notNullValue()));
         } finally {
             tempFile.deleteOnExit();
         }
+
+        await().atMost(Duration.ofSeconds(45)).pollDelay(Duration.ofSeconds(1)).untilAsserted(() -> {
+            long countAfterInsert = userPortfolioValueRepository.count();
+            assertThat(countAfterInsert).isGreaterThan(countBeforeInsert);
+        });
     }
 
     @Test
@@ -178,7 +186,7 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
                     .andExpect(jsonPath("$.newFolios", is(0)))
                     .andExpect(jsonPath("$.newSchemes", is(0)))
                     .andExpect(jsonPath("$.newTransactions", is(0)))
-                    .andExpect(jsonPath("$.casId", notNullValue()));
+                    .andExpect(jsonPath("$.userCASDetailsId", notNullValue()));
         } finally {
             tempFile.deleteOnExit();
         }
@@ -209,7 +217,7 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
                     .andExpect(jsonPath("$.newFolios", is(1)))
                     .andExpect(jsonPath("$.newSchemes", is(1)))
                     .andExpect(jsonPath("$.newTransactions", is(1)))
-                    .andExpect(jsonPath("$.casId", notNullValue()));
+                    .andExpect(jsonPath("$.userCASDetailsId", notNullValue()));
         } finally {
             tempFile.deleteOnExit();
         }
@@ -218,6 +226,8 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
     @Test
     @Order(4)
     void uploadFileWithNewScheme() throws Exception {
+
+        long countBeforeProcessing = mfSchemeNavRepository.count();
 
         File tempFile = File.createTempFile("file", ".json");
         try (FileWriter fileWriter = new FileWriter(tempFile)) {
@@ -240,10 +250,15 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
                     .andExpect(jsonPath("$.newFolios", is(0)))
                     .andExpect(jsonPath("$.newSchemes", is(1)))
                     .andExpect(jsonPath("$.newTransactions", is(6)))
-                    .andExpect(jsonPath("$.casId", notNullValue()));
+                    .andExpect(jsonPath("$.userCASDetailsId", notNullValue()));
         } finally {
             tempFile.deleteOnExit();
         }
+
+        await().atMost(Duration.ofSeconds(45)).pollDelay(Duration.ofSeconds(1)).untilAsserted(() -> {
+            long countAfterInsert = mfSchemeNavRepository.count();
+            assertThat(countAfterInsert).isGreaterThan(countBeforeProcessing);
+        });
     }
 
     @Test
@@ -270,8 +285,7 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
                     .andExpect(jsonPath("$.newFolios", is(0)))
                     .andExpect(jsonPath("$.newSchemes", is(0)))
                     .andExpect(jsonPath("$.newTransactions", is(1)))
-                    .andExpect(jsonPath("$.casId", notNullValue()));
-            ;
+                    .andExpect(jsonPath("$.userCASDetailsId", notNullValue()));
         } finally {
             tempFile.deleteOnExit();
         }
@@ -280,6 +294,8 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
     @Test
     @Order(6)
     void uploadFileWithNewFolioAndSchemeAndTransaction() throws Exception {
+
+        long countBeforeProcessing = mfSchemeNavRepository.count();
 
         File tempFile = File.createTempFile("file", ".json");
         try (FileWriter fileWriter = new FileWriter(tempFile)) {
@@ -302,15 +318,21 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
                     .andExpect(jsonPath("$.newFolios", is(1)))
                     .andExpect(jsonPath("$.newSchemes", is(2)))
                     .andExpect(jsonPath("$.newTransactions", is(3)))
-                    .andExpect(jsonPath("$.casId", notNullValue()));
+                    .andExpect(jsonPath("$.userCASDetailsId", notNullValue()));
         } finally {
             tempFile.deleteOnExit();
         }
+
+        await().atMost(Duration.ofSeconds(45)).pollDelay(Duration.ofSeconds(1)).untilAsserted(() -> {
+            long countAfterInsert = mfSchemeNavRepository.count();
+            assertThat(countAfterInsert).isGreaterThan(countBeforeProcessing);
+        });
     }
 
     @Test
     @Order(7)
     void addMultipleSchemesAndTransactions() throws Exception {
+        long countBeforeProcessing = mfSchemeNavRepository.count();
         File tempFile = File.createTempFile("file", ".json");
         try (FileWriter fileWriter = new FileWriter(tempFile)) {
             fileWriter.write(getUploadJson());
@@ -332,10 +354,203 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
                     .andExpect(jsonPath("$.newFolios", is(1)))
                     .andExpect(jsonPath("$.newSchemes", is(3)))
                     .andExpect(jsonPath("$.newTransactions", is(59)))
-                    .andExpect(jsonPath("$.casId", notNullValue()));
-            ;
+                    .andExpect(jsonPath("$.userCASDetailsId", notNullValue()));
         } finally {
             tempFile.deleteOnExit();
+        }
+
+        await().atMost(Duration.ofSeconds(45)).pollDelay(Duration.ofSeconds(1)).untilAsserted(() -> {
+            long countAfterInsert = mfSchemeNavRepository.count();
+            assertThat(countAfterInsert).isGreaterThan(countBeforeProcessing);
+        });
+    }
+
+    @Test
+    @Order(8)
+    void shouldOnlyProcessNewTransactionsForExistingUser() throws Exception {
+        // First, create a user with initial transactions
+        File initialFile = File.createTempFile("initial-file", ".json");
+        try (FileWriter fileWriter = new FileWriter(initialFile)) {
+            // Create a CasDTO with an initial set of transactions
+            fileWriter.write("""
+                    {
+                    	"statement_period": {
+                    		"from": "01-Jan-1990",
+                    		"to": "20-Jun-2023"
+                    	},
+                    	"file_type": "CAMS",
+                    	"cas_type": "DETAILED",
+                    	"investor_info": {
+                    		"email": "transaction.test@email.com",
+                    		"name": "Transaction Test User",
+                    		"mobile": "9848022338",
+                    		"address": "Test Address"
+                    	},
+                    	"folios": [
+                    		{
+                    			"folio": "22222222 / 99",
+                    			"amc": "ICICI Prudential Mutual Fund",
+                    			"schemes": [
+                    				{
+                    					"scheme": "ICICI Prudential Technology Fund - Direct Plan - Growth (Non-Demat) - ISIN: INF109K01Z48",
+                    					"isin": "INF109K01Z48",
+                    					"amfi": 120594,
+                    					"advisor": "INA200005166",
+                    					"type": "EQUITY",
+                    					"rta": "CAMS",
+                    					"close": "100.000",
+                    					"rta_code": "P8019",
+                    					"open": "0.0",
+                    					"close_calculated": "100.000",
+                    					"valuation": {
+                    						"date": "2024-04-12",
+                    						"nav": 190.11,
+                    						"value": 0.0
+                    					},
+                    					"transactions": [
+                    						{
+                    							"date": "2023-06-15",
+                    							"description": "SIP Purchase-BSE",
+                    							"amount": 5000.0,
+                    							"units": 33.445,
+                    							"nav": 149.5,
+                    							"balance": 33.445,
+                    							"type": "PURCHASE_SIP",
+                    							"dividend_rate": null
+                    						},
+                    						{
+                    							"date": "2023-07-15",
+                    							"description": "SIP Purchase-BSE",
+                    							"amount": 5000.0,
+                    							"units": 32.154,
+                    							"nav": 155.5,
+                    							"balance": 65.599,
+                    							"type": "PURCHASE_SIP",
+                    							"dividend_rate": null
+                    						}
+                    					]
+                    				}
+                    			],
+                    			"PAN": "XYZAB1234C",
+                    			"KYC": "OK",
+                    			"PANKYC": "OK"
+                    		}
+                    	]
+                    }
+                    """);
+        }
+
+        try (FileInputStream fileInputStream = new FileInputStream(initialFile)) {
+            // Upload the initial file to create the user and initial transactions
+            MockMultipartFile multipartFile = new MockMultipartFile(
+                    "file", "initial-file.json", MediaType.APPLICATION_JSON_VALUE, fileInputStream);
+
+            mockMvc.perform(multipart("/api/upload-handler").file(multipartFile))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.newFolios", is(1)))
+                    .andExpect(jsonPath("$.newSchemes", is(1)))
+                    .andExpect(jsonPath("$.newTransactions", is(2)))
+                    .andExpect(jsonPath("$.userCASDetailsId", notNullValue()));
+        } finally {
+            initialFile.deleteOnExit();
+        }
+
+        // Now create a second file with the same user but adding one new transaction
+        File updatedFile = File.createTempFile("updated-file", ".json");
+        try (FileWriter fileWriter = new FileWriter(updatedFile)) {
+            fileWriter.write("""
+                    {
+                    	"statement_period": {
+                    		"from": "01-Jan-1990",
+                    		"to": "20-Jun-2023"
+                    	},
+                    	"file_type": "CAMS",
+                    	"cas_type": "DETAILED",
+                    	"investor_info": {
+                    		"email": "transaction.test@email.com",
+                    		"name": "Transaction Test User",
+                    		"mobile": "9848022338",
+                    		"address": "Test Address"
+                    	},
+                    	"folios": [
+                    		{
+                    			"folio": "22222222 / 99",
+                    			"amc": "ICICI Prudential Mutual Fund",
+                    			"schemes": [
+                    				{
+                    					"scheme": "ICICI Prudential Technology Fund - Direct Plan - Growth (Non-Demat) - ISIN: INF109K01Z48",
+                    					"isin": "INF109K01Z48",
+                    					"amfi": 120594,
+                    					"advisor": "INA200005166",
+                    					"type": "EQUITY",
+                    					"rta": "CAMS",
+                    					"close": "100.000",
+                    					"rta_code": "P8019",
+                    					"open": "0.0",
+                    					"close_calculated": "100.000",
+                    					"valuation": {
+                    						"date": "2024-04-12",
+                    						"nav": 190.11,
+                    						"value": 0.0
+                    					},
+                    					"transactions": [
+                    						{
+                    							"date": "2023-06-15",
+                    							"description": "SIP Purchase-BSE",
+                    							"amount": 5000.0,
+                    							"units": 33.445,
+                    							"nav": 149.5,
+                    							"balance": 33.445,
+                    							"type": "PURCHASE_SIP",
+                    							"dividend_rate": null
+                    						},
+                    						{
+                    							"date": "2023-07-15",
+                    							"description": "SIP Purchase-BSE",
+                    							"amount": 5000.0,
+                    							"units": 32.154,
+                    							"nav": 155.5,
+                    							"balance": 65.599,
+                    							"type": "PURCHASE_SIP",
+                    							"dividend_rate": null
+                    						},
+                    						{
+                    							"date": "2023-08-15",
+                    							"description": "SIP Purchase-BSE",
+                    							"amount": 5000.0,
+                    							"units": 31.055,
+                    							"nav": 161.0,
+                    							"balance": 96.654,
+                    							"type": "PURCHASE_SIP",
+                    							"dividend_rate": null
+                    						}
+                    					]
+                    				}
+                    			],
+                    			"PAN": "XYZAB1234C",
+                    			"KYC": "OK",
+                    			"PANKYC": "OK"
+                    		}
+                    	]
+                    }
+                    """);
+        }
+
+        try (FileInputStream fileInputStream = new FileInputStream(updatedFile)) {
+            // Upload the updated file and verify only the new transaction is processed
+            MockMultipartFile multipartFile = new MockMultipartFile(
+                    "file", "updated-file.json", MediaType.APPLICATION_JSON_VALUE, fileInputStream);
+
+            mockMvc.perform(multipart("/api/upload-handler").file(multipartFile))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(jsonPath("$.newFolios", is(0)))
+                    .andExpect(jsonPath("$.newSchemes", is(0)))
+                    .andExpect(jsonPath("$.newTransactions", is(1))) // Only one new transaction should be processed
+                    .andExpect(jsonPath("$.userCASDetailsId", notNullValue()));
+        } finally {
+            updatedFile.deleteOnExit();
         }
     }
 

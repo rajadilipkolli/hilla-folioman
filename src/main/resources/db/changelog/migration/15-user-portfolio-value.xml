@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.29.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+
+    <changeSet id="1728650966586-1" author="appUser">
+        <createSequence incrementBy="50" schemaName="portfolio" sequenceName="user_portfolio_value_seq" startValue="1"/>
+    </changeSet>
+
+    <changeSet id="1728650966586-2" author="appUser">
+        <createTable schemaName="portfolio" tableName="user_portfolio_value">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_user_portfolio_value"/>
+            </column>
+            <column name="date" type="DATE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="invested" type="DECIMAL(30, 2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="value" type="DECIMAL(30, 2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="xirr" type="DECIMAL(30, 2)"/>
+            <column name="live_xirr" type="DECIMAL(30, 2)"/>
+            <column name="user_cas_details_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="1728650966586-3" author="appUser">
+        <addForeignKeyConstraint baseColumnNames="user_cas_details_id" baseTableName="user_portfolio_value"
+                                 baseTableSchemaName="portfolio"
+                                 constraintName="FK_USER_PORTFOLIO_VALUE_ON_USER_CAS_DETAILS" referencedColumnNames="id"
+                                 referencedTableName="user_cas_details" referencedTableSchemaName="portfolio"
+                                 onDelete="CASCADE" onUpdate="RESTRICT"/>
+    </changeSet>
+
+    <changeSet id="1728670369775-4" author="appUser">
+        <addUniqueConstraint columnNames="date, user_cas_details_id" constraintName="uc_userportfoliovalue_date"
+                             schemaName="portfolio" tableName="user_portfolio_value"/>
+    </changeSet>
+
+</databaseChangeLog>

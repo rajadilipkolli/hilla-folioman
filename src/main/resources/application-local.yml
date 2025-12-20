@@ -4,3 +4,6 @@ spring:
     url: jdbc:postgresql://localhost:5432/appdb
     username: appuser
     password: secret
+    hikari:
+      maximum-pool-size: 25
+      minimum-idle: 5

@@ -1,5 +1,6 @@
 package com.app.folioman.mfschemes.service;
 
+import com.app.folioman.mfschemes.config.ApplicationProperties;
 import com.app.folioman.mfschemes.entities.MFSchemeType;
 import com.app.folioman.mfschemes.entities.MfAmc;
 import com.app.folioman.mfschemes.entities.MfFundScheme;
@@ -19,7 +20,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -36,34 +36,38 @@ import org.springframework.web.client.RestClient;
 @Service
 public class BSEStarMasterDataService {
 
-    private static final Logger log = LoggerFactory.getLogger(BSEStarMasterDataService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(BSEStarMasterDataService.class);
 
     private final Pattern delimiterPattern = Pattern.compile("\\|");
 
     private final RestClient restClient;
     private final MfAmcService mfAmcService;
     private final MfSchemeDtoToEntityMapperHelper mfSchemeDtoToEntityMapperHelper;
+    private final ApplicationProperties applicationProperties;
 
-    private final ReentrantLock reentrantLock = new ReentrantLock();
+    // Local cache for AMCs by code to avoid repeated lookups in concurrent processing
+    private final ConcurrentHashMap<String, MfAmc> amcCache = new ConcurrentHashMap<>();
 
-    public BSEStarMasterDataService(
+    BSEStarMasterDataService(
             RestClient restClient,
             MfAmcService mfAmcService,
-            MfSchemeDtoToEntityMapperHelper mfSchemeDtoToEntityMapperHelper) {
+            MfSchemeDtoToEntityMapperHelper mfSchemeDtoToEntityMapperHelper,
+            ApplicationProperties applicationProperties) {
         this.restClient = restClient;
         this.mfAmcService = mfAmcService;
         this.mfSchemeDtoToEntityMapperHelper = mfSchemeDtoToEntityMapperHelper;
+        this.applicationProperties = applicationProperties;
     }
 
     public Map<String, MfFundScheme> fetchBseStarMasterData(
             Map<String, Map<String, String>> amfiDataMap, Map<String, String> amfiCodeIsinMapping)
             throws IOException, CsvException {
-        log.info("BSE Master data Downloading...");
+        LOGGER.info("BSE Master data Downloading...");
 
         // Step 1: Initial GET request to download the page
         String response = restClient
                 .get()
-                .uri("https://bsestarmf.in/RptSchemeMaster.aspx")
+                .uri(applicationProperties.getBseStar().getScheme().getDataUrl())
                 .header(HttpHeaders.USER_AGENT, "folioman-java-httpclient/0.0.1")
                 .retrieve()
                 .body(String.class);
@@ -82,7 +86,7 @@ public class BSEStarMasterDataService {
                 .retrieve()
                 .body(String.class);
 
-        log.info("BSE Master data downloaded successfully.");
+        LOGGER.info("BSE Master data downloaded successfully.");
 
         return parseResponseText(bseMasterData, amfiDataMap, amfiCodeIsinMapping);
     }
@@ -120,7 +124,7 @@ public class BSEStarMasterDataService {
                                 }
                             })
                             .exceptionally(ex -> {
-                                log.error("Error processing scheme data: ", ex);
+                                LOGGER.error("Error processing scheme data: ", ex);
                                 return null;
                             });
                     ;
@@ -148,7 +152,7 @@ public class BSEStarMasterDataService {
                         }
                     })
                     .exceptionally(ex -> {
-                        log.error("Error processing scheme data: ", ex);
+                        LOGGER.error("Error processing scheme data: ", ex);
                         return null;
                     });
             futures.add(future);
@@ -177,7 +181,7 @@ public class BSEStarMasterDataService {
             fallbackScheme.setAmc(amc);
             setMfSchemeCategory(amfiSchemeData, fallbackScheme);
         } else {
-            log.error("amfiSchemeData is null");
+            LOGGER.error("amfiSchemeData is null");
         }
         masterData.put(amfiCode, fallbackScheme);
     }
@@ -213,23 +217,20 @@ public class BSEStarMasterDataService {
     }
 
     private MfAmc getOrCreateAmc(String amcCode, String amcName) {
-        MfAmc amc = mfAmcService.findByCode(amcCode);
-        if (amc == null) {
-            reentrantLock.lock(); // Acquiring the lock
-            try {
-                // Double-check within the locked section
-                amc = mfAmcService.findByCode(amcCode);
-                if (amc == null) {
-                    amc = new MfAmc();
-                    amc.setName(amcName);
-                    amc.setCode(amcCode);
-                    amc = mfAmcService.saveMfAmc(amc);
-                }
-            } finally {
-                reentrantLock.unlock(); // Ensure the lock is released in the finally block
+        // First try to get from local cache
+        return amcCache.computeIfAbsent(amcCode, code -> {
+            // If not in local cache, try to find in service
+            MfAmc amc = mfAmcService.findByCode(code);
+            if (amc == null) {
+                // If not found in service, create new one
+                MfAmc newAmc = new MfAmc();
+                newAmc.setName(amcName);
+                newAmc.setCode(code);
+                // Save the new AMC, which is a thread-safe operation in the service
+                return mfAmcService.saveMfAmc(newAmc);
             }
-        }
-        return amc;
+            return amc;
+        });
     }
 
     private MfFundScheme createMfFundScheme(

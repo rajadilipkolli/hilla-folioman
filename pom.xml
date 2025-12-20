@@ -10,15 +10,18 @@
     <packaging>jar</packaging>
 
     <properties>
-        <java.version>21</java.version>
-        <vaadin.version>24.4.13</vaadin.version>
-        <spring-modulith.version>1.3.0-M3</spring-modulith.version>
-        <org.mapstruct.version>1.6.2</org.mapstruct.version>
+        <java.version>25</java.version>
+        <vaadin.version>25.0.0</vaadin.version>
+        <spring-modulith.version>2.0.1</spring-modulith.version>
+        <org.mapstruct.version>1.6.3</org.mapstruct.version>
+        <flexy-pool.version>3.1.1</flexy-pool.version>
 
-        <spotless.version>2.43.0</spotless.version>
+        <spotless.version>3.1.0</spotless.version>
+
+        <archunit.version>1.4.1</archunit.version>
         <properties-maven-plugin.version>1.2.1</properties-maven-plugin.version>
-        <sonar-maven-plugin.version>4.0.0.4121</sonar-maven-plugin.version>
-        <jacoco-maven-plugin.version>0.8.12</jacoco-maven-plugin.version>
+        <sonar-maven-plugin.version>5.5.0.6356</sonar-maven-plugin.version>
+        <jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
         <jacoco.minimum.coverage>0.80</jacoco.minimum.coverage>
         <jacoco.utReportFolder>${project.build.directory}/jacoco/test</jacoco.utReportFolder>
         <jacoco.utReportFile>${jacoco.utReportFolder}/test.exec</jacoco.utReportFile>
@@ -32,7 +35,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.4.0-M3</version>
+        <version>4.0.0</version>
     </parent>
 
     <dependencyManagement>
@@ -61,39 +64,73 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
+        <!-- Vaadin -->
         <dependency>
             <groupId>com.vaadin</groupId>
-            <artifactId>vaadin</artifactId>
+            <artifactId>vaadin-core</artifactId>
         </dependency>
         <dependency>
             <groupId>com.vaadin</groupId>
             <artifactId>vaadin-spring-boot-starter</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>hilla-spring-boot-starter</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>vaadin-dev</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
             <groupId>org.parttio</groupId>
             <artifactId>line-awesome</artifactId>
-            <version>2.0.0</version>
+            <version>2.1.0</version>
         </dependency>
 
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-restclient</artifactId>
+        </dependency>
+        <!-- Persistence -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.liquibase</groupId>
-            <artifactId>liquibase-core</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-liquibase</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>com.vladmihalcea.flexy-pool</groupId>
+            <artifactId>flexy-micrometer-metrics</artifactId>
+            <version>${flexy-pool.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.vladmihalcea.flexy-pool</groupId>
+            <artifactId>flexy-hikaricp</artifactId>
+            <version>${flexy-pool.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.vladmihalcea.flexy-pool</groupId>
+                    <artifactId>flexy-dropwizard-metrics</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-mongodb</artifactId>
+        </dependency>
 
         <dependency>
             <groupId>org.jobrunr</groupId>
-            <artifactId>jobrunr-spring-boot-3-starter</artifactId>
-            <version>7.3.0</version>
+            <artifactId>jobrunr-spring-boot-4-starter</artifactId>
+            <version>8.3.1</version>
         </dependency>
 
         <dependency>
@@ -115,7 +152,7 @@
         </dependency>
         <dependency>
             <groupId>org.springframework.modulith</groupId>
-            <artifactId>spring-modulith-starter-jpa</artifactId>
+            <artifactId>spring-modulith-starter-mongodb</artifactId>
         </dependency>
         <dependency>
             <groupId>org.mapstruct</groupId>
@@ -130,16 +167,12 @@
             <scope>runtime</scope>
         </dependency>
         <dependency>
-            <groupId>io.micrometer</groupId>
-            <artifactId>micrometer-tracing-bridge-otel</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-micrometer-tracing</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.opentelemetry</groupId>
-            <artifactId>opentelemetry-exporter-otlp</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.micrometer</groupId>
-            <artifactId>micrometer-registry-otlp</artifactId>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-opentelemetry</artifactId>
         </dependency>
         <dependency>
             <groupId>io.micrometer</groupId>
@@ -149,19 +182,55 @@
         <dependency>
             <groupId>net.ttddyy.observation</groupId>
             <artifactId>datasource-micrometer-spring-boot</artifactId>
-            <version>1.0.5</version>
+            <version>2.0.1</version>
         </dependency>
         <!-- Observability Ends -->
 
+        <!-- Resilience4j Starts -->
         <dependency>
+            <groupId>io.github.resilience4j</groupId>
+            <artifactId>resilience4j-circuitbreaker</artifactId>
+            <version>2.3.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.resilience4j</groupId>
+            <artifactId>resilience4j-micrometer</artifactId>
+            <version>2.3.0</version>
+        </dependency>
+        <!-- Resilience4j Ends -->
+
+        <!-- <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
             <optional>true</optional>
-        </dependency>
+        </dependency> -->
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-test</artifactId>
+            <artifactId>spring-boot-starter-webmvc-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- Vaadin TestBench for UI integration testing -->
+        <dependency>
+            <groupId>com.vaadin</groupId>
+            <artifactId>vaadin-testbench</artifactId>
+            <scope>test</scope>
+            <exclusions>
+                <exclusion>
+                    <groupId>junit</groupId>
+                    <artifactId>junit</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <!-- Selenium WebDriver for TestBench -->
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-java</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -176,13 +245,34 @@
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
-            <artifactId>postgresql</artifactId>
+            <artifactId>testcontainers-postgresql</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers-mongodb</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers-grafana</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers-selenium</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.redis.testcontainers</groupId>
             <artifactId>testcontainers-redis</artifactId>
             <version>1.6.4</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.tngtech.archunit</groupId>
+            <artifactId>archunit-junit5</artifactId>
+            <version>${archunit.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -224,7 +314,7 @@
                 <executions>
                     <execution>
                         <goals>
-                            <goal>prepare-frontend</goal>
+                            <goal>build-frontend</goal>
                         </goals>
                     </execution>
                 </executions>
@@ -255,12 +345,24 @@
                 <configuration>
                     <java>
                         <palantirJavaFormat>
-                            <version>2.50.0</version>
+                            <version>2.83.0</version>
                         </palantirJavaFormat>
                         <importOrder/>
                         <removeUnusedImports/>
-                        <formatAnnotations/>
                     </java>
+                    <typescript>
+                        <includes>
+                            <include>src/main/frontend/**/*.ts</include>
+                            <include>src/main/frontend/**/*.tsx</include>
+                        </includes>
+                        <excludes>
+                            <exclude>src/main/frontend/generated/**</exclude>
+                        </excludes>
+                        <prettier>
+                            <prettierVersion>3.3.3</prettierVersion>
+                            <configFile>${project.basedir}/.prettierrc.json</configFile>
+                        </prettier>
+                    </typescript>
                 </configuration>
                 <executions>
                     <execution>
@@ -400,42 +502,6 @@
             </plugin>
         </plugins>
     </build>
-
-    <profiles>
-        <profile>
-            <!-- Production mode is activated using -Pproduction -->
-            <id>production</id>
-            <dependencies>
-                <!-- Exclude development dependencies from production -->
-                <dependency>
-                    <groupId>com.vaadin</groupId>
-                    <artifactId>vaadin-core</artifactId>
-                    <exclusions>
-                        <exclusion>
-                            <groupId>com.vaadin</groupId>
-                            <artifactId>vaadin-dev</artifactId>
-                        </exclusion>
-                    </exclusions>
-                </dependency>
-            </dependencies>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>com.vaadin</groupId>
-                        <artifactId>vaadin-maven-plugin</artifactId>
-                        <version>${vaadin.version}</version>
-                        <executions>
-                            <execution>
-                                <goals>
-                                    <goal>build-frontend</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 
     <repositories>
         <repository>

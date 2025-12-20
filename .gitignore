@@ -9,3 +9,8 @@ vite.generated.ts
 *.iml
 logs/
 .vaadin-node-tasks.lock
+.vscode/.copilot-plugin
+target_test-classes/
+
+node/
+src/main/bundles/prod.bundle

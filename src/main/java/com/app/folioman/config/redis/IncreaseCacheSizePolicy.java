@@ -12,7 +12,7 @@ import org.springframework.stereotype.Component;
 public class IncreaseCacheSizePolicy implements CachePolicy {
 
     private static final Duration LONGER_EXPIRATION_TIME = Duration.ofHours(2); // Increased TTL
-    private static final Logger log = LoggerFactory.getLogger(IncreaseCacheSizePolicy.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(IncreaseCacheSizePolicy.class);
 
     @Override
     public Duration getExpirationTime() {
@@ -23,15 +23,15 @@ public class IncreaseCacheSizePolicy implements CachePolicy {
     public void apply(RedisTemplate<String, Object> redisTemplate, MeterRegistry meterRegistry) {
         Set<String> allKeys = redisTemplate.keys("*");
         if (allKeys == null || allKeys.isEmpty()) {
-            log.info("Cache is empty, no need to increase.");
+            LOGGER.info("Cache is empty, no need to increase.");
             return;
         }
 
-        log.info("Increasing TTL for all cache entries.");
+        LOGGER.info("Increasing TTL for all cache entries.");
 
         for (String key : allKeys) {
             redisTemplate.expire(key, LONGER_EXPIRATION_TIME);
-            log.info("Increased TTL for key: {}", key);
+            LOGGER.info("Increased TTL for key: {}", key);
         }
 
         preloadFrequentlyUsedData(redisTemplate);
@@ -42,7 +42,7 @@ public class IncreaseCacheSizePolicy implements CachePolicy {
         for (String key : keysToPreload) {
             if (!Boolean.TRUE.equals(redisTemplate.hasKey(key))) {
                 redisTemplate.opsForValue().set(key, "PreloadedValue_" + key, LONGER_EXPIRATION_TIME);
-                log.info("Preloaded key: {} into cache.", key);
+                LOGGER.info("Preloaded key: {} into cache.", key);
             }
         }
     }

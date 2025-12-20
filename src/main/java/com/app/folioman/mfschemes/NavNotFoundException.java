@@ -4,14 +4,14 @@ import java.time.LocalDate;
 
 public class NavNotFoundException extends RuntimeException {
 
-    private final LocalDate date;
+    private final LocalDate navDate;
 
-    public NavNotFoundException(String message, LocalDate date) {
-        super(message + " on " + date.toString());
-        this.date = date;
+    public NavNotFoundException(String message, LocalDate navDate) {
+        super(message + " on " + navDate.toString());
+        this.navDate = navDate;
     }
 
-    public LocalDate getDate() {
-        return date;
+    public LocalDate getNavDate() {
+        return navDate;
     }
 }

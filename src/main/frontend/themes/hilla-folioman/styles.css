@@ -1,0 +1,5 @@
+.header-wrap .vaadin-grid-cell-content {
+    white-space: normal; /* Allows the text to wrap */
+    overflow: visible;   /* Prevents text cutoff */
+    text-align: center;  /* Centers text if desired */
+}

@@ -1,7 +1,8 @@
+name: hilla-folioman
 services:
 
   postgresqldb:
-    image: postgres:15.8-alpine
+    image: postgres:18.1-alpine
     hostname: postgresqldb
     container_name: postgresqldb
     extra_hosts: [ 'host.docker.internal:host-gateway' ]
@@ -56,20 +57,60 @@ services:
       - folioman-network
 
   grafanalgtm:
-    image: grafana/otel-lgtm:0.7.5
+    image: grafana/otel-lgtm:0.13.0
     extra_hosts: [ 'host.docker.internal:host-gateway' ]
     container_name: grafanalgtm
+    networks:
+      - folioman-network
     environment:
       - OTEL_METRIC_EXPORT_INTERVAL=500
-      - ENABLE_LOGS_ALL=true
+      - ENABLE_LOGS_ALL=false
     ports:
       - "3000:3000"
       - "4317:4317"
       - "4318:4318"
       - "9090:9090"
 
+  mongodb:
+    hostname: mongodb
+    container_name: mongodb
+    image: mongo:8.2.3
+    volumes:
+      - mongodb:/data/db
+    ports:
+      - "27017:27017"
+    restart: unless-stopped
+    networks:
+      - folioman-network
+    healthcheck:
+      test: |
+        mongosh --eval "try { rs.status().ok } catch (e) { rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'mongodb:27017' }] }).ok }"
+      interval: 10s
+      start_period: 30s
+      timeout: 5s
+      retries: 3
+    command: [ "/usr/bin/mongod", "--replSet", "rs0", "--bind_ip_all" ]
+
+  mongo-express:
+    image: mongo-express
+    container_name: mongo-express
+    ports:
+      - "8081:8081"
+    networks:
+      - folioman-network
+    environment:
+      - ME_CONFIG_MONGODB_URL=mongodb://mongodb:27017/?replicaSet=rs0
+      - ME_CONFIG_MONGODB_ENABLE_ADMIN=true
+      - ME_CONFIG_BASICAUTH_USERNAME=admin
+      - ME_CONFIG_BASICAUTH_PASSWORD=pass
+    restart: unless-stopped
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
 networks:
   folioman-network:
     driver: bridge
 volumes:
   redis_data:
+  mongodb:

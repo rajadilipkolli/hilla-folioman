@@ -3,6 +3,7 @@ package com.app.folioman.portfolio.models.request;
 import com.app.folioman.portfolio.web.validator.ValidSumOfRatios;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import java.util.List;
 
@@ -13,5 +14,8 @@ import java.util.List;
  */
 public record InvestmentRequest(
         @NotEmpty(message = "Investment request and funds list cannot be null or empty") @ValidSumOfRatios @Valid
-                List<Fund> funds,
-        @PositiveOrZero(message = "Amount to invest cannot be negative") double amountToInvest) {}
+        List<Fund> funds,
+
+        @PositiveOrZero(message = "Amount to invest cannot be negative")
+        @NotNull(message = "Amount to invest cannot be null")
+        Double amountToInvest) {}

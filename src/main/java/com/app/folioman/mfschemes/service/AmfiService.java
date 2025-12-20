@@ -1,5 +1,6 @@
 package com.app.folioman.mfschemes.service;
 
+import com.app.folioman.mfschemes.config.ApplicationProperties;
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvException;
 import java.io.IOException;
@@ -9,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestClient;
@@ -17,36 +19,51 @@ import org.springframework.web.client.RestClient;
 @Transactional(readOnly = true)
 public class AmfiService {
 
-    private static final Logger logger = LoggerFactory.getLogger(AmfiService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AmfiService.class);
 
     private final RestClient restClient;
+    private final ApplicationProperties applicationProperties;
 
-    public AmfiService(RestClient restClient) {
+    AmfiService(RestClient restClient, ApplicationProperties applicationProperties) {
         this.restClient = restClient;
+        this.applicationProperties = applicationProperties;
     }
 
     public Map<String, Map<String, String>> fetchAmfiSchemeData() throws IOException, CsvException {
-        logger.info("Downloading AMFI scheme data...");
+        LOGGER.info("Downloading AMFI scheme data...");
+        // Prepare a Map to store the scheme data
+        Map<String, Map<String, String>> data = new HashMap<>();
 
         // Fetch the CSV content from the remote server
-        String csvContent = restClient
-                .get()
-                .uri("https://portal.amfiindia.com/DownloadSchemeData_Po.aspx?mf=0")
-                .retrieve()
-                .body(String.class);
+        String csvContent;
+        try {
+            csvContent = restClient
+                    .get()
+                    .uri(applicationProperties.getAmfi().getScheme().getDataUrl())
+                    .retrieve()
+                    .onStatus(HttpStatusCode::isError, (request, response) -> {
+                        LOGGER.error("Failed to retrieve data. Status: {} ", response.getStatusCode());
+                    })
+                    .body(String.class);
+        } catch (Exception e) {
+            // website down scenario
+            LOGGER.error("Unable to download data", e);
+            return data;
+        }
 
         if (csvContent == null || csvContent.isBlank()) {
             throw new IllegalStateException("Invalid response! No data received.");
         }
-
-        // Prepare a Map to store the scheme data
-        Map<String, Map<String, String>> data = new HashMap<>();
 
         // Read the CSV data using OpenCSV's CSVReader
         try (StringReader stringReader = new StringReader(csvContent);
                 CSVReader csvReader = new CSVReader(stringReader)) {
 
             List<String[]> rows = csvReader.readAll();
+            if (rows == null || rows.isEmpty()) {
+                return data;
+            }
+
             String[] headers = rows.getFirst(); // First row is the header
 
             // Process each row (starting from the second row)

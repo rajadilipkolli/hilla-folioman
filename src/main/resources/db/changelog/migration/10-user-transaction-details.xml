@@ -34,7 +34,7 @@
             </column>
             <column name="transaction_date" type="DATE"/>
             <column name="description" type="${string.type}"/>
-            <column name="amount" type="FLOAT(4)"/>
+            <column name="amount" type="DECIMAL(30, 2)"/>
             <column name="units" type="FLOAT(4)"/>
             <column name="nav" type="FLOAT(4)"/>
             <column name="balance" type="FLOAT(4)"/>
@@ -72,6 +72,23 @@
                                  constraintName="FK_USER_TRANSACTION_DETAILS_ON_USER_SCHEME_DETAIL"
                                  referencedColumnNames="id" referencedTableName="user_scheme_details"
                                  referencedTableSchemaName="portfolio"/>
+    </changeSet>
+
+    <changeSet id="1725378154309-5" author="appUser">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <indexExists schemaName="portfolio" indexName="user_details_idx_transaction_date" tableName="user_transaction_details"/>
+                <indexExists schemaName="portfolio" indexName="user_details_idx_user_scheme_detail_id" tableName="user_transaction_details"/>
+            </not>
+        </preConditions>
+        <createIndex indexName="user_details_idx_transaction_date" schemaName="portfolio"
+                     tableName="user_transaction_details">
+            <column name="transaction_date"/>
+        </createIndex>
+        <createIndex indexName="user_details_idx_user_scheme_detail_id" schemaName="portfolio"
+                     tableName="user_transaction_details">
+            <column name="user_scheme_detail_id"/>
+        </createIndex>
     </changeSet>
 
 </databaseChangeLog>

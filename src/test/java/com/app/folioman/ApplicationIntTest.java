@@ -1,6 +1,6 @@
 package com.app.folioman;
 
-import com.app.folioman.common.AbstractIntegrationTest;
+import com.app.folioman.shared.AbstractIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.modulith.core.ApplicationModules;
 import org.springframework.modulith.docs.Documenter;

@@ -2,7 +2,7 @@ package com.app.folioman;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.app.folioman.common.SQLContainersConfig;
+import com.app.folioman.config.SQLContainersConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -12,10 +12,10 @@ import java.util.Set;
 import javax.sql.DataSource;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.context.annotation.Import;
 
-@DataJpaTest(properties = {"spring.jpa.hibernate.ddl-auto=validate", "spring.test.database.replace=none"})
+@DataJpaTest(properties = {"spring.jpa.hibernate.ddl-auto=validate"})
 @Import(SQLContainersConfig.class)
 class SchemaValidationPostgresTest {
 
@@ -27,7 +27,7 @@ class SchemaValidationPostgresTest {
 
     @Test
     void validateJpaMappingsWithDbSchema() {
-        assertThat(dataSource).isNotNull().isInstanceOf(HikariDataSource.class);
+        assertThat(dataSource).isInstanceOf(HikariDataSource.class);
 
         // Verify entity-to-table mappings
         Metamodel metamodel = entityManager.getMetamodel();

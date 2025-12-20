@@ -1,0 +1,49 @@
+version: '3'
+
+vars:
+  GOOS: "{{default OS .GOOS}}"
+  MVNW: '{{if eq .GOOS "windows"}}mvnw.cmd{{else}}./mvnw{{end}}'
+  SLEEP_CMD: '{{if eq .GOOS "windows"}}timeout{{else}}sleep{{end}}'
+  DC_FILE: "docker/docker-compose.yml"
+
+tasks:
+  default:
+    cmds:
+      - task: test
+  test:
+    deps: [ format ]
+    cmds:
+      - "{{.MVNW}} verify"
+
+  format:
+    cmds:
+      - "{{.MVNW}} spotless:apply"
+
+  start:
+    cmds:
+      - docker compose --profile app -f "{{.DC_FILE}}" up -d
+
+  stop:
+    cmds:
+      - docker compose --profile app -f "{{.DC_FILE}}" down -v
+      - docker compose --profile app -f "{{.DC_FILE}}" rm -f
+
+  restart:
+    cmds:
+      - task: stop
+      - task: sleep
+      - task: start
+
+  sleep:
+    vars:
+      DURATION: "{{default 5 .DURATION}}"
+    cmds:
+      - "{{.SLEEP_CMD}} {{.DURATION}}"
+
+  start-local:
+    desc: "Start Spring Boot application with local profile"
+    deps:
+      - start
+    cmds:
+      - "{{.MVNW}} spring-boot:run -Dspring-boot.run.profiles=local"
+  

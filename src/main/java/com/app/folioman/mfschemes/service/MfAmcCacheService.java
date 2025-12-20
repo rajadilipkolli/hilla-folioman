@@ -2,8 +2,10 @@ package com.app.folioman.mfschemes.service;
 
 import com.app.folioman.mfschemes.entities.MfAmc;
 import com.app.folioman.mfschemes.repository.MfAmcRepository;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -36,5 +38,33 @@ class MfAmcCacheService {
 
     public List<MfAmc> findAllAmcs() {
         return this.mfAmcRepository.findAll();
+    }
+
+    /**
+     * Find AMCs by using full-text search on name and code
+     *
+     * @param searchTerms Space-separated search terms
+     * @return List of matching AMCs
+     */
+    @Cacheable(value = "findAMCsByTextSearch", key = "#searchTerms", unless = "#result.isEmpty()")
+    public List<MfAmc> findByTextSearch(String searchTerms) {
+        if (searchTerms == null || searchTerms.isBlank()) {
+            return List.of();
+        }
+
+        // Convert space-separated terms to PostgreSQL ts_query format ('term1' & 'term2' & ...)
+        String tsQueryFormat = Arrays.stream(
+                        searchTerms.strip().replaceAll("\\s+", " ").split("\\s+"))
+                .map(term -> term.toLowerCase(Locale.ENGLISH))
+                .map(term -> term.replaceAll("[^a-zA-Z0-9]", "")) // Remove special characters
+                .filter(term -> !term.isEmpty())
+                .map(term -> "'" + term + "'") // Add single quotes around each term
+                .collect(Collectors.joining(" & "));
+
+        if (tsQueryFormat.isEmpty()) {
+            return List.of();
+        }
+
+        return mfAmcRepository.findByTextSearch(tsQueryFormat);
     }
 }
