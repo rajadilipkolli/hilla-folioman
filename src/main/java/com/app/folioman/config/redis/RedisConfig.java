@@ -30,12 +30,6 @@ class RedisConfig implements CachingConfigurer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RedisConfig.class);
 
-    private final RedisAppProperties redisAppProperties;
-
-    RedisConfig(RedisAppProperties redisAppProperties) {
-        this.redisAppProperties = redisAppProperties;
-    }
-
     @Bean
     RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory connectionFactory) {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
@@ -60,7 +54,10 @@ class RedisConfig implements CachingConfigurer {
 
     @Bean
     CustomRedisCacheManager cacheManager(
-            RedisConnectionFactory redisConnectionFactory, Monitor monitor, CacheCircuitBreaker circuitBreaker) {
+            RedisConnectionFactory redisConnectionFactory,
+            Monitor monitor,
+            CacheCircuitBreaker circuitBreaker,
+            RedisAppProperties redisAppProperties) {
 
         RedisCacheWriter redisCacheWriter = RedisCacheWriter.nonLockingRedisCacheWriter(redisConnectionFactory);
 
