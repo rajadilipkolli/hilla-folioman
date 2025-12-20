@@ -59,12 +59,9 @@ jobs:
         run: ./mvnw clean verify
 
       - if: ${{ github.ref == 'refs/heads/main' }}
-        name: Build and analyze
+        name: Build, analyze and Image with Maven
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: ./mvnw -B verify sonar:sonar
+        run: ./mvnw -B verify sonar:sonar spring-boot:build-image --file pom.xml
 
-      - if: ${{ github.ref == 'refs/heads/main' }}
-        name: Build Image with Maven
-        run: ./mvnw spring-boot:build-image --file pom.xml
