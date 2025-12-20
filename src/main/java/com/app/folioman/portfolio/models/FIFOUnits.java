@@ -1,7 +1,6 @@
-package com.app.folioman.portfolio.service;
+package com.app.folioman.portfolio.models;
 
 import com.app.folioman.portfolio.entities.UserTransactionDetails;
-import com.app.folioman.portfolio.models.TransactionRecord;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Deque;
@@ -26,7 +25,8 @@ public class FIFOUnits {
 
         if (txn.getAmount() == null) {
             return;
-        } else if (txn.getAmount().compareTo(BigDecimal.ZERO) > 0 && !"STT_TAX".equals(txn.getType())) {
+        } else if (txn.getAmount().compareTo(BigDecimal.ZERO) > 0
+                && !"STT_TAX".equals(txn.getType().name())) {
             buy(quantity, nav, txn.getAmount());
         } else if (txn.getAmount().compareTo(BigDecimal.ZERO) < 0) {
             sell(quantity, nav);

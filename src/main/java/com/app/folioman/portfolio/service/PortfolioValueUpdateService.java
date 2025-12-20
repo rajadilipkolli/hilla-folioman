@@ -8,6 +8,8 @@ import com.app.folioman.portfolio.entities.UserCASDetails;
 import com.app.folioman.portfolio.entities.UserPortfolioValue;
 import com.app.folioman.portfolio.entities.UserSchemeDetails;
 import com.app.folioman.portfolio.entities.UserTransactionDetails;
+import com.app.folioman.portfolio.models.FIFOUnits;
+import com.app.folioman.portfolio.models.ProcessedTransaction;
 import com.app.folioman.portfolio.models.request.TransactionType;
 import com.app.folioman.portfolio.repository.FolioSchemeRepository;
 import com.app.folioman.portfolio.repository.SchemeValueRepository;
@@ -131,10 +133,12 @@ public class PortfolioValueUpdateService {
                     fifo.addTransaction(txn);
                 }
 
-                List<Map<String, Object>> transactionsProcessed = processNewTransactions(fifo, newTransactions);
+                List<ProcessedTransaction> transactionsProcessed = processNewTransactions(fifo, newTransactions);
                 Map<String, Object> schemeData =
                         calculateSchemeData(fifo, schemeValueOpt, folioScheme.getId(), transactionsProcessed, today);
-                schemeResults.add(schemeData);
+                if (schemeData != null) {
+                    schemeResults.add(schemeData);
+                }
             }
 
             // Further processing of FolioValue and PortfolioValue
@@ -162,7 +166,7 @@ public class PortfolioValueUpdateService {
             FIFOUnits fifo,
             Optional<SchemeValue> schemeValueOpt,
             Long schemeId,
-            List<Map<String, Object>> transactionsProcessed,
+            List<ProcessedTransaction> transactionsProcessed,
             LocalDate today) {
         if (fifo.getBalance().compareTo(BigDecimal.valueOf(1e-3)) <= 0 && schemeValueOpt.isEmpty()) {
             LOGGER.info("Skipping scheme :: {}", schemeId);
@@ -177,37 +181,33 @@ public class PortfolioValueUpdateService {
                 "schemeId",
                 schemeId,
                 "fromDate",
-                transactionsProcessed.getFirst().get("date"),
+                transactionsProcessed.getFirst().date(),
                 "toDate",
                 toDate);
     }
 
     private LocalDate calculateToDate(
-            FIFOUnits fifo, List<Map<String, Object>> transactionsProcessed, Long schemeId, LocalDate today) {
+            FIFOUnits fifo, List<ProcessedTransaction> transactionsProcessed, Long schemeId, LocalDate today) {
         if (fifo.getBalance().compareTo(BigDecimal.valueOf(1e-3)) > 0) {
             return mfNavService
                     .findTopBySchemeIdOrderByDateDesc(schemeId)
                     .map(mfSchemeDTO -> LocalDate.parse(mfSchemeDTO.date()))
                     .orElse(today.minusDays(1));
         } else if (!transactionsProcessed.isEmpty()) {
-            return (LocalDate) transactionsProcessed.getLast().get("date");
+            return transactionsProcessed.getLast().date();
         } else {
             LOGGER.info("Skipping scheme :: {}", schemeId);
             return null;
         }
     }
 
-    private List<Map<String, Object>> processNewTransactions(
+    private List<ProcessedTransaction> processNewTransactions(
             FIFOUnits fifo, List<UserTransactionDetails> newTransactions) {
-        List<Map<String, Object>> processedTransactions = new ArrayList<>();
+        List<ProcessedTransaction> processedTransactions = new ArrayList<>();
         for (UserTransactionDetails txn : newTransactions) {
             fifo.addTransaction(txn);
-            Map<String, Object> txnData = new HashMap<>();
-            txnData.put("date", txn.getTransactionDate());
-            txnData.put("invested", fifo.getInvested());
-            txnData.put("average", fifo.getAverage());
-            txnData.put("balance", fifo.getBalance());
-            processedTransactions.add(txnData);
+            processedTransactions.add(new ProcessedTransaction(
+                    txn.getTransactionDate(), fifo.getInvested(), fifo.getAverage(), fifo.getBalance()));
         }
         return processedTransactions;
     }
