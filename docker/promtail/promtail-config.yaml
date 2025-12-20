@@ -1,0 +1,30 @@
+server:
+  http_listen_port: 8080
+  grpc_listen_port: 0
+
+positions:
+  filename: /var/log/promtail_positions.yaml
+
+clients:
+  - url: http://grafanalgtm:3100/loki/api/v1/push
+    batchwait: 10s
+    batchsize: 16384
+    timeout: 30s
+
+scrape_configs:
+  - job_name: host-logs
+    static_configs:
+      - targets: ['localhost']
+        labels:
+          job: host
+          app: hilla-folioman
+          __path__: /var/log/app/hilla-folioman.log
+
+# Temporarily disabled to reduce ingestion volume and avoid Loki rate limits.
+# If you need container logs, re-enable and consider relabeling to limit labels.
+#  - job_name: docker-logs
+#    static_configs:
+#      - targets: ['localhost']
+#        labels:
+#          job: docker
+#          __path__: /var/lib/docker/containers/*/*.log
