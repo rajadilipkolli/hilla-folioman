@@ -120,24 +120,16 @@ public class UserPortfolioValue {
     public final boolean equals(Object o) {
         if (!(o instanceof UserPortfolioValue that)) return false;
 
-        return Objects.equals(getId(), that.getId())
-                && Objects.equals(getDate(), that.getDate())
-                && Objects.equals(getInvested(), that.getInvested())
-                && Objects.equals(getValue(), that.getValue())
-                && Objects.equals(getXirr(), that.getXirr())
-                && Objects.equals(getLiveXirr(), that.getLiveXirr())
-                && Objects.equals(getUserCasDetails(), that.getUserCasDetails());
+        return Objects.equals(getDate(), that.getDate())
+                && getUserCasDetails() != null
+                && that.getUserCasDetails() != null
+                && Objects.equals(
+                        getUserCasDetails().getId(), that.getUserCasDetails().getId());
     }
 
     @Override
     public int hashCode() {
-        int result = Objects.hashCode(getId());
-        result = 31 * result + Objects.hashCode(getDate());
-        result = 31 * result + Objects.hashCode(getInvested());
-        result = 31 * result + Objects.hashCode(getValue());
-        result = 31 * result + Objects.hashCode(getXirr());
-        result = 31 * result + Objects.hashCode(getLiveXirr());
-        result = 31 * result + Objects.hashCode(getUserCasDetails());
-        return result;
+        return Objects.hash(
+                getDate(), getUserCasDetails() != null ? getUserCasDetails().getId() : null);
     }
 }
