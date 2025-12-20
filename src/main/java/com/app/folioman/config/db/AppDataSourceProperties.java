@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Positive;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.validation.annotation.Validated;
 
@@ -17,12 +18,15 @@ public class AppDataSourceProperties {
     private int maxOvergrowPoolSize;
 
     @Valid
+    @NestedConfigurationProperty
     private AcquisitionStrategy acquisitionStrategy;
 
     @Valid
+    @NestedConfigurationProperty
     private ConnectionLeak connectionLeak = new ConnectionLeak();
 
     @Valid
+    @NestedConfigurationProperty
     private Metrics metrics = new Metrics();
 
     public int getMaxOvergrowPoolSize() {

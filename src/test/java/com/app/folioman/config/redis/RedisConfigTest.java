@@ -62,7 +62,7 @@ class RedisConfigTest {
         setConfigFields(false, 1800L);
 
         CustomRedisCacheManager cacheManager =
-                redisConfig.cacheManager(redisConnectionFactory, monitor, circuitBreaker);
+                redisConfig.cacheManager(redisConnectionFactory, monitor, circuitBreaker, redisAppProperties);
 
         assertThat(cacheManager).isNotNull();
     }
@@ -110,7 +110,7 @@ class RedisConfigTest {
         setConfigFields(false, 7200L);
 
         CustomRedisCacheManager cacheManager =
-                redisConfig.cacheManager(redisConnectionFactory, monitor, circuitBreaker);
+                redisConfig.cacheManager(redisConnectionFactory, monitor, circuitBreaker, redisAppProperties);
 
         assertThat(cacheManager).isNotNull();
     }
@@ -125,7 +125,7 @@ class RedisConfigTest {
         setConfigFields(true, 3600L);
 
         CustomRedisCacheManager cacheManager =
-                redisConfig.cacheManager(redisConnectionFactory, monitor, circuitBreaker);
+                redisConfig.cacheManager(redisConnectionFactory, monitor, circuitBreaker, redisAppProperties);
 
         assertThat(cacheManager).isNotNull();
     }

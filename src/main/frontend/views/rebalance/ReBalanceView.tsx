@@ -89,14 +89,21 @@ export default function ReBalanceView() {
   };
 
   // Handle fund value or ratio changes
-  const handleFundChange = (index: number, field: keyof Fund, value: number) => {
+  const handleFundChange = (
+    index: number,
+    field: keyof Fund,
+    value: number,
+  ) => {
     const updatedFunds = [...funds];
     updatedFunds[index][field] = value;
     setFunds(updatedFunds);
 
     // Recalculate total ratio when ratios change
     if (field === 'ratio') {
-      const newTotalRatio = updatedFunds.reduce((sum, fund) => sum + (fund.ratio ?? 0), 0);
+      const newTotalRatio = updatedFunds.reduce(
+        (sum, fund) => sum + (fund.ratio ?? 0),
+        0,
+      );
       setTotalRatio(newTotalRatio);
     }
   };
@@ -107,12 +114,22 @@ export default function ReBalanceView() {
   };
 
   const handleReBalance = async () => {
-    if (funds.some((fund) => (fund.value ?? 0) < 0 || (fund.ratio ?? 0) < 0 || (fund.ratio ?? 0) > 100)) {
-      Notification.show('Invalid fund values or ratios. Please check your inputs.', {
-        position: 'middle',
-        theme: 'error',
-        duration: 3000,
-      });
+    if (
+      funds.some(
+        (fund) =>
+          (fund.value ?? 0) < 0 ||
+          (fund.ratio ?? 0) < 0 ||
+          (fund.ratio ?? 0) > 100,
+      )
+    ) {
+      Notification.show(
+        'Invalid fund values or ratios. Please check your inputs.',
+        {
+          position: 'middle',
+          theme: 'error',
+          duration: 3000,
+        },
+      );
       return;
     }
 
@@ -155,10 +172,12 @@ export default function ReBalanceView() {
       }
     } catch (error: unknown) {
       console.error('Error calculating rebalance:', error);
-      let errorMessage = 'An unknown error occurred during rebalance calculation';
+      let errorMessage =
+        'An unknown error occurred during rebalance calculation';
 
       if (error instanceof TypeError) {
-        errorMessage = 'There was a problem with the data types in the calculation.';
+        errorMessage =
+          'There was a problem with the data types in the calculation.';
       } else if (error instanceof Error) {
         errorMessage = error.message;
       }
@@ -179,11 +198,15 @@ export default function ReBalanceView() {
         <div className="flex flex-col md:flex-row justify-between items-start mb-m">
           <div>
             <h2 className="text-xl m-0">Investment ReBalancing Calculator</h2>
-            <p className="text-secondary m-0 mt-s">Calculate optimal fund allocation for your investment strategy</p>
+            <p className="text-secondary m-0 mt-s">
+              Calculate optimal fund allocation for your investment strategy
+            </p>
           </div>
           <div
             className={`mt-s md:mt-0 px-s py-xs rounded-full font-medium ${
-              totalRatio === 100 ? 'bg-success-10 text-success' : 'bg-error-10 text-error'
+              totalRatio === 100
+                ? 'bg-success-10 text-success'
+                : 'bg-error-10 text-error'
             }`}>
             {totalRatio}% Allocated
           </div>
@@ -191,10 +214,13 @@ export default function ReBalanceView() {
 
         <Details summary="About Rebalancing" opened={false}>
           <div className="p-s text-secondary">
-            <p>Rebalancing is the process of realigning portfolio assets to maintain your desired asset allocation.</p>
             <p>
-              Enter your current fund values, desired ratios, and additional investment amount to calculate the optimal
-              way to invest.
+              Rebalancing is the process of realigning portfolio assets to
+              maintain your desired asset allocation.
+            </p>
+            <p>
+              Enter your current fund values, desired ratios, and additional
+              investment amount to calculate the optimal way to invest.
             </p>
           </div>
         </Details>
@@ -250,7 +276,10 @@ export default function ReBalanceView() {
           ))}
 
           <div className="mb-m">
-            <Button theme="tertiary" onClick={handleAddFund} aria-label="Add Another Fund">
+            <Button
+              theme="tertiary"
+              onClick={handleAddFund}
+              aria-label="Add Another Fund">
               <Icon icon="vaadin:plus" slot="prefix" /> Add Another Fund
             </Button>
           </div>
@@ -274,7 +303,10 @@ export default function ReBalanceView() {
 
             {totalRatio !== 100 && (
               <div className="text-error mb-m">
-                <Icon icon="vaadin:exclamation-circle" style={{ marginRight: '8px' }} />
+                <Icon
+                  icon="vaadin:exclamation-circle"
+                  style={{ marginRight: '8px' }}
+                />
                 Total allocation: {totalRatio}% (must equal 100%)
               </div>
             )}
@@ -293,26 +325,43 @@ export default function ReBalanceView() {
             <Card theme="success" className="p-m">
               <h3>Recommended Investment</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-s">
-                {result.investments.map((investment: number | undefined, index: number) => (
-                  <Card key={index} theme="tertiary" className="p-s">
-                    <div className="font-medium">Fund {index + 1}</div>
-                    {investment !== undefined ? (
-                      <div className="text-xl">₹{investment.toFixed(2)}</div>
-                    ) : (
-                      <div className="text-secondary">No investment needed</div>
-                    )}
-                  </Card>
-                ))}
+                {result.investments.map(
+                  (investment: number | undefined, index: number) => (
+                    <Card key={index} theme="tertiary" className="p-s">
+                      <div className="font-medium">Fund {index + 1}</div>
+                      {investment !== undefined ? (
+                        <div className="text-xl">₹{investment.toFixed(2)}</div>
+                      ) : (
+                        <div className="text-secondary">
+                          No investment needed
+                        </div>
+                      )}
+                    </Card>
+                  ),
+                )}
               </div>
 
               <div className="mt-m">
                 <Details summary="Rebalancing Details" opened={false}>
                   <div className="p-s">
-                    <p>Total Current Value: ₹{funds.reduce((sum, fund) => sum + (fund.value ?? 0), 0).toFixed(2)}</p>
-                    <p>Additional Investment: ₹{Number(amountToInvest).toFixed(2)}</p>
+                    <p>
+                      Total Current Value: ₹
+                      {funds
+                        .reduce((sum, fund) => sum + (fund.value ?? 0), 0)
+                        .toFixed(2)}
+                    </p>
+                    <p>
+                      Additional Investment: ₹
+                      {Number(amountToInvest).toFixed(2)}
+                    </p>
                     <p>
                       Total Portfolio Value After Rebalance: ₹
-                      {(funds.reduce((sum, fund) => sum + (fund.value ?? 0), 0) + Number(amountToInvest)).toFixed(2)}
+                      {(
+                        funds.reduce(
+                          (sum, fund) => sum + (fund.value ?? 0),
+                          0,
+                        ) + Number(amountToInvest)
+                      ).toFixed(2)}
                     </p>
                   </div>
                 </Details>

@@ -12,6 +12,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Objects;
 
 @Entity
 @Table(
@@ -113,5 +114,23 @@ public class UserPortfolioValue {
     public UserPortfolioValue setUserCasDetails(UserCASDetails userCasDetails) {
         this.userCasDetails = userCasDetails;
         return this;
+    }
+
+    @Override
+    public final boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof UserPortfolioValue that)) return false;
+
+        return Objects.equals(getDate(), that.getDate())
+                && getUserCasDetails() != null
+                && that.getUserCasDetails() != null
+                && Objects.equals(
+                        getUserCasDetails().getId(), that.getUserCasDetails().getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(
+                getDate(), getUserCasDetails() != null ? getUserCasDetails().getId() : null);
     }
 }

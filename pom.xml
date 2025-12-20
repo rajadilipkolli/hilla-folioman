@@ -219,7 +219,6 @@
         <dependency>
             <groupId>com.vaadin</groupId>
             <artifactId>vaadin-testbench</artifactId>
-            <version>${vaadin.version}</version>
             <scope>test</scope>
             <exclusions>
                 <exclusion>
