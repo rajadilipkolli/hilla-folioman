@@ -47,7 +47,7 @@ class CompressedRedisSerializerTest {
         byte[] result = compressedSerializer.serialize(smallValue);
 
         assertThat(result).isNotNull();
-        assertThat(result[0]).isEqualTo(0); // Not compressed marker
+        assertThat(result[0]).isEqualTo((byte) 0); // Not compressed marker
         assertThat(result.length).isEqualTo(smallSerialized.length + 1);
 
         byte[] actualData = new byte[result.length - 1];
@@ -64,7 +64,7 @@ class CompressedRedisSerializerTest {
         byte[] result = compressedSerializer.serialize(largeValue);
 
         assertThat(result).isNotNull();
-        assertThat(result[0]).isEqualTo(1); // Compressed marker
+        assertThat(result[0]).isEqualTo((byte) 1); // Compressed marker
         assertThat(result.length).isLessThan(largeSerialized.length + 1); // Should be smaller due to compression
     }
 
@@ -77,7 +77,7 @@ class CompressedRedisSerializerTest {
 
         assertThat(result).isNotNull();
         assertThat(result.length).isOne();
-        assertThat(result[0]).isEqualTo(0); // Not compressed marker
+        assertThat(result[0]).isEqualTo((byte) 0); // Not compressed marker
     }
 
     @Test
@@ -182,7 +182,7 @@ class CompressedRedisSerializerTest {
         byte[] result = compressedSerializer.serialize(value);
 
         assertThat(result).isNotNull();
-        assertThat(result[0]).isEqualTo(0); // Not compressed marker
+        assertThat(result[0]).isEqualTo((byte) 0); // Not compressed marker
     }
 
     @Test
@@ -194,6 +194,6 @@ class CompressedRedisSerializerTest {
         byte[] result = compressedSerializer.serialize(value);
 
         assertThat(result).isNotNull();
-        assertThat(result[0]).isEqualTo(1); // Compressed marker
+        assertThat(result[0]).isEqualTo((byte) 1); // Compressed marker
     }
 }
