@@ -1,35 +1,23 @@
 package com.app.folioman.portfolio.service;
 
 import com.app.folioman.mfschemes.MFNavService;
-import com.app.folioman.portfolio.entities.FolioScheme;
-import com.app.folioman.portfolio.entities.SchemeValue;
-import com.app.folioman.portfolio.entities.UserCASDetails;
-import com.app.folioman.portfolio.entities.UserSchemeDetails;
-import com.app.folioman.portfolio.entities.UserTransactionDetails;
-import com.app.folioman.portfolio.repository.FolioSchemeRepository;
-import com.app.folioman.portfolio.repository.SchemeValueRepository;
-import com.app.folioman.portfolio.repository.UserTransactionDetailsRepository;
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import com.app.folioman.mfschemes.MFSchemeNavProjection;
 import com.app.folioman.portfolio.entities.FolioScheme;
+import com.app.folioman.portfolio.entities.SchemeValue;
 import com.app.folioman.portfolio.entities.UserCASDetails;
 import com.app.folioman.portfolio.entities.UserPortfolioValue;
 import com.app.folioman.portfolio.entities.UserSchemeDetails;
 import com.app.folioman.portfolio.entities.UserTransactionDetails;
 import com.app.folioman.portfolio.models.request.TransactionType;
 import com.app.folioman.portfolio.repository.FolioSchemeRepository;
+import com.app.folioman.portfolio.repository.SchemeValueRepository;
 import com.app.folioman.portfolio.repository.UserPortfolioValueRepository;
+import com.app.folioman.portfolio.repository.UserTransactionDetailsRepository;
 import com.app.folioman.portfolio.util.XirrCalculator;
 import com.app.folioman.shared.LocalDateUtility;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -39,6 +27,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
@@ -66,20 +55,26 @@ public class PortfolioValueUpdateService {
     private final UserPortfolioValueRepository userPortfolioValueRepository;
     private final MFNavService mfNavService;
     private final FolioSchemeRepository folioSchemeRepository;
+    private final SchemeValueRepository schemeValueRepository;
+    private final UserTransactionDetailsRepository userTransactionDetailsRepository;
 
     PortfolioValueUpdateService(
             UserPortfolioValueRepository userPortfolioValueRepository,
             MFNavService mfNavService,
-            FolioSchemeRepository folioSchemeRepository) {
+            FolioSchemeRepository folioSchemeRepository,
+            SchemeValueRepository schemeValueRepository,
+            UserTransactionDetailsRepository userTransactionDetailsRepository) {
         this.userPortfolioValueRepository = userPortfolioValueRepository;
         this.mfNavService = mfNavService;
         this.folioSchemeRepository = folioSchemeRepository;
+        this.schemeValueRepository = schemeValueRepository;
+        this.userTransactionDetailsRepository = userTransactionDetailsRepository;
     }
 
     @Async
     public void updatePortfolioValue(UserCASDetails userCASDetails) {
         handleDailyPortFolioValueUpdate(userCASDetails);
-                userCASDetails.getFolios().forEach(userFolioDetails -> {
+        userCASDetails.getFolios().forEach(userFolioDetails -> {
             Long portfolioId = userFolioDetails.getId();
 
             LocalDate today = LocalDate.now(ZoneId.systemDefault());
@@ -105,7 +100,7 @@ public class PortfolioValueUpdateService {
 
             List<FolioScheme> schemes = folioSchemeRepository.findByUserFolioDetails_Id(portfolioId);
 
-            log.info("Computing daily scheme values...");
+            LOGGER.info("Computing daily scheme values...");
             List<Map<String, Object>> schemeResults = new ArrayList<>();
             List<Long> schemeListFromDB = userFolioDetails.getSchemes().stream()
                     .map(UserSchemeDetails::getId)
@@ -149,17 +144,17 @@ public class PortfolioValueUpdateService {
 
     private void updateFolioAndPortfolioValues(List<Map<String, Object>> schemeResults, LocalDate startDateMin) {
         if (schemeResults.isEmpty()) {
-            log.info("No data found. Exiting...");
+            LOGGER.info("No data found. Exiting...");
             return;
         }
 
-        log.info("Importing SchemeValue data...");
+        LOGGER.info("Importing SchemeValue data...");
         // Implement logic for bulk insertion of SchemeValue data
 
-        log.info("Updating FolioValue...");
+        LOGGER.info("Updating FolioValue...");
         // Update folio values based on scheme value updates
 
-        log.info("Updating PortfolioValue...");
+        LOGGER.info("Updating PortfolioValue...");
         // Update portfolio values based on updated folio values
     }
 
@@ -170,7 +165,7 @@ public class PortfolioValueUpdateService {
             List<Map<String, Object>> transactionsProcessed,
             LocalDate today) {
         if (fifo.getBalance().compareTo(BigDecimal.valueOf(1e-3)) <= 0 && schemeValueOpt.isEmpty()) {
-            log.info("Skipping scheme :: {}", schemeId);
+            LOGGER.info("Skipping scheme :: {}", schemeId);
             return null;
         }
 
@@ -197,7 +192,7 @@ public class PortfolioValueUpdateService {
         } else if (!transactionsProcessed.isEmpty()) {
             return (LocalDate) transactionsProcessed.getLast().get("date");
         } else {
-            log.info("Skipping scheme :: {}", schemeId);
+            LOGGER.info("Skipping scheme :: {}", schemeId);
             return null;
         }
     }

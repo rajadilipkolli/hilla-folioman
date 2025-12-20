@@ -26,9 +26,9 @@ public class FIFOUnits {
 
         if (txn.getAmount() == null) {
             return;
-        } else if (txn.getAmount() > 0 && !"STT_TAX".equals(txn.getType())) {
+        } else if (txn.getAmount().compareTo(BigDecimal.ZERO) > 0 && !"STT_TAX".equals(txn.getType())) {
             buy(quantity, nav, txn.getAmount());
-        } else if (txn.getAmount() < 0) {
+        } else if (txn.getAmount().compareTo(BigDecimal.ZERO) < 0) {
             sell(quantity, nav);
         }
     }
@@ -72,11 +72,11 @@ public class FIFOUnits {
         }
     }
 
-    private void buy(BigDecimal quantity, BigDecimal nav, Double amount) {
+    private void buy(BigDecimal quantity, BigDecimal nav, BigDecimal amount) {
         balance = balance.add(quantity);
 
         if (amount != null) {
-            invested = invested.add(BigDecimal.valueOf(amount));
+            invested = invested.add(amount).setScale(2, RoundingMode.HALF_UP);
         }
 
         if (balance.abs().compareTo(BALANCE_THRESHOLD) > 0) {

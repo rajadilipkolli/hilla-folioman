@@ -418,8 +418,6 @@ public class UserDetailService {
         // Start portfolio value update asynchronously
         portfolioValueUpdateService.updatePortfolioValue(savedCasDetailsEntity);
 
-        applicationEventPublisher.publishEvent(new UploadedSchemesList(schemesList));
-        portfolioValueUpdateService.updatePortfolioValue(savedCasDetailsEntity);
         return savedCasDetailsEntity;
     }
 
