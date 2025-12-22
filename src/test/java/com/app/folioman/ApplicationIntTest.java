@@ -3,7 +3,7 @@ package com.app.folioman;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.app.folioman.shared.AbstractIntegrationTest;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.modulith.core.ApplicationModule;
@@ -12,10 +12,10 @@ import org.springframework.modulith.docs.Documenter;
 
 class ApplicationIntTest extends AbstractIntegrationTest {
 
-    private ApplicationModules modules;
+    private static ApplicationModules modules;
 
-    @BeforeEach
-    void setUp() {
+    @BeforeAll
+    static void setUp() {
         modules = ApplicationModules.of(Application.class);
     }
 
@@ -70,6 +70,6 @@ class ApplicationIntTest extends AbstractIntegrationTest {
     @Test
     void createModulithsDocumentation() {
 
-        new Documenter(ApplicationModules.of(Application.class)).writeDocumentation();
+        new Documenter(modules).writeDocumentation();
     }
 }
