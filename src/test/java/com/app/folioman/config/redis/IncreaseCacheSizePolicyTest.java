@@ -13,19 +13,15 @@ import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.Set;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 
 @ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
 class IncreaseCacheSizePolicyTest {
 
     @Mock
@@ -40,11 +36,6 @@ class IncreaseCacheSizePolicyTest {
     @InjectMocks
     private IncreaseCacheSizePolicy increaseCacheSizePolicy;
 
-    @BeforeEach
-    void setUp() {
-        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-    }
-
     @Test
     void getExpirationTime_ShouldReturnTwoHours() {
         Duration result = increaseCacheSizePolicy.getExpirationTime();
@@ -54,9 +45,7 @@ class IncreaseCacheSizePolicyTest {
     @Test
     void apply_WhenCacheIsEmpty_ShouldLogInfoAndPreloadData() {
         when(redisTemplate.keys("*")).thenReturn(Collections.emptySet());
-        when(redisTemplate.hasKey("item1")).thenReturn(false);
-        when(redisTemplate.hasKey("item2")).thenReturn(false);
-        when(redisTemplate.hasKey("item3")).thenReturn(false);
+        // keys() returns empty set so no hasKey checks should be invoked by production
 
         increaseCacheSizePolicy.apply(redisTemplate, meterRegistry);
 
@@ -69,9 +58,7 @@ class IncreaseCacheSizePolicyTest {
     @Test
     void apply_WhenKeysIsNull_ShouldLogInfoAndPreloadData() {
         when(redisTemplate.keys("*")).thenReturn(null);
-        when(redisTemplate.hasKey("item1")).thenReturn(false);
-        when(redisTemplate.hasKey("item2")).thenReturn(false);
-        when(redisTemplate.hasKey("item3")).thenReturn(false);
+        // keys() returns null so production returns early; avoid unnecessary stubbing
 
         increaseCacheSizePolicy.apply(redisTemplate, meterRegistry);
 
@@ -88,6 +75,7 @@ class IncreaseCacheSizePolicyTest {
         when(redisTemplate.hasKey("item1")).thenReturn(false);
         when(redisTemplate.hasKey("item2")).thenReturn(true);
         when(redisTemplate.hasKey("item3")).thenReturn(false);
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
 
         increaseCacheSizePolicy.apply(redisTemplate, meterRegistry);
 

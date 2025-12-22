@@ -15,18 +15,14 @@ import io.micrometer.core.instrument.MeterRegistry;
 import java.time.Duration;
 import java.util.HashSet;
 import java.util.Set;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 import org.springframework.data.redis.core.RedisTemplate;
 
 @ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
 class AdjustTTLPolicyTest {
 
     @Mock
@@ -40,11 +36,6 @@ class AdjustTTLPolicyTest {
 
     @InjectMocks
     private AdjustTTLPolicy adjustTTLPolicy;
-
-    @BeforeEach
-    void setUp() {
-        when(meterRegistry.counter(eq("cache.access"), eq("key"), anyString())).thenReturn(counter);
-    }
 
     @Test
     void getExpirationTime_ShouldReturnDefaultTTL() {
@@ -78,6 +69,7 @@ class AdjustTTLPolicyTest {
         Set<String> keys = Set.of("key1", "key2::suffix", "prefixSimpleKeyTest");
         when(redisTemplate.keys("*")).thenReturn(keys);
         when(counter.count()).thenReturn(25.0);
+        when(meterRegistry.counter(eq("cache.access"), eq("key"), anyString())).thenReturn(counter);
 
         adjustTTLPolicy.apply(redisTemplate, meterRegistry);
 
@@ -91,6 +83,7 @@ class AdjustTTLPolicyTest {
         Set<String> keys = Set.of("highAccessKey");
         when(redisTemplate.keys("*")).thenReturn(keys);
         when(counter.count()).thenReturn(100.0);
+        when(meterRegistry.counter(eq("cache.access"), eq("key"), anyString())).thenReturn(counter);
 
         adjustTTLPolicy.apply(redisTemplate, meterRegistry);
 
@@ -102,6 +95,7 @@ class AdjustTTLPolicyTest {
         Set<String> keys = Set.of("lowAccessKey");
         when(redisTemplate.keys("*")).thenReturn(keys);
         when(counter.count()).thenReturn(5.0);
+        when(meterRegistry.counter(eq("cache.access"), eq("key"), anyString())).thenReturn(counter);
 
         adjustTTLPolicy.apply(redisTemplate, meterRegistry);
 
@@ -113,6 +107,7 @@ class AdjustTTLPolicyTest {
         Set<String> keys = Set.of("mediumAccessKey");
         when(redisTemplate.keys("*")).thenReturn(keys);
         when(counter.count()).thenReturn(30.0);
+        when(meterRegistry.counter(eq("cache.access"), eq("key"), anyString())).thenReturn(counter);
 
         adjustTTLPolicy.apply(redisTemplate, meterRegistry);
 
@@ -124,6 +119,7 @@ class AdjustTTLPolicyTest {
         Set<String> keys = Set.of("prefixSimpleKeyTest");
         when(redisTemplate.keys("*")).thenReturn(keys);
         when(counter.count()).thenReturn(25.0);
+        when(meterRegistry.counter(eq("cache.access"), eq("key"), anyString())).thenReturn(counter);
 
         adjustTTLPolicy.apply(redisTemplate, meterRegistry);
 
@@ -135,6 +131,7 @@ class AdjustTTLPolicyTest {
         Set<String> keys = Set.of("prefix::actualKey");
         when(redisTemplate.keys("*")).thenReturn(keys);
         when(counter.count()).thenReturn(25.0);
+        when(meterRegistry.counter(eq("cache.access"), eq("key"), anyString())).thenReturn(counter);
 
         adjustTTLPolicy.apply(redisTemplate, meterRegistry);
 
@@ -146,6 +143,7 @@ class AdjustTTLPolicyTest {
         Set<String> keys = Set.of("regularKey");
         when(redisTemplate.keys("*")).thenReturn(keys);
         when(counter.count()).thenReturn(25.0);
+        when(meterRegistry.counter(eq("cache.access"), eq("key"), anyString())).thenReturn(counter);
 
         adjustTTLPolicy.apply(redisTemplate, meterRegistry);
 
@@ -157,6 +155,7 @@ class AdjustTTLPolicyTest {
         Set<String> keys = Set.of("exactFiftyKey");
         when(redisTemplate.keys("*")).thenReturn(keys);
         when(counter.count()).thenReturn(50.0);
+        when(meterRegistry.counter(eq("cache.access"), eq("key"), anyString())).thenReturn(counter);
 
         adjustTTLPolicy.apply(redisTemplate, meterRegistry);
 
@@ -168,6 +167,7 @@ class AdjustTTLPolicyTest {
         Set<String> keys = Set.of("exactTenKey");
         when(redisTemplate.keys("*")).thenReturn(keys);
         when(counter.count()).thenReturn(10.0);
+        when(meterRegistry.counter(eq("cache.access"), eq("key"), anyString())).thenReturn(counter);
 
         adjustTTLPolicy.apply(redisTemplate, meterRegistry);
 
