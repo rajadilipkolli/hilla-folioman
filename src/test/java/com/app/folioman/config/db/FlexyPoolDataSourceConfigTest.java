@@ -3,7 +3,10 @@ package com.app.folioman.config.db;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.vladmihalcea.flexypool.FlexyPoolDataSource;
 import com.vladmihalcea.flexypool.config.FlexyPoolConfiguration;
@@ -14,13 +17,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 
 @ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
 class FlexyPoolDataSourceConfigTest {
 
     @Mock
@@ -49,21 +49,6 @@ class FlexyPoolDataSourceConfigTest {
     @BeforeEach
     void setUp() {
         processor = new FlexyPoolDataSourceConfig.FlexyPoolDataSourceBeanPostProcessor(mockObjectProvider);
-
-        when(mockObjectProvider.getIfAvailable()).thenReturn(mockAppDataSourceProperties);
-        when(mockAppDataSourceProperties.getMetrics()).thenReturn(mockMetrics);
-        when(mockAppDataSourceProperties.getAcquisitionStrategy()).thenReturn(mockAcquisitionStrategy);
-        when(mockAppDataSourceProperties.getConnectionLeak()).thenReturn(mockConnectionLeak);
-
-        when(mockMetrics.getReportingIntervalMs()).thenReturn(30000L);
-        when(mockMetrics.isDetailed()).thenReturn(true);
-        when(mockAcquisitionStrategy.getAcquisitionTimeout()).thenReturn(5000L);
-        when(mockAcquisitionStrategy.getLeaseTimeThreshold()).thenReturn(10000L);
-        when(mockAcquisitionStrategy.getIncrementTimeout()).thenReturn(2000);
-        when(mockAcquisitionStrategy.getRetries()).thenReturn(3);
-        when(mockAppDataSourceProperties.getMaxOvergrowPoolSize()).thenReturn(5);
-        when(mockConnectionLeak.isEnabled()).thenReturn(true);
-        when(mockConnectionLeak.getThresholdMs()).thenReturn(60000L);
     }
 
     @Test
@@ -76,9 +61,20 @@ class FlexyPoolDataSourceConfigTest {
 
     @Test
     void postProcessAfterInitialization_withHikariDataSource_shouldReturnFlexyPoolDataSource() {
+        when(mockObjectProvider.getIfAvailable()).thenReturn(mockAppDataSourceProperties);
+        when(mockAppDataSourceProperties.getMetrics()).thenReturn(mockMetrics);
+        when(mockAppDataSourceProperties.getAcquisitionStrategy()).thenReturn(mockAcquisitionStrategy);
+        when(mockAppDataSourceProperties.getConnectionLeak()).thenReturn(mockConnectionLeak);
         // Set minimumIdle equal to maximumPoolSize so the processor optimizes minimum idle
         when(mockHikariDataSource.getMinimumIdle()).thenReturn(5);
         when(mockHikariDataSource.getMaximumPoolSize()).thenReturn(5);
+        when(mockMetrics.getReportingIntervalMs()).thenReturn(30000L);
+        when(mockAcquisitionStrategy.getRetries()).thenReturn(3);
+        when(mockAcquisitionStrategy.getAcquisitionTimeout()).thenReturn(5000L);
+        when(mockAcquisitionStrategy.getLeaseTimeThreshold()).thenReturn(10000L);
+        when(mockConnectionLeak.isEnabled()).thenReturn(true);
+        when(mockConnectionLeak.getThresholdMs()).thenReturn(60000L);
+        when(mockAppDataSourceProperties.getMaxOvergrowPoolSize()).thenReturn(5);
 
         Object result = processor.postProcessAfterInitialization(mockHikariDataSource, "testBean");
 
@@ -130,8 +126,13 @@ class FlexyPoolDataSourceConfigTest {
 
     @Test
     void optimizeHikariPool_withLeakDetectionEnabled_shouldConfigureLeakDetection() {
+        when(mockObjectProvider.getIfAvailable()).thenReturn(mockAppDataSourceProperties);
+        when(mockAppDataSourceProperties.getConnectionLeak()).thenReturn(mockConnectionLeak);
+
         when(mockHikariDataSource.getMinimumIdle()).thenReturn(5);
         when(mockHikariDataSource.getMaximumPoolSize()).thenReturn(5);
+        when(mockConnectionLeak.isEnabled()).thenReturn(true);
+        when(mockConnectionLeak.getThresholdMs()).thenReturn(60000L);
 
         processor.optimizeHikariPool(mockHikariDataSource, "testPool");
 
@@ -141,6 +142,8 @@ class FlexyPoolDataSourceConfigTest {
 
     @Test
     void optimizeHikariPool_withLeakDetectionDisabled_shouldNotConfigureLeakDetection() {
+        when(mockObjectProvider.getIfAvailable()).thenReturn(mockAppDataSourceProperties);
+        when(mockAppDataSourceProperties.getConnectionLeak()).thenReturn(mockConnectionLeak);
         when(mockConnectionLeak.isEnabled()).thenReturn(false);
         when(mockHikariDataSource.getMinimumIdle()).thenReturn(3);
         when(mockHikariDataSource.getMaximumPoolSize()).thenReturn(10);
@@ -153,6 +156,8 @@ class FlexyPoolDataSourceConfigTest {
 
     @Test
     void optimizeHikariPool_withMinimumIdleEqualsMaximumPool_shouldOptimizeMinimumIdle() {
+        when(mockObjectProvider.getIfAvailable()).thenReturn(mockAppDataSourceProperties);
+        when(mockAppDataSourceProperties.getConnectionLeak()).thenReturn(mockConnectionLeak);
         when(mockHikariDataSource.getMinimumIdle()).thenReturn(10);
         when(mockHikariDataSource.getMaximumPoolSize()).thenReturn(10);
 
@@ -163,8 +168,10 @@ class FlexyPoolDataSourceConfigTest {
 
     @Test
     void optimizeHikariPool_withMinimumIdleDifferentFromMaximumPool_shouldNotOptimizeMinimumIdle() {
+        when(mockObjectProvider.getIfAvailable()).thenReturn(mockAppDataSourceProperties);
         when(mockHikariDataSource.getMinimumIdle()).thenReturn(5);
         when(mockHikariDataSource.getMaximumPoolSize()).thenReturn(10);
+        when(mockAppDataSourceProperties.getConnectionLeak()).thenReturn(mockConnectionLeak);
 
         processor.optimizeHikariPool(mockHikariDataSource, "testPool");
 
@@ -173,6 +180,8 @@ class FlexyPoolDataSourceConfigTest {
 
     @Test
     void optimizeHikariPool_withSmallMaximumPool_shouldSetMinimumIdleToAtLeastTwo() {
+        when(mockObjectProvider.getIfAvailable()).thenReturn(mockAppDataSourceProperties);
+        when(mockAppDataSourceProperties.getConnectionLeak()).thenReturn(mockConnectionLeak);
         when(mockHikariDataSource.getMinimumIdle()).thenReturn(4);
         when(mockHikariDataSource.getMaximumPoolSize()).thenReturn(4);
 
@@ -183,6 +192,8 @@ class FlexyPoolDataSourceConfigTest {
 
     @Test
     void getAppDataSourceProperties_shouldReturnPropertiesFromProvider() {
+        when(mockObjectProvider.getIfAvailable()).thenReturn(mockAppDataSourceProperties);
+
         AppDataSourceProperties result = processor.getAppDataSourceProperties();
 
         assertThat(result).isSameAs(mockAppDataSourceProperties);
@@ -200,6 +211,14 @@ class FlexyPoolDataSourceConfigTest {
 
     @Test
     void buildFlexyPoolConfiguration_shouldCreateConfigurationWithCorrectSettings() {
+        when(mockAppDataSourceProperties.getMetrics()).thenReturn(mockMetrics);
+        when(mockAppDataSourceProperties.getAcquisitionStrategy()).thenReturn(mockAcquisitionStrategy);
+
+        when(mockMetrics.getReportingIntervalMs()).thenReturn(30000L);
+        when(mockMetrics.isDetailed()).thenReturn(true);
+        when(mockAcquisitionStrategy.getAcquisitionTimeout()).thenReturn(5000L);
+        when(mockAcquisitionStrategy.getLeaseTimeThreshold()).thenReturn(10000L);
+
         FlexyPoolConfiguration<HikariDataSource> result =
                 processor.buildFlexyPoolConfiguration(mockHikariDataSource, mockAppDataSourceProperties, "testBean");
 
@@ -213,6 +232,16 @@ class FlexyPoolDataSourceConfigTest {
     @Test
     void createFlexyPoolDataSource_shouldCreateFlexyPoolDataSource() {
         // Build a real FlexyPoolConfiguration to avoid NPEs from a mocked config internal state
+        when(mockAppDataSourceProperties.getMetrics()).thenReturn(mockMetrics);
+        when(mockAppDataSourceProperties.getAcquisitionStrategy()).thenReturn(mockAcquisitionStrategy);
+
+        when(mockMetrics.getReportingIntervalMs()).thenReturn(30000L);
+        when(mockMetrics.isDetailed()).thenReturn(true);
+        when(mockAcquisitionStrategy.getAcquisitionTimeout()).thenReturn(5000L);
+        when(mockAcquisitionStrategy.getLeaseTimeThreshold()).thenReturn(10000L);
+        when(mockAcquisitionStrategy.getRetries()).thenReturn(1);
+        when(mockAppDataSourceProperties.getMaxOvergrowPoolSize()).thenReturn(5);
+
         FlexyPoolConfiguration<HikariDataSource> realConfig =
                 processor.buildFlexyPoolConfiguration(mockHikariDataSource, mockAppDataSourceProperties, "testBean");
 

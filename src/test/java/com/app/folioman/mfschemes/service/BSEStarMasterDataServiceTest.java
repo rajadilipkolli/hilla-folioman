@@ -20,12 +20,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 import org.springframework.web.client.RestClient;
 
 @ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
 class BSEStarMasterDataServiceTest {
 
     @Mock
@@ -91,12 +88,12 @@ class BSEStarMasterDataServiceTest {
 
         String csvResponse = """
                 Unique No|Scheme Code|ISIN|Scheme Name|AMC Code|AMC Scheme Code|Scheme Plan|RTA Agent Code|Channel Partner Code|Start Date|End Date
-                1|TEST001|INF123456789|Test Scheme Name|AMC001|SC001|DIRECT|RTA001|CP001|Jan 1, 2020|Dec 31, 2025
+                1|TEST001|INF123456789|Test Scheme Name|AMC001|SC001|DIRECT|RTA001|CP001|Jan 1 2020|Dec 31 2025
                 """;
 
         when(applicationProperties.getBseStar()).thenReturn(bseStar);
         when(bseStar.getScheme()).thenReturn(scheme);
-        when(scheme.getDataUrl()).thenReturn("http://test-url.com");
+        when(scheme.getDataUrl()).thenReturn("https://test-url.com");
 
         when(restClient.get()).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.uri(anyString())).thenReturn(requestHeadersSpec);
@@ -135,7 +132,7 @@ class BSEStarMasterDataServiceTest {
 
         when(applicationProperties.getBseStar()).thenReturn(bseStar);
         when(bseStar.getScheme()).thenReturn(scheme);
-        when(scheme.getDataUrl()).thenReturn("http://test-url.com");
+        when(scheme.getDataUrl()).thenReturn("https://test-url.com");
 
         when(restClient.get()).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.uri(anyString())).thenReturn(requestHeadersSpec);
@@ -167,7 +164,7 @@ class BSEStarMasterDataServiceTest {
 
         when(applicationProperties.getBseStar()).thenReturn(bseStar);
         when(bseStar.getScheme()).thenReturn(scheme);
-        when(scheme.getDataUrl()).thenReturn("http://test-url.com");
+        when(scheme.getDataUrl()).thenReturn("https://test-url.com");
 
         when(restClient.get()).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.uri(anyString())).thenReturn(requestHeadersSpec);
@@ -264,7 +261,7 @@ class BSEStarMasterDataServiceTest {
 
         when(applicationProperties.getBseStar()).thenReturn(bseStar);
         when(bseStar.getScheme()).thenReturn(scheme);
-        when(scheme.getDataUrl()).thenReturn("http://test-url.com");
+        when(scheme.getDataUrl()).thenReturn("https://test-url.com");
 
         when(restClient.get()).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.uri(anyString())).thenReturn(requestHeadersSpec);
