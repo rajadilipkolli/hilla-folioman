@@ -443,6 +443,14 @@ public class PortfolioValueUpdateService {
         StopWatch methodStartTime = new StopWatch();
         methodStartTime.start();
 
+        // Handle empty transaction list
+        if (transactionList == null || transactionList.isEmpty()) {
+            LOGGER.info(
+                    "No transactions found for CAS ID: {}. Skipping portfolio value calculation.",
+                    userCASDetails.getId());
+            return;
+        }
+
         // Prepare data and date range
         LocalDate startDate = transactionList.getFirst().getTransactionDate();
         LocalDate endDate = LocalDateUtility.getYesterday();
