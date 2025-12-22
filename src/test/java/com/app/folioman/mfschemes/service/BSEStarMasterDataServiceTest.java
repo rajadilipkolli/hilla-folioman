@@ -8,14 +8,16 @@ import static org.mockito.Mockito.when;
 
 import com.app.folioman.mfschemes.MfSchemeDtoToEntityMapperHelper;
 import com.app.folioman.mfschemes.config.ApplicationProperties;
+import com.app.folioman.mfschemes.config.BseStarProperties;
+import com.app.folioman.mfschemes.config.SchemeProperties;
 import com.app.folioman.mfschemes.entities.MfAmc;
 import com.app.folioman.mfschemes.entities.MfFundScheme;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -39,10 +41,10 @@ class BSEStarMasterDataServiceTest {
     private ApplicationProperties applicationProperties;
 
     @Mock
-    private com.app.folioman.mfschemes.config.BseStarProperties bseStar;
+    private BseStarProperties bseStar;
 
     @Mock
-    private com.app.folioman.mfschemes.config.SchemeProperties scheme;
+    private SchemeProperties scheme;
 
     @Mock
     private RestClient.RequestHeadersUriSpec requestHeadersUriSpec;
@@ -59,13 +61,8 @@ class BSEStarMasterDataServiceTest {
     @Mock
     private RestClient.RequestBodySpec requestBodySpec;
 
+    @InjectMocks
     private BSEStarMasterDataService bseStarMasterDataService;
-
-    @BeforeEach
-    void setUp() {
-        bseStarMasterDataService = new BSEStarMasterDataService(
-                restClient, mfAmcService, mfSchemeDtoToEntityMapperHelper, applicationProperties);
-    }
 
     @Test
     void fetchBseStarMasterData_ShouldReturnMasterData_WhenValidInputProvided() throws Exception {
