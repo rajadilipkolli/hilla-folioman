@@ -3,6 +3,7 @@ package com.app.folioman.mfschemes;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 public interface MFNavService {
@@ -19,6 +20,7 @@ public interface MFNavService {
 
     Map<String, String> getAmfiCodeIsinMap();
 
+    Optional<MFSchemeDTO> findTopBySchemeIdOrderByDateDesc(Long schemeId);
     /**
      * Process NAVs for a list of scheme codes asynchronously.
      * This method should handle parallel processing and transactional boundaries.
