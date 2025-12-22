@@ -6,11 +6,17 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.constructors;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.fields;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
 
+import com.tngtech.archunit.core.domain.JavaClass;
+import com.tngtech.archunit.core.domain.JavaCodeUnit;
 import com.tngtech.archunit.core.domain.JavaModifier;
+import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ArchRule;
+import com.tngtech.archunit.lang.ConditionEvents;
+import com.tngtech.archunit.lang.SimpleConditionEvent;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import org.mockito.Mockito;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -212,5 +218,28 @@ public final class CommonRules {
                 .should()
                 .beStatic()
                 .because("Static methods are only allowed in %s".formatted(packageName));
+    }
+
+    static ArchCondition<JavaClass> notCallLenientMethod() {
+        return new ArchCondition<>("not call lenient() method") {
+            @Override
+            public void check(JavaClass javaClass, ConditionEvents events) {
+                for (JavaCodeUnit codeUnit : javaClass.getCodeUnits()) {
+                    codeUnit.getMethodCallsFromSelf().stream()
+                            .filter(call -> call.getTarget().getOwner().isEquivalentTo(Mockito.class))
+                            .filter(call -> call.getTarget().getName().equals("lenient"))
+                            .forEach(call -> {
+                                int lineNumber = call.getSourceCodeLocation().getLineNumber();
+                                events.add(SimpleConditionEvent.violated(
+                                        call,
+                                        String.format(
+                                                "Method %s calls %s in line %d",
+                                                codeUnit.getFullName(),
+                                                call.getTarget().getFullName(),
+                                                lineNumber)));
+                            });
+                }
+            }
+        };
     }
 }
