@@ -3,6 +3,7 @@ package com.app.folioman;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.app.folioman.shared.AbstractIntegrationTest;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.modulith.core.ApplicationModule;
@@ -11,7 +12,12 @@ import org.springframework.modulith.docs.Documenter;
 
 class ApplicationIntTest extends AbstractIntegrationTest {
 
-    private ApplicationModules modules = ApplicationModules.of(Application.class);
+    private ApplicationModules modules;
+
+    @BeforeEach
+    void setUp() {
+        modules = ApplicationModules.of(Application.class);
+    }
 
     @Test
     @DisplayName("Application modules should be valid with no violations")
@@ -26,7 +32,8 @@ class ApplicationIntTest extends AbstractIntegrationTest {
     @Test
     @DisplayName("mfschemes module should exist and be properly structured")
     void verifyMfSchemesModuleStructure() {
-        ApplicationModule mfSchemes = modules.getModuleByName("mfschemes").orElseThrow();
+        ApplicationModule mfSchemes = modules.getModuleByName("mfschemes")
+                .orElseThrow(() -> new AssertionError("mfschemes module not found"));
 
         // Verify module has base packages
         assertThat(mfSchemes.getBasePackage().getName()).isEqualTo("com.app.folioman.mfschemes");
@@ -42,6 +49,7 @@ class ApplicationIntTest extends AbstractIntegrationTest {
         ApplicationModule portfolio = modules.getModuleByName("portfolio").orElseThrow();
 
         assertThat(portfolio.getBasePackage().getName()).isEqualTo("com.app.folioman.portfolio");
+        assertThat(portfolio.getNamedInterfaces()).isNotEmpty();
     }
 
     @Test

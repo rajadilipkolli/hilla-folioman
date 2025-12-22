@@ -38,7 +38,7 @@ class MfFundSchemeService {
      * @param batchSize Size of each batch to process
      * @return Number of schemes successfully saved
      */
-    public int saveDataInBatches(List<MfFundScheme> mfFundSchemes, int batchSize) {
+    int saveDataInBatches(List<MfFundScheme> mfFundSchemes, int batchSize) {
         if (mfFundSchemes == null || mfFundSchemes.isEmpty()) {
             return 0;
         }
@@ -103,11 +103,11 @@ class MfFundSchemeService {
         return successCount.get();
     }
 
-    public long getTotalCount() {
+    long getTotalCount() {
         return mfFundSchemeRepository.count();
     }
 
-    public List<String> findDistinctAmfiCode() {
+    List<String> findDistinctAmfiCode() {
         return mfFundSchemeRepository.findDistinctAmfiCode();
     }
 }
