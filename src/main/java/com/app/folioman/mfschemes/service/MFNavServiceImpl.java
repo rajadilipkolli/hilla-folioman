@@ -42,7 +42,7 @@ import org.springframework.web.client.RestClientException;
 
 @Service
 @Transactional(readOnly = true)
-public class MFNavServiceImpl implements MFNavService {
+class MFNavServiceImpl implements MFNavService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MFNavServiceImpl.class);
 
@@ -111,7 +111,8 @@ public class MFNavServiceImpl implements MFNavService {
                         mfSchemeService.fetchSchemeDetails(oldSchemeCode, schemeCode);
                         currentNavDate = LocalDateUtility.getAdjustedDate(currentNavDate.plusDays(2));
                     } else {
-                        // NFO scenario where data is not present in historical data, hence load all available data
+                        // NFO scenario where data is not present in historical data, hence load all
+                        // available data
                         mfSchemeService.fetchSchemeDetails(String.valueOf(schemeCode), schemeCode);
                     }
                 }
@@ -292,7 +293,8 @@ public class MFNavServiceImpl implements MFNavService {
     /**
      * Retrieves a list of scheme IDs for which historical data has not been loaded.
      *
-     * @return A List of Long values representing the scheme IDs without loaded historical data.
+     * @return A List of Long values representing the scheme IDs without loaded
+     *         historical data.
      */
     private List<Long> getHistoricalDataNotLoadedSchemeIdList() {
         LocalDate yesterday = LocalDateUtility.getYesterday();

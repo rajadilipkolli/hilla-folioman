@@ -1,4 +1,4 @@
-package com.app.folioman.mfschemes.bootstrap;
+package com.app.folioman.mfschemes.service;
 
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyMap;
@@ -10,9 +10,6 @@ import static org.mockito.Mockito.verify;
 import com.app.folioman.mfschemes.MFNavService;
 import com.app.folioman.mfschemes.config.MfSchemesProperties;
 import com.app.folioman.mfschemes.entities.MfFundScheme;
-import com.app.folioman.mfschemes.service.AmfiService;
-import com.app.folioman.mfschemes.service.BSEStarMasterDataService;
-import com.app.folioman.mfschemes.service.MfFundSchemeService;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -126,7 +123,7 @@ class InitializerTest {
         for (int i = 1; i <= count; i++) {
             String amfiCode = String.valueOf(i);
             Map<String, String> schemeData = new HashMap<>();
-            schemeData.put(Initializer.ISIN_KEY, "ISIN" + i);
+            schemeData.put("ISIN Div Payout/ ISIN GrowthISIN Div Reinvestment", "ISIN" + i);
             schemeData.put("NAME", "Test Scheme " + i);
             result.put(amfiCode, schemeData);
         }

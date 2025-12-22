@@ -2,6 +2,7 @@ package com.app.folioman.mfschemes.mapper;
 
 import com.app.folioman.mfschemes.MFSchemeDTO;
 import com.app.folioman.mfschemes.entities.MfFundScheme;
+import com.app.folioman.mfschemes.service.MfSchemeDtoToEntityMapperHelper;
 import org.mapstruct.InjectionStrategy;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

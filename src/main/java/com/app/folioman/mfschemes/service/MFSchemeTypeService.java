@@ -8,7 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional(readOnly = true)
-public class MFSchemeTypeService {
+class MFSchemeTypeService {
 
     private final MFSchemeTypeRepository mfSchemeTypeRepository;
 

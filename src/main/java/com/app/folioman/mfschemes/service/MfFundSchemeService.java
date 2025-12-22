@@ -16,7 +16,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 @Service
 @Transactional(readOnly = true)
-public class MfFundSchemeService {
+class MfFundSchemeService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MfFundSchemeService.class);
 

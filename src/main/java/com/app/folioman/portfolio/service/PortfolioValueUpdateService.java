@@ -44,7 +44,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StopWatch;
 
 @Service
-public class PortfolioValueUpdateService {
+class PortfolioValueUpdateService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PortfolioValueUpdateService.class);
 

@@ -1,12 +1,10 @@
-package com.app.folioman.mfschemes.mapper;
+package com.app.folioman.mfschemes.service;
 
 import com.app.folioman.mfschemes.MFSchemeDTO;
 import com.app.folioman.mfschemes.entities.MFSchemeNav;
 import com.app.folioman.mfschemes.entities.MFSchemeType;
 import com.app.folioman.mfschemes.entities.MfAmc;
 import com.app.folioman.mfschemes.entities.MfFundScheme;
-import com.app.folioman.mfschemes.service.MFSchemeTypeService;
-import com.app.folioman.mfschemes.service.MfAmcService;
 import com.app.folioman.mfschemes.util.SchemeConstants;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -19,9 +17,9 @@ import org.mapstruct.AfterMapping;
 import org.mapstruct.MappingTarget;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
-@Component
+@Service
 public class MfSchemeDtoToEntityMapperHelper {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MfSchemeDtoToEntityMapperHelper.class);
@@ -36,7 +34,7 @@ public class MfSchemeDtoToEntityMapperHelper {
     // Cache for scheme types to avoid repeated database lookups and synchronization
     private final ConcurrentHashMap<String, MFSchemeType> schemeTypeCache = new ConcurrentHashMap<>();
 
-    public MfSchemeDtoToEntityMapperHelper(MFSchemeTypeService mFSchemeTypeService, MfAmcService mfAmcService) {
+    MfSchemeDtoToEntityMapperHelper(MFSchemeTypeService mFSchemeTypeService, MfAmcService mfAmcService) {
         this.mFSchemeTypeService = mFSchemeTypeService;
         this.mfAmcService = mfAmcService;
     }
