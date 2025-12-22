@@ -1,4 +1,4 @@
-package com.app.folioman.mfschemes.mapper;
+package com.app.folioman.mfschemes.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -15,8 +15,6 @@ import com.app.folioman.mfschemes.entities.MFSchemeNav;
 import com.app.folioman.mfschemes.entities.MFSchemeType;
 import com.app.folioman.mfschemes.entities.MfAmc;
 import com.app.folioman.mfschemes.entities.MfFundScheme;
-import com.app.folioman.mfschemes.service.MFSchemeTypeService;
-import com.app.folioman.mfschemes.service.MfAmcService;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,7 +37,7 @@ class MfSchemeDtoToEntityMapperHelperTest {
     private MfAmcService mfAmcService;
 
     @InjectMocks
-    private MfSchemeDtoToEntityMapperHelper mapperHelper;
+    private MfSchemeDtoToEntityMapperHelperImpl mapperHelper;
 
     private MFSchemeDTO mfSchemeDTO;
     private MfFundScheme mfScheme;
@@ -67,7 +65,8 @@ class MfSchemeDtoToEntityMapperHelperTest {
         mfSchemeDTO = new MFSchemeDTO(
                 "Test AMC", 1L, null, "Test Scheme", "25.50", "01-Jan-2024", "Equity Fund (Large Cap - Growth)");
 
-        // Accept either exact match or a trimmed version; helper may strip last word for multi-word types
+        // Accept either exact match or a trimmed version; helper may strip last word
+        // for multi-word types
         when(mFSchemeTypeService.findByTypeAndCategoryAndSubCategory(anyString(), eq("Large Cap"), eq("Growth")))
                 .thenAnswer(invocation -> {
                     String typeArg = ((String) invocation.getArgument(0)).trim();

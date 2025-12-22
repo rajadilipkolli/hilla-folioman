@@ -41,11 +41,12 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 @Transactional(readOnly = true)
 @Service
-public class MfSchemeServiceImpl implements MfSchemeService {
+class MfSchemeServiceImpl implements MfSchemeService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MfSchemeServiceImpl.class);
 
-    // Improved concurrent processing: Use a concurrent map of scheme IDs to monitor objects for synchronization
+    // Improved concurrent processing: Use a concurrent map of scheme IDs to monitor
+    // objects for synchronization
     private static final Map<Long, Object> SCHEME_LOCKS = new ConcurrentHashMap<>();
 
     private final RestClient restClient;
@@ -232,6 +233,7 @@ public class MfSchemeServiceImpl implements MfSchemeService {
 
     /**
      * Format search terms for PostgreSQL ts_query
+     *
      * @param terms Space-separated search terms
      * @return Formatted terms in format: term1 & term2 & term3
      */
@@ -274,12 +276,13 @@ public class MfSchemeServiceImpl implements MfSchemeService {
     }
 
     /**
-     * Execute an operation with scheme-specific synchronization to ensure thread safety
+     * Execute an operation with scheme-specific synchronization to ensure thread
+     * safety
      * while minimizing contention between different schemes.
      *
      * @param schemeCode The scheme code to synchronize on
-     * @param operation The operation to execute
-     * @param <T> The return type of the operation
+     * @param operation  The operation to execute
+     * @param <T>        The return type of the operation
      * @return The result of the operation
      */
     private <T> T withSchemeLock(Long schemeCode, Supplier<T> operation) {
@@ -322,7 +325,8 @@ public class MfSchemeServiceImpl implements MfSchemeService {
             LOGGER.info("No of entries from API Server: {} for schemeCode/amfi: {}", newNavEntries.size(), schemeCode);
 
             // Fetch all existing NAV dates for this scheme in a single query
-            // This avoids loading full entity objects when we only need dates for comparison
+            // This avoids loading full entity objects when we only need dates for
+            // comparison
             List<NavDateValueProjection> existingNavs =
                     mfSchemeNavRepository.findAllNavDateValuesBySchemeId(mfFundScheme.getId());
 
@@ -364,9 +368,10 @@ public class MfSchemeServiceImpl implements MfSchemeService {
     }
 
     /**
-     * Save NAVs in batches of specified size to handle potential constraint violations more efficiently.
+     * Save NAVs in batches of specified size to handle potential constraint
+     * violations more efficiently.
      *
-     * @param navs The list of NAVs to save
+     * @param navs      The list of NAVs to save
      * @param batchSize The size of each batch
      */
     private void saveNavsInBatches(List<MFSchemeNav> navs, int batchSize) {

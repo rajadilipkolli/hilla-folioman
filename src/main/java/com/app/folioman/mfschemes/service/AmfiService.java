@@ -17,7 +17,7 @@ import org.springframework.web.client.RestClient;
 
 @Service
 @Transactional(readOnly = true)
-public class AmfiService {
+class AmfiService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AmfiService.class);
 

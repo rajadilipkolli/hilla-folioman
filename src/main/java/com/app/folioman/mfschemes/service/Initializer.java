@@ -1,12 +1,9 @@
-package com.app.folioman.mfschemes.bootstrap;
+package com.app.folioman.mfschemes.service;
 
 import com.app.folioman.mfschemes.MFNavService;
 import com.app.folioman.mfschemes.config.MfSchemesProperties;
 import com.app.folioman.mfschemes.entities.MfFundScheme;
 import com.app.folioman.mfschemes.exception.MutualFundDataException;
-import com.app.folioman.mfschemes.service.AmfiService;
-import com.app.folioman.mfschemes.service.BSEStarMasterDataService;
-import com.app.folioman.mfschemes.service.MfFundSchemeService;
 import com.opencsv.exceptions.CsvException;
 import java.io.IOException;
 import java.util.HashSet;
@@ -19,15 +16,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.event.EventListener;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.util.StopWatch;
 import org.springframework.web.client.HttpClientErrorException;
 
-@Component
+@Service
 public class Initializer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Initializer.class);
-    public static final String ISIN_KEY = "ISIN Div Payout/ ISIN GrowthISIN Div Reinvestment";
+    private static final String ISIN_KEY = "ISIN Div Payout/ ISIN GrowthISIN Div Reinvestment";
 
     private final AmfiService amfiService;
     private final BSEStarMasterDataService bseStarMasterDataService;
@@ -35,7 +32,7 @@ public class Initializer {
     private final MFNavService mfNavService;
     private final MfSchemesProperties properties;
 
-    public Initializer(
+    Initializer(
             AmfiService amfiService,
             BSEStarMasterDataService bseStarMasterDataService,
             MfFundSchemeService mfFundSchemeService,
@@ -169,7 +166,7 @@ public class Initializer {
      * If changed to parallel in the future, ensure thread safety of all operations.
      *
      * @param bseStarMasterDataMap Map of scheme data from BSE Star
-     * @param amfiCodeSet Set of AMFI codes to process
+     * @param amfiCodeSet          Set of AMFI codes to process
      */
     private void processMasterData(Map<String, MfFundScheme> bseStarMasterDataMap, Set<String> amfiCodeSet) {
         // Thread-safe read operation

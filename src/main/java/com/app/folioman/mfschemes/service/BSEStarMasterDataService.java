@@ -1,10 +1,10 @@
 package com.app.folioman.mfschemes.service;
 
+import com.app.folioman.mfschemes.MfSchemeDtoToEntityMapperHelper;
 import com.app.folioman.mfschemes.config.ApplicationProperties;
 import com.app.folioman.mfschemes.entities.MFSchemeType;
 import com.app.folioman.mfschemes.entities.MfAmc;
 import com.app.folioman.mfschemes.entities.MfFundScheme;
-import com.app.folioman.mfschemes.mapper.MfSchemeDtoToEntityMapperHelper;
 import com.app.folioman.shared.CommonConstants;
 import com.app.folioman.shared.LocalDateUtility;
 import com.opencsv.CSVReader;
@@ -34,7 +34,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
 @Service
-public class BSEStarMasterDataService {
+class BSEStarMasterDataService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BSEStarMasterDataService.class);
 

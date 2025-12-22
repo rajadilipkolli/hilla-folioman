@@ -6,6 +6,7 @@ import com.app.folioman.Application;
 import com.app.folioman.config.NoSQLContainersConfig;
 import com.app.folioman.config.SQLContainersConfig;
 import com.app.folioman.mfschemes.config.ApplicationProperties;
+import com.app.folioman.mfschemes.mapper.MfSchemeDtoToEntityMapper;
 import com.app.folioman.mfschemes.repository.MFSchemeNavRepository;
 import com.app.folioman.portfolio.config.PortfolioCacheProperties;
 import com.app.folioman.portfolio.repository.UserPortfolioValueRepository;
@@ -54,6 +55,9 @@ public abstract class AbstractIntegrationTest {
 
     @Autowired
     protected ApplicationEventPublisher applicationEventPublisher;
+
+    @Autowired
+    protected MfSchemeDtoToEntityMapper mapper;
 
     @LocalServerPort
     protected int port;
