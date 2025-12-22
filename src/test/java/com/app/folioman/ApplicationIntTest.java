@@ -46,7 +46,8 @@ class ApplicationIntTest extends AbstractIntegrationTest {
     @Test
     @DisplayName("portfolio module should exist and be properly structured")
     void verifyPortfolioModuleStructure() {
-        ApplicationModule portfolio = modules.getModuleByName("portfolio").orElseThrow();
+        ApplicationModule portfolio = modules.getModuleByName("portfolio")
+                .orElseThrow(() -> new AssertionError("portfolio module not found"));
 
         assertThat(portfolio.getBasePackage().getName()).isEqualTo("com.app.folioman.portfolio");
         assertThat(portfolio.getNamedInterfaces()).isNotEmpty();
@@ -55,7 +56,8 @@ class ApplicationIntTest extends AbstractIntegrationTest {
     @Test
     @DisplayName("shared module should exist")
     void verifySharedModuleExists() {
-        ApplicationModule shared = modules.getModuleByName("shared").orElseThrow();
+        ApplicationModule shared =
+                modules.getModuleByName("shared").orElseThrow(() -> new AssertionError("shared module not found"));
 
         assertThat(shared.getBasePackage().getName()).isEqualTo("com.app.folioman.shared");
     }
