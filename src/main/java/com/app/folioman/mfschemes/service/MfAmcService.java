@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional(readOnly = true)
-public class MfAmcService {
+class MfAmcService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MfAmcService.class);
 

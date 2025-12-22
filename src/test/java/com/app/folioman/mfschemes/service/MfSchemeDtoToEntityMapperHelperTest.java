@@ -1,8 +1,9 @@
-package com.app.folioman.mfschemes.mapper;
+package com.app.folioman.mfschemes.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.never;
@@ -15,8 +16,6 @@ import com.app.folioman.mfschemes.entities.MFSchemeNav;
 import com.app.folioman.mfschemes.entities.MFSchemeType;
 import com.app.folioman.mfschemes.entities.MfAmc;
 import com.app.folioman.mfschemes.entities.MfFundScheme;
-import com.app.folioman.mfschemes.service.MFSchemeTypeService;
-import com.app.folioman.mfschemes.service.MfAmcService;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,11 +24,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
 
 @ExtendWith(MockitoExtension.class)
-@MockitoSettings(strictness = Strictness.LENIENT)
 class MfSchemeDtoToEntityMapperHelperTest {
 
     @Mock
@@ -39,7 +35,7 @@ class MfSchemeDtoToEntityMapperHelperTest {
     private MfAmcService mfAmcService;
 
     @InjectMocks
-    private MfSchemeDtoToEntityMapperHelper mapperHelper;
+    private MfSchemeDtoToEntityMapperHelperImpl mapperHelper;
 
     private MFSchemeDTO mfSchemeDTO;
     private MfFundScheme mfScheme;
@@ -67,7 +63,8 @@ class MfSchemeDtoToEntityMapperHelperTest {
         mfSchemeDTO = new MFSchemeDTO(
                 "Test AMC", 1L, null, "Test Scheme", "25.50", "01-Jan-2024", "Equity Fund (Large Cap - Growth)");
 
-        // Accept either exact match or a trimmed version; helper may strip last word for multi-word types
+        // Accept either exact match or a trimmed version; helper may strip last word
+        // for multi-word types
         when(mFSchemeTypeService.findByTypeAndCategoryAndSubCategory(anyString(), eq("Large Cap"), eq("Growth")))
                 .thenAnswer(invocation -> {
                     String typeArg = ((String) invocation.getArgument(0)).trim();
@@ -83,7 +80,7 @@ class MfSchemeDtoToEntityMapperHelperTest {
         assertThat(mfScheme.getMfSchemeType()).isEqualTo(mockSchemeType);
         assertThat(mfScheme.getAmc()).isEqualTo(mockAmc);
         assertThat(mfScheme.getMfSchemeNavs()).isNotEmpty();
-        MFSchemeNav nav = mfScheme.getMfSchemeNavs().get(0);
+        MFSchemeNav nav = mfScheme.getMfSchemeNavs().getFirst();
         assertThat(nav.getNav()).isEqualTo(new BigDecimal("25.50"));
         assertThat(nav.getNavDate()).isEqualTo(LocalDate.of(2024, 1, 1));
     }
@@ -93,13 +90,14 @@ class MfSchemeDtoToEntityMapperHelperTest {
         mfSchemeDTO =
                 new MFSchemeDTO("Test AMC", 1L, null, "Test Scheme", "N.A.", "01-Jan-2024", "Equity Fund (Large Cap)");
 
-        when(mFSchemeTypeService.findByTypeAndCategoryAndSubCategory(eq("Equity Fund"), eq("Large Cap"), isNull()))
+        when(mFSchemeTypeService.findByTypeAndCategoryAndSubCategory(
+                        argThat(s -> s != null && s.trim().equals("Equity Fund")), eq("Large Cap"), isNull()))
                 .thenReturn(mockSchemeType);
         when(mfAmcService.findOrCreateByName("Test AMC")).thenReturn(mockAmc);
 
         mapperHelper.updateMFScheme(mfSchemeDTO, mfScheme);
 
-        MFSchemeNav nav = mfScheme.getMfSchemeNavs().get(0);
+        MFSchemeNav nav = mfScheme.getMfSchemeNavs().getFirst();
         assertThat(nav.getNav()).isEqualTo(BigDecimal.ZERO);
     }
 
@@ -115,7 +113,7 @@ class MfSchemeDtoToEntityMapperHelperTest {
         mapperHelper.updateMFScheme(mfSchemeDTO, mfScheme);
 
         assertThat(mfScheme.getMfSchemeType()).isEqualTo(mockSchemeType);
-        assertThat(mfScheme.getMfSchemeNavs().get(0).getNavDate()).isEqualTo(LocalDate.of(2024, 2, 15));
+        assertThat(mfScheme.getMfSchemeNavs().getFirst().getNavDate()).isEqualTo(LocalDate.of(2024, 2, 15));
     }
 
     @Test
@@ -158,7 +156,8 @@ class MfSchemeDtoToEntityMapperHelperTest {
         mfSchemeDTO =
                 new MFSchemeDTO("New AMC", 1L, null, "Test Scheme", "20.00", "01-May-2024", "Equity Fund (Large Cap)");
 
-        when(mFSchemeTypeService.findByTypeAndCategoryAndSubCategory(eq("Equity Fund"), eq("Large Cap"), isNull()))
+        when(mFSchemeTypeService.findByTypeAndCategoryAndSubCategory(
+                        argThat(s -> s != null && s.trim().equals("Equity Fund")), eq("Large Cap"), isNull()))
                 .thenReturn(mockSchemeType);
         when(mfAmcService.findOrCreateByName("New AMC")).thenReturn(mockAmc);
 
@@ -175,7 +174,8 @@ class MfSchemeDtoToEntityMapperHelperTest {
         mfSchemeDTO = new MFSchemeDTO(
                 "Existing AMC", 1L, null, "Test Scheme", "30.00", "01-Jun-2024", "Equity Fund (Large Cap)");
 
-        when(mFSchemeTypeService.findByTypeAndCategoryAndSubCategory("Equity Fund", "Large Cap", null))
+        when(mFSchemeTypeService.findByTypeAndCategoryAndSubCategory(
+                        argThat(s -> s != null && s.trim().equals("Equity Fund")), eq("Large Cap"), isNull()))
                 .thenReturn(mockSchemeType);
 
         mapperHelper.updateMFScheme(mfSchemeDTO, mfScheme);

@@ -6,12 +6,8 @@ import com.app.folioman.mfschemes.MFSchemeDTO;
 import com.app.folioman.mfschemes.entities.MfFundScheme;
 import com.app.folioman.shared.AbstractIntegrationTest;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 class MfSchemeDtoToEntityMapperIT extends AbstractIntegrationTest {
-
-    @Autowired
-    private MfSchemeDtoToEntityMapper mapper;
 
     @Test
     void mapMFSchemeDTOToMfFundScheme_WithNullInput_ReturnsNull() {

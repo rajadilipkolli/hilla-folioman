@@ -2,18 +2,26 @@ package com.app.folioman.portfolio.service;
 
 import com.app.folioman.mfschemes.MFNavService;
 import com.app.folioman.mfschemes.MFSchemeNavProjection;
+import com.app.folioman.mfschemes.NavNotFoundException;
 import com.app.folioman.portfolio.entities.FolioScheme;
+import com.app.folioman.portfolio.entities.SchemeValue;
 import com.app.folioman.portfolio.entities.UserCASDetails;
 import com.app.folioman.portfolio.entities.UserPortfolioValue;
 import com.app.folioman.portfolio.entities.UserSchemeDetails;
 import com.app.folioman.portfolio.entities.UserTransactionDetails;
+import com.app.folioman.portfolio.models.FIFOUnits;
+import com.app.folioman.portfolio.models.ProcessedTransaction;
 import com.app.folioman.portfolio.models.request.TransactionType;
 import com.app.folioman.portfolio.repository.FolioSchemeRepository;
+import com.app.folioman.portfolio.repository.SchemeValueRepository;
 import com.app.folioman.portfolio.repository.UserPortfolioValueRepository;
+import com.app.folioman.portfolio.repository.UserTransactionDetailsRepository;
 import com.app.folioman.portfolio.util.XirrCalculator;
 import com.app.folioman.shared.LocalDateUtility;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -23,6 +31,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
@@ -31,10 +40,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StopWatch;
 
 @Service
-public class PortfolioValueUpdateService {
+class PortfolioValueUpdateService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PortfolioValueUpdateService.class);
 
@@ -49,19 +59,376 @@ public class PortfolioValueUpdateService {
     private final UserPortfolioValueRepository userPortfolioValueRepository;
     private final MFNavService mfNavService;
     private final FolioSchemeRepository folioSchemeRepository;
+    private final SchemeValueRepository schemeValueRepository;
+    private final UserTransactionDetailsRepository userTransactionDetailsRepository;
 
     PortfolioValueUpdateService(
             UserPortfolioValueRepository userPortfolioValueRepository,
             MFNavService mfNavService,
-            FolioSchemeRepository folioSchemeRepository) {
+            FolioSchemeRepository folioSchemeRepository,
+            SchemeValueRepository schemeValueRepository,
+            UserTransactionDetailsRepository userTransactionDetailsRepository) {
         this.userPortfolioValueRepository = userPortfolioValueRepository;
         this.mfNavService = mfNavService;
         this.folioSchemeRepository = folioSchemeRepository;
+        this.schemeValueRepository = schemeValueRepository;
+        this.userTransactionDetailsRepository = userTransactionDetailsRepository;
     }
 
     @Async
     public void updatePortfolioValue(UserCASDetails userCASDetails) {
         handleDailyPortFolioValueUpdate(userCASDetails);
+        userCASDetails.getFolios().forEach(userFolioDetails -> {
+            Long portfolioId = userFolioDetails.getId();
+
+            LocalDate today = LocalDate.now(ZoneId.systemDefault());
+
+            LocalDate fromDate1 = today;
+            if (!CollectionUtils.isEmpty(userFolioDetails.getSchemes())) {
+                fromDate1 = userFolioDetails.getSchemes().stream()
+                        .map(userSchemeDetails ->
+                                userSchemeDetails.getCreatedDate().toLocalDate())
+                        .min(LocalDate::compareTo)
+                        .orElse(today);
+            }
+
+            LocalDate fromDate2 = today;
+
+            SchemeValue schemeValue =
+                    schemeValueRepository.findFirstByUserSchemeDetails_UserFolioDetails_IdOrderByDateDesc(portfolioId);
+            if (schemeValue != null) {
+                fromDate2 = schemeValue.getDate();
+            }
+
+            LocalDate startDateMin = fromDate1.isBefore(fromDate2) ? fromDate1 : fromDate2;
+
+            List<FolioScheme> schemes = folioSchemeRepository.findByUserFolioDetails_Id(portfolioId);
+
+            LOGGER.info("Computing daily scheme values...");
+            List<Map<String, Object>> schemeResults = new ArrayList<>();
+            List<Long> schemeListFromDB = userFolioDetails.getSchemes().stream()
+                    .map(UserSchemeDetails::getId)
+                    .toList();
+            for (FolioScheme folioScheme : schemes) {
+
+                // Protect per-scheme processing so one failing scheme doesn't abort the whole async job
+                try {
+
+                    LocalDate schemeFromDate = schemeListFromDB.contains(
+                                    folioScheme.getUserSchemeDetails().getId())
+                            ? folioScheme
+                                    .getUserSchemeDetails()
+                                    .getCreatedDate()
+                                    .toLocalDate()
+                            : startDateMin;
+
+                    Optional<SchemeValue> schemeValueOpt =
+                            schemeValueRepository.findFirstByUserSchemeDetails_IdAndDateBeforeOrderByDateDesc(
+                                    folioScheme.getUserSchemeDetails().getId(), schemeFromDate);
+                    List<UserTransactionDetails> oldTransactions =
+                            userTransactionDetailsRepository.findByUserSchemeDetails_IdAndTransactionDateBefore(
+                                    folioScheme.getUserSchemeDetails().getId(), schemeFromDate);
+                    List<UserTransactionDetails> newTransactions =
+                            userTransactionDetailsRepository
+                                    .findByUserSchemeDetails_IdAndTransactionDateGreaterThanEqual(
+                                            folioScheme.getUserSchemeDetails().getId(), schemeFromDate);
+
+                    LocalDate fromDate =
+                            schemeValueOpt.map(SchemeValue::getDate).orElse(null);
+
+                    FIFOUnits fifo = new FIFOUnits();
+
+                    for (UserTransactionDetails txn : oldTransactions) {
+                        fifo.addTransaction(txn);
+                    }
+
+                    List<ProcessedTransaction> transactionsProcessed;
+                    if (schemeValueOpt.isPresent()) {
+                        transactionsProcessed = processTransactions(fifo, newTransactions);
+                    } else {
+                        transactionsProcessed = processTransactions(fifo, oldTransactions);
+                    }
+                    Map<String, Object> schemeData = calculateSchemeData(
+                            fifo, schemeValueOpt, folioScheme.getUserSchemeDetails(), transactionsProcessed, today);
+                    if (schemeData != null) {
+                        schemeResults.add(schemeData);
+                    }
+                } catch (NavNotFoundException nne) {
+                    LOGGER.warn(
+                            "NAV not found for scheme {} (AMFI: {}) on requested dates - skipping scheme. Reason: {}",
+                            folioScheme.getUserSchemeDetails().getId(),
+                            folioScheme.getUserSchemeDetails().getAmfi(),
+                            nne.getMessage());
+                } catch (Exception ex) {
+                    LOGGER.error(
+                            "Unexpected error while processing scheme {} - skipping scheme",
+                            folioScheme.getUserSchemeDetails().getId(),
+                            ex);
+                }
+            }
+
+            // Further processing of FolioValue and PortfolioValue
+            updateFolioAndPortfolioValues(schemeResults, startDateMin);
+        });
+    }
+
+    private void updateFolioAndPortfolioValues(List<Map<String, Object>> schemeResults, LocalDate startDateMin) {
+        if (schemeResults.isEmpty()) {
+            LOGGER.info("No scheme data to process. Exiting...");
+            return;
+        }
+
+        LOGGER.info("Processing {} schemes for SchemeValue generation", schemeResults.size());
+
+        // Step 1: Generate and save SchemeValue entities for all schemes
+        List<SchemeValue> allSchemeValues = new ArrayList<>();
+        Map<Long, FolioScheme> folioSchemeUpdates = new HashMap<>();
+
+        for (Map<String, Object> schemeData : schemeResults) {
+            Long schemeId = (Long) schemeData.get("schemeId");
+            Long amfiCode = (Long) schemeData.get("amfiCode");
+            LocalDate fromDate = (LocalDate) schemeData.get("fromDate");
+            LocalDate toDate = (LocalDate) schemeData.get("toDate");
+
+            @SuppressWarnings("unchecked")
+            List<ProcessedTransaction> processedTransactions =
+                    (List<ProcessedTransaction>) schemeData.get("processedTransactions");
+
+            @SuppressWarnings("unchecked")
+            Map<LocalDate, BigDecimal> navsByDate = (Map<LocalDate, BigDecimal>) schemeData.get("navsByDate");
+
+            UserSchemeDetails userSchemeDetails = (UserSchemeDetails) schemeData.get("userSchemeDetails");
+
+            if (processedTransactions == null || processedTransactions.isEmpty()) {
+                LOGGER.warn("No processed transactions for scheme {}, skipping", schemeId);
+                continue;
+            }
+
+            // Generate SchemeValue records for this scheme
+            List<SchemeValue> schemeValues =
+                    generateSchemeValues(processedTransactions, navsByDate, userSchemeDetails, fromDate, toDate);
+            allSchemeValues.addAll(schemeValues);
+
+            // Prepare FolioScheme update with latest valuation
+            if (!schemeValues.isEmpty()) {
+                SchemeValue latestSchemeValue = schemeValues.getLast();
+                FolioScheme folioScheme = findOrCreateFolioScheme(schemeId, userSchemeDetails);
+                folioScheme.setValuation(latestSchemeValue.getValue());
+                folioScheme.setValuationDate(latestSchemeValue.getDate());
+                folioSchemeUpdates.put(schemeId, folioScheme);
+            }
+        }
+
+        // Step 2: Bulk save SchemeValue entities
+        if (!allSchemeValues.isEmpty()) {
+            LOGGER.info("Saving {} SchemeValue records", allSchemeValues.size());
+            schemeValueRepository.saveAll(allSchemeValues);
+            LOGGER.info("SchemeValue data imported successfully");
+        }
+
+        // Step 3: Update FolioScheme entities
+        if (!folioSchemeUpdates.isEmpty()) {
+            LOGGER.info("Updating {} FolioScheme records", folioSchemeUpdates.size());
+            folioSchemeRepository.saveAll(folioSchemeUpdates.values());
+            LOGGER.info("FolioScheme updated successfully");
+        }
+
+        // Note: UserPortfolioValue is already handled in the main handleDailyPortFolioValueUpdate flow
+        LOGGER.info("Portfolio value update completed");
+    }
+
+    /**
+     * Generates SchemeValue records for each day in the date range based on processed transactions and NAV data.
+     */
+    private List<SchemeValue> generateSchemeValues(
+            List<ProcessedTransaction> processedTransactions,
+            Map<LocalDate, BigDecimal> navsByDate,
+            UserSchemeDetails userSchemeDetails,
+            LocalDate fromDate,
+            LocalDate toDate) {
+
+        List<SchemeValue> schemeValues = new ArrayList<>();
+
+        // Create a map of transactions by date for quick lookup
+        Map<LocalDate, ProcessedTransaction> transactionsByDate = processedTransactions.stream()
+                .collect(Collectors.toMap(
+                        ProcessedTransaction::date,
+                        pt -> pt,
+                        (existing, replacement) -> replacement // Keep last transaction if multiple on same date
+                        ));
+
+        // Track the latest known state
+        BigDecimal currentInvested = BigDecimal.ZERO;
+        BigDecimal currentAverage = BigDecimal.ZERO;
+        BigDecimal currentBalance = BigDecimal.ZERO;
+
+        // Generate SchemeValue for each day
+        for (LocalDate date = fromDate; !date.isAfter(toDate); date = date.plusDays(1)) {
+            // Update state if there's a transaction on this date
+            if (transactionsByDate.containsKey(date)) {
+                ProcessedTransaction pt = transactionsByDate.get(date);
+                currentInvested = pt.invested();
+                currentAverage = pt.average();
+                currentBalance = pt.balance();
+            }
+
+            // Skip if no activity yet
+            if (currentBalance.compareTo(BigDecimal.ZERO) == 0 && currentInvested.compareTo(BigDecimal.ZERO) == 0) {
+                continue;
+            }
+
+            // Get NAV for this date (with fallback to previous available NAV)
+            BigDecimal nav = findNavForDate(date, navsByDate);
+
+            if (nav == null) {
+                LOGGER.warn(
+                        "NAV not found for scheme {} on date {}, skipping this date", userSchemeDetails.getId(), date);
+                continue;
+            }
+
+            // Calculate current value: balance * NAV
+            BigDecimal currentValue = currentBalance.multiply(nav).setScale(2, RoundingMode.HALF_UP);
+
+            // Create SchemeValue entity
+            SchemeValue schemeValue = new SchemeValue();
+            schemeValue.setDate(date);
+            schemeValue.setInvested(currentInvested);
+            schemeValue.setValue(currentValue);
+            schemeValue.setAvgNav(currentAverage);
+            schemeValue.setNav(nav);
+            schemeValue.setBalance(currentBalance);
+            schemeValue.setUserSchemeDetails(userSchemeDetails);
+
+            schemeValues.add(schemeValue);
+        }
+
+        return schemeValues;
+    }
+
+    /**
+     * Finds NAV for a specific date, with fallback to the most recent previous NAV if not available.
+     */
+    private BigDecimal findNavForDate(LocalDate date, Map<LocalDate, BigDecimal> navsByDate) {
+        if (navsByDate.containsKey(date)) {
+            return navsByDate.get(date);
+        }
+
+        // Fallback: look for most recent NAV before this date
+        LocalDate checkDate = date.minusDays(1);
+        int attempts = 0;
+        int maxAttempts = 10; // Look back up to 10 days
+
+        while (attempts < maxAttempts) {
+            if (navsByDate.containsKey(checkDate)) {
+                return navsByDate.get(checkDate);
+            }
+            checkDate = checkDate.minusDays(1);
+            attempts++;
+        }
+
+        return null; // No NAV found within lookback period
+    }
+
+    private Map<String, Object> calculateSchemeData(
+            FIFOUnits fifo,
+            Optional<SchemeValue> schemeValueOpt,
+            UserSchemeDetails userSchemeDetails,
+            List<ProcessedTransaction> transactionsProcessed,
+            LocalDate today) {
+
+        if (fifo.getBalance().compareTo(BigDecimal.valueOf(1e-3)) <= 0 && schemeValueOpt.isEmpty()) {
+            LOGGER.info("Skipping scheme {} - no balance and no previous values", userSchemeDetails.getId());
+            return null;
+        }
+
+        if (transactionsProcessed.isEmpty()) {
+            LOGGER.info("Skipping scheme {} - no processed transactions", userSchemeDetails.getId());
+            return null;
+        }
+
+        LocalDate fromDate = transactionsProcessed.getFirst().date();
+        LocalDate toDate = calculateToDate(fifo, transactionsProcessed, userSchemeDetails.getId(), today);
+
+        if (toDate == null) {
+            return null;
+        }
+
+        Long amfiCode = userSchemeDetails.getAmfi();
+        if (amfiCode == null) {
+            LOGGER.warn("AMFI code not found for scheme {}, cannot fetch NAVs", userSchemeDetails.getId());
+            return null;
+        }
+
+        // Fetch NAVs for this scheme and date range
+        Map<Long, Map<LocalDate, MFSchemeNavProjection>> navData =
+                mfNavService.getNavsForSchemesAndDates(Set.of(amfiCode), fromDate, toDate);
+
+        Map<LocalDate, BigDecimal> navsByDate = new HashMap<>();
+        if (navData.containsKey(amfiCode)) {
+            navData.get(amfiCode).forEach((date, projection) -> navsByDate.put(date, projection.nav()));
+        }
+
+        if (navsByDate.isEmpty()) {
+            LOGGER.warn(
+                    "No NAV data found for scheme {} (AMFI: {}) between {} and {}",
+                    userSchemeDetails.getId(),
+                    amfiCode,
+                    fromDate,
+                    toDate);
+            return null;
+        }
+
+        // Return comprehensive data for further processing
+        Map<String, Object> result = new HashMap<>();
+        result.put("schemeId", userSchemeDetails.getId());
+        result.put("amfiCode", amfiCode);
+        result.put("fromDate", fromDate);
+        result.put("toDate", toDate);
+        result.put("processedTransactions", transactionsProcessed);
+        result.put("navsByDate", navsByDate);
+        result.put("userSchemeDetails", userSchemeDetails);
+
+        return result;
+    }
+
+    private LocalDate calculateToDate(
+            FIFOUnits fifo, List<ProcessedTransaction> transactionsProcessed, Long schemeId, LocalDate today) {
+        if (fifo.getBalance().compareTo(BigDecimal.valueOf(1e-3)) > 0) {
+            try {
+                return mfNavService
+                        .findTopBySchemeIdOrderByDateDesc(schemeId)
+                        .map(mfSchemeDTO -> LocalDate.parse(mfSchemeDTO.date()))
+                        .orElse(today.minusDays(1));
+            } catch (NavNotFoundException nne) {
+                LOGGER.warn(
+                        "NavNotFoundException while calculating toDate for scheme {}: {} - using fallback date",
+                        schemeId,
+                        nne.getMessage());
+                return today.minusDays(1);
+            } catch (Exception e) {
+                LOGGER.error(
+                        "Unexpected error while fetching latest NAV for scheme {}: {} - using fallback date",
+                        schemeId,
+                        e.getMessage());
+                return today.minusDays(1);
+            }
+        } else if (!transactionsProcessed.isEmpty()) {
+            return transactionsProcessed.getLast().date();
+        } else {
+            LOGGER.info("Skipping scheme :: {}", schemeId);
+            return null;
+        }
+    }
+
+    private List<ProcessedTransaction> processTransactions(
+            FIFOUnits fifo, List<UserTransactionDetails> userTransactionDetailsList) {
+        List<ProcessedTransaction> processedTransactions = new ArrayList<>();
+        for (UserTransactionDetails txn : userTransactionDetailsList) {
+            fifo.addTransaction(txn);
+            processedTransactions.add(new ProcessedTransaction(
+                    txn.getTransactionDate(), fifo.getInvested(), fifo.getAverage(), fifo.getBalance()));
+        }
+        return processedTransactions;
     }
 
     private void handleDailyPortFolioValueUpdate(UserCASDetails userCASDetails) {
@@ -105,6 +472,14 @@ public class PortfolioValueUpdateService {
 
         StopWatch methodStartTime = new StopWatch();
         methodStartTime.start();
+
+        // Handle empty transaction list
+        if (transactionList == null || transactionList.isEmpty()) {
+            LOGGER.info(
+                    "No transactions found for CAS ID: {}. Skipping portfolio value calculation.",
+                    userCASDetails.getId());
+            return;
+        }
 
         // Prepare data and date range
         LocalDate startDate = transactionList.getFirst().getTransactionDate();
@@ -422,8 +797,9 @@ public class PortfolioValueUpdateService {
 
         try {
             // Use the new XirrCalculator.xirr method with Map parameter
-            BigDecimal xirrValue =
-                    XirrCalculator.xirr(dataContainer.cashFlowsByScheme().get(schemeCode));
+            BigDecimal xirrValue = XirrCalculator.xirr(
+                            dataContainer.cashFlowsByScheme().get(schemeCode))
+                    .setScale(2, RoundingMode.HALF_UP);
 
             // Create or update FolioScheme with XIRR
             FolioScheme folioScheme = findOrCreateFolioScheme(schemeDetailId, userSchemeDetails);

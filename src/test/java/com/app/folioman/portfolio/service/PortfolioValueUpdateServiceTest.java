@@ -18,6 +18,7 @@ import com.app.folioman.portfolio.entities.CasTypeEnum;
 import com.app.folioman.portfolio.entities.FileTypeEnum;
 import com.app.folioman.portfolio.entities.FolioScheme;
 import com.app.folioman.portfolio.entities.InvestorInfo;
+import com.app.folioman.portfolio.entities.SchemeValue;
 import com.app.folioman.portfolio.entities.UserCASDetails;
 import com.app.folioman.portfolio.entities.UserFolioDetails;
 import com.app.folioman.portfolio.entities.UserPortfolioValue;
@@ -26,12 +27,15 @@ import com.app.folioman.portfolio.entities.UserTransactionDetails;
 import com.app.folioman.portfolio.models.request.CasDTO;
 import com.app.folioman.portfolio.models.request.TransactionType;
 import com.app.folioman.portfolio.repository.FolioSchemeRepository;
+import com.app.folioman.portfolio.repository.SchemeValueRepository;
 import com.app.folioman.portfolio.repository.UserPortfolioValueRepository;
+import com.app.folioman.portfolio.repository.UserTransactionDetailsRepository;
 import com.app.folioman.portfolio.util.XirrCalculator;
 import com.app.folioman.shared.LocalDateUtility;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -64,6 +68,12 @@ class PortfolioValueUpdateServiceTest {
     @Mock
     private FolioSchemeRepository folioSchemeRepository;
 
+    @Mock
+    private SchemeValueRepository schemeValueRepository;
+
+    @Mock
+    private UserTransactionDetailsRepository userTransactionDetailsRepository;
+
     @InjectMocks
     private PortfolioValueUpdateService portfolioValueUpdateService;
 
@@ -93,8 +103,33 @@ class PortfolioValueUpdateServiceTest {
         when(mfSchemeNavProjection.nav()).thenReturn(BigDecimal.valueOf(12.50));
         when(mfNavService.getNavsForSchemesAndDates(anySet(), any(LocalDate.class), any(LocalDate.class)))
                 .thenReturn(createMockNavData());
-        when(folioSchemeRepository.findByUserSchemeDetails_Id(anyLong())).thenReturn(null);
-        when(folioSchemeRepository.save(any(FolioScheme.class))).thenReturn(new FolioScheme());
+
+        // Return an existing FolioScheme so the service enters processing branch
+        FolioScheme existingFolioScheme = new FolioScheme();
+        existingFolioScheme.setId(10L);
+        existingFolioScheme.setUserSchemeDetails(
+                userCASDetails.getFolios().getFirst().getSchemes().getFirst());
+        when(folioSchemeRepository.findByUserSchemeDetails_Id(anyLong())).thenReturn(existingFolioScheme);
+        when(folioSchemeRepository.save(any(FolioScheme.class))).thenReturn(existingFolioScheme);
+        when(folioSchemeRepository.findByUserFolioDetails_Id(anyLong()))
+                .thenReturn(Collections.singletonList(existingFolioScheme));
+
+        SchemeValue sv = new SchemeValue();
+        sv.setDate(LocalDate.now().minusDays(10));
+        when(schemeValueRepository.findFirstByUserSchemeDetails_UserFolioDetails_IdOrderByDateDesc(anyLong()))
+                .thenReturn(sv);
+        // Provide some historical transactions so cashflow calculation runs
+        when(userTransactionDetailsRepository.findByUserSchemeDetails_IdAndTransactionDateBefore(
+                        anyLong(), any(LocalDate.class)))
+                .thenReturn(Collections.emptyList());
+        when(userTransactionDetailsRepository.findByUserSchemeDetails_IdAndTransactionDateGreaterThanEqual(
+                        anyLong(), any(LocalDate.class)))
+                .thenReturn(userCASDetails
+                        .getFolios()
+                        .getFirst()
+                        .getSchemes()
+                        .getFirst()
+                        .getTransactions());
 
         try (MockedStatic<XirrCalculator> xirrCalculator = Mockito.mockStatic(XirrCalculator.class)) {
             xirrCalculator.when(() -> XirrCalculator.xirr(anyMap())).thenReturn(BigDecimal.valueOf(15.5));
@@ -123,7 +158,7 @@ class PortfolioValueUpdateServiceTest {
                 assertThat(lastValue.getValue()).isNotNull();
                 assertThat(lastValue.getInvested()).isNotNull();
                 assertThat(lastValue.getUserCasDetails()).isEqualTo(userCASDetails);
-                assertThat(lastValue.getXirr()).isEqualTo(BigDecimal.valueOf(15.5));
+                assertThat(lastValue.getXirr()).isEqualTo(BigDecimal.valueOf(15.50));
             }
         }
     }
@@ -280,6 +315,7 @@ class PortfolioValueUpdateServiceTest {
         List<UserFolioDetails> folios = new ArrayList<>();
         casDTO.folios().forEach(folioDTO -> {
             UserFolioDetails folio = new UserFolioDetails();
+            folio.setId(1L);
             folio.setFolio(folioDTO.folio());
             folio.setAmc(folioDTO.amc());
             folio.setPan(folioDTO.pan());
@@ -290,6 +326,7 @@ class PortfolioValueUpdateServiceTest {
             List<UserSchemeDetails> schemes = new ArrayList<>();
             folioDTO.schemes().forEach(schemeDTO -> {
                 UserSchemeDetails scheme = new UserSchemeDetails();
+                scheme.setId(100L);
                 scheme.setScheme(schemeDTO.scheme());
                 scheme.setIsin(schemeDTO.isin());
                 scheme.setAmfi(schemeDTO.amfi());
@@ -298,6 +335,7 @@ class PortfolioValueUpdateServiceTest {
                 scheme.setRta(schemeDTO.rta());
                 scheme.setType(schemeDTO.type());
                 scheme.setUserFolioDetails(folio);
+                scheme.setCreatedDate(LocalDateTime.now().minusMonths(1));
 
                 List<UserTransactionDetails> transactions = new ArrayList<>();
                 schemeDTO.transactions().forEach(transactionDTO -> {
@@ -348,9 +386,8 @@ class PortfolioValueUpdateServiceTest {
                 Map<LocalDate, MFSchemeNavProjection> schemeNavs = new HashMap<>();
 
                 // Add NAVs for all dates in last month
-                LocalDate today = LocalDate.now();
-                LocalDate startDate = today.minusMonths(1);
-                LocalDate endDate = today;
+                LocalDate endDate = LocalDate.now();
+                LocalDate startDate = endDate.minusMonths(1);
 
                 startDate.datesUntil(endDate.plusDays(1)).forEach(date -> schemeNavs.put(date, mfSchemeNavProjection));
 

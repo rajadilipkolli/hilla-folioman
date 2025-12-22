@@ -207,7 +207,7 @@ public class TestData {
         return new UserSchemeDTO(
                 "ICICI Prudential Nifty Next 50 Index Fund - Direct Plan - Growth (Non-Demat) - ISIN: INF109K01Y80",
                 "INF109K01Y80",
-                null,
+                120684L,
                 "INA200005166",
                 "P8107",
                 "EQUITY",
