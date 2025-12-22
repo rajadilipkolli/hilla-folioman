@@ -1,6 +1,7 @@
 package com.app.folioman.mfschemes.service;
 
 import com.app.folioman.mfschemes.MFSchemeDTO;
+import com.app.folioman.mfschemes.MfSchemeDtoToEntityMapperHelper;
 import com.app.folioman.mfschemes.entities.MFSchemeNav;
 import com.app.folioman.mfschemes.entities.MFSchemeType;
 import com.app.folioman.mfschemes.entities.MfAmc;
@@ -13,34 +14,32 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.jspecify.annotations.Nullable;
-import org.mapstruct.AfterMapping;
-import org.mapstruct.MappingTarget;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
-public class MfSchemeDtoToEntityMapperHelper {
+class MfSchemeDtoToEntityMapperHelperImpl implements MfSchemeDtoToEntityMapperHelper {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(MfSchemeDtoToEntityMapperHelper.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MfSchemeDtoToEntityMapperHelperImpl.class);
 
     // Updated the regex to avoid excessive backtracking
     private static final Pattern TYPE_CATEGORY_SUBCATEGORY_PATTERN =
             Pattern.compile("^([^()]+)\\(([^()]+)\\s*-\\s*([^()]+)\\)$", Pattern.DOTALL);
 
-    private final MFSchemeTypeService mFSchemeTypeService;
+    private final MFSchemeTypeService mfSchemeTypeService;
     private final MfAmcService mfAmcService;
 
     // Cache for scheme types to avoid repeated database lookups and synchronization
     private final ConcurrentHashMap<String, MFSchemeType> schemeTypeCache = new ConcurrentHashMap<>();
 
-    MfSchemeDtoToEntityMapperHelper(MFSchemeTypeService mFSchemeTypeService, MfAmcService mfAmcService) {
-        this.mFSchemeTypeService = mFSchemeTypeService;
+    MfSchemeDtoToEntityMapperHelperImpl(MFSchemeTypeService mfSchemeTypeService, MfAmcService mfAmcService) {
+        this.mfSchemeTypeService = mfSchemeTypeService;
         this.mfAmcService = mfAmcService;
     }
 
-    @AfterMapping
-    void updateMFScheme(MFSchemeDTO mfSchemeDTO, @MappingTarget MfFundScheme mfScheme) {
+    @Override
+    public void updateMFScheme(MFSchemeDTO mfSchemeDTO, MfFundScheme mfScheme) {
         MFSchemeNav mfSchemeNav = new MFSchemeNav();
         mfSchemeNav.setNav("N.A.".equals(mfSchemeDTO.nav()) ? BigDecimal.ZERO : new BigDecimal(mfSchemeDTO.nav()));
         // Use the flexible formatter to parse the date
@@ -91,6 +90,7 @@ public class MfSchemeDtoToEntityMapperHelper {
         return type + "|" + category + "|" + (subCategory != null ? subCategory : "");
     }
 
+    @Override
     public MFSchemeType findOrCreateMFSchemeTypeEntity(String type, String category, @Nullable String subCategory) {
         // Create a unique key for this scheme type
         String schemeTypeKey = createSchemeTypeKey(type, category, subCategory);
@@ -99,7 +99,7 @@ public class MfSchemeDtoToEntityMapperHelper {
         return schemeTypeCache.computeIfAbsent(schemeTypeKey, key -> {
             // First try to find in database
             MFSchemeType existingType =
-                    mFSchemeTypeService.findByTypeAndCategoryAndSubCategory(type, category, subCategory);
+                    mfSchemeTypeService.findByTypeAndCategoryAndSubCategory(type, category, subCategory);
             if (existingType != null) {
                 return existingType;
             }
@@ -109,7 +109,7 @@ public class MfSchemeDtoToEntityMapperHelper {
             newSchemeType.setType(type);
             newSchemeType.setCategory(category);
             newSchemeType.setSubCategory(subCategory);
-            return mFSchemeTypeService.saveCategory(newSchemeType);
+            return mfSchemeTypeService.saveCategory(newSchemeType);
         });
     }
 }
