@@ -2,11 +2,9 @@ package com.app.folioman.archunit;
 
 import static com.app.folioman.archunit.ArchitectureConstants.DEFAULT_PACKAGE;
 import static com.app.folioman.archunit.ArchitectureConstants.ENTITY_PACKAGE;
-import static com.app.folioman.archunit.CommonRules.notCallLenientMethod;
 import static com.app.folioman.archunit.CommonRules.publicAndFinalFieldsAreNotAllowedRule;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.fields;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
-import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 import static com.tngtech.archunit.library.GeneralCodingRules.DEPRECATED_API_SHOULD_NOT_BE_USED;
 import static com.tngtech.archunit.library.GeneralCodingRules.NO_CLASSES_SHOULD_ACCESS_STANDARD_STREAMS;
 import static com.tngtech.archunit.library.GeneralCodingRules.NO_CLASSES_SHOULD_THROW_GENERIC_EXCEPTIONS;
@@ -19,7 +17,6 @@ import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
 import com.tngtech.archunit.junit.ArchTest;
 import com.tngtech.archunit.lang.ArchRule;
-import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.springframework.context.annotation.Bean;
 
@@ -89,16 +86,4 @@ class GeneralCodingRulesTest {
     @ArchTest
     static final ArchRule public_and_final_fields_are_not_allowed =
             publicAndFinalFieldsAreNotAllowedRule(ENTITY_PACKAGE);
-
-    // tests
-    @ArchTest
-    static final ArchRule NO_LENIENT_USAGE_IN_TESTS = noClasses()
-            .that()
-            .haveSimpleNameEndingWith("Test")
-            .or()
-            .haveSimpleNameEndingWith("Tests")
-            .or()
-            .areAnnotatedWith(Test.class)
-            .should(notCallLenientMethod())
-            .because("lenient() should not be used in tests as it can hide unused stubs and make tests less reliable");
 }

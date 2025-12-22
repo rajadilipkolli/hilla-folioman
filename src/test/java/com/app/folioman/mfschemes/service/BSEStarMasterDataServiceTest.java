@@ -132,7 +132,7 @@ class BSEStarMasterDataServiceTest {
 
         when(applicationProperties.getBseStar()).thenReturn(bseStar);
         when(bseStar.getScheme()).thenReturn(scheme);
-        when(scheme.getDataUrl()).thenReturn("http://test-url.com");
+        when(scheme.getDataUrl()).thenReturn("https://test-url.com");
 
         when(restClient.get()).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.uri(anyString())).thenReturn(requestHeadersSpec);
@@ -164,7 +164,7 @@ class BSEStarMasterDataServiceTest {
 
         when(applicationProperties.getBseStar()).thenReturn(bseStar);
         when(bseStar.getScheme()).thenReturn(scheme);
-        when(scheme.getDataUrl()).thenReturn("http://test-url.com");
+        when(scheme.getDataUrl()).thenReturn("https://test-url.com");
 
         when(restClient.get()).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.uri(anyString())).thenReturn(requestHeadersSpec);
@@ -261,7 +261,7 @@ class BSEStarMasterDataServiceTest {
 
         when(applicationProperties.getBseStar()).thenReturn(bseStar);
         when(bseStar.getScheme()).thenReturn(scheme);
-        when(scheme.getDataUrl()).thenReturn("http://test-url.com");
+        when(scheme.getDataUrl()).thenReturn("https://test-url.com");
 
         when(restClient.get()).thenReturn(requestHeadersUriSpec);
         when(requestHeadersUriSpec.uri(anyString())).thenReturn(requestHeadersSpec);
