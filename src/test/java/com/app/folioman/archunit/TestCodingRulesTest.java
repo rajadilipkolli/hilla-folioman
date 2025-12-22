@@ -2,6 +2,7 @@ package com.app.folioman.archunit;
 
 import static com.app.folioman.archunit.ArchitectureConstants.DEFAULT_PACKAGE;
 import static com.app.folioman.archunit.CommonRules.notCallLenientMethod;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 import com.tngtech.archunit.core.importer.ImportOption;
 import com.tngtech.archunit.junit.AnalyzeClasses;
