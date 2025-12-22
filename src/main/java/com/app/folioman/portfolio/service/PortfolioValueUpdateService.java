@@ -118,7 +118,7 @@ public class PortfolioValueUpdateService {
 
                 Optional<SchemeValue> schemeValueOpt =
                         schemeValueRepository.findFirstByUserSchemeDetails_IdAndDateBeforeOrderByDateDesc(
-                                folioScheme.getId(), schemeFromDate);
+                                folioScheme.getUserSchemeDetails().getId(), schemeFromDate);
                 List<UserTransactionDetails> oldTransactions =
                         userTransactionDetailsRepository.findByUserSchemeDetails_IdAndTransactionDateBefore(
                                 folioScheme.getId(), schemeFromDate);
@@ -135,8 +135,13 @@ public class PortfolioValueUpdateService {
                 }
 
                 List<ProcessedTransaction> transactionsProcessed = processNewTransactions(fifo, newTransactions);
-                Map<String, Object> schemeData =
-                        calculateSchemeData(fifo, schemeValueOpt, folioScheme.getId(), transactionsProcessed, today);
+                Map<String, Object> schemeData = calculateSchemeData(
+                        fifo,
+                        schemeValueOpt,
+                        folioScheme.getId(),
+                        folioScheme.getUserSchemeDetails(),
+                        transactionsProcessed,
+                        today);
                 if (schemeData != null) {
                     schemeResults.add(schemeData);
                 }
@@ -308,6 +313,7 @@ public class PortfolioValueUpdateService {
             FIFOUnits fifo,
             Optional<SchemeValue> schemeValueOpt,
             Long schemeId,
+            UserSchemeDetails userSchemeDetails,
             List<ProcessedTransaction> transactionsProcessed,
             LocalDate today) {
 
@@ -325,15 +331,6 @@ public class PortfolioValueUpdateService {
         LocalDate toDate = calculateToDate(fifo, transactionsProcessed, schemeId, today);
 
         if (toDate == null) {
-            return null;
-        }
-
-        // Fetch NAV data for the date range
-        UserSchemeDetails userSchemeDetails =
-                schemeValueOpt.map(SchemeValue::getUserSchemeDetails).orElse(null);
-
-        if (userSchemeDetails == null) {
-            LOGGER.warn("Cannot find UserSchemeDetails for scheme {}", schemeId);
             return null;
         }
 
