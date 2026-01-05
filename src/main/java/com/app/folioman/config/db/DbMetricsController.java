@@ -11,11 +11,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-public class DbMeticsController {
+public class DbMetricsController {
 
     private final DataSource dataSource;
 
-    DbMeticsController(DataSource dataSource) {
+    DbMetricsController(DataSource dataSource) {
         this.dataSource = dataSource;
     }
 
@@ -34,7 +34,7 @@ public class DbMeticsController {
 
         // Unwrap FlexyPoolDataSource layers if present
         while (current instanceof FlexyPoolDataSource) {
-            Object inner = ((FlexyPoolDataSource<HikariDataSource>) current).getTargetDataSource();
+            Object inner = ((FlexyPoolDataSource<?>) current).getTargetDataSource();
             // If getTargetDataSource() returns the same wrapper, break to avoid infinite loop
             if (inner == current) {
                 break;
@@ -56,6 +56,9 @@ public class DbMeticsController {
             throw new IllegalStateException("Could not locate HikariDataSource from configured DataSource wrappers");
         }
         HikariPoolMXBean hikariPoolMXBean = hikariDataSource.getHikariPoolMXBean();
+        if (hikariPoolMXBean == null) {
+            throw new IllegalStateException("HikariCP pool has not been started yet");
+        }
         return Map.of(
                 "activeConnections", hikariPoolMXBean.getActiveConnections(),
                 "idleConnections", hikariPoolMXBean.getIdleConnections(),

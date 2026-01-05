@@ -1,6 +1,6 @@
 package com.app.folioman.config.db;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.app.folioman.shared.AbstractIntegrationTest;
 import java.util.LinkedHashMap;
@@ -21,10 +21,12 @@ class DbMeticsControllerIT extends AbstractIntegrationTest {
                 .bodyJson()
                 .convertTo(LinkedHashMap.class)
                 .satisfies(linkedHashMap -> {
-                    assertTrue(linkedHashMap.containsKey("activeConnections"));
-                    assertTrue(linkedHashMap.containsKey("idleConnections"));
-                    assertTrue(linkedHashMap.containsKey("totalConnections"));
-                    assertTrue(linkedHashMap.containsKey("threadsAwaitingConnection"));
+                    assertThat(linkedHashMap)
+                            .containsKeys(
+                                    "activeConnections",
+                                    "idleConnections",
+                                    "totalConnections",
+                                    "threadsAwaitingConnection");
                 });
     }
 }
