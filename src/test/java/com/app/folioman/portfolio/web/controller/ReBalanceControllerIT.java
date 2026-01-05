@@ -30,7 +30,7 @@ class ReBalanceControllerIT extends AbstractIntegrationTest {
 
         mockMvc.perform(post("/api/portfolio/rebalance")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                        .content(jsonMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.investments[0]").value(-600.0))
                 .andExpect(jsonPath("$.investments[1]").value(300.0))
@@ -44,7 +44,7 @@ class ReBalanceControllerIT extends AbstractIntegrationTest {
 
         mockMvc.perform(post("/api/portfolio/rebalance")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                        .content(jsonMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest()); // Changed from isOk() to isBadRequest()
     }
 
@@ -61,7 +61,7 @@ class ReBalanceControllerIT extends AbstractIntegrationTest {
 
         mockMvc.perform(post("/api/portfolio/rebalance")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                        .content(jsonMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.investments[0]").value(50000.0))
                 .andExpect(jsonPath("$.investments[1]").value(50000.0));

@@ -42,7 +42,7 @@ public class FlexyPoolDataSourceConfig {
         return new FlexyPoolDataSourceBeanPostProcessor(appDataSourceProperties);
     }
 
-    static record FlexyPoolDataSourceBeanPostProcessor(ObjectProvider<AppDataSourceProperties> appDataSourceProperties)
+    record FlexyPoolDataSourceBeanPostProcessor(ObjectProvider<AppDataSourceProperties> appDataSourceProperties)
             implements BeanPostProcessor {
 
         @Override

@@ -139,9 +139,9 @@ class UserTransactionsControllerIT extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        List<MonthlyInvestmentResponseDTO> monthlyBefore = objectMapper.readValue(
+        List<MonthlyInvestmentResponseDTO> monthlyBefore = jsonMapper.readValue(
                 beforeEvictionMonthly.getResponse().getContentAsString(),
-                objectMapper.getTypeFactory().constructCollectionType(List.class, MonthlyInvestmentResponseDTO.class));
+                jsonMapper.getTypeFactory().constructCollectionType(List.class, MonthlyInvestmentResponseDTO.class));
 
         // 3. Evict the cache
         evictTransactionCaches();
@@ -160,9 +160,9 @@ class UserTransactionsControllerIT extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        List<MonthlyInvestmentResponseDTO> monthlyAfter = objectMapper.readValue(
+        List<MonthlyInvestmentResponseDTO> monthlyAfter = jsonMapper.readValue(
                 afterEvictionMonthly.getResponse().getContentAsString(),
-                objectMapper.getTypeFactory().constructCollectionType(List.class, MonthlyInvestmentResponseDTO.class));
+                jsonMapper.getTypeFactory().constructCollectionType(List.class, MonthlyInvestmentResponseDTO.class));
 
         // 6. Verify cache was repopulated
         Set<String> cacheKeysNew = redisTemplate.keys(CacheNames.TRANSACTION_CACHE + "::*");
@@ -386,9 +386,9 @@ class UserTransactionsControllerIT extends AbstractIntegrationTest {
                 .isEqualTo(firstYearlyResult.getResponse().getContentAsString());
 
         // 9. Verify data matches the imported transactions
-        List<YearlyInvestmentResponseDTO> yearlyData = objectMapper.readValue(
+        List<YearlyInvestmentResponseDTO> yearlyData = jsonMapper.readValue(
                 secondYearlyResult.getResponse().getContentAsString(),
-                objectMapper.getTypeFactory().constructCollectionType(List.class, YearlyInvestmentResponseDTO.class));
+                jsonMapper.getTypeFactory().constructCollectionType(List.class, YearlyInvestmentResponseDTO.class));
 
         assertThat(yearlyData).hasSize(2); // Should have data for 2023 and 2024
 

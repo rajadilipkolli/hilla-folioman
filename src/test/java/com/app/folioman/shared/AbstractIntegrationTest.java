@@ -18,7 +18,8 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-import tools.jackson.databind.ObjectMapper;
+import org.springframework.test.web.servlet.assertj.MockMvcTester;
+import tools.jackson.databind.json.JsonMapper;
 
 /**
  * Base class for integration tests using a hybrid database approach:
@@ -36,7 +37,10 @@ public abstract class AbstractIntegrationTest {
     protected MockMvc mockMvc;
 
     @Autowired
-    protected ObjectMapper objectMapper;
+    protected MockMvcTester mockMvcTester;
+
+    @Autowired
+    protected JsonMapper jsonMapper;
 
     @Autowired
     protected UserPortfolioValueRepository userPortfolioValueRepository;

@@ -167,7 +167,7 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
 
         File tempFile = File.createTempFile("file", ".json");
         try (FileWriter fileWriter = new FileWriter(tempFile)) {
-            fileWriter.write(objectMapper.writeValueAsString(TestData.getCasDTO(false, false, false)));
+            fileWriter.write(jsonMapper.writeValueAsString(TestData.getCasDTO(false, false, false)));
         }
 
         try (FileInputStream fileInputStream = new FileInputStream(tempFile)) {
@@ -198,7 +198,7 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
 
         File tempFile = File.createTempFile("file", ".json");
         try (FileWriter fileWriter = new FileWriter(tempFile)) {
-            fileWriter.write(objectMapper.writeValueAsString(TestData.getCasDTO(true, false, false)));
+            fileWriter.write(jsonMapper.writeValueAsString(TestData.getCasDTO(true, false, false)));
         }
 
         try (FileInputStream fileInputStream = new FileInputStream(tempFile)) {
@@ -231,7 +231,7 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
 
         File tempFile = File.createTempFile("file", ".json");
         try (FileWriter fileWriter = new FileWriter(tempFile)) {
-            fileWriter.write(objectMapper.writeValueAsString(TestData.getCasDTO(true, true, false)));
+            fileWriter.write(jsonMapper.writeValueAsString(TestData.getCasDTO(true, true, false)));
         }
 
         try (FileInputStream fileInputStream = new FileInputStream(tempFile)) {
@@ -267,7 +267,7 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
 
         File tempFile = File.createTempFile("file", ".json");
         try (FileWriter fileWriter = new FileWriter(tempFile)) {
-            fileWriter.write(objectMapper.writeValueAsString(TestData.getCasDTO(true, true, true)));
+            fileWriter.write(jsonMapper.writeValueAsString(TestData.getCasDTO(true, true, true)));
         }
         try (FileInputStream fileInputStream = new FileInputStream(tempFile)) {
 
@@ -299,7 +299,7 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
 
         File tempFile = File.createTempFile("file", ".json");
         try (FileWriter fileWriter = new FileWriter(tempFile)) {
-            fileWriter.write(objectMapper.writeValueAsString(TestData.getCasDTO()));
+            fileWriter.write(jsonMapper.writeValueAsString(TestData.getCasDTO()));
         }
 
         try (FileInputStream fileInputStream = new FileInputStream(tempFile)) {
