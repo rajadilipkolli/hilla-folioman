@@ -22,26 +22,38 @@ public class DbMetricsController {
     @GetMapping("/metrics/db/pool")
     Map<String, Object> poolMetrics() {
         Object current = dataSource;
-        // Unwrap LazyConnectionDataSourceProxy -> getTargetDataSource()
-        if (current instanceof LazyConnectionDataSourceProxy) {
-            current = ((LazyConnectionDataSourceProxy) current).getTargetDataSource();
-        }
-
-        // If there's a ProxyDataSource (datasource-proxy), unwrap to its underlying datasource
-        if (current instanceof ProxyDataSource) {
-            current = ((ProxyDataSource) current).getDataSource();
-        }
-
-        // Unwrap FlexyPoolDataSource layers if present
-        while (current instanceof FlexyPoolDataSource) {
-            Object inner = ((FlexyPoolDataSource<?>) current).getTargetDataSource();
-            // If getTargetDataSource() returns the same wrapper, break to avoid infinite loop
-            if (inner == current) {
-                break;
+        Object previous = null;
+        label:
+        while (current != previous && !(current instanceof HikariDataSource)) {
+            previous = current;
+            switch (current) {
+                case LazyConnectionDataSourceProxy proxy:
+                    current = proxy.getTargetDataSource();
+                    break;
+                case ProxyDataSource proxy:
+                    current = proxy.getDataSource();
+                    break;
+                case FlexyPoolDataSource<?> flexyPool:
+                    current = flexyPool.getTargetDataSource();
+                    break;
+                case null:
+                default:
+                    break label;
             }
-            current = inner;
         }
 
+        HikariPoolMXBean hikariPoolMXBean = getHikariPoolMXBean(current);
+        if (hikariPoolMXBean == null) {
+            throw new IllegalStateException("HikariCP pool has not been started yet");
+        }
+        return Map.of(
+                "activeConnections", hikariPoolMXBean.getActiveConnections(),
+                "idleConnections", hikariPoolMXBean.getIdleConnections(),
+                "totalConnections", hikariPoolMXBean.getTotalConnections(),
+                "threadsAwaitingConnection", hikariPoolMXBean.getThreadsAwaitingConnection());
+    }
+
+    private static HikariPoolMXBean getHikariPoolMXBean(Object current) {
         HikariDataSource hikariDataSource = null;
         if (current instanceof HikariDataSource) {
             hikariDataSource = (HikariDataSource) current;
@@ -55,14 +67,6 @@ public class DbMetricsController {
         if (hikariDataSource == null) {
             throw new IllegalStateException("Could not locate HikariDataSource from configured DataSource wrappers");
         }
-        HikariPoolMXBean hikariPoolMXBean = hikariDataSource.getHikariPoolMXBean();
-        if (hikariPoolMXBean == null) {
-            throw new IllegalStateException("HikariCP pool has not been started yet");
-        }
-        return Map.of(
-                "activeConnections", hikariPoolMXBean.getActiveConnections(),
-                "idleConnections", hikariPoolMXBean.getIdleConnections(),
-                "totalConnections", hikariPoolMXBean.getTotalConnections(),
-                "threadsAwaitingConnection", hikariPoolMXBean.getThreadsAwaitingConnection());
+        return hikariDataSource.getHikariPoolMXBean();
     }
 }

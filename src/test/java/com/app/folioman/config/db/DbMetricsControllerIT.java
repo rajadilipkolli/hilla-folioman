@@ -7,7 +7,7 @@ import java.util.LinkedHashMap;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
-class DbMeticsControllerIT extends AbstractIntegrationTest {
+class DbMetricsControllerIT extends AbstractIntegrationTest {
 
     @Test
     void poolMetrics() {
