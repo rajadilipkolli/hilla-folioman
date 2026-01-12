@@ -6,20 +6,25 @@ import java.util.concurrent.ThreadFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.AsyncConfigurer;
 
-@Configuration(proxyBeanMethods = false)
+@Configuration
 public class AsyncConfig implements AsyncConfigurer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AsyncConfig.class);
 
-    @Override
-    public Executor getAsyncExecutor() {
+    @Bean("virtualThreadExecutor")
+    Executor virtualThreadExecutor() {
         // Create a custom virtual thread executor with naming
         ThreadFactory factory = Thread.ofVirtual().name("AsyncFolioman-", 0).factory();
-
         return Executors.newThreadPerTaskExecutor(factory);
+    }
+
+    @Override
+    public Executor getAsyncExecutor() {
+        return virtualThreadExecutor();
     }
 
     @Override
