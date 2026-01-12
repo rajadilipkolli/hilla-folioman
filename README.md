@@ -211,7 +211,9 @@ source directory, contains the server-side Java code</td></tr>
 - Report issues, create pull requests in [GitHub](https://github.com/vaadin/hilla).
 
 ## JVM Parameters
+```shell
 java -XX:StartFlightRecording=filename=recording.jfr -Djdk.tracePinnedThreads=short -jar myapp.jar
+```
 - Enable Java Flight Recorder to monitor application performance. The recording will be saved to `recording.jfr`.
 - Adjust the filename and path as needed.
 - Metrics to track:
