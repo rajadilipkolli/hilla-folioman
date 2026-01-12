@@ -209,3 +209,16 @@ source directory, contains the server-side Java code</td></tr>
 - Read the documentation at [hilla.dev/docs](https://hilla.dev/docs/).
 - Ask questions on [Stack Overflow](https://stackoverflow.com/questions/tagged/hilla) or join our [Discord channel](https://discord.gg/MYFq5RTbBn).
 - Report issues, create pull requests in [GitHub](https://github.com/vaadin/hilla).
+
+## JVM Parameters
+```shell
+java -XX:StartFlightRecording=filename=recording.jfr -Djdk.tracePinnedThreads=short -jar myapp.jar
+```
+- Enable Java Flight Recorder to monitor application performance. The recording will be saved to `recording.jfr`.
+- Adjust the filename and path as needed.
+- Metrics to track:
+
+  * Number of platform (carrier) threads (should be small, ~CPU cores)
+  * Number of virtual threads (can be massive)
+  * Pinning events (should be rare)
+  * Carrier thread utilization
