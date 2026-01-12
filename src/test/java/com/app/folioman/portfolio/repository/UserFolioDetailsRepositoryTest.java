@@ -2,7 +2,6 @@ package com.app.folioman.portfolio.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 
 import com.app.folioman.config.SQLContainersConfig;
 import com.app.folioman.portfolio.entities.CasTypeEnum;
@@ -42,8 +41,10 @@ class UserFolioDetailsRepositoryTest {
 
     @Test
     void findByUserCasDetailsFoliosInWithNullList() {
-        assertThatExceptionOfType(Exception.class)
-                .isThrownBy(() -> userFolioDetailsRepository.findByUserCasDetails_FoliosIn(null));
+        List<UserFolioDetails> result = userFolioDetailsRepository.findByUserCasDetails_FoliosIn(null);
+
+        assertThat(result).isNotNull();
+        assertThat(result).isEmpty();
     }
 
     @Test
