@@ -180,7 +180,7 @@ class MFNavServiceImpl implements MFNavService {
      * This method should handle parallel processing and transactional boundaries.
      */
     @Override
-    @Async("taskExecutor")
+    @Async("virtualThreadExecutor")
     public void processNavsAsync(List<Long> schemeCodes) {
         if (schemeCodes == null || schemeCodes.isEmpty()) {
             LOGGER.info("No scheme codes provided for NAV processing.");
