@@ -77,6 +77,7 @@ class PortfolioValueUpdateService {
 
     @Async
     public void updatePortfolioValue(UserCASDetails userCASDetails) {
+        LOGGER.info("updatePortfolioValue called for CAS ID: {}", userCASDetails.getId());
         handleDailyPortFolioValueUpdate(userCASDetails);
         userCASDetails.getFolios().forEach(userFolioDetails -> {
             Long portfolioId = userFolioDetails.getId();
@@ -434,10 +435,7 @@ class PortfolioValueUpdateService {
     private void handleDailyPortFolioValueUpdate(UserCASDetails userCASDetails) {
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
-        LOGGER.info(
-                "Starting portfolio value update for CAS ID: {}, PAN: {}",
-                userCASDetails.getId(),
-                userCASDetails.getFolios().getFirst().getPan());
+        LOGGER.info("Starting portfolio value update for CAS ID: {}", userCASDetails.getId());
 
         try {
             List<UserTransactionDetails> transactionList = collectRelevantTransactions(userCASDetails);
@@ -508,6 +506,28 @@ class PortfolioValueUpdateService {
         calculateAndSavePortfolioXirr(portfolioValueEntityList, dataContainer.allCashFlows());
 
         // Save portfolio values
+        // Avoid duplicate key errors by reusing existing rows (update instead of insert)
+        if (!portfolioValueEntityList.isEmpty()) {
+            LocalDate firstDate = portfolioValueEntityList.getFirst().getDate();
+            LocalDate lastDate = portfolioValueEntityList.getLast().getDate();
+
+            List<UserPortfolioValue> existing = userPortfolioValueRepository.findByUserCasDetails_IdAndDateBetween(
+                    userCASDetails.getId(), firstDate, lastDate);
+
+            if (existing != null && !existing.isEmpty()) {
+                Map<LocalDate, UserPortfolioValue> existingByDate =
+                        existing.stream().collect(Collectors.toMap(UserPortfolioValue::getDate, upv -> upv));
+
+                for (UserPortfolioValue upv : portfolioValueEntityList) {
+                    UserPortfolioValue found = existingByDate.get(upv.getDate());
+                    if (found != null) {
+                        // Reuse the existing ID so JPA will perform an update instead of insert
+                        upv.setId(found.getId());
+                    }
+                }
+            }
+        }
+
         userPortfolioValueRepository.saveAll(portfolioValueEntityList);
 
         methodStartTime.stop();

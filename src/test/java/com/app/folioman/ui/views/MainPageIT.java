@@ -8,6 +8,7 @@ import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -15,12 +16,11 @@ import org.openqa.selenium.edge.EdgeOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.testcontainers.Testcontainers;
 import org.testcontainers.selenium.BrowserWebDriverContainer;
 import org.testcontainers.utility.DockerImageName;
 
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class MainPageIT extends AbstractIntegrationTest {
 
     private WebDriver driver;
@@ -29,8 +29,8 @@ class MainPageIT extends AbstractIntegrationTest {
             new BrowserWebDriverContainer(DockerImageName.parse("selenium/standalone-edge"));
 
     @BeforeAll
-    static void beforeAll(@Autowired Environment environment) {
-        Testcontainers.exposeHostPorts(environment.getProperty("local.server.port", Integer.class));
+    void beforeAll() {
+        Testcontainers.exposeHostPorts(port);
         container.start();
     }
 
