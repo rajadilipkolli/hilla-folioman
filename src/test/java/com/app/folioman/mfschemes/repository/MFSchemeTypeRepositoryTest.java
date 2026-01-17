@@ -7,6 +7,8 @@ import com.app.folioman.config.SQLContainersConfig;
 import com.app.folioman.mfschemes.entities.MFSchemeType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.parallel.ResourceAccessMode;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.cache.CacheManager;
@@ -25,6 +27,7 @@ class MFSchemeTypeRepositoryTest {
     private CacheManager cacheManager;
 
     @Test
+    @ResourceLock(value = "database", mode = ResourceAccessMode.READ)
     void findByTypeAndCategoryAndSubCategoryValidParametersReturnsEntity() {
         String type = "EQUITY";
         String category = "LARGE_CAP";
@@ -47,6 +50,7 @@ class MFSchemeTypeRepositoryTest {
     }
 
     @Test
+    @ResourceLock(value = "database", mode = ResourceAccessMode.READ)
     void findByTypeAndCategoryAndSubCategoryNoMatchFoundReturnsNull() {
         String type = "INVALID";
         String category = "INVALID";
@@ -62,6 +66,7 @@ class MFSchemeTypeRepositoryTest {
     }
 
     @Test
+    @ResourceLock(value = "database", mode = ResourceAccessMode.READ)
     void findByTypeAndCategoryAndSubCategoryNullParametersHandlesProperly() {
         when(mfSchemeTypeRepository.findByTypeAndCategoryAndSubCategory(null, null, null))
                 .thenReturn(null);
@@ -73,6 +78,7 @@ class MFSchemeTypeRepositoryTest {
     }
 
     @Test
+    @ResourceLock(value = "database", mode = ResourceAccessMode.READ)
     void findByTypeAndCategoryAndSubCategoryEmptyParametersHandlesProperly() {
         String emptyType = "";
         String emptyCategory = "";
@@ -89,6 +95,7 @@ class MFSchemeTypeRepositoryTest {
     }
 
     @Test
+    @ResourceLock(value = "database", mode = ResourceAccessMode.READ)
     void findByTypeAndCategoryAndSubCategoryCacheableAnnotationCachesResult() {
         String type = "DEBT";
         String category = "MEDIUM_TERM";
@@ -113,6 +120,7 @@ class MFSchemeTypeRepositoryTest {
     }
 
     @Test
+    @ResourceLock(value = "database", mode = ResourceAccessMode.READ)
     void findByTypeAndCategoryAndSubCategoryMixedCaseParametersReturnsEntity() {
         String type = "equity";
         String category = "LARGE_cap";
