@@ -377,6 +377,9 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
+                    <forkCount>4</forkCount>
+                    <reuseForks>true</reuseForks>
+                    <argLine>-Xmx1024m</argLine>
                     <runOrder>alphabetical</runOrder>
                     <reportsDirectory>${junit.utReportFolder}</reportsDirectory>
                     <excludes>
@@ -384,6 +387,12 @@
                         <exclude>**/*IntTest*</exclude>
                         <exclude>**/*IntegrationTest*</exclude>
                     </excludes>
+                    <properties>
+                        <configurationParameters>
+                            junit.jupiter.execution.parallel.mode.default=concurrent
+                            junit.jupiter.execution.parallel.mode.classes.default=concurrent
+                        </configurationParameters>
+                    </properties>
                 </configuration>
             </plugin>
             <plugin>
@@ -499,6 +508,29 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.pitest</groupId>
+                <artifactId>pitest-maven</artifactId>
+                <version>1.22.0</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.pitest</groupId>
+                        <artifactId>pitest-junit5-plugin</artifactId>
+                        <version>1.2.1</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <targetClasses>
+                        <param>com.app.folioman.*</param>
+                    </targetClasses>
+                    <targetTests>
+                        <param>com.app.folioman.*</param>
+                    </targetTests>
+                    <outputFormats>
+                        <outputFormat>HTML</outputFormat>
+                    </outputFormats>
+                </configuration>
             </plugin>
         </plugins>
     </build>
