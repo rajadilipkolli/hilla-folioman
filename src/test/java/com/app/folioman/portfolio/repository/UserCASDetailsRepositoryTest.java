@@ -32,8 +32,21 @@ class UserCASDetailsRepositoryTest {
     @Test
     @ResourceLock(value = "database", mode = ResourceAccessMode.READ_WRITE)
     void findByInvestorEmailAndName_ShouldReturnUserCASDetails_WhenMatchingEmailAndName() {
-        String email = "test@example.com";
-        String name = "Test User";
+        String email = "testcas@example.com";
+        String name = "Test CAS User";
+        UserCASDetails userCASDetails = getUserCASDetails(email, name);
+
+        entityManager.persistAndFlush(userCASDetails);
+
+        UserCASDetails result = userCASDetailsRepository.findByInvestorEmailAndName(email, name);
+
+        // Assertions would depend on the actual entity structure and test data
+        assertThat(result).isNotNull();
+        assertThat(result.getInvestorInfo().getEmail()).isEqualTo(email);
+        assertThat(result.getInvestorInfo().getName()).isEqualTo(name);
+    }
+
+    private UserCASDetails getUserCASDetails(String email, String name) {
         InvestorInfo investorInfo = new InvestorInfo();
         investorInfo.setEmail(email);
         investorInfo.setName(name);
@@ -48,15 +61,7 @@ class UserCASDetailsRepositoryTest {
         userCASDetails.setFileTypeEnum(FileTypeEnum.CAMS);
         userCASDetails.addFolioEntity(folio);
         userCASDetails.setInvestorInfo(investorInfo);
-
-        entityManager.persistAndFlush(userCASDetails);
-
-        UserCASDetails result = userCASDetailsRepository.findByInvestorEmailAndName(email, name);
-
-        // Assertions would depend on the actual entity structure and test data
-        assertThat(result).isNotNull();
-        assertThat(result.getInvestorInfo().getEmail()).isEqualTo(email);
-        assertThat(result.getInvestorInfo().getName()).isEqualTo(name);
+        return userCASDetails;
     }
 
     @Test
