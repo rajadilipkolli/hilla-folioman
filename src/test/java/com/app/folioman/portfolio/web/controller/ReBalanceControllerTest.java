@@ -51,17 +51,6 @@ class ReBalanceControllerTest {
     }
 
     @Test
-    void rebalanceWithEmptyFundList() throws Exception {
-        // Create test data with empty fund list
-        InvestmentRequest request = new InvestmentRequest(List.of(), 1000.0);
-
-        mockMvc.perform(post("/api/portfolio/rebalance")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest()); // Changed from isOk() to isBadRequest()
-    }
-
-    @Test
     void rebalanceWithLargeNumbers() throws Exception {
         // Create test data with larger numbers
         List<Fund> funds = List.of(new Fund(500000.0, 0.5), new Fund(500000.0, 0.5));

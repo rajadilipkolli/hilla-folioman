@@ -12,6 +12,8 @@ import com.app.folioman.portfolio.models.projection.PortfolioDetailsProjection;
 import java.time.LocalDate;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceAccessMode;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
@@ -28,6 +30,7 @@ class UserCASDetailsRepositoryTest {
     private UserCASDetailsRepository userCASDetailsRepository;
 
     @Test
+    @ResourceLock(value = "database", mode = ResourceAccessMode.READ_WRITE)
     void findByInvestorEmailAndName_ShouldReturnUserCASDetails_WhenMatchingEmailAndName() {
         String email = "test@example.com";
         String name = "Test User";
@@ -57,6 +60,7 @@ class UserCASDetailsRepositoryTest {
     }
 
     @Test
+    @ResourceLock(value = "database", mode = ResourceAccessMode.READ)
     void findByInvestorEmailAndName_ShouldReturnNull_WhenNoMatchingRecord() {
         String email = "nonexistent@example.com";
         String name = "Nonexistent User";
@@ -67,6 +71,7 @@ class UserCASDetailsRepositoryTest {
     }
 
     @Test
+    @ResourceLock(value = "database", mode = ResourceAccessMode.READ)
     void getPortfolioDetails_ShouldReturnPortfolioDetails_WhenValidPanAndDate() {
         String panNumber = "ABCDE1234F";
         LocalDate asOfDate = LocalDate.of(2023, 12, 31);
@@ -79,6 +84,7 @@ class UserCASDetailsRepositoryTest {
     }
 
     @Test
+    @ResourceLock(value = "database", mode = ResourceAccessMode.READ)
     void getPortfolioDetails_ShouldReturnEmptyList_WhenNoMatchingPan() {
         String panNumber = "NONEXISTENT";
         LocalDate asOfDate = LocalDate.of(2023, 12, 31);
@@ -89,6 +95,7 @@ class UserCASDetailsRepositoryTest {
     }
 
     @Test
+    @ResourceLock(value = "database", mode = ResourceAccessMode.READ)
     void getPortfolioDetails_ShouldReturnEmptyList_WhenDateBeforeAllTransactions() {
         String panNumber = "ABCDE1234F";
         LocalDate asOfDate = LocalDate.of(2020, 1, 1);
@@ -99,6 +106,7 @@ class UserCASDetailsRepositoryTest {
     }
 
     @Test
+    @ResourceLock(value = "database", mode = ResourceAccessMode.READ)
     void getPortfolioDetails_ShouldFilterExcludedTransactionTypes() {
         String panNumber = "ABCDE1234F";
         LocalDate asOfDate = LocalDate.of(2023, 12, 31);
@@ -111,6 +119,7 @@ class UserCASDetailsRepositoryTest {
     }
 
     @Test
+    @ResourceLock(value = "database", mode = ResourceAccessMode.READ)
     void getPortfolioDetails_ShouldOnlyIncludeNonZeroBalances() {
         String panNumber = "ABCDE1234F";
         LocalDate asOfDate = LocalDate.of(2023, 12, 31);
