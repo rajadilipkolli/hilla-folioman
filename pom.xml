@@ -389,6 +389,7 @@
                     </excludes>
                     <properties>
                         <configurationParameters>
+                            junit.jupiter.execution.parallel.enabled=true
                             junit.jupiter.execution.parallel.mode.default=concurrent
                             junit.jupiter.execution.parallel.mode.classes.default=concurrent
                         </configurationParameters>
@@ -517,19 +518,29 @@
                     <dependency>
                         <groupId>org.pitest</groupId>
                         <artifactId>pitest-junit5-plugin</artifactId>
-                        <version>1.2.1</version>
+                        <version>1.2.3</version>
                     </dependency>
                 </dependencies>
                 <configuration>
-                    <targetClasses>
-                        <param>com.app.folioman.*</param>
-                    </targetClasses>
-                    <targetTests>
-                        <param>com.app.folioman.*</param>
-                    </targetTests>
                     <outputFormats>
                         <outputFormat>HTML</outputFormat>
                     </outputFormats>
+                    <!-- Use a classpath JAR to avoid Windows command-line length/classpath issues and help the PIT minion start reliably -->
+                    <useClasspathJar>true</useClasspathJar>
+                    <!-- Run single-threaded for the mutation/minion executor to reduce concurrency-related failures during analysis -->
+                    <threads>1</threads>
+                    <!-- Workaround for strong encapsulation on Java 16+ / JDK 21 — open packages PIT uses reflectively to the minion process -->
+                    <jvmArgs>
+                        <jvmArg>--add-opens=java.base/java.lang=ALL-UNNAMED</jvmArg>
+                        <jvmArg>--add-opens=java.base/java.lang.invoke=ALL-UNNAMED</jvmArg>
+                        <jvmArg>--add-opens=java.base/java.io=ALL-UNNAMED</jvmArg>
+                        <jvmArg>--add-opens=java.base/java.util=ALL-UNNAMED</jvmArg>
+                        <jvmArg>--add-opens=java.base/java.util.concurrent=ALL-UNNAMED</jvmArg>
+                    </jvmArgs>
+                    <!-- Force PIT to launch the minion with an explicit java binary; if you want to use a different JDK, set JAVA_HOME before running Maven. -->
+                    <jvmPath>${java.home}/bin/java</jvmPath>
+                    <!-- Enable verbose logging inside PIT (produces more minion output). -->
+                    <verbose>true</verbose>
                 </configuration>
             </plugin>
         </plugins>
