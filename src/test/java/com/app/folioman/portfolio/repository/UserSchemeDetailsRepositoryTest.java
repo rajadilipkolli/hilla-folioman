@@ -17,6 +17,8 @@ import jakarta.persistence.EntityManagerFactory;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceAccessMode;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
@@ -37,6 +39,7 @@ class UserSchemeDetailsRepositoryTest {
     private EntityManagerFactory emf;
 
     @Test
+    @ResourceLock(value = "database", mode = ResourceAccessMode.READ_WRITE)
     void findByUserFolioDetails_SchemesIn_WithValidSchemes_ShouldReturnMatchingSchemes() {
         UserFolioDetails userFolio = new UserFolioDetails();
         userFolio.setFolio("FOLIO-1");
@@ -86,6 +89,7 @@ class UserSchemeDetailsRepositoryTest {
     }
 
     @Test
+    @ResourceLock(value = "database", mode = ResourceAccessMode.READ)
     void findByUserFolioDetails_SchemesIn_WithEmptyList_ShouldReturnEmptyList() {
         List<UserSchemeDetails> emptySchemes = Collections.emptyList();
         List<UserSchemeDetails> result = userSchemeDetailsRepository.findByUserFolioDetails_SchemesIn(emptySchemes);
@@ -95,24 +99,7 @@ class UserSchemeDetailsRepositoryTest {
     }
 
     @Test
-    void findByUserFolioDetails_SchemesIn_WithNullList_ShouldReturnEmptyList() {
-        List<UserSchemeDetails> result =
-                userSchemeDetailsRepository.findByUserFolioDetails_SchemesIn(Collections.emptyList());
-
-        assertThat(result).isNotNull();
-        assertThat(result).isEmpty();
-    }
-
-    @Test
-    void findByUserFolioDetails_SchemesIn_WithNonExistentSchemes_ShouldReturnEmptyList() {
-        List<UserSchemeDetails> result =
-                userSchemeDetailsRepository.findByUserFolioDetails_SchemesIn(Collections.emptyList());
-
-        assertThat(result).isNotNull();
-        assertThat(result).isEmpty();
-    }
-
-    @Test
+    @ResourceLock(value = "database", mode = ResourceAccessMode.READ_WRITE)
     void findByAmfiIsNull_WhenRecordsExist_ShouldReturnRecordsWithNullAmfi() {
         UserFolioDetails userFolio = new UserFolioDetails();
         userFolio.setFolio("FOLIO-2");
@@ -153,6 +140,7 @@ class UserSchemeDetailsRepositoryTest {
     }
 
     @Test
+    @ResourceLock(value = "database", mode = ResourceAccessMode.READ_WRITE)
     void findByAmfiIsNull_WhenNoRecordsWithNullAmfi_ShouldReturnEmptyList() {
         UserFolioDetails userFolio = new UserFolioDetails();
         userFolio.setFolio("FOLIO-3");
@@ -188,6 +176,7 @@ class UserSchemeDetailsRepositoryTest {
     }
 
     @Test
+    @ResourceLock(value = "database", mode = ResourceAccessMode.READ_WRITE)
     void updateAmfiAndIsinById_WithValidData_ShouldUpdateSuccessfully() {
         UserSchemeDetails scheme = new UserSchemeDetails();
         scheme.setAmfi(null);
@@ -252,6 +241,7 @@ class UserSchemeDetailsRepositoryTest {
     }
 
     @Test
+    @ResourceLock(value = "database", mode = ResourceAccessMode.READ_WRITE)
     void updateAmfiAndIsinById_WithNullValues_ShouldUpdateToNull() {
         UserSchemeDetails scheme = new UserSchemeDetails();
         scheme.setAmfi(12345L);
@@ -306,6 +296,7 @@ class UserSchemeDetailsRepositoryTest {
     }
 
     @Test
+    @ResourceLock(value = "database", mode = ResourceAccessMode.READ)
     void updateAmfiAndIsinById_WithNonExistentId_ShouldNotThrowException() {
         Long nonExistentId = 999L;
         Long newAmfi = 54321L;
