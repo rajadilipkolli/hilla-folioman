@@ -33,6 +33,8 @@ class SchemaValidationPostgresTest {
         Metamodel metamodel = entityManager.getMetamodel();
         Set<EntityType<?>> entities = metamodel.getEntities();
 
+        assertThat(entities).hasSize(12);
+
         for (EntityType<?> entity : entities) {
             String entityName = entity.getName();
             // Example assertion: Check if the table exists in the database

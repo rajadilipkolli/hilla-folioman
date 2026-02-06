@@ -1,12 +1,16 @@
 package com.app.folioman.mfschemes.repository;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import com.app.folioman.config.SQLContainersConfig;
 import com.app.folioman.mfschemes.entities.MFSchemeType;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.cache.CacheManager;
@@ -16,6 +20,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 @ExtendWith(MockitoExtension.class)
 @DataJpaTest
 @Import(SQLContainersConfig.class)
+@Execution(ExecutionMode.SAME_THREAD) // To avoid issues with cache manager in parallel tests
 class MFSchemeTypeRepositoryTest {
 
     @MockitoBean
@@ -34,8 +39,8 @@ class MFSchemeTypeRepositoryTest {
         expectedEntity.setCategory(category);
         expectedEntity.setSubCategory(subCategory);
 
-        when(mfSchemeTypeRepository.findByTypeAndCategoryAndSubCategory(type, category, subCategory))
-                .thenReturn(expectedEntity);
+        given(mfSchemeTypeRepository.findByTypeAndCategoryAndSubCategory(type, category, subCategory))
+                .willReturn(expectedEntity);
 
         MFSchemeType result = mfSchemeTypeRepository.findByTypeAndCategoryAndSubCategory(type, category, subCategory);
 
@@ -52,8 +57,8 @@ class MFSchemeTypeRepositoryTest {
         String category = "INVALID";
         String subCategory = "INVALID";
 
-        when(mfSchemeTypeRepository.findByTypeAndCategoryAndSubCategory(type, category, subCategory))
-                .thenReturn(null);
+        given(mfSchemeTypeRepository.findByTypeAndCategoryAndSubCategory(type, category, subCategory))
+                .willReturn(null);
 
         MFSchemeType result = mfSchemeTypeRepository.findByTypeAndCategoryAndSubCategory(type, category, subCategory);
 
@@ -63,8 +68,8 @@ class MFSchemeTypeRepositoryTest {
 
     @Test
     void findByTypeAndCategoryAndSubCategoryNullParametersHandlesProperly() {
-        when(mfSchemeTypeRepository.findByTypeAndCategoryAndSubCategory(null, null, null))
-                .thenReturn(null);
+        given(mfSchemeTypeRepository.findByTypeAndCategoryAndSubCategory(null, null, null))
+                .willReturn(null);
 
         MFSchemeType result = mfSchemeTypeRepository.findByTypeAndCategoryAndSubCategory(null, null, null);
 
@@ -78,8 +83,8 @@ class MFSchemeTypeRepositoryTest {
         String emptyCategory = "";
         String emptySubCategory = "";
 
-        when(mfSchemeTypeRepository.findByTypeAndCategoryAndSubCategory(emptyType, emptyCategory, emptySubCategory))
-                .thenReturn(null);
+        given(mfSchemeTypeRepository.findByTypeAndCategoryAndSubCategory(emptyType, emptyCategory, emptySubCategory))
+                .willReturn(null);
 
         MFSchemeType result =
                 mfSchemeTypeRepository.findByTypeAndCategoryAndSubCategory(emptyType, emptyCategory, emptySubCategory);
@@ -98,8 +103,8 @@ class MFSchemeTypeRepositoryTest {
         expectedEntity.setCategory(category);
         expectedEntity.setSubCategory(subCategory);
 
-        when(mfSchemeTypeRepository.findByTypeAndCategoryAndSubCategory(type, category, subCategory))
-                .thenReturn(expectedEntity);
+        given(mfSchemeTypeRepository.findByTypeAndCategoryAndSubCategory(type, category, subCategory))
+                .willReturn(expectedEntity);
 
         MFSchemeType firstCall =
                 mfSchemeTypeRepository.findByTypeAndCategoryAndSubCategory(type, category, subCategory);
@@ -122,8 +127,8 @@ class MFSchemeTypeRepositoryTest {
         expectedEntity.setCategory(category);
         expectedEntity.setSubCategory(subCategory);
 
-        when(mfSchemeTypeRepository.findByTypeAndCategoryAndSubCategory(type, category, subCategory))
-                .thenReturn(expectedEntity);
+        given(mfSchemeTypeRepository.findByTypeAndCategoryAndSubCategory(type, category, subCategory))
+                .willReturn(expectedEntity);
 
         MFSchemeType result = mfSchemeTypeRepository.findByTypeAndCategoryAndSubCategory(type, category, subCategory);
 
