@@ -2,7 +2,7 @@ name: hilla-folioman
 services:
 
   postgresqldb:
-    image: postgres:18.1-alpine
+    image: postgres:18.2-alpine
     hostname: postgresqldb
     container_name: postgresqldb
     extra_hosts: [ 'host.docker.internal:host-gateway' ]
@@ -57,7 +57,7 @@ services:
       - folioman-network
 
   grafanalgtm:
-    image: grafana/otel-lgtm:0.17.0
+    image: grafana/otel-lgtm:0.18.1
     extra_hosts: [ 'host.docker.internal:host-gateway' ]
     container_name: grafanalgtm
     networks:
@@ -74,7 +74,7 @@ services:
   mongodb:
     hostname: mongodb
     container_name: mongodb
-    image: mongo:8.2.4
+    image: mongo:8.2.5
     volumes:
       - mongodb:/data/db
     ports:
