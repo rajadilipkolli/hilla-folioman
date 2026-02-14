@@ -379,7 +379,7 @@
                 <configuration>
                     <forkCount>4</forkCount>
                     <reuseForks>true</reuseForks>
-                    <argLine>-Xmx1024m</argLine>
+                    <argLine>@{argLine} -Xmx1024m</argLine>
                     <runOrder>alphabetical</runOrder>
                     <reportsDirectory>${junit.utReportFolder}</reportsDirectory>
                     <excludes>
@@ -513,7 +513,7 @@
             <plugin>
                 <groupId>org.pitest</groupId>
                 <artifactId>pitest-maven</artifactId>
-                <version>1.22.0</version>
+                <version>1.22.1</version>
                 <dependencies>
                     <dependency>
                         <groupId>org.pitest</groupId>
@@ -540,7 +540,7 @@
                     <!-- Force PIT to launch the minion with an explicit java binary; if you want to use a different JDK, set JAVA_HOME before running Maven. -->
                     <jvmPath>${java.home}/bin/java</jvmPath>
                     <!-- Enable verbose logging inside PIT (produces more minion output). -->
-                    <verbose>true</verbose>
+                    <verbose>false</verbose>
                 </configuration>
             </plugin>
         </plugins>

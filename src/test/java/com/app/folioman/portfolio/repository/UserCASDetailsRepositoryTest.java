@@ -79,7 +79,7 @@ class UserCASDetailsRepositoryTest {
     }
 
     @Test
-    @ResourceLock(value = "database", mode = ResourceAccessMode.READ)
+    @ResourceLock(value = "database", mode = ResourceAccessMode.READ_WRITE)
     void getPortfolioDetails_ShouldReturnPortfolioDetails_WhenValidPanAndDate() {
         String panNumber = "ABCDE1234F";
         LocalDate asOfDate = LocalDate.of(2023, 12, 31);
@@ -115,7 +115,7 @@ class UserCASDetailsRepositoryTest {
     }
 
     @Test
-    @ResourceLock(value = "database", mode = ResourceAccessMode.READ)
+    @ResourceLock(value = "database", mode = ResourceAccessMode.READ_WRITE)
     void getPortfolioDetails_ShouldReturnEmptyList_WhenDateBeforeAllTransactions() {
         String panNumber = "ABCDE1234F";
         LocalDate asOfDate = LocalDate.of(2020, 1, 1);
@@ -129,7 +129,7 @@ class UserCASDetailsRepositoryTest {
     }
 
     @Test
-    @ResourceLock(value = "database", mode = ResourceAccessMode.READ)
+    @ResourceLock(value = "database", mode = ResourceAccessMode.READ_WRITE)
     void getPortfolioDetails_ShouldFilterExcludedTransactionTypes() {
         String panNumber = "ABCDE1234F";
         LocalDate asOfDate = LocalDate.of(2023, 12, 31);
@@ -150,7 +150,7 @@ class UserCASDetailsRepositoryTest {
     }
 
     @Test
-    @ResourceLock(value = "database", mode = ResourceAccessMode.READ)
+    @ResourceLock(value = "database", mode = ResourceAccessMode.READ_WRITE)
     void getPortfolioDetails_ShouldOnlyIncludeNonZeroBalances() {
         String panNumber = "ABCDE1234F";
         LocalDate asOfDate = LocalDate.of(2023, 12, 31);
@@ -207,8 +207,11 @@ class UserCASDetailsRepositoryTest {
         // also add an excluded transaction type (STAMP_DUTY_TAX) which should be ignored by query
         UserSchemeDetails scheme = entityManager
                 .getEntityManager()
-                .createQuery("select s from UserSchemeDetails s where s.amfi = :amfi", UserSchemeDetails.class)
+                .createQuery(
+                        "select s from UserSchemeDetails s where s.amfi = :amfi and f.pan = :pan",
+                        UserSchemeDetails.class)
                 .setParameter("amfi", amfi)
+                .setParameter("pan", pan)
                 .getSingleResult();
 
         UserTransactionDetails excluded = new UserTransactionDetails();
