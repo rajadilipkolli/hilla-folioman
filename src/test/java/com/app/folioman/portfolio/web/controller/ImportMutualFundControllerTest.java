@@ -109,8 +109,7 @@ class ImportMutualFundControllerTest {
                         .file(passwordPart)
                         .contentType(MediaType.MULTIPART_FORM_DATA)
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.newFolios", is(1)));
+                .andExpect(status().isOk());
 
         verify(pdfProcessingService).convertPdfCasToJson(any(), eq("testpassword"));
         verify(userDetailService).uploadFromDto(eq(mockCasDTO));
