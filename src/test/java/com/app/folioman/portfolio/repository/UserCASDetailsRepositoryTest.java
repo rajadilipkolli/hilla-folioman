@@ -208,7 +208,7 @@ class UserCASDetailsRepositoryTest {
         UserSchemeDetails scheme = entityManager
                 .getEntityManager()
                 .createQuery(
-                        "select s from UserSchemeDetails s where s.amfi = :amfi and f.pan = :pan",
+                        "select s from UserSchemeDetails s join s.userFolioDetails f where s.amfi = :amfi and f.pan = :pan",
                         UserSchemeDetails.class)
                 .setParameter("amfi", amfi)
                 .setParameter("pan", pan)
