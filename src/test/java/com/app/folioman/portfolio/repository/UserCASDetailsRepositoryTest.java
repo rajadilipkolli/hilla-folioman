@@ -90,8 +90,7 @@ class UserCASDetailsRepositoryTest {
         List<PortfolioDetailsProjection> result = userCASDetailsRepository.getPortfolioDetails(panNumber, asOfDate);
 
         // Basic expectations for a valid PAN/date: at least one record and non-null projection fields
-        assertThat(result).isNotNull();
-        assertThat(result).isNotEmpty();
+        assertThat(result).isNotNull().isNotEmpty();
 
         PortfolioDetailsProjection first = result.getFirst();
         assertThat(first.getSchemeId()).isNotNull();
@@ -142,11 +141,14 @@ class UserCASDetailsRepositoryTest {
         // Verify that excluded transaction types (stamp duty / stt tax) did not contribute to balances
         // We can't inspect transaction type in the projection, but we can assert that returned scheme names
         // do not contain the word "stamp" (case-insensitive) and that balances are present.
-        assertThat(result).isNotNull();
+        assertThat(result).isNotNull().isNotEmpty().hasSize(1);
         assertThat(result).allSatisfy(p -> {
             assertThat(p.getSchemeName()).doesNotContainIgnoringCase("stamp");
             assertThat(p.getBalanceUnits()).isNotNull();
         });
+        PortfolioDetailsProjection first = result.getFirst();
+        assertThat(first.getSchemeName()).isEqualTo("SAMPLE SCHEME");
+        assertThat(first.getBalanceUnits()).isEqualTo(10.0);
     }
 
     @Test
@@ -157,7 +159,7 @@ class UserCASDetailsRepositoryTest {
 
         // persist a scheme with non-zero balance and one with zero balance
         persistSamplePortfolio(panNumber, 11111L, "NONZERO SCHEME", asOfDate.minusDays(7));
-        persistSamplePortfolioWithBalance(panNumber, 22222L, "ZERO SCHEME", asOfDate.minusDays(7), 0.0);
+        persistSamplePortfolio(panNumber, 22222L, "ZERO SCHEME", asOfDate.minusDays(7), 0.0);
 
         List<PortfolioDetailsProjection> result = userCASDetailsRepository.getPortfolioDetails(panNumber, asOfDate);
 
@@ -166,8 +168,13 @@ class UserCASDetailsRepositoryTest {
         assertThat(result).allSatisfy(p -> assertThat(p.getBalanceUnits()).isNotEqualTo(0.0));
     }
 
-    // Helper methods to persist minimal entities for repository tests
     private void persistSamplePortfolio(String pan, Long amfi, String schemeName, LocalDate transactionDate) {
+        persistSamplePortfolio(pan, amfi, schemeName, transactionDate, 10.0);
+    }
+
+    // Helper methods to persist minimal entities for repository tests
+    private void persistSamplePortfolio(
+            String pan, Long amfi, String schemeName, LocalDate transactionDate, Double balance) {
         UserCASDetails userCASDetails = new UserCASDetails();
         userCASDetails.setCasTypeEnum(CasTypeEnum.DETAILED);
         userCASDetails.setFileTypeEnum(FileTypeEnum.CAMS);
@@ -192,8 +199,8 @@ class UserCASDetailsRepositoryTest {
         // transaction with non-zero balance
         UserTransactionDetails tx = new UserTransactionDetails();
         tx.setTransactionDate(transactionDate);
-        tx.setBalance(10.0);
-        tx.setUnits(10.0);
+        tx.setBalance(balance);
+        tx.setUnits(balance);
         tx.setNav(1.0);
         tx.setType(TransactionType.PURCHASE);
         scheme.addTransaction(tx);
@@ -223,38 +230,5 @@ class UserCASDetailsRepositoryTest {
         scheme.addTransaction(excluded);
 
         entityManager.persistAndFlush(scheme);
-    }
-
-    private void persistSamplePortfolioWithBalance(
-            String pan, Long amfi, String schemeName, LocalDate transactionDate, Double balance) {
-        UserCASDetails userCASDetails = new UserCASDetails();
-        userCASDetails.setCasTypeEnum(CasTypeEnum.DETAILED);
-        userCASDetails.setFileTypeEnum(FileTypeEnum.CAMS);
-
-        InvestorInfo investorInfo = new InvestorInfo();
-        investorInfo.setEmail("persisted2@example.com");
-        investorInfo.setName("Persisted User 2");
-        userCASDetails.setInvestorInfo(investorInfo);
-
-        UserFolioDetails folio = new UserFolioDetails();
-        folio.setFolio("FOLIO-" + pan + balance);
-        folio.setAmc("AMC");
-        folio.setPan(pan);
-        userCASDetails.addFolioEntity(folio);
-
-        UserSchemeDetails scheme = new UserSchemeDetails();
-        scheme.setScheme(schemeName);
-        scheme.setAmfi(amfi);
-        folio.addScheme(scheme);
-
-        UserTransactionDetails tx = new UserTransactionDetails();
-        tx.setTransactionDate(transactionDate);
-        tx.setBalance(balance);
-        tx.setUnits(balance);
-        tx.setNav(1.0);
-        tx.setType(TransactionType.PURCHASE);
-        scheme.addTransaction(tx);
-
-        entityManager.persistAndFlush(userCASDetails);
     }
 }
