@@ -14,6 +14,8 @@ import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.ResourceAccessMode;
+import org.junit.jupiter.api.parallel.ResourceLock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
@@ -72,6 +74,7 @@ class MFSchemeNavRepositoryTest {
     }
 
     @Test
+    @ResourceLock(value = "database", mode = ResourceAccessMode.READ)
     void findMFSchemeNavsByNavNotLoaded_WithValidDate_ReturnsAmfiCodes() {
         LocalDate asOfDate = LocalDate.of(2023, 3, 1);
 
@@ -81,6 +84,7 @@ class MFSchemeNavRepositoryTest {
     }
 
     @Test
+    @ResourceLock(value = "database", mode = ResourceAccessMode.READ)
     void findMFSchemeNavsByNavNotLoaded_WithEarlyDate_ReturnsEmptyList() {
         LocalDate asOfDate = LocalDate.of(2022, 12, 1);
 
@@ -91,6 +95,7 @@ class MFSchemeNavRepositoryTest {
     }
 
     @Test
+    @ResourceLock(value = "database", mode = ResourceAccessMode.READ)
     void findMFSchemeNavsByNavNotLoaded_WithFutureDate_ReturnsAllAmfiCodes() {
         LocalDate asOfDate = LocalDate.of(2024, 1, 1);
 
@@ -100,6 +105,7 @@ class MFSchemeNavRepositoryTest {
     }
 
     @Test
+    @ResourceLock(value = "database", mode = ResourceAccessMode.READ)
     void
             findByMfScheme_AmfiCodeInAndNavDateGreaterThanEqualAndNavDateLessThanEqual_WithValidParameters_ReturnsProjections() {
         Set<Long> amfiCodes = Set.of(12345L, 67890L);
@@ -120,6 +126,7 @@ class MFSchemeNavRepositoryTest {
     }
 
     @Test
+    @ResourceLock(value = "database", mode = ResourceAccessMode.READ)
     void
             findByMfScheme_AmfiCodeInAndNavDateGreaterThanEqualAndNavDateLessThanEqual_WithEmptyAmfiCodes_ReturnsEmptyList() {
         Set<Long> amfiCodes = Set.of();
@@ -135,6 +142,7 @@ class MFSchemeNavRepositoryTest {
     }
 
     @Test
+    @ResourceLock(value = "database", mode = ResourceAccessMode.READ)
     void
             findByMfScheme_AmfiCodeInAndNavDateGreaterThanEqualAndNavDateLessThanEqual_WithNonExistentAmfiCode_ReturnsEmptyList() {
         Set<Long> amfiCodes = Set.of(99999L);
@@ -150,6 +158,7 @@ class MFSchemeNavRepositoryTest {
     }
 
     @Test
+    @ResourceLock(value = "database", mode = ResourceAccessMode.READ)
     void
             findByMfScheme_AmfiCodeInAndNavDateGreaterThanEqualAndNavDateLessThanEqual_WithDateRangeOutsideData_ReturnsEmptyList() {
         Set<Long> amfiCodes = Set.of(12345L);
@@ -165,6 +174,7 @@ class MFSchemeNavRepositoryTest {
     }
 
     @Test
+    @ResourceLock(value = "database", mode = ResourceAccessMode.READ)
     void findAllNavDateValuesBySchemeId_WithValidSchemeId_ReturnsProjections() {
         List<NavDateValueProjection> result = repository.findAllNavDateValuesBySchemeId(testScheme1.getId());
 
@@ -181,6 +191,7 @@ class MFSchemeNavRepositoryTest {
     }
 
     @Test
+    @ResourceLock(value = "database", mode = ResourceAccessMode.READ)
     void findAllNavDateValuesBySchemeId_WithNonExistentSchemeId_ReturnsEmptyList() {
         List<NavDateValueProjection> result = repository.findAllNavDateValuesBySchemeId(99999L);
 
@@ -189,6 +200,7 @@ class MFSchemeNavRepositoryTest {
     }
 
     @Test
+    @ResourceLock(value = "database", mode = ResourceAccessMode.READ)
     void findAllNavDateValuesBySchemeId_WithSchemeHavingOneNav_ReturnsSingleProjection() {
         List<NavDateValueProjection> result = repository.findAllNavDateValuesBySchemeId(testScheme2.getId());
 
