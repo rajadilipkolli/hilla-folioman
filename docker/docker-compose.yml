@@ -2,7 +2,7 @@ name: hilla-folioman
 services:
 
   postgresqldb:
-    image: postgres:18.2-alpine
+    image: postgres:18.3-alpine
     hostname: postgresqldb
     container_name: postgresqldb
     extra_hosts: [ 'host.docker.internal:host-gateway' ]
