@@ -64,12 +64,15 @@ services:
       - folioman-network
     environment:
       - OTEL_METRIC_EXPORT_INTERVAL=500
-      - ENABLE_LOGS_ALL=false
+      - ENABLE_LOGS_ALL=true
     ports:
       - "3000:3000"
+      - "3100:3100"
       - "4317:4317"
       - "4318:4318"
       - "9090:9090"
+    volumes:
+      - ./logs:/var/log/app:rw
 
   mongodb:
     hostname: mongodb
@@ -107,6 +110,19 @@ services:
     depends_on:
       mongodb:
         condition: service_healthy
+
+  promtail:
+    image: grafana/promtail:3.0.0
+    container_name: promtail
+    networks:
+      - folioman-network
+    volumes:
+      - ./promtail/promtail-config.yaml:/etc/promtail/promtail-config.yaml:ro
+      - ${PWD}/logs:/var/log/app:ro
+    command: [-config.expand-env=true, -config.file=/etc/promtail/promtail-config.yaml, -log.level=debug]
+    restart: unless-stopped
+    depends_on:
+      - grafanalgtm
 
 networks:
   folioman-network:
