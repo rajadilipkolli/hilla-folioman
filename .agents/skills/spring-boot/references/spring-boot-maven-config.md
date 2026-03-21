@@ -18,7 +18,7 @@ Follow these principles when using the Maven build tool for a Spring Boot applic
     <spotless.version>3.2.0</spotless.version>
     <palantir-java-format.version>2.85.0</palantir-java-format.version>
     <jacoco-maven-plugin.version>0.8.14</jacoco-maven-plugin.version>
-    <jacoco.minimum.coverage>80%</jacoco.minimum.coverage>
+    <jacoco.minimum.coverage>0.80</jacoco.minimum.coverage>
     <dockerImageName>{dockerhub_username}/${project.artifactId}</dockerImageName>
 </properties>
 
