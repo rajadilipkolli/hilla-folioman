@@ -1,6 +1,6 @@
 package com.app.folioman.mfschemes.entities;
 
-import com.app.folioman.shared.Auditable;
+import com.app.folioman.shared.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -12,7 +12,6 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Objects;
@@ -27,7 +26,7 @@ import org.hibernate.proxy.HibernateProxy;
                     columnNames = {"nav", "nav_date", "mf_scheme_id"})
         })
 @Entity
-public class MFSchemeNav extends Auditable<String> implements Serializable {
+public class MFSchemeNav extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "scheme_nav_id_generator")

@@ -1,6 +1,6 @@
 package com.app.folioman.portfolio.entities;
 
-import com.app.folioman.shared.Auditable;
+import com.app.folioman.shared.BaseEntity;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -13,8 +13,6 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-import jakarta.persistence.Version;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -31,7 +29,7 @@ import org.hibernate.annotations.FetchMode;
                     name = "uc_userschemedetailsentity",
                     columnNames = {"isin", "user_folio_id"})
         })
-public class UserSchemeDetails extends Auditable<String> implements Serializable {
+public class UserSchemeDetails extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_scheme_details_seq")
     @SequenceGenerator(name = "user_scheme_details_seq", schema = "portfolio")
@@ -61,9 +59,6 @@ public class UserSchemeDetails extends Auditable<String> implements Serializable
 
     @Column(name = "close_calculated")
     private String closeCalculated;
-
-    @Version
-    private Short version;
 
     @ManyToOne
     @JoinColumn(name = "user_folio_id", nullable = false)
@@ -169,15 +164,6 @@ public class UserSchemeDetails extends Auditable<String> implements Serializable
 
     public UserSchemeDetails setCloseCalculated(String closeCalculated) {
         this.closeCalculated = closeCalculated;
-        return this;
-    }
-
-    public Short getVersion() {
-        return version;
-    }
-
-    public UserSchemeDetails setVersion(Short version) {
-        this.version = version;
         return this;
     }
 

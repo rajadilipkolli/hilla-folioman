@@ -87,8 +87,10 @@ class PortfolioValueUpdateService {
             LocalDate fromDate1 = today;
             if (!CollectionUtils.isEmpty(userFolioDetails.getSchemes())) {
                 fromDate1 = userFolioDetails.getSchemes().stream()
-                        .map(userSchemeDetails ->
-                                userSchemeDetails.getCreatedDate().toLocalDate())
+                        .map(userSchemeDetails -> userSchemeDetails
+                                .getCreatedAt()
+                                .atZone(ZoneId.systemDefault())
+                                .toLocalDate())
                         .min(LocalDate::compareTo)
                         .orElse(today);
             }
@@ -119,7 +121,8 @@ class PortfolioValueUpdateService {
                                     folioScheme.getUserSchemeDetails().getId())
                             ? folioScheme
                                     .getUserSchemeDetails()
-                                    .getCreatedDate()
+                                    .getCreatedAt()
+                                    .atZone(ZoneId.systemDefault())
                                     .toLocalDate()
                             : startDateMin;
 
@@ -133,9 +136,6 @@ class PortfolioValueUpdateService {
                             userTransactionDetailsRepository
                                     .findByUserSchemeDetails_IdAndTransactionDateGreaterThanEqual(
                                             folioScheme.getUserSchemeDetails().getId(), schemeFromDate);
-
-                    LocalDate fromDate =
-                            schemeValueOpt.map(SchemeValue::getDate).orElse(null);
 
                     FIFOUnits fifo = new FIFOUnits();
 
@@ -187,7 +187,6 @@ class PortfolioValueUpdateService {
 
         for (Map<String, Object> schemeData : schemeResults) {
             Long schemeId = (Long) schemeData.get("schemeId");
-            Long amfiCode = (Long) schemeData.get("amfiCode");
             LocalDate fromDate = (LocalDate) schemeData.get("fromDate");
             LocalDate toDate = (LocalDate) schemeData.get("toDate");
 

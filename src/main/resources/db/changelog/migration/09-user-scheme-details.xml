@@ -46,11 +46,6 @@
             <column name="user_folio_id" type="BIGINT">
                 <constraints nullable="false"/>
             </column>
-            <column name="version" type="tinyint"/>
-            <column name="created_by" type="${string.type}"/>
-            <column name="created_date" type="${timestamp.type}"/>
-            <column name="last_modified_by" type="${string.type}"/>
-            <column name="last_modified_date" type="${timestamp.type}"/>
         </createTable>
     </changeSet>
 

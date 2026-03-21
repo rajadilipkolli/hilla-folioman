@@ -25,10 +25,8 @@ class SchemeNAVDataDtoToEntityMapperTest {
         assertThat(result.getMfScheme()).isNotNull();
         assertThat(result.getMfScheme().getAmfiCode()).isEqualTo(12345L);
         assertThat(result.getId()).isNull();
-        assertThat(result.getCreatedBy()).isNull();
-        assertThat(result.getCreatedDate()).isNull();
-        assertThat(result.getLastModifiedBy()).isNull();
-        assertThat(result.getLastModifiedDate()).isNull();
+        assertThat(result.getCreatedAt()).isNull();
+        assertThat(result.getUpdatedAt()).isNull();
     }
 
     @Test

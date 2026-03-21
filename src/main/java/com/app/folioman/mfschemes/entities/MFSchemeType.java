@@ -1,6 +1,6 @@
 package com.app.folioman.mfschemes.entities;
 
-import com.app.folioman.shared.Auditable;
+import com.app.folioman.shared.BaseEntity;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -11,8 +11,6 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
-import jakarta.persistence.Version;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,7 +22,7 @@ import java.util.List;
                 @UniqueConstraint(
                         columnNames = {"type", "category", "sub_category"},
                         name = "UK_MF_SCHEME_CATEGORY_MF_SCHEME_TYPE"))
-public class MFSchemeType extends Auditable<String> implements Serializable {
+public class MFSchemeType extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "scheme_type_id_generator")
@@ -44,9 +42,6 @@ public class MFSchemeType extends Auditable<String> implements Serializable {
 
     @Column(name = "sub_category")
     private String subCategory;
-
-    @Version
-    private Short version;
 
     @OneToMany(mappedBy = "mfSchemeType", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MfFundScheme> mfSchemes = new ArrayList<>();
@@ -84,15 +79,6 @@ public class MFSchemeType extends Auditable<String> implements Serializable {
 
     public MFSchemeType setSubCategory(String subCategory) {
         this.subCategory = subCategory;
-        return this;
-    }
-
-    public Short getVersion() {
-        return version;
-    }
-
-    public MFSchemeType setVersion(Short version) {
-        this.version = version;
         return this;
     }
 

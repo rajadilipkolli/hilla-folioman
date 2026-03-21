@@ -18,6 +18,8 @@ class RepositoryRulesTest {
     static final ArchRule classes_should_be_annotated = classes()
             .that()
             .resideInAPackage(REPOSITORY_PACKAGE)
+            .and()
+            .doNotHaveSimpleName("package-info")
             .should()
             .beAnnotatedWith(Repository.class)
             .because(ANNOTATED_EXPLANATION.formatted(REPOSITORY_SUFFIX, "@Repository"));

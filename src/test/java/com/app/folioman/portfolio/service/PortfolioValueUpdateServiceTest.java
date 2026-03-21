@@ -34,8 +34,9 @@ import com.app.folioman.portfolio.util.XirrCalculator;
 import com.app.folioman.shared.LocalDateUtility;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -335,7 +336,7 @@ class PortfolioValueUpdateServiceTest {
                 scheme.setRta(schemeDTO.rta());
                 scheme.setType(schemeDTO.type());
                 scheme.setUserFolioDetails(folio);
-                scheme.setCreatedDate(LocalDateTime.now().minusMonths(1));
+                scheme.setCreatedAt(Instant.now().minus(30, ChronoUnit.DAYS));
 
                 List<UserTransactionDetails> transactions = new ArrayList<>();
                 schemeDTO.transactions().forEach(transactionDTO -> {

@@ -1,7 +1,7 @@
 package com.app.folioman.portfolio.entities;
 
 import com.app.folioman.portfolio.models.request.TransactionType;
-import com.app.folioman.shared.Auditable;
+import com.app.folioman.shared.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -14,7 +14,6 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
-import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Objects;
@@ -25,7 +24,7 @@ import org.hibernate.Hibernate;
         name = "user_transaction_details",
         schema = "portfolio",
         indexes = {@Index(name = "user_details_idx_type_transaction_dat", columnList = "transaction_date, type")})
-public class UserTransactionDetails extends Auditable<String> implements Serializable {
+public class UserTransactionDetails extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_transaction_details_seq")
     @SequenceGenerator(name = "user_transaction_details_seq", schema = "portfolio")

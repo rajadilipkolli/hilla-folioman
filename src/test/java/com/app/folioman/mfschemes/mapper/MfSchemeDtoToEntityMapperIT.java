@@ -73,10 +73,8 @@ class MfSchemeDtoToEntityMapperIT extends AbstractIntegrationTest {
         // mapper helper also adds a nav entry when nav/date provided
         assertThat(result.getMfSchemeNavs()).isNotNull();
         assertThat(result.getMfSchemeNavs()).isNotEmpty();
-        assertThat(result.getCreatedBy()).isNull();
-        assertThat(result.getCreatedDate()).isNull();
-        assertThat(result.getLastModifiedBy()).isNull();
-        assertThat(result.getLastModifiedDate()).isNull();
+        assertThat(result.getCreatedAt()).isNull();
+        assertThat(result.getUpdatedAt()).isNull();
     }
 
     @Test

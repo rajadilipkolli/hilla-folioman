@@ -1,6 +1,6 @@
 package com.app.folioman.mfschemes.entities;
 
-import com.app.folioman.shared.Auditable;
+import com.app.folioman.shared.BaseEntity;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -12,7 +12,6 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import java.io.Serial;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
@@ -22,7 +21,7 @@ import java.util.StringJoiner;
         schema = "mfschemes",
         indexes = {@Index(name = "idx_mf_amc_name_vector", columnList = "name_vector")})
 @Entity
-public class MfAmc extends Auditable<String> implements Serializable {
+public class MfAmc extends BaseEntity {
 
     @Serial
     private static final long serialVersionUID = 1L;
