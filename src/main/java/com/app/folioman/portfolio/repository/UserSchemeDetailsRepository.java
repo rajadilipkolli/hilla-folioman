@@ -2,6 +2,7 @@ package com.app.folioman.portfolio.repository;
 
 import com.app.folioman.portfolio.entities.UserSchemeDetails;
 import java.util.List;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -23,5 +24,6 @@ public interface UserSchemeDetailsRepository extends JpaRepository<UserSchemeDet
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Modifying
     @Query("update UserSchemeDetails u set u.amfi = :amfi, u.isin = :isin where u.id = :id")
-    void updateAmfiAndIsinById(@Param("amfi") Long schemeId, @Param("isin") String isin, @Param("id") Long id);
+    void updateAmfiAndIsinById(
+            @Nullable @Param("amfi") Long schemeId, @Nullable @Param("isin") String isin, @Param("id") Long id);
 }
