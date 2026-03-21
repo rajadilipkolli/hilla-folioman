@@ -57,6 +57,7 @@ Explanation of the above package structure:
   - **SecurityConfig.java**: Spring Security configuration for authentication and authorization.
   - **GlobalExceptionHandler.java**: Centralized exception handling using `@RestControllerAdvice` for consistent error responses.
 
+
 ### Naming Conventions
 
 | Type                  | Convention           | Example                                                     |

@@ -9,6 +9,7 @@
 - [Example repository](#example-userrepository)
 
 ## Key principles
+
 Follow these principles when using Spring Data JPA:
 
 - Create `BaseEntity` for audit fields(`createdAt`, `updatedAt`) and extend all entities from it
@@ -30,6 +31,7 @@ Follow these principles when using Spring Data JPA:
 - Use **default methods** for convenience operations
 
 ## IdentityGenerator
+
 To use TSID, add the following dependency:
 
 ```xml
@@ -45,4 +47,184 @@ Use TSID to generate IDs as follows:
 ```java
 import io.hypersistence.tsid.TSID;
 
-public class IdGenerator {\n    private IdGenerator() {}\n\n    public static String generateString() {\n        return TSID.Factory.getTsid().toString();\n    }\n}\n```\n\n## Value Object for Primary Key\n```java\npublic record UserId(String id) {\n    public UserId {\n        if (id == null || id.trim().isBlank()) {\n            throw new IllegalArgumentException(\"User id cannot be null or empty\");\n        }\n    }\n\n    public static UserId of(String id) {\n        return new UserId(id);\n    }\n\n    public static UserId generate() {\n        return new UserId(IdGenerator.generateString());\n    }\n}\n```\n\n## Use JPA Auditing Support\n- Add `@CreatedDate` and `@LastModifiedDate` annotations to your `BaseEntity` class.\n- Add `@EntityListeners(AuditingEntityListener.class)` to your `BaseEntity` class.\n- Create a Spring `@Configuration` class and add `@EnableJpaAuditing` annotation.\n\n**File:** `BaseEntity.java`\n\n```java\nimport jakarta.persistence.Column;\nimport jakarta.persistence.EntityListeners;\nimport jakarta.persistence.MappedSuperclass;\nimport org.springframework.data.annotation.CreatedDate;\nimport org.springframework.data.annotation.LastModifiedDate;\nimport org.springframework.data.jpa.domain.support.AuditingEntityListener;\nimport java.time.Instant;\n\n@MappedSuperclass\n@EntityListeners(AuditingEntityListener.class)\npublic abstract class BaseEntity {\n\n    @Column(name = \"created_at\", nullable = false, updatable = false)\n    @CreatedDate\n    protected Instant createdAt;\n\n    @Column(name = \"updated_at\", nullable = false)\n    @LastModifiedDate\n    protected Instant updatedAt;\n    \n    @Version\n    private int version;\n    \n    public Instant getCreatedAt() {\n        return createdAt;\n    }\n\n    public void setCreatedAt(Instant createdAt) {\n        this.createdAt = createdAt;\n    }\n\n    public Instant getUpdatedAt() {\n        return updatedAt;\n    }\n\n    public void setUpdatedAt(Instant updatedAt) {\n        this.updatedAt = updatedAt;\n    }\n}\n```\n\n**Enable JPA Auditing** in your application configuration:\n\n```java\n@Configuration\n@EnableJpaAuditing\npublic class JpaConfig {\n}\n```\n\n### AssertUtil class to validate input parameters\nCreate a `AssertUtil` class with static methods to validate input parameters.\n\n```java\npublic class AssertUtil {\n    private AssertUtil() {}\n\n    public static <T> T requireNotNull(T obj, String message) {\n        if (obj == null)\n            throw new IllegalArgumentException(message);\n        return obj;\n    }\n}\n```\n\n### Example JPA Entity Class\nWhile Creating a new JPA entity class, extend it from `BaseEntity`:\n\n```java\nimport jakarta.persistence.*;\n\nimport java.time.Instant;\n\n@Entity\n@Table(name = \"users\")\nclass UserEntity extends BaseEntity {\n\n    @EmbeddedId\n    @AttributeOverride(name = \"id\", column = @Column(name = \"id\", nullable = false))\n    private UserId id;\n\n    @Embedded\n    @AttributeOverrides({\n        @AttributeOverride(name = \"addrLine1\", column = @Column(name = \"addr_line1\", nullable = false)),\n        @AttributeOverride(name = \"addrLine2\", column = @Column(name = \"addr_line2\")),\n        @AttributeOverride(name = \"city\", column = @Column(name = \"city\"))\n    })\n    private Address address;\n\n    @Enumerated(EnumType.STRING)\n    @Column(name = \"role\", nullable = false)\n    private Role role;\n\n    //.. other fields\n\n\n    // Protected constructor for JPA\n    protected UserEntity() {}\n\n    // Constructor with all required fields\n    public UserEntity(UserId id,\n                       Address address,\n                       //...\n                       Role role\n                       ) {\n        this.id = AssertUtil.requireNotNull(id, \"Event id cannot be null\");\n        this.address = AssertUtil.requireNotNull(address, \"Address cannot be null\");\n        this.role = AssertUtil.requireNotNull(role, \"Role cannot be null\");\n        //...\n    }\n\n    // Factory method for creating new entities\n    public static UserEntity create(Address address, Role role) {\n        return new UserEntity(\n                UserId.generate(),\n                address,\n                role);\n    }\n\n    public boolean isAdmin() {\n        return role == Role.ROLE_ADMIN;\n    }\n\n    // Getters\n}\n```\n\n### Example: UserRepository\n**File:** `users/domain/repositories/UserRepository.java`\n\n```java\ninterface UserRepository extends JpaRepository<UserEntity, UserId> {\n\n    Optional<UserEntity> findByEmail(@Param(\"email\") String email);\n\n    // Convenience methods using default interface methods\n    default UserEntity getByEmail(String email) {\n        return this.findByEmail(email)\n                .orElseThrow(() -> new ResourceNotFoundException(\"User not found with email: \" + email));\n    }\n}\n```
+public class IdGenerator {
+    private IdGenerator() {}
+
+    public static String generateString() {
+        return TSID.Factory.getTsid().toString();
+    }
+}
+```
+
+## Value Object for Primary Key
+
+```java
+public record UserId(String id) {
+    public UserId {
+        if (id == null || id.trim().isBlank()) {
+            throw new IllegalArgumentException("User id cannot be null or empty");
+        }
+    }
+
+    public static UserId of(String id) {
+        return new UserId(id);
+    }
+
+    public static UserId generate() {
+        return new UserId(IdGenerator.generateString());
+    }
+}
+```
+
+## Use JPA Auditing Support
+
+- Add `@CreatedDate` and `@LastModifiedDate` annotations to your `BaseEntity` class.
+- Add `@EntityListeners(AuditingEntityListener.class)` to your `BaseEntity` class.
+- Create a Spring `@Configuration` class and add `@EnableJpaAuditing` annotation.
+
+**File:** `BaseEntity.java`
+
+```java
+import jakarta.persistence.Column;
+import jakarta.persistence.EntityListeners;
+import jakarta.persistence.MappedSuperclass;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import java.time.Instant;
+
+@MappedSuperclass
+@EntityListeners(AuditingEntityListener.class)
+public abstract class BaseEntity {
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    @CreatedDate
+    protected Instant createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    @LastModifiedDate
+    protected Instant updatedAt;
+    
+    @Version
+    private int version;
+    
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(Instant createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Instant updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+}
+```
+
+**Enable JPA Auditing** in your application configuration:
+
+```java
+@Configuration
+@EnableJpaAuditing
+public class JpaConfig {
+}
+```
+
+### AssertUtil class to validate input parameters
+Create a `AssertUtil` class with static methods to validate input parameters.
+
+```java
+public class AssertUtil {
+    private AssertUtil() {}
+
+    public static <T> T requireNotNull(T obj, String message) {
+        if (obj == null)
+            throw new IllegalArgumentException(message);
+        return obj;
+    }
+}
+```
+
+### Example JPA Entity Class
+While Creating a new JPA entity class, extend it from `BaseEntity`:
+
+```java
+import jakarta.persistence.*;
+
+import java.time.Instant;
+
+@Entity
+@Table(name = "users")
+class UserEntity extends BaseEntity {
+
+    @EmbeddedId
+    @AttributeOverride(name = "id", column = @Column(name = "id", nullable = false))
+    private UserId id;
+
+    @Embedded
+    @AttributeOverrides({
+        @AttributeOverride(name = "addrLine1", column = @Column(name = "addr_line1", nullable = false)),
+        @AttributeOverride(name = "addrLine2", column = @Column(name = "addr_line2")),
+        @AttributeOverride(name = "city", column = @Column(name = "city"))
+    })
+    private Address address;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false)
+    private Role role;
+
+    //.. other fields
+
+
+    // Protected constructor for JPA
+    protected UserEntity() {}
+
+    // Constructor with all required fields
+    public UserEntity(UserId id,
+                       Address address,
+                       //...
+                       Role role
+                       ) {
+        this.id = AssertUtil.requireNotNull(id, "Event id cannot be null");
+        this.address = AssertUtil.requireNotNull(address, "Address cannot be null");
+        this.role = AssertUtil.requireNotNull(role, "Role cannot be null");
+        //...
+    }
+
+    // Factory method for creating new entities
+    public static UserEntity create(Address address, Role role) {
+        return new UserEntity(
+                UserId.generate(),
+                address,
+                role);
+    }
+
+    public boolean isAdmin() {
+        return role == Role.ROLE_ADMIN;
+    }
+
+    // Getters
+}
+```
+
+### Example: UserRepository
+
+**File:** `users/domain/repositories/UserRepository.java`
+
+```java
+interface UserRepository extends JpaRepository<UserEntity, UserId> {
+
+    Optional<UserEntity> findByEmail(@Param("email") String email);
+
+    // Convenience methods using default interface methods
+    default UserEntity getByEmail(String email) {
+        return this.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email));
+    }
+}
+```

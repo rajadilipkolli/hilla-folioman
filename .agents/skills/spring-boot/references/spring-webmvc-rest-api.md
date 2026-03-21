@@ -7,6 +7,7 @@
 - [Error response examples](#error-response-examples)
 
 ## Key principles
+
 Follow these principles when creating REST APIs with Spring Web MVC:
 
 - For Spring Boot 4.x projects, use Jackson 3.x library instead of Jackson 2.x 
@@ -19,6 +20,7 @@ Follow these principles when creating REST APIs with Spring Web MVC:
 - Implement Global Exception Handler using `@RestControllerAdvice` and return `ProblemDetails` type response
 
 ### Converter for PathVariable/RequestParam Binding
+
 ```java
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.stereotype.Component;
@@ -50,4 +52,197 @@ Use `@JsonValue` and `@JsonCreator` annotations to bind primitives to Request Bo
 ```java
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
-import jakarta.validation.constraints.NotBlank;\n\npublic record UserId(\n        @JsonValue \n        @NotBlank(message = \"User id cannot be null or empty\")\n        String id\n) {\n    @JsonCreator\n    public UserId {\n        if (id == null || id.trim().isEmpty()) {\n            throw new IllegalArgumentException(\"User id cannot be null\");\n        }\n    }\n\n    public static UserId of(String id) {\n        return new UserId(id);\n    }\n}\n```\n\n**CreateUserRequest Request Payload:**\n\n```java\nrecord CreateUserRequest(\n        @Valid UserId userId\n        // ... other properties\n) {\n}\n```\n\nSpring MVC will automatically bind the `userId` property from the JSON payload to `UserId` object.\n\n```json\n{\n  \"userId\": \"ABSHDJFSD\",\n  \"property-1\": \"value-1\",\n  \"property-n\": \"value-n\"\n}\n```\n\n### Global Exception Handler\nCreate a centralized exception handler that returns **ProblemDetail** responses.\n\nCreate a class `GlobalExceptionHandler` by following the following key principles:\n\n- Use `@RestControllerAdvice`\n- Extend `ResponseEntityExceptionHandler`\n- Return `ProblemDetail` for RFC 7807 compliance\n- Map different exceptions to appropriate HTTP status codes\n- Include validation errors in response\n- Hide internal details in production\n\n```java\nimport dev.sivalabs.onepoint.shared.DomainException;\nimport dev.sivalabs.onepoint.shared.ResourceNotFoundException;\nimport org.slf4j.Logger;\nimport org.slf4j.LoggerFactory;\nimport org.springframework.context.support.DefaultMessageSourceResolvable;\nimport org.springframework.core.env.Environment;\nimport org.springframework.http.*;\nimport org.springframework.web.bind.MethodArgumentNotValidException;\nimport org.springframework.web.bind.annotation.ExceptionHandler;\nimport org.springframework.web.bind.annotation.RestControllerAdvice;\nimport org.springframework.web.context.request.WebRequest;\nimport org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;\n\nimport java.time.Instant;\nimport java.util.Arrays;\nimport java.util.List;\n\nimport static org.springframework.http.HttpStatus.NOT_FOUND;\nimport static org.springframework.http.HttpStatus.BAD_REQUEST;\nimport static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;\n\n@RestControllerAdvice\nclass GlobalExceptionHandler extends ResponseEntityExceptionHandler {\n    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);\n    private final Environment environment;\n\n    GlobalExceptionHandler(Environment environment) {\n        this.environment = environment;\n    }\n\n    @Override\n    public ResponseEntity<Object> handleMethodArgumentNotValid(\n            MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {\n        log.error(\"Validation error\", ex);\n        var errors = ex.getAllErrors().stream()\n                .map(DefaultMessageSourceResolvable::getDefaultMessage)\n                .toList();\n\n        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(BAD_REQUEST, ex.getMessage());\n        problemDetail.setTitle(\"Validation Error\");\n        problemDetail.setProperty(\"errors\", errors);\n        problemDetail.setProperty(\"timestamp\", Instant.now());\n        return ResponseEntity.status(UNPROCESSABLE_CONTENT).body(problemDetail);\n    }\n\n    @ExceptionHandler(DomainException.class)\n    public ProblemDetail handle(DomainException e) {\n        log.warn(\"Bad request\", e);\n        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(BAD_REQUEST, e.getMessage());\n        problemDetail.setTitle(\"Bad Request\");\n        problemDetail.setProperty(\"errors\", List.of(e.getMessage()));\n        problemDetail.setProperty(\"timestamp\", Instant.now());\n        return problemDetail;\n    }\n\n    @ExceptionHandler(ResourceNotFoundException.class)\n    public ProblemDetail handle(ResourceNotFoundException e) {\n        log.error(\"Resource not found\", e);\n        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(NOT_FOUND, e.getMessage());\n        problemDetail.setTitle(\"Resource Not Found\");\n        problemDetail.setProperty(\"errors\", List.of(e.getMessage()));\n        problemDetail.setProperty(\"timestamp\", Instant.now());\n        return problemDetail;\n    }\n\n    @ExceptionHandler(Exception.class)\n    ProblemDetail handleUnexpected(Exception e) {\n        log.error(\"Unexpected exception occurred\", e);\n\n        // Don't expose internal details in production\n        String message = \"An unexpected error occurred\";\n        if (isDevelopmentMode()) {\n            message = e.getMessage();\n        }\n\n        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(INTERNAL_SERVER_ERROR, message);\n        problemDetail.setProperty(\"timestamp\", Instant.now());\n        return problemDetail;\n    }\n\n    private boolean isDevelopmentMode() {\n        List<String> profiles = Arrays.asList(environment.getActiveProfiles());\n        return profiles.contains(\"dev\") || profiles.contains(\"local\");\n    }\n}\n```\n\n#### Error Response Examples\n\n**Validation Error (400):**\n```json\n{\n  \"type\": \"about:blank\",\n  \"title\": \"Validation Error\",\n  \"status\": 400,\n  \"detail\": \"Validation failed for argument...\",\n  \"errors\": [\n    \"Title is required\",\n    \"Email must be valid\"\n  ]\n}\n```\n\n**Domain Exception (400):**\n```json\n{\n  \"type\": \"about:blank\",\n  \"title\": \"Bad Request\",\n  \"status\": 400,\n  \"detail\": \"Cannot update user details\",\n  \"errors\": [\n    \"Email is already exist\"\n  ]\n}\n```\n\n**Resource Not Found (404):**\n```json\n{\n  \"type\": \"about:blank\",\n  \"title\": \"Resource Not Found\",\n  \"status\": 404,\n  \"detail\": \"User not found with id: ABC123\",\n  \"errors\": [\n    \"User not found with id: ABC123\"\n  ]\n}\n```\n\n**Internal Server Error (500):**\n```json\n{\n  \"type\": \"about:blank\",\n  \"title\": \"Internal Server Error\",\n  \"status\": 500,\n  \"detail\": \"An unexpected error occurred\",\n  \"timestamp\": \"2024-01-15T10:30:00Z\"\n}\n```
+import jakarta.validation.constraints.NotBlank;
+
+public record UserId(
+        @JsonValue 
+        @NotBlank(message = "User id cannot be null or empty")
+        String id
+) {
+    @JsonCreator
+    public UserId {
+        if (id == null || id.trim().isEmpty()) {
+            throw new IllegalArgumentException("User id cannot be null");
+        }
+    }
+
+    public static UserId of(String id) {
+        return new UserId(id);
+    }
+}
+```
+
+**CreateUserRequest Request Payload:**
+
+```java
+record CreateUserRequest(
+        @Valid UserId userId
+        // ... other properties
+) {
+}
+```
+
+Spring MVC will automatically bind the `userId` property from the JSON payload to `UserId` object.
+
+```json
+{
+  "userId": "ABSHDJFSD",
+  "property-1": "value-1",
+  "property-n": "value-n"
+}
+```
+
+### Global Exception Handler
+Create a centralized exception handler that returns **ProblemDetail** responses.
+
+Create a class `GlobalExceptionHandler` by following the following key principles:
+
+- Use `@RestControllerAdvice`
+- Extend `ResponseEntityExceptionHandler`
+- Return `ProblemDetail` for RFC 7807 compliance
+- Map different exceptions to appropriate HTTP status codes
+- Include validation errors in response
+- Hide internal details in production
+
+### Example: GlobalExceptionHandler
+
+```java
+import dev.sivalabs.onepoint.shared.DomainException;
+import dev.sivalabs.onepoint.shared.ResourceNotFoundException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.springframework.core.env.Environment;
+import org.springframework.http.*;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.List;
+
+import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
+
+@RestControllerAdvice
+class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+    private final Environment environment;
+
+    GlobalExceptionHandler(Environment environment) {
+        this.environment = environment;
+    }
+
+    @Override
+    public ResponseEntity<Object> handleMethodArgumentNotValid(
+            MethodArgumentNotValidException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
+        log.error("Validation error", ex);
+        var errors = ex.getAllErrors().stream()
+                .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                .toList();
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(BAD_REQUEST, ex.getMessage());
+        problemDetail.setTitle("Validation Error");
+        problemDetail.setProperty("errors", errors);
+        problemDetail.setProperty("timestamp", Instant.now());
+        return ResponseEntity.status(UNPROCESSABLE_CONTENT).body(problemDetail);
+    }
+
+    @ExceptionHandler(DomainException.class)
+    public ProblemDetail handle(DomainException e) {
+        log.warn("Bad request", e);
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(BAD_REQUEST, e.getMessage());
+        problemDetail.setTitle("Bad Request");
+        problemDetail.setProperty("errors", List.of(e.getMessage()));
+        problemDetail.setProperty("timestamp", Instant.now());
+        return problemDetail;
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ProblemDetail handle(ResourceNotFoundException e) {
+        log.error("Resource not found", e);
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(NOT_FOUND, e.getMessage());
+        problemDetail.setTitle("Resource Not Found");
+        problemDetail.setProperty("errors", List.of(e.getMessage()));
+        problemDetail.setProperty("timestamp", Instant.now());
+        return problemDetail;
+    }
+
+    @ExceptionHandler(Exception.class)
+    ProblemDetail handleUnexpected(Exception e) {
+        log.error("Unexpected exception occurred", e);
+
+        // Don't expose internal details in production
+        String message = "An unexpected error occurred";
+        if (isDevelopmentMode()) {
+            message = e.getMessage();
+        }
+
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(INTERNAL_SERVER_ERROR, message);
+        problemDetail.setProperty("timestamp", Instant.now());
+        return problemDetail;
+    }
+
+    private boolean isDevelopmentMode() {
+        List<String> profiles = Arrays.asList(environment.getActiveProfiles());
+        return profiles.contains("dev") || profiles.contains("local");
+    }
+}
+```
+
+#### Error Response Examples
+
+**Validation Error (400):**
+```json
+{
+  "type": "about:blank",
+  "title": "Validation Error",
+  "status": 400,
+  "detail": "Validation failed for argument...",
+  "errors": [
+    "Title is required",
+    "Email must be valid"
+  ]
+}
+```
+
+**Domain Exception (400):**
+```json
+{
+  "type": "about:blank",
+  "title": "Bad Request",
+  "status": 400,
+  "detail": "Cannot update user details",
+  "errors": [
+    "Email is already exist"
+  ]
+}
+```
+
+**Resource Not Found (404):**
+```json
+{
+  "type": "about:blank",
+  "title": "Resource Not Found",
+  "status": 404,
+  "detail": "User not found with id: ABC123",
+  "errors": [
+    "User not found with id: ABC123"
+  ]
+}
+```
+
+**Internal Server Error (500):**
+```json
+{
+  "type": "about:blank",
+  "title": "Internal Server Error",
+  "status": 500,
+  "detail": "An unexpected error occurred",
+  "timestamp": "2024-01-15T10:30:00Z"
+}
+```
