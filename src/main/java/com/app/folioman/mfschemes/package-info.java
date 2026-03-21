@@ -13,6 +13,8 @@
 @ApplicationModule(
         displayName = "Mutual Fund Schemes",
         allowedDependencies = {"shared"})
+@NullMarked
 package com.app.folioman.mfschemes;
 
+import org.jspecify.annotations.NullMarked;
 import org.springframework.modulith.ApplicationModule;
