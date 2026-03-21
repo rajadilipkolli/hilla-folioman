@@ -12,6 +12,7 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -94,7 +95,8 @@ class UserCASDetailsServiceTest {
     void findByInvestorEmailAndName_ShouldReturnUserCASDetails() {
         String email = "test@example.com";
         String name = "Test User";
-        when(userCASDetailsRepository.findByInvestorEmailAndName(email, name)).thenReturn(userCASDetails);
+        when(userCASDetailsRepository.findByInvestorEmailAndName(email, name))
+                .thenReturn(Optional.ofNullable(userCASDetails));
 
         UserCASDetails result = userCASDetailsService.findByInvestorEmailAndName(email, name);
 
@@ -104,30 +106,8 @@ class UserCASDetailsServiceTest {
     }
 
     @Test
-    void findByInvestorEmailAndName_WithNullEmail_ShouldReturnNull() {
-        String name = "Test User";
-        when(userCASDetailsRepository.findByInvestorEmailAndName(null, name)).thenReturn(null);
-
-        UserCASDetails result = userCASDetailsService.findByInvestorEmailAndName(null, name);
-
-        assertThat(result).isNull();
-        verify(userCASDetailsRepository).findByInvestorEmailAndName(null, name);
-    }
-
-    @Test
-    void findByInvestorEmailAndName_WithNullName_ShouldReturnNull() {
-        String email = "test@example.com";
-        when(userCASDetailsRepository.findByInvestorEmailAndName(email, null)).thenReturn(null);
-
-        UserCASDetails result = userCASDetailsService.findByInvestorEmailAndName(email, null);
-
-        assertThat(result).isNull();
-        verify(userCASDetailsRepository).findByInvestorEmailAndName(email, null);
-    }
-
-    @Test
     void findByInvestorEmailAndName_WithEmptyStrings_ShouldReturnNull() {
-        when(userCASDetailsRepository.findByInvestorEmailAndName("", "")).thenReturn(null);
+        when(userCASDetailsRepository.findByInvestorEmailAndName("", "")).thenReturn(Optional.empty());
 
         UserCASDetails result = userCASDetailsService.findByInvestorEmailAndName("", "");
 

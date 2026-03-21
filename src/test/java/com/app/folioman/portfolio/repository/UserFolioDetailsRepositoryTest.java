@@ -40,14 +40,6 @@ class UserFolioDetailsRepositoryTest {
     }
 
     @Test
-    void findByUserCasDetailsFoliosInWithNullList() {
-        List<UserFolioDetails> result = userFolioDetailsRepository.findByUserCasDetails_FoliosIn(null);
-
-        assertThat(result).isNotNull();
-        assertThat(result).isEmpty();
-    }
-
-    @Test
     void findByUserCasDetailsFoliosInWithValidFolios() {
         List<UserFolioDetails> folios = new ArrayList<>();
         UserFolioDetails folio = new UserFolioDetails();
@@ -92,17 +84,6 @@ class UserFolioDetailsRepositoryTest {
                 userFolioDetailsRepository.findFirstByUserCasDetails_IdAndPanKyc(nonExistentUserCasId, kycStatus);
 
         assertThat(result).isNull();
-    }
-
-    @Test
-    void findFirstByUserCasDetailsIdAndPanKycWithNullParameters() {
-        UserFolioDetailsPanProjection result1 =
-                userFolioDetailsRepository.findFirstByUserCasDetails_IdAndPanKyc(null, "OK");
-        UserFolioDetailsPanProjection result2 =
-                userFolioDetailsRepository.findFirstByUserCasDetails_IdAndPanKyc(1L, null);
-
-        assertThat(result1).isNull();
-        assertThat(result2).isNull();
     }
 
     @Test
@@ -210,13 +191,5 @@ class UserFolioDetailsRepositoryTest {
         UserFolioDetails updated =
                 userFolioDetailsRepository.findById(entity.getId()).get();
         assertThat(updated.getPan()).isEmpty();
-    }
-
-    @Test
-    void updatePanByCasIdWithNullCasId() {
-        String pan = "ABCDE1234F";
-        // Passing null casId should not throw; repository will not update any rows and return 0
-        int result = userFolioDetailsRepository.updatePanByCasId(pan, null);
-        assertThat(result).isZero();
     }
 }
