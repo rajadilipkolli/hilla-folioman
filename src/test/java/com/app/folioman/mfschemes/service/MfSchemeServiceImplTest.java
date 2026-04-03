@@ -154,7 +154,7 @@ class MfSchemeServiceImplTest {
     void fetchSchemes_bySchemeCodeWithMissingScheme_shouldReturnEmptyList() {
         // Arrange
         String query = "999999"; // Non-existent scheme code
-        when(mfSchemeRepository.findByAmfiCode(999999L)).thenReturn(null);
+        when(mfSchemeRepository.findByAmfiCode(999999L)).thenReturn(Optional.empty());
 
         // Act
         List<FundDetailProjection> actualResults = mfSchemeService.fetchSchemes(query);

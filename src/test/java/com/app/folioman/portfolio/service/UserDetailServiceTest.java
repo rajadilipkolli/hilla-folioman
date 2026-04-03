@@ -19,6 +19,7 @@ import com.app.folioman.portfolio.models.response.PortfolioResponse;
 import com.app.folioman.portfolio.models.response.UploadFileResponse;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -212,7 +213,7 @@ class UserDetailServiceTest {
         assertThat(result).isNotNull();
         // The service sums the provided totalValue fields. Expect 10000 + 5000 = 15000
         assertThat(result.totalPortfolioValue())
-                .isEqualTo(BigDecimal.valueOf(15000.0000).setScale(4));
+                .isEqualTo(BigDecimal.valueOf(15000.0000).setScale(4, RoundingMode.HALF_UP));
         assertThat(result.portfolioDetailsDTOS()).hasSize(2);
         verify(portfolioServiceHelper).getPortfolioDetailsByPANAndAsOfDate(eq(panNumber), any(LocalDate.class));
     }
@@ -230,7 +231,7 @@ class UserDetailServiceTest {
         PortfolioResponse result = userDetailService.getPortfolioByPAN(panNumber, evaluationDate);
 
         assertThat(result).isNotNull();
-        assertThat(result.totalPortfolioValue()).isEqualTo(BigDecimal.ZERO.setScale(4));
+        assertThat(result.totalPortfolioValue()).isEqualTo(BigDecimal.ZERO.setScale(4, RoundingMode.HALF_UP));
         assertThat(result.portfolioDetailsDTOS()).isEmpty();
         verify(portfolioServiceHelper).getPortfolioDetailsByPANAndAsOfDate(eq(panNumber), any(LocalDate.class));
     }
