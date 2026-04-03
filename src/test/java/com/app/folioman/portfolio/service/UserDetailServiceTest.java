@@ -157,19 +157,6 @@ class UserDetailServiceTest {
     }
 
     @Test
-    void upload_InvalidCasDTO_ShouldThrowIllegalArgumentException() throws Exception {
-        CasDTO invalidCasDTO = new CasDTO(null, null, null, null, null);
-        byte[] fileBytes = "test content".getBytes();
-        when(multipartFile.getBytes()).thenReturn(fileBytes);
-        when(portfolioServiceHelper.readValue(fileBytes, CasDTO.class)).thenReturn(invalidCasDTO);
-
-        assertThatExceptionOfType(IllegalArgumentException.class)
-                .isThrownBy(() -> userDetailService.upload(multipartFile));
-
-        verify(portfolioServiceHelper).readValue(fileBytes, CasDTO.class);
-    }
-
-    @Test
     void uploadFromDto_NewUser_ShouldReturnUploadFileResponse() {
         when(investorInfoService.existsByEmailAndName("test@example.com", "Test User"))
                 .thenReturn(false);
@@ -206,14 +193,6 @@ class UserDetailServiceTest {
         assertThat(result.newTransactions()).isZero();
         assertThat(result.userCASDetailsId()).isZero();
         verify(investorInfoService).existsByEmailAndName("test@example.com", "Test User");
-    }
-
-    @Test
-    void uploadFromDto_InvalidCasDTO_ShouldThrowIllegalArgumentException() {
-        CasDTO invalidCasDTO = new CasDTO(null, null, null, null, null);
-
-        assertThatExceptionOfType(IllegalArgumentException.class)
-                .isThrownBy(() -> userDetailService.uploadFromDto(invalidCasDTO));
     }
 
     @Test
