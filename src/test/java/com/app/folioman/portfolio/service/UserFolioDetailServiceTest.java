@@ -2,6 +2,9 @@ package com.app.folioman.portfolio.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -109,6 +112,7 @@ class UserFolioDetailServiceTest {
         userFolioDetailService.setPANIfNotSet(userCasID);
 
         verify(userFolioDetailsRepository).findFirstByUserCasDetails_IdAndPanKyc(userCasID, "OK");
+        verify(userFolioDetailsRepository, never()).updatePanByCasId(anyString(), eq(userCasID));
     }
 
     @Test

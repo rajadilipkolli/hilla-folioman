@@ -1,10 +1,12 @@
 package com.app.folioman.portfolio.mapper;
 
+import com.app.folioman.portfolio.entities.InvestorInfo;
 import com.app.folioman.portfolio.entities.UserCASDetails;
 import com.app.folioman.portfolio.entities.UserFolioDetails;
 import com.app.folioman.portfolio.entities.UserSchemeDetails;
 import com.app.folioman.portfolio.entities.UserTransactionDetails;
 import com.app.folioman.portfolio.models.request.CasDTO;
+import com.app.folioman.portfolio.models.request.InvestorInfoDTO;
 import com.app.folioman.portfolio.models.request.UserFolioDTO;
 import com.app.folioman.portfolio.models.request.UserSchemeDTO;
 import com.app.folioman.portfolio.models.request.UserTransactionDTO;
@@ -94,4 +96,11 @@ public interface CasDetailsMapper {
         };
         schemeDTO.transactions().forEach(addTransactionEntityConsumer);
     }
+
+    @Mapping(target = "userCasDetails", ignore = true)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "version", ignore = true)
+    InvestorInfo mapInvestorInfoDTOToInvestorInfo(InvestorInfoDTO investorInfo);
 }

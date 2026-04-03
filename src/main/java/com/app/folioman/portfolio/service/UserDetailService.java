@@ -7,6 +7,7 @@ import com.app.folioman.portfolio.entities.UserSchemeDetails;
 import com.app.folioman.portfolio.entities.UserTransactionDetails;
 import com.app.folioman.portfolio.mapper.CasDetailsMapper;
 import com.app.folioman.portfolio.models.request.CasDTO;
+import com.app.folioman.portfolio.models.request.TransactionType;
 import com.app.folioman.portfolio.models.request.UserFolioDTO;
 import com.app.folioman.portfolio.models.request.UserSchemeDTO;
 import com.app.folioman.portfolio.models.request.UserTransactionDTO;
@@ -104,13 +105,18 @@ public class UserDetailService {
         long userTransactionFromReqCount = portfolioServiceHelper.countTransactionsByUserFolioDTOList(casDTO.folios());
         Long userTransactionFromDBCount = userTransactionDetailsService.findAllTransactionsByEmailNameAndPeriod(
                 casDTO.investorInfo().name(), casDTO.investorInfo().email(), from, to);
-        UserCASDetails userCASDetails = null;
+
+        UserCASDetails userCASDetails = userCASDetailsService
+                .findByInvestorEmailAndName(
+                        casDTO.investorInfo().email(), casDTO.investorInfo().name())
+                .orElseThrow(() -> new IllegalStateException("User should exist"));
 
         if (userTransactionFromReqCount == userTransactionFromDBCount) {
             LOGGER.info("No new transactions are added");
         } else {
-            userCASDetails = importNewTransaction(
+            importNewTransaction(
                     casDTO,
+                    userCASDetails,
                     newFolios,
                     newSchemes,
                     newTransactions,
@@ -118,38 +124,29 @@ public class UserDetailService {
                     userTransactionFromDBCount);
         }
 
+        UserCASDetails savedCasDetailsEntity = getUserCASDetails(userCASDetails);
         return new UploadFileResponse(
-                newFolios.get(),
-                newSchemes.get(),
-                newTransactions.get(),
-                userCASDetails != null ? userCASDetails.getId() : 0L);
+                newFolios.get(), newSchemes.get(), newTransactions.get(), savedCasDetailsEntity.getId());
     }
 
-    private @Nullable UserCASDetails importNewTransaction(
+    private void importNewTransaction(
             CasDTO casDTO,
+            UserCASDetails userCASDetails,
             AtomicInteger newFolios,
             AtomicInteger newSchemes,
             AtomicInteger newTransactions,
             long userTransactionFromReqCount,
             Long userTransactionFromDBCount) {
 
-        Optional<UserCASDetails> userCASDetails = userCASDetailsService.findByInvestorEmailAndName(
-                casDTO.investorInfo().email(), casDTO.investorInfo().name());
-
-        if (userCASDetails.isPresent()) {
-            // Optimize folio and scheme processing by processing only if counts don't match
-            processNewFolios(casDTO.folios(), userCASDetails.get(), newFolios, newSchemes, newTransactions);
-            processNewSchemesAndTransactions(
-                    casDTO.folios(),
-                    userCASDetails.get(),
-                    newSchemes,
-                    newTransactions,
-                    userTransactionFromReqCount,
-                    userTransactionFromDBCount);
-
-            return getUserCASDetails(userCASDetails.get());
-        }
-        return null;
+        // Optimize folio and scheme processing by processing only if counts don't match
+        processNewFolios(casDTO.folios(), userCASDetails, newFolios, newSchemes, newTransactions);
+        processNewSchemesAndTransactions(
+                casDTO.folios(),
+                userCASDetails,
+                newSchemes,
+                newTransactions,
+                userTransactionFromReqCount,
+                userTransactionFromDBCount);
     }
 
     private void addNewTransactions(
@@ -200,10 +197,9 @@ public class UserDetailService {
                     userSchemaTransactionMapFromDB.getOrDefault(rtaCodeFromRequest, List.of());
 
             if (requestTransactions.size() != dbTransactions.size()) {
-                // For efficient lookup, create a set of transaction dates that already exist
-                Set<LocalDate> transactionDateSetDB = dbTransactions.stream()
-                        .map(UserTransactionDetails::getTransactionDate)
-                        .collect(Collectors.toSet());
+                // For efficient lookup, create a frequency map of existing transactions
+                Map<TransactionKey, Long> dbTransactionFrequencyMap = dbTransactions.stream()
+                        .collect(Collectors.groupingBy(TransactionKey::from, Collectors.counting()));
 
                 // Find matching scheme once outside the inner loop
                 UserSchemeDetails matchingScheme = existingUserSchemeDetailsList.stream()
@@ -212,20 +208,29 @@ public class UserDetailService {
                         .orElse(null);
 
                 if (matchingScheme != null) {
-                    // Process all new transactions for this scheme
-                    List<UserTransactionDetails> newTransactionsForScheme = requestTransactions.stream()
-                            .filter(dto -> !transactionDateSetDB.contains(dto.date()))
-                            .map(dto -> {
-                                LOGGER.info(
-                                        "New transaction on date: {} created for rtaCode {} that is not present in the database",
-                                        dto.date(),
-                                        rtaCodeFromRequest);
-                                UserTransactionDetails entity = casDetailsMapper.transactionDTOToTransactionEntity(dto);
-                                entity.setUserSchemeDetails(matchingScheme);
-                                newTransactions.incrementAndGet();
-                                return entity;
-                            })
-                            .collect(Collectors.toList());
+                    // Process all transactions for this scheme focusing on finding the new ones
+                    List<UserTransactionDetails> newTransactionsForScheme = new ArrayList<>();
+
+                    for (UserTransactionDTO dto : requestTransactions) {
+                        TransactionKey key = TransactionKey.from(dto);
+                        long dbCount = dbTransactionFrequencyMap.getOrDefault(key, 0L);
+
+                        if (dbCount > 0) {
+                            // If it exists in DB, "match" it and decrement count
+                            dbTransactionFrequencyMap.put(key, dbCount - 1);
+                        } else {
+                            // If it doesn't exist or we've run out of matches, it's new
+                            LOGGER.info(
+                                    "New transaction on date: {} with description: {} created for rtaCode {} that is not present in the database",
+                                    dto.date(),
+                                    dto.description(),
+                                    rtaCodeFromRequest);
+                            UserTransactionDetails entity = casDetailsMapper.transactionDTOToTransactionEntity(dto);
+                            entity.setUserSchemeDetails(matchingScheme);
+                            newTransactions.incrementAndGet();
+                            newTransactionsForScheme.add(entity);
+                        }
+                    }
 
                     if (!newTransactionsForScheme.isEmpty()) {
                         transactionsByScheme.put(matchingScheme, newTransactionsForScheme);
@@ -446,9 +451,47 @@ public class UserDetailService {
         AtomicInteger newFolios = new AtomicInteger();
         AtomicInteger newSchemes = new AtomicInteger();
         UserCASDetails userCASDetails = casDetailsMapper.convert(casDTO, newFolios, newSchemes, newTransactions);
+
+        // Ensure investor information matches the CAS DTO
+        if (userCASDetails.getInvestorInfo() == null) {
+            userCASDetails.setInvestorInfo(casDetailsMapper.mapInvestorInfoDTOToInvestorInfo(casDTO.investorInfo()));
+        }
+
         UserCASDetails savedCasDetailsEntity = getUserCASDetails(userCASDetails);
         return new UploadFileResponse(
                 newFolios.get(), newSchemes.get(), newTransactions.get(), savedCasDetailsEntity.getId());
+    }
+
+    private record TransactionKey(
+            LocalDate date,
+            String description,
+            BigDecimal amount,
+            TransactionType type,
+            @Nullable Double units,
+            @Nullable Double balance) {
+
+        static TransactionKey from(UserTransactionDTO dto) {
+            return new TransactionKey(
+                    dto.date(),
+                    dto.description(),
+                    BigDecimal.valueOf(dto.amount() != null ? dto.amount() : 0.0)
+                            .setScale(4, RoundingMode.HALF_UP),
+                    dto.type(),
+                    dto.units(),
+                    dto.balance());
+        }
+
+        static TransactionKey from(UserTransactionDetails entity) {
+            return new TransactionKey(
+                    entity.getTransactionDate(),
+                    entity.getDescription(),
+                    entity.getAmount() != null
+                            ? entity.getAmount().setScale(4, RoundingMode.HALF_UP)
+                            : BigDecimal.ZERO.setScale(4, RoundingMode.HALF_UP),
+                    entity.getType(),
+                    entity.getUnits(),
+                    entity.getBalance());
+        }
     }
 
     public PortfolioResponse getPortfolioByPAN(String panNumber, LocalDate evaluationDate) {
