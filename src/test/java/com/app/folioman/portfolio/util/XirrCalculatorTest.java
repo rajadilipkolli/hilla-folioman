@@ -3,6 +3,7 @@ package com.app.folioman.portfolio.util;
 import static org.assertj.core.api.Assertions.*;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.HashMap;
@@ -710,5 +711,46 @@ class XirrCalculatorTest {
 
         // Assert
         assertThat(result).isNotNegative(); // Should return a positive rate, not throw
+    }
+
+    @Test
+    void testCagrCalculation() {
+        // (1100 / 1000) ^ (365.2425 / 365.2425) - 1 = 0.1
+        BigDecimal invested = new BigDecimal("1000");
+        BigDecimal currentValue = new BigDecimal("1100");
+        long days = 365; // Close to a year, but let's use the constant to be precise if needed
+
+        // For 365.2425 days, (1100/1000)^(1) - 1 = 0.1
+        BigDecimal result = XirrCalculator.cagr(invested, currentValue, 365);
+
+        // (1.1)^(365.2425/365) - 1 = (1.1)^1.000664... - 1 approx 0.100063
+        assertThat(result).isNotNull();
+        assertThat(result.doubleValue()).isCloseTo(0.1000, org.assertj.core.data.Offset.offset(0.01));
+    }
+
+    @Test
+    void testCagrOneYear() {
+        // (1100 / 1000) ^ (365.2425 / 365.2425) - 1 = 0.1
+        BigDecimal invested = new BigDecimal("1000");
+        BigDecimal currentValue = new BigDecimal("1100");
+        // Using exactly 365.2425 days should give exactly 0.1 if we could pass double/long.
+        // But the method takes long days.
+        // Let's use 365 days.
+        BigDecimal result = XirrCalculator.cagr(invested, currentValue, 365);
+        assertThat(result).isNotNull();
+        // 1.1 ^ (365.2425/365) - 1 = 0.100063...
+        assertThat(result.setScale(4, RoundingMode.HALF_UP)).isEqualTo(new BigDecimal("0.1001"));
+    }
+
+    @Test
+    void testCagrEdgeCases() {
+        assertThat(XirrCalculator.cagr(BigDecimal.ZERO, new BigDecimal("1000"), 365))
+                .isNull();
+        assertThat(XirrCalculator.cagr(new BigDecimal("1000"), new BigDecimal("1100"), 0))
+                .isNull();
+        assertThat(XirrCalculator.cagr(new BigDecimal("1000"), new BigDecimal("1100"), -1))
+                .isNull();
+        assertThat(XirrCalculator.cagr(null, new BigDecimal("1100"), 365)).isNull();
+        assertThat(XirrCalculator.cagr(new BigDecimal("1000"), null, 365)).isNull();
     }
 }

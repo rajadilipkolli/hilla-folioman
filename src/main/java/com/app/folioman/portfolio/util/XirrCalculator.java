@@ -9,14 +9,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Utility class for financial calculations related to investments.
  */
 public class XirrCalculator {
-    private static final Logger LOGGER = LoggerFactory.getLogger(XirrCalculator.class);
 
     private static final BigDecimal DAYS_PER_YEAR = new BigDecimal("365.2425");
     private static final int CALCULATION_SCALE = 16;
@@ -372,5 +369,32 @@ public class XirrCalculator {
             valuesPerDate.merge(dates.get(i), values.get(i), BigDecimal::add);
         }
         return whichXirr.apply(valuesPerDate);
+    }
+
+    /**
+     * Calculates the Compound Annual Growth Rate (CAGR).
+     * Formula: (currentValue / invested)^(365.2425 / days) - 1
+     *
+     * @param invested The initial invested amount
+     * @param currentValue The current value of the investment
+     * @param days The number of days elapsed
+     * @return The CAGR as a BigDecimal, or null if inputs are invalid
+     */
+    public static BigDecimal cagr(BigDecimal invested, BigDecimal currentValue, long days) {
+        if (invested == null || currentValue == null || invested.compareTo(BigDecimal.ZERO) == 0 || days <= 0) {
+            return null;
+        }
+
+        // Calculate ratio: currentValue / invested
+        BigDecimal ratio = currentValue.divide(invested, MC);
+
+        // Calculate exponent: 365.2425 / days
+        double exponent = DAYS_PER_YEAR.doubleValue() / days;
+
+        // Calculate (ratio ^ exponent) - 1
+        // BigDecimal doesn't support fractional exponents directly, so we use Math.pow
+        double result = Math.pow(ratio.doubleValue(), exponent) - 1;
+
+        return new BigDecimal(String.valueOf(result), MC);
     }
 }
