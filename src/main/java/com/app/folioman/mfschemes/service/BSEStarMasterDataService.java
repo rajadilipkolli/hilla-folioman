@@ -74,13 +74,13 @@ class BSEStarMasterDataService {
                 .body(String.class);
 
         // Step 2: Parse the HTML response to extract hidden form fields
-        Map<String, String> formData = null;
+        @Nullable Map<String, String> formData = null;
         if (response != null) {
             formData = getExtractedFormData(response);
         }
 
         // Step 4: POST request to submit the form and download the master data
-        String bseMasterData = null;
+        @Nullable String bseMasterData = null;
         if (formData != null) {
             bseMasterData = restClient
                     .post()
@@ -98,7 +98,13 @@ class BSEStarMasterDataService {
         if (bseMasterData != null && !bseMasterData.isBlank()) {
             return parseResponseText(bseMasterData, amfiDataMap, amfiCodeIsinMapping);
         }
-        return Map.of();
+        // Always process AMFI fallback when BSE data is unavailable
+        Map<String, MfFundScheme> masterData = new ConcurrentHashMap<>();
+        for (Map.Entry<String, Map<String, String>> amfiEntry : amfiDataMap.entrySet()) {
+            String amfiCode = amfiEntry.getKey();
+            processAmfiFallback(amfiCode, amfiEntry.getValue(), masterData, amfiCodeIsinMapping);
+        }
+        return masterData;
     }
 
     private Map<String, MfFundScheme> parseResponseText(
@@ -205,23 +211,25 @@ class BSEStarMasterDataService {
         String isin = row[headerIndexKeyMap.get("ISIN")].strip();
         String schemeCode = row[headerIndexKeyMap.get("Scheme Code")].strip();
 
-        // Skip if better data exists
-        if (isinMasterData.containsKey(isin)
-                && isinMasterData.get(isin).getAmcCode().length() <= schemeCode.length()) {
-            return;
-        }
+        // Use atomic compute operation to ensure thread-safety
+        isinMasterData.compute(isin, (key, existingScheme) -> {
+            // Skip if better data exists (shorter scheme code is better)
+            if (existingScheme != null && existingScheme.getAmcCode().length() <= schemeCode.length()) {
+                return existingScheme;
+            }
 
-        MfFundScheme scheme = createMfFundScheme(row, headerIndexKeyMap, amfiDataMap.get(amfiCode));
-        scheme.setAmfiCode(Long.valueOf(amfiCode));
+            MfFundScheme scheme = createMfFundScheme(row, headerIndexKeyMap, amfiDataMap.get(amfiCode));
+            scheme.setAmfiCode(Long.valueOf(amfiCode));
 
-        // Process AMC
-        String amcCode = row[headerIndexKeyMap.get("AMC Code")].strip();
-        MfAmc amc = getOrCreateAmc(amcCode, amfiDataMap.get(amfiCode).get("AMC"));
-        scheme.setAmc(amc);
+            // Process AMC
+            String amcCode = row[headerIndexKeyMap.get("AMC Code")].strip();
+            MfAmc amc = getOrCreateAmc(amcCode, amfiDataMap.get(amfiCode).get("AMC"));
+            scheme.setAmc(amc);
 
-        // Add to masterData and isinMasterData
-        masterData.put(amfiCode, scheme);
-        isinMasterData.put(isin, scheme);
+            // Add to masterData atomically
+            masterData.put(amfiCode, scheme);
+            return scheme;
+        });
     }
 
     private MfAmc getOrCreateAmc(String amcCode, String amcName) {
