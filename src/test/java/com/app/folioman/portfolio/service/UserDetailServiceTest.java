@@ -8,6 +8,9 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.app.folioman.portfolio.UserSchemeDetailService;
+import com.app.folioman.portfolio.entities.CasTypeEnum;
+import com.app.folioman.portfolio.entities.FileTypeEnum;
+import com.app.folioman.portfolio.entities.InvestorInfo;
 import com.app.folioman.portfolio.entities.UserCASDetails;
 import com.app.folioman.portfolio.mapper.CasDetailsMapper;
 import com.app.folioman.portfolio.models.request.CasDTO;
@@ -23,6 +26,7 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -89,9 +93,9 @@ class UserDetailServiceTest {
         userCASDetails.setId(1L);
         userCASDetails.setFolios(new ArrayList<>());
         // ensure required enums and investor info are set to match DB constraints when used by services
-        userCASDetails.setCasTypeEnum(com.app.folioman.portfolio.entities.CasTypeEnum.DETAILED);
-        userCASDetails.setFileTypeEnum(com.app.folioman.portfolio.entities.FileTypeEnum.CAMS);
-        com.app.folioman.portfolio.entities.InvestorInfo ii = new com.app.folioman.portfolio.entities.InvestorInfo();
+        userCASDetails.setCasTypeEnum(CasTypeEnum.DETAILED);
+        userCASDetails.setFileTypeEnum(FileTypeEnum.CAMS);
+        InvestorInfo ii = new InvestorInfo();
         ii.setEmail("test@example.com");
         ii.setName("Test User");
         ii.setMobile("9848022338");
@@ -131,11 +135,14 @@ class UserDetailServiceTest {
         when(portfolioServiceHelper.readValue(fileBytes, CasDTO.class)).thenReturn(casDTO);
         when(investorInfoService.existsByEmailAndName("test@example.com", "Test User"))
                 .thenReturn(true);
+        when(userCASDetailsService.findByInvestorEmailAndName("test@example.com", "Test User"))
+                .thenReturn(Optional.of(userCASDetails));
         when(portfolioServiceHelper.countTransactionsByUserFolioDTOList(casDTO.folios()))
                 .thenReturn(5L);
         when(userTransactionDetailsService.findAllTransactionsByEmailNameAndPeriod(
                         eq("Test User"), eq("test@example.com"), any(LocalDate.class), any(LocalDate.class)))
                 .thenReturn(5L);
+        when(userCASDetailsService.saveEntity(userCASDetails)).thenReturn(userCASDetails);
 
         UploadFileResponse result = userDetailService.upload(multipartFile);
 
@@ -143,9 +150,11 @@ class UserDetailServiceTest {
         assertThat(result.newFolios()).isZero();
         assertThat(result.newSchemes()).isZero();
         assertThat(result.newTransactions()).isZero();
-        assertThat(result.userCASDetailsId()).isZero();
+        assertThat(result.userCASDetailsId()).isEqualTo(1L);
         verify(portfolioServiceHelper).readValue(fileBytes, CasDTO.class);
         verify(investorInfoService).existsByEmailAndName("test@example.com", "Test User");
+        verify(userCASDetailsService).saveEntity(userCASDetails);
+        verify(portfolioValueUpdateService).updatePortfolioValue(userCASDetails);
     }
 
     @Test
@@ -180,11 +189,14 @@ class UserDetailServiceTest {
     void uploadFromDto_ExistingUser_ShouldReturnUploadFileResponse() {
         when(investorInfoService.existsByEmailAndName("test@example.com", "Test User"))
                 .thenReturn(true);
+        when(userCASDetailsService.findByInvestorEmailAndName("test@example.com", "Test User"))
+                .thenReturn(Optional.of(userCASDetails));
         when(portfolioServiceHelper.countTransactionsByUserFolioDTOList(casDTO.folios()))
                 .thenReturn(3L);
         when(userTransactionDetailsService.findAllTransactionsByEmailNameAndPeriod(
                         eq("Test User"), eq("test@example.com"), any(LocalDate.class), any(LocalDate.class)))
                 .thenReturn(3L);
+        when(userCASDetailsService.saveEntity(userCASDetails)).thenReturn(userCASDetails);
 
         UploadFileResponse result = userDetailService.uploadFromDto(casDTO);
 
@@ -192,8 +204,10 @@ class UserDetailServiceTest {
         assertThat(result.newFolios()).isZero();
         assertThat(result.newSchemes()).isZero();
         assertThat(result.newTransactions()).isZero();
-        assertThat(result.userCASDetailsId()).isZero();
+        assertThat(result.userCASDetailsId()).isEqualTo(1L);
         verify(investorInfoService).existsByEmailAndName("test@example.com", "Test User");
+        verify(userCASDetailsService).saveEntity(userCASDetails);
+        verify(portfolioValueUpdateService).updatePortfolioValue(userCASDetails);
     }
 
     @Test

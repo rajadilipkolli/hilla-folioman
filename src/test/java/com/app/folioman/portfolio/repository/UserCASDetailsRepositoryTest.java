@@ -70,7 +70,7 @@ class UserCASDetailsRepositoryTest {
 
     @Test
     @ResourceLock(value = "database", mode = ResourceAccessMode.READ)
-    void findByInvestorEmailAndName_ShouldReturnNull_WhenNoMatchingRecord() {
+    void findByInvestorEmailAndName_ShouldReturnEmptyOptional_WhenNoMatchingRecord() {
         String email = "nonexistent@example.com";
         String name = "Nonexistent User";
 
