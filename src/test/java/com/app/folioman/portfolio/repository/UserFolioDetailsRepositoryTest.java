@@ -12,6 +12,7 @@ import com.app.folioman.portfolio.entities.UserFolioDetails;
 import com.app.folioman.portfolio.models.projection.UserFolioDetailsPanProjection;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -80,10 +81,10 @@ class UserFolioDetailsRepositoryTest {
         Long nonExistentUserCasId = 999L;
         String kycStatus = "NOT OK";
 
-        UserFolioDetailsPanProjection result =
+        Optional<UserFolioDetailsPanProjection> result =
                 userFolioDetailsRepository.findFirstByUserCasDetails_IdAndPanKyc(nonExistentUserCasId, kycStatus);
 
-        assertThat(result).isNull();
+        assertThat(result).isEmpty();
     }
 
     @Test
