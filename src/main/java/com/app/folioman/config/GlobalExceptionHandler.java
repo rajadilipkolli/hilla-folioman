@@ -24,7 +24,7 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @RestControllerAdvice
 class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @Override
     protected ResponseEntity<Object> handleMethodArgumentNotValid(
@@ -73,7 +73,7 @@ class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     ProblemDetail handleUnexpected(Exception e) {
-        log.error("Unexpected error occurred", e);
+        LOGGER.error("Unexpected error occurred", e);
         ProblemDetail problemDetail =
                 ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, "An unexpected error occurred");
         problemDetail.setTitle("Internal Server Error");

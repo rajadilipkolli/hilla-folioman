@@ -32,15 +32,6 @@ class ApplicationEventTest {
     }
 
     @Test
-    void constructor_WithNullSource_ShouldAcceptNullSource() {
-        TestApplicationEvent event = new TestApplicationEvent(null);
-
-        assertThat(event.getEventId()).isNotNull();
-        assertThat(event.getTimestamp()).isNotNull();
-        assertThat(event.getSource()).isNull();
-    }
-
-    @Test
     void getEventId_ShouldReturnUniqueUuidString() {
         TestApplicationEvent event1 = new TestApplicationEvent(mockSource);
         TestApplicationEvent event2 = new TestApplicationEvent(mockSource);

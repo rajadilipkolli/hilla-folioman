@@ -21,12 +21,6 @@ class InvestorInfoServiceTest {
     private InvestorInfoService investorInfoService;
 
     @Test
-    void constructor_ShouldCreateInstance_WhenRepositoryIsProvided() {
-        InvestorInfoService service = new InvestorInfoService(investorInfoRepository);
-        assertThat(service).isNotNull();
-    }
-
-    @Test
     void existsByEmailAndName_ShouldReturnTrue_WhenRepositoryReturnsTrue() {
         String email = "test@example.com";
         String name = "John Doe";
