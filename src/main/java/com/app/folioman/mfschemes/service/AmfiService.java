@@ -6,7 +6,6 @@ import com.opencsv.exceptions.CsvException;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,17 +58,14 @@ class AmfiService {
         try (StringReader stringReader = new StringReader(csvContent);
                 CSVReader csvReader = new CSVReader(stringReader)) {
 
-            List<String[]> rows = csvReader.readAll();
-            if (rows == null || rows.isEmpty()) {
+            String[] headers = csvReader.readNext();
+            if (headers == null) {
                 return data;
             }
 
-            String[] headers = rows.getFirst(); // First row is the header
-
-            // Process each row (starting from the second row)
-            for (int i = 1; i < rows.size(); i++) {
-                String[] row = rows.get(i);
-
+            // Process each row incrementally
+            String[] row;
+            while ((row = csvReader.readNext()) != null) {
                 // Get the 'Code' column value
                 String code = row[1].strip();
 
