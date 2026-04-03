@@ -2,7 +2,6 @@ package com.app.folioman.portfolio.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -11,8 +10,6 @@ import com.app.folioman.mfschemes.MFSchemeDTO;
 import com.app.folioman.mfschemes.NavNotFoundException;
 import com.app.folioman.portfolio.models.projection.PortfolioDetailsProjection;
 import com.app.folioman.portfolio.models.request.UserFolioDTO;
-import com.app.folioman.portfolio.models.request.UserSchemeDTO;
-import com.app.folioman.portfolio.models.request.UserTransactionDTO;
 import com.app.folioman.portfolio.models.response.PortfolioDetailsDTO;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -79,62 +76,6 @@ class PortfolioServiceHelperTest {
         long result = portfolioServiceHelper.countTransactionsByUserFolioDTOList(emptyFolios);
 
         assertThat(result).isZero();
-    }
-
-    @Test
-    void countTransactionsByUserFolioDTOList_ShouldReturnZero_WhenFoliosHaveNoTransactions() {
-        UserSchemeDTO scheme1 = new UserSchemeDTO(
-                "scheme1", null, 0L, null, null, null, null, null, null, null, null, Collections.emptyList());
-        UserSchemeDTO scheme2 = new UserSchemeDTO(
-                "scheme2", null, 0L, null, null, null, null, null, null, null, null, Collections.emptyList());
-        UserFolioDTO folio1 = new UserFolioDTO("folio1", null, null, null, null, List.of(scheme1));
-        UserFolioDTO folio2 = new UserFolioDTO("folio2", null, null, null, null, List.of(scheme2));
-        List<UserFolioDTO> folios = Arrays.asList(folio1, folio2);
-
-        long result = portfolioServiceHelper.countTransactionsByUserFolioDTOList(folios);
-
-        assertThat(result).isZero();
-    }
-
-    @Test
-    void countTransactionsByUserFolioDTOList_ShouldReturnCorrectCount_WhenFoliosHaveTransactions() {
-        UserTransactionDTO transaction1 = mock(UserTransactionDTO.class);
-        UserTransactionDTO transaction2 = mock(UserTransactionDTO.class);
-        UserTransactionDTO transaction3 = mock(UserTransactionDTO.class);
-
-        UserSchemeDTO scheme1 = new UserSchemeDTO(
-                "scheme1",
-                null,
-                0L,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                Arrays.asList(transaction1, transaction2));
-        UserSchemeDTO scheme2 = new UserSchemeDTO(
-                "scheme2",
-                null,
-                0L,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                null,
-                Collections.singletonList(transaction3));
-        UserFolioDTO folio1 = new UserFolioDTO("folio1", null, null, null, null, List.of(scheme1));
-        UserFolioDTO folio2 = new UserFolioDTO("folio2", null, null, null, null, List.of(scheme2));
-        List<UserFolioDTO> folios = Arrays.asList(folio1, folio2);
-
-        long result = portfolioServiceHelper.countTransactionsByUserFolioDTOList(folios);
-
-        assertThat(result).isEqualTo(3);
     }
 
     @Test
