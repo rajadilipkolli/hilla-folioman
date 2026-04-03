@@ -45,10 +45,11 @@ class MfHistoricalNavService {
         String fromDate = navDate.minusDays(3).format(CommonConstants.FORMATTER_DD_MMM_YYYY);
         URI historicalNavUri = buildHistoricalNavUri(toDate, fromDate);
         Optional<MfFundScheme> bySchemeCode = this.mfSchemeService.findBySchemeCode(schemeCode);
-        return bySchemeCode
-                .map(mfFundScheme ->
-                        fetchAndProcessNavData(historicalNavUri, mfFundScheme.getIsin(), false, schemeCode, navDate))
-                .orElseGet(() -> handleDiscontinuedScheme(schemeCode, historicalNavUri, navDate));
+        if (bySchemeCode.isPresent()) {
+            MfFundScheme mfFundScheme = bySchemeCode.get();
+            return fetchAndProcessNavData(historicalNavUri, mfFundScheme.getIsin(), false, schemeCode, navDate);
+        }
+        return handleDiscontinuedScheme(schemeCode, historicalNavUri, navDate);
     }
 
     private @Nullable String handleDiscontinuedScheme(Long schemeCode, URI historicalNavUri, LocalDate navDate) {

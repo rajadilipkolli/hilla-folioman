@@ -269,16 +269,12 @@ class MfSchemeServiceImpl implements MfSchemeService {
     }
 
     private void processResponseEntity(Long schemeCode, NavResponse navResponse) {
-        boolean existsByAmfiCode = this.mFSchemeRepository.existsByAmfiCode(schemeCode);
-        if (existsByAmfiCode) {
-            mergeList(
-                    navResponse,
-                    this.mFSchemeRepository.findByAmfiCode(schemeCode).get(),
-                    schemeCode);
-        } else {
-            // Scenario where scheme is discontinued or merged with other
-            LOGGER.error("Found Discontinued SchemeCode : {}", schemeCode);
-        }
+        this.mFSchemeRepository
+                .findByAmfiCode(schemeCode)
+                .ifPresentOrElse(
+                        scheme -> mergeList(navResponse, scheme, schemeCode),
+                        // Scenario where scheme is discontinued or merged with other scheme, log and skip processing
+                        () -> LOGGER.error("Found Discontinued SchemeCode : {}", schemeCode));
     }
 
     /**

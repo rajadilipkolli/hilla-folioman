@@ -96,7 +96,7 @@ class UserCASDetailsServiceTest {
     }
 
     @Test
-    void findByInvestorEmailAndName_WithEmptyStrings_ShouldReturnNull() {
+    void findByInvestorEmailAndName_WithEmptyStrings_ShouldReturnEmptyOptional() {
         when(userCASDetailsRepository.findByInvestorEmailAndName("", "")).thenReturn(Optional.empty());
 
         Optional<UserCASDetails> result = userCASDetailsService.findByInvestorEmailAndName("", "");

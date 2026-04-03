@@ -2,9 +2,9 @@
 
 Use a **domain-driven, modular layout**: organize packages by **business modules**, not by technical layers.
 
-### Recommended Example Package Structure
+## Recommended Example Package Structure
 
-```
+```text
 dev.sivalabs.projectname/
 ├── Application                      # Main Spring Boot entrypoint class
 ├── shared/                          # Cross-cutting concerns
@@ -58,7 +58,7 @@ Explanation of the above package structure:
   - **GlobalExceptionHandler.java**: Centralized exception handling using `@RestControllerAdvice` for consistent error responses.
 
 
-### Naming Conventions
+## Naming Conventions
 
 | Type                  | Convention           | Example                                                     |
 |-----------------------|----------------------|-------------------------------------------------------------|

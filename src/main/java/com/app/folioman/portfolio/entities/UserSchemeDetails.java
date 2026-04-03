@@ -136,7 +136,7 @@ public class UserSchemeDetails extends BaseEntity {
         return amfi;
     }
 
-    public UserSchemeDetails setAmfi(Long amfi) {
+    public UserSchemeDetails setAmfi(@Nullable Long amfi) {
         this.amfi = amfi;
         return this;
     }

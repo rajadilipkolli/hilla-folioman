@@ -156,4 +156,17 @@ class GlobalExceptionHandlerTest {
         assertThat(result.getDetail()).isEqualTo(errorMessage);
         assertThat(result.getTitle()).isEqualTo("Constraint Violation");
     }
+
+    @Test
+    void handleUnexpected_ShouldReturnInternalServerErrorProblemDetail() {
+        Exception exception = new RuntimeException("Unexpected error");
+
+        ProblemDetail result = globalExceptionHandler.handleUnexpected(exception);
+
+        assertThat(result).isNotNull();
+        assertThat(result.getStatus()).isEqualTo(500);
+        assertThat(result.getDetail()).isEqualTo("An unexpected error occurred");
+        assertThat(result.getTitle()).isEqualTo("Internal Server Error");
+        assertThat(result.getProperties()).containsKey("timestamp");
+    }
 }

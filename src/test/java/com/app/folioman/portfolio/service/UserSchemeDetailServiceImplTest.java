@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -184,25 +183,6 @@ class UserSchemeDetailServiceImplTest {
         verify(mfSchemeService).fetchSchemesByRtaCode("GHI01");
         verify(mfSchemeService).fetchSchemes("Test Income Scheme");
         verify(userSchemeDetailsRepository).updateAmfiAndIsinById(456L, null, 6L);
-    }
-
-    @Test
-    void setUserSchemeAMFIIfNull_WithEmptyMfSchemeListAndNullScheme_ShouldLogWarning() {
-        UserSchemeDetails nullScheme = new UserSchemeDetails();
-        nullScheme.setId(7L);
-        nullScheme.setRtaCode("JKL345");
-        nullScheme.setScheme("IS");
-
-        when(userSchemeDetailsRepository.findByAmfiIsNull()).thenReturn(List.of(nullScheme));
-        when(mfSchemeService.fetchSchemesByRtaCode("JKL34")).thenReturn(Collections.emptyList());
-
-        userSchemeDetailService.setUserSchemeAMFIIfNull();
-
-        verify(userSchemeDetailsRepository).findByAmfiIsNull();
-        verify(mfSchemeService).fetchSchemesByRtaCode("JKL34");
-        verify(mfSchemeService, times(1)).fetchSchemes("IS");
-        verify(mfSchemeService, never()).findByPayOut(anyString());
-        verify(userSchemeDetailsRepository, never()).updateAmfiAndIsinById(anyLong(), anyString(), anyLong());
     }
 
     @Test

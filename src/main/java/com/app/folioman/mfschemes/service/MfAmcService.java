@@ -35,7 +35,10 @@ class MfAmcService {
     public MfAmc saveMfAmc(MfAmc amc) {
         MfAmc savedAmc = this.mfAmcCacheService.saveMfAmc(amc);
         // Update local cache after saving
-        amcNameCache.put(savedAmc.getName(), savedAmc);
+        String name = savedAmc.getName();
+        if (name != null) {
+            amcNameCache.put(name, savedAmc);
+        }
         return savedAmc;
     }
 

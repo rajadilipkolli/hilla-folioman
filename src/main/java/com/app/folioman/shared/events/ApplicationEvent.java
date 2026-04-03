@@ -1,6 +1,7 @@
 package com.app.folioman.shared.events;
 
 import java.time.Instant;
+import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -16,7 +17,7 @@ public abstract class ApplicationEvent {
     protected ApplicationEvent(Object source) {
         this.eventId = UUID.randomUUID().toString();
         this.timestamp = Instant.now();
-        this.source = source;
+        this.source = Objects.requireNonNull(source, "source must not be null");
     }
 
     public String getEventId() {
