@@ -74,13 +74,13 @@ class BSEStarMasterDataService {
                 .body(String.class);
 
         // Step 2: Parse the HTML response to extract hidden form fields
-        Map<String, String> formData = null;
+        @Nullable Map<String, String> formData = null;
         if (response != null) {
             formData = getExtractedFormData(response);
         }
 
         // Step 4: POST request to submit the form and download the master data
-        String bseMasterData = null;
+        @Nullable String bseMasterData = null;
         if (formData != null) {
             bseMasterData = restClient
                     .post()
@@ -95,58 +95,60 @@ class BSEStarMasterDataService {
 
         LOGGER.info("BSE Master data downloaded successfully.");
 
-        if (bseMasterData != null && !bseMasterData.isBlank()) {
-            return parseResponseText(bseMasterData, amfiDataMap, amfiCodeIsinMapping);
-        }
-        return Map.of();
+        return parseResponseText(bseMasterData, amfiDataMap, amfiCodeIsinMapping);
     }
 
     private Map<String, MfFundScheme> parseResponseText(
-            String bseMasterData, Map<String, Map<String, String>> amfiDataMap, Map<String, String> amfiCodeIsinMapping)
+            @Nullable String bseMasterData,
+            Map<String, Map<String, String>> amfiDataMap,
+            Map<String, String> amfiCodeIsinMapping)
             throws IOException, CsvException {
         Map<String, MfFundScheme> masterData = new ConcurrentHashMap<>();
         Map<String, MfFundScheme> isinMasterData = new ConcurrentHashMap<>();
 
-        // Process BSE Master Data
-        try (StringReader stringReader = new StringReader(bseMasterData);
-                CSVReader csvReader = new CSVReader(stringReader)) {
+        // Process BSE Master Data only if available
+        if (bseMasterData != null && !bseMasterData.isBlank()) {
+            try (StringReader stringReader = new StringReader(bseMasterData);
+                    CSVReader csvReader = new CSVReader(stringReader)) {
 
-            String[] headerRow = csvReader.readNext(); // Read first row as headers
-            if (headerRow == null) return masterData; // If empty, return immediately
+                String[] headerRow = csvReader.readNext(); // Read first row as headers
+                if (headerRow != null) {
+                    Map<String, Integer> headerIndexKeyMap = mapHeaders(headerRow); // Map headers once
 
-            Map<String, Integer> headerIndexKeyMap = mapHeaders(headerRow); // Map headers once
+                    // Read and process rows one by one, avoiding readAll()
+                    List<CompletableFuture<Void>> futures = new ArrayList<>();
+                    String[] rows;
+                    while ((rows = csvReader.readNext()) != null) {
+                        String[] row = getDataAsArray(rows);
+                        // Submit each task as a CompletableFuture for parallel execution
+                        CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+                                    String isin = row[headerIndexKeyMap.get("ISIN")].strip();
+                                    String amfiCode = amfiCodeIsinMapping.get(isin);
 
-            // Read and process rows one by one, avoiding readAll()
-            List<CompletableFuture<Void>> futures = new ArrayList<>();
-            String[] rows;
-            while ((rows = csvReader.readNext()) != null) {
-                String[] row = getDataAsArray(rows);
-                // Submit each task as a CompletableFuture for parallel execution
-                CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
-                            String isin = row[headerIndexKeyMap.get("ISIN")].strip();
-                            String amfiCode = amfiCodeIsinMapping.get(isin);
+                                    if (amfiCode != null) {
+                                        // Ensure processSchemeData is thread-safe or synchronized if required
+                                        processSchemeData(
+                                                row, headerIndexKeyMap, masterData, isinMasterData, amfiDataMap, amfiCode);
+                                    }
+                                })
+                                .exceptionally(ex -> {
+                                    LOGGER.error("Error processing scheme data: ", ex);
+                                    return null;
+                                });
+                        ;
 
-                            if (amfiCode != null) {
-                                // Ensure processSchemeData is thread-safe or synchronized if required
-                                processSchemeData(
-                                        row, headerIndexKeyMap, masterData, isinMasterData, amfiDataMap, amfiCode);
-                            }
-                        })
-                        .exceptionally(ex -> {
-                            LOGGER.error("Error processing scheme data: ", ex);
-                            return null;
-                        });
-                ;
+                        // Add the future to the list
+                        futures.add(future);
+                    }
 
-                // Add the future to the list
-                futures.add(future);
+                    // Wait for all tasks to complete by combining all CompletableFutures
+                    CompletableFuture<Void> allOf =
+                            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+
+                    // This ensures that the code waits for all parallel tasks to finish
+                    allOf.join();
+                }
             }
-
-            // Wait for all tasks to complete by combining all CompletableFutures
-            CompletableFuture<Void> allOf = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
-
-            // This ensures that the code waits for all parallel tasks to finish
-            allOf.join();
         }
 
         // Fill remaining data from amfiCodeIsinMapping if not present in BSE Master Data
@@ -205,23 +207,26 @@ class BSEStarMasterDataService {
         String isin = row[headerIndexKeyMap.get("ISIN")].strip();
         String schemeCode = row[headerIndexKeyMap.get("Scheme Code")].strip();
 
-        // Skip if better data exists
-        if (isinMasterData.containsKey(isin)
-                && isinMasterData.get(isin).getAmcCode().length() <= schemeCode.length()) {
-            return;
-        }
+        // Use atomic compute to handle the race condition
+        isinMasterData.compute(isin, (key, existingScheme) -> {
+            // Skip if better data exists
+            if (existingScheme != null && existingScheme.getAmcCode().length() <= schemeCode.length()) {
+                return existingScheme;
+            }
 
-        MfFundScheme scheme = createMfFundScheme(row, headerIndexKeyMap, amfiDataMap.get(amfiCode));
-        scheme.setAmfiCode(Long.valueOf(amfiCode));
+            MfFundScheme scheme = createMfFundScheme(row, headerIndexKeyMap, amfiDataMap.get(amfiCode));
+            scheme.setAmfiCode(Long.valueOf(amfiCode));
 
-        // Process AMC
-        String amcCode = row[headerIndexKeyMap.get("AMC Code")].strip();
-        MfAmc amc = getOrCreateAmc(amcCode, amfiDataMap.get(amfiCode).get("AMC"));
-        scheme.setAmc(amc);
+            // Process AMC
+            String amcCode = row[headerIndexKeyMap.get("AMC Code")].strip();
+            MfAmc amc = getOrCreateAmc(amcCode, amfiDataMap.get(amfiCode).get("AMC"));
+            scheme.setAmc(amc);
 
-        // Add to masterData and isinMasterData
-        masterData.put(amfiCode, scheme);
-        isinMasterData.put(isin, scheme);
+            // Add to masterData atomically
+            masterData.put(amfiCode, scheme);
+
+            return scheme;
+        });
     }
 
     private MfAmc getOrCreateAmc(String amcCode, String amcName) {

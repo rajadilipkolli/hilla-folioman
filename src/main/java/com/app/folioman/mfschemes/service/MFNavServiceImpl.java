@@ -134,7 +134,7 @@ class MFNavServiceImpl implements MFNavService {
     public void loadLastDayDataNav() {
         List<Long> historicalDataNotLoadedSchemeIdList = getHistoricalDataNotLoadedSchemeIdList();
         if (!historicalDataNotLoadedSchemeIdList.isEmpty()) {
-            String allNAVs = downloadAllNAVs();
+            @Nullable String allNAVs = downloadAllNAVs();
             Map<Long, NavHolder> amfiCodeNavMap;
             if (allNAVs != null && !allNAVs.isEmpty()) {
                 amfiCodeNavMap = getAmfiCodeNavMap(allNAVs);
@@ -169,7 +169,7 @@ class MFNavServiceImpl implements MFNavService {
 
     @Override
     public Map<String, String> getAmfiCodeIsinMap() {
-        String downloadedAllNAVs = downloadAllNAVs();
+        @Nullable String downloadedAllNAVs = downloadAllNAVs();
         if (downloadedAllNAVs != null && !downloadedAllNAVs.isEmpty()) {
             return getAmfiCodeIsinMap(downloadedAllNAVs);
         }
@@ -255,7 +255,7 @@ class MFNavServiceImpl implements MFNavService {
 
     private @Nullable String downloadAllNAVs() {
         LOGGER.info("Downloading NAVAll from AMFI");
-        String allNAVs = null;
+        @Nullable String allNAVs = null;
         try {
             allNAVs = restClient
                     .get()
