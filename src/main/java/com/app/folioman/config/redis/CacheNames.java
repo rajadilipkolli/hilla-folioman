@@ -11,6 +11,7 @@ public final class CacheNames {
 
     // Portfolio module caches
     public static final String TRANSACTION_CACHE = "transactionCache";
+    public static final String RETURNS_CACHE = "returnsCache";
 
     // Prevent instantiation
     private CacheNames() {
