@@ -11,10 +11,9 @@ public interface SchemeNAVDataDtoToEntityMapper {
 
     @Mapping(target = "mfScheme", ignore = true)
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "lastModifiedDate", ignore = true)
-    @Mapping(target = "lastModifiedBy", ignore = true)
-    @Mapping(target = "createdDate", ignore = true)
-    @Mapping(target = "createdBy", ignore = true)
+    @Mapping(target = "version", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "navDate", source = "date")
     @Mapping(target = "mfScheme.amfiCode", source = "schemeId")
     MFSchemeNav schemeNAVDataDTOToEntity(SchemeNAVDataDTO schemeNAVDataDTO);

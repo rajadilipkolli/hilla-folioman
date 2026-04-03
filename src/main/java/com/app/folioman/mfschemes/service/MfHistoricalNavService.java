@@ -13,6 +13,7 @@ import java.io.StringReader;
 import java.net.URI;
 import java.time.LocalDate;
 import java.util.Optional;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -39,25 +40,28 @@ class MfHistoricalNavService {
         this.mfSchemeDtoToEntityMapper = mfSchemeDtoToEntityMapper;
     }
 
-    public String getHistoricalNav(Long schemeCode, LocalDate navDate) {
+    public @Nullable String getHistoricalNav(Long schemeCode, LocalDate navDate) {
         String toDate = navDate.format(CommonConstants.FORMATTER_DD_MMM_YYYY);
         String fromDate = navDate.minusDays(3).format(CommonConstants.FORMATTER_DD_MMM_YYYY);
         URI historicalNavUri = buildHistoricalNavUri(toDate, fromDate);
         Optional<MfFundScheme> bySchemeCode = this.mfSchemeService.findBySchemeCode(schemeCode);
-        if (bySchemeCode.isPresent()) {
-            return fetchAndProcessNavData(historicalNavUri, bySchemeCode.get().getIsin(), false, schemeCode, navDate);
-        } else {
-            return handleDiscontinuedScheme(schemeCode, historicalNavUri, navDate);
-        }
+        return bySchemeCode
+                .map(mfFundScheme ->
+                        fetchAndProcessNavData(historicalNavUri, mfFundScheme.getIsin(), false, schemeCode, navDate))
+                .orElseGet(() -> handleDiscontinuedScheme(schemeCode, historicalNavUri, navDate));
     }
 
-    private String handleDiscontinuedScheme(Long schemeCode, URI historicalNavUri, LocalDate navDate) {
+    private @Nullable String handleDiscontinuedScheme(Long schemeCode, URI historicalNavUri, LocalDate navDate) {
         // TODO handle scenario where schemes are merged using ISIN
         return fetchAndProcessNavData(historicalNavUri, null, true, schemeCode, navDate);
     }
 
-    private String fetchAndProcessNavData(
-            URI historicalNavUri, String payOut, boolean persistSchemeInfo, Long schemeCode, LocalDate navDate) {
+    private @Nullable String fetchAndProcessNavData(
+            URI historicalNavUri,
+            @Nullable String payOut,
+            boolean persistSchemeInfo,
+            Long schemeCode,
+            LocalDate navDate) {
         try {
             String allNAVsByDate = fetchHistoricalNavData(historicalNavUri);
             if (allNAVsByDate == null || allNAVsByDate.isBlank()) {
@@ -75,8 +79,8 @@ class MfHistoricalNavService {
         }
     }
 
-    private String parseNavData(
-            Reader inputString, String isin, boolean persistSchemeInfo, Long schemeCode, LocalDate navDate) {
+    private @Nullable String parseNavData(
+            Reader inputString, @Nullable String isin, boolean persistSchemeInfo, Long schemeCode, LocalDate navDate) {
         String oldSchemeId = null;
         try (BufferedReader br = new BufferedReader(inputString)) {
             String lineValue = br.readLine();
@@ -114,10 +118,10 @@ class MfHistoricalNavService {
     }
 
     private String handleMultipleTokenLine(
-            String isin,
+            @Nullable String isin,
             boolean persistSchemeInfo,
             String[] tokenize,
-            String oldSchemeId,
+            @Nullable String oldSchemeId,
             String amc,
             String schemeType,
             Long inputSchemeCode) {
@@ -145,7 +149,7 @@ class MfHistoricalNavService {
         return lineValue;
     }
 
-    private String fetchHistoricalNavData(URI historicalNavUri) {
+    private @Nullable String fetchHistoricalNavData(URI historicalNavUri) {
         return restClient.get().uri(historicalNavUri).retrieve().body(String.class);
     }
 

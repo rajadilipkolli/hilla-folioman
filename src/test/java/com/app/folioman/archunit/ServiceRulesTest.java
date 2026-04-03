@@ -25,6 +25,8 @@ class ServiceRulesTest {
             .areNotMemberClasses()
             .and()
             .areNotAnonymousClasses()
+            .and()
+            .doNotHaveSimpleName("package-info")
             .should()
             .beAnnotatedWith(Service.class)
             .because(ANNOTATED_EXPLANATION.formatted(SERVICE_SUFFIX, "@Service"));

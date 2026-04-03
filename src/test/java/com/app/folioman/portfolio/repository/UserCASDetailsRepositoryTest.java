@@ -14,6 +14,7 @@ import com.app.folioman.portfolio.models.projection.PortfolioDetailsProjection;
 import com.app.folioman.portfolio.models.request.TransactionType;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.ResourceAccessMode;
 import org.junit.jupiter.api.parallel.ResourceLock;
@@ -41,12 +42,12 @@ class UserCASDetailsRepositoryTest {
 
         entityManager.persistAndFlush(userCASDetails);
 
-        UserCASDetails result = userCASDetailsRepository.findByInvestorEmailAndName(email, name);
+        Optional<UserCASDetails> result = userCASDetailsRepository.findByInvestorEmailAndName(email, name);
 
         // Assertions would depend on the actual entity structure and test data
-        assertThat(result).isNotNull();
-        assertThat(result.getInvestorInfo().getEmail()).isEqualTo(email);
-        assertThat(result.getInvestorInfo().getName()).isEqualTo(name);
+        assertThat(result).isPresent();
+        assertThat(result.get().getInvestorInfo().getEmail()).isEqualTo(email);
+        assertThat(result.get().getInvestorInfo().getName()).isEqualTo(name);
     }
 
     private UserCASDetails getUserCASDetails(String email, String name) {
@@ -73,9 +74,9 @@ class UserCASDetailsRepositoryTest {
         String email = "nonexistent@example.com";
         String name = "Nonexistent User";
 
-        UserCASDetails result = userCASDetailsRepository.findByInvestorEmailAndName(email, name);
+        Optional<UserCASDetails> result = userCASDetailsRepository.findByInvestorEmailAndName(email, name);
 
-        assertThat(result).isNull();
+        assertThat(result).isEmpty();
     }
 
     @Test

@@ -37,8 +37,8 @@ class PortfolioServiceHelper {
     public long countTransactionsByUserFolioDTOList(List<UserFolioDTO> folios) {
         return folios.stream()
                 .flatMap(folio -> folio.schemes().stream())
-                .flatMap(scheme -> scheme.transactions().stream())
-                .count();
+                .mapToLong(scheme -> scheme.transactions().size())
+                .sum();
     }
 
     public <T> List<T> joinFutures(List<CompletableFuture<T>> futures) {

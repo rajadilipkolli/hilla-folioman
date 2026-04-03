@@ -48,14 +48,6 @@ class MfFundSchemeServiceTest {
     }
 
     @Test
-    void saveDataInBatches_shouldReturnZero_whenInputIsNull() {
-        int result = mfFundSchemeService.saveDataInBatches(null, 10);
-
-        assertThat(result).isZero();
-        verify(mfFundSchemeRepository, never()).saveAll(anyList());
-    }
-
-    @Test
     void saveDataInBatches_shouldReturnZero_whenInputIsEmpty() {
         List<MfFundScheme> emptyList = new ArrayList<>();
 

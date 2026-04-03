@@ -19,7 +19,7 @@ public class AppDataSourceProperties {
 
     @Valid
     @NestedConfigurationProperty
-    private AcquisitionStrategy acquisitionStrategy;
+    private AcquisitionStrategy acquisitionStrategy = new AcquisitionStrategy();
 
     @Valid
     @NestedConfigurationProperty
@@ -66,17 +66,17 @@ public class AppDataSourceProperties {
         /** Number of retry attempts for connection acquisition */
         @Min(value = 1, message = "At least one retry must be configured")
         @Max(value = 10, message = "Maximum 10 retries allowed")
-        private int retries;
+        private int retries = 1;
 
         /** Timeout increment in milliseconds between retries */
         @Min(value = 50, message = "Increment timeout must be at least 50ms")
-        private int incrementTimeout;
+        private int incrementTimeout = 50;
 
         @Positive(message = "Lease time threshold must be non-negative")
-        private long leaseTimeThreshold;
+        private long leaseTimeThreshold = 1000;
 
         @Min(value = 100, message = "Acquisition timeout must be at least 100ms")
-        private long acquisitionTimeout;
+        private long acquisitionTimeout = 1000;
 
         public int getRetries() {
             return retries;

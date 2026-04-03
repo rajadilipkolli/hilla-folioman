@@ -11,6 +11,7 @@ import com.app.folioman.portfolio.repository.UserFolioDetailsRepository;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -88,7 +89,7 @@ class UserFolioDetailServiceTest {
 
         when(panProjection.getPan()).thenReturn(testPan);
         when(userFolioDetailsRepository.findFirstByUserCasDetails_IdAndPanKyc(userCasID, "OK"))
-                .thenReturn(panProjection);
+                .thenReturn(Optional.of(panProjection));
         when(userFolioDetailsRepository.updatePanByCasId(testPan, userCasID)).thenReturn(expectedRowsUpdated);
 
         userFolioDetailService.setPANIfNotSet(userCasID);
@@ -99,14 +100,13 @@ class UserFolioDetailServiceTest {
     }
 
     @Test
-    void setPANIfNotSetWithNullProjection() {
+    void setPANIfNotSetWithEmptyProjection() {
         Long userCasID = 456L;
 
         when(userFolioDetailsRepository.findFirstByUserCasDetails_IdAndPanKyc(userCasID, "OK"))
-                .thenReturn(null);
+                .thenReturn(Optional.empty());
 
-        assertThatExceptionOfType(NullPointerException.class)
-                .isThrownBy(() -> userFolioDetailService.setPANIfNotSet(userCasID));
+        userFolioDetailService.setPANIfNotSet(userCasID);
 
         verify(userFolioDetailsRepository).findFirstByUserCasDetails_IdAndPanKyc(userCasID, "OK");
     }
@@ -119,7 +119,7 @@ class UserFolioDetailServiceTest {
 
         when(panProjection.getPan()).thenReturn(testPan);
         when(userFolioDetailsRepository.findFirstByUserCasDetails_IdAndPanKyc(userCasID, "OK"))
-                .thenReturn(panProjection);
+                .thenReturn(Optional.of(panProjection));
         when(userFolioDetailsRepository.updatePanByCasId(testPan, userCasID)).thenReturn(expectedRowsUpdated);
 
         userFolioDetailService.setPANIfNotSet(userCasID);

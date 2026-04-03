@@ -61,7 +61,7 @@ public interface MfFundSchemeRepository extends JpaRepository<MfFundScheme, Long
             @Param("schemeCode") Long schemeCode, @Param("date") LocalDate navDate);
 
     @EntityGraph(attributePaths = {"amc", "mfSchemeType", "mfSchemeNavs"})
-    MfFundScheme findByAmfiCode(@Param("amfiCode") Long amfiCode);
+    Optional<MfFundScheme> findByAmfiCode(@Param("amfiCode") Long amfiCode);
 
     boolean existsByAmfiCode(Long amfiCode);
 

@@ -10,6 +10,8 @@
  * This is a base module that can be used by any other module.
  */
 @ApplicationModule(displayName = "Shared Components")
+@NullMarked
 package com.app.folioman.shared;
 
+import org.jspecify.annotations.NullMarked;
 import org.springframework.modulith.ApplicationModule;

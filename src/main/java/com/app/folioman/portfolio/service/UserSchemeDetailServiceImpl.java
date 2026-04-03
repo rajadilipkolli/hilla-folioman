@@ -9,6 +9,7 @@ import com.app.folioman.portfolio.repository.UserSchemeDetailsRepository;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -62,15 +63,11 @@ class UserSchemeDetailServiceImpl implements UserSchemeDetailService {
 
     private void handleEmptyMfSchemeList(UserSchemeDetails userSchemeDetails) {
         String scheme = userSchemeDetails.getScheme();
-        if (scheme == null) {
-            LOGGER.warn("Scheme is null for userSchemeDetailsEntity with id: {}", userSchemeDetails.getId());
+        LOGGER.info("AMFI is null for scheme: {}", scheme);
+        if (scheme.contains("ISIN:")) {
+            extractAndProcessIsin(userSchemeDetails, scheme);
         } else {
-            LOGGER.info("AMFI is null for scheme: {}", scheme);
-            if (scheme.contains("ISIN:")) {
-                extractAndProcessIsin(userSchemeDetails, scheme);
-            } else {
-                processSchemeWithoutIsin(userSchemeDetails, scheme);
-            }
+            processSchemeWithoutIsin(userSchemeDetails, scheme);
         }
     }
 
@@ -112,11 +109,11 @@ class UserSchemeDetailServiceImpl implements UserSchemeDetailService {
                 });
     }
 
-    private void updateUserSchemeDetails(Long userSchemeId, Long schemeId, String isin) {
+    private void updateUserSchemeDetails(Long userSchemeId, Long schemeId, @Nullable String isin) {
         userSchemeDetailsRepository.updateAmfiAndIsinById(schemeId, isin, userSchemeId);
     }
 
-    private Long getSchemeId(List<FundDetailProjection> fundDetailProjections, String scheme) {
+    private @Nullable Long getSchemeId(List<FundDetailProjection> fundDetailProjections, String scheme) {
         return fundDetailProjections.stream()
                 .filter(fundDetailProjection -> isMatchingScheme(scheme, fundDetailProjection))
                 .map(FundDetailProjection::getAmfiCode)

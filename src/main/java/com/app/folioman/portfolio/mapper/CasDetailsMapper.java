@@ -21,10 +21,10 @@ public interface CasDetailsMapper {
 
     @Mapping(target = "folios", ignore = true)
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "lastModifiedDate", ignore = true)
-    @Mapping(target = "lastModifiedBy", ignore = true)
-    @Mapping(target = "createdDate", ignore = true)
-    @Mapping(target = "createdBy", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "version", ignore = true)
+    @Mapping(target = "investorInfo", ignore = true)
     @Mapping(target = "casTypeEnum", source = "casDTO.casType")
     @Mapping(target = "fileTypeEnum", source = "casDTO.fileType")
     UserCASDetails convert(
@@ -33,10 +33,9 @@ public interface CasDetailsMapper {
     @Mapping(target = "schemes", ignore = true)
     @Mapping(target = "userCasDetails", ignore = true)
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "lastModifiedDate", ignore = true)
-    @Mapping(target = "lastModifiedBy", ignore = true)
-    @Mapping(target = "createdDate", ignore = true)
-    @Mapping(target = "createdBy", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "version", ignore = true)
     UserFolioDetails mapUserFolioDTOToUserFolioDetails(
             UserFolioDTO folioDTO, AtomicInteger newSchemes, AtomicInteger newTransactions);
 
@@ -44,18 +43,15 @@ public interface CasDetailsMapper {
     @Mapping(target = "transactions", ignore = true)
     @Mapping(target = "userFolioDetails", ignore = true)
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "lastModifiedDate", ignore = true)
-    @Mapping(target = "lastModifiedBy", ignore = true)
-    @Mapping(target = "createdDate", ignore = true)
-    @Mapping(target = "createdBy", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
     UserSchemeDetails schemeDTOToSchemeEntity(UserSchemeDTO schemeDTO, AtomicInteger newTransactions);
 
     @Mapping(target = "userSchemeDetails", ignore = true)
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "lastModifiedDate", ignore = true)
-    @Mapping(target = "lastModifiedBy", ignore = true)
-    @Mapping(target = "createdDate", ignore = true)
-    @Mapping(target = "createdBy", ignore = true)
+    @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "version", ignore = true)
     @Mapping(target = "transactionDate", source = "date")
     UserTransactionDetails transactionDTOToTransactionEntity(UserTransactionDTO transactionDTO);
 

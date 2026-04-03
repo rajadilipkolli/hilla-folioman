@@ -73,7 +73,9 @@ class MfSchemeDtoToEntityMapperHelperImpl implements MfSchemeDtoToEntityMapperHe
                 LOGGER.error("Unable to parse schemeType :{}", schemeType);
             }
         }
-        mfScheme.setMfSchemeType(mfSchemeType);
+        if (mfSchemeType != null) {
+            mfScheme.setMfSchemeType(mfSchemeType);
+        }
         if (mfScheme.getAmc().getId() == null) {
             mfScheme.setAmc(findOrCreateAmcEntity(mfSchemeDTO.amc()));
         }
@@ -86,7 +88,7 @@ class MfSchemeDtoToEntityMapperHelperImpl implements MfSchemeDtoToEntityMapperHe
     /**
      * Creates a unique cache key for a scheme type based on its parameters
      */
-    private String createSchemeTypeKey(String type, String category, String subCategory) {
+    private String createSchemeTypeKey(String type, String category, @Nullable String subCategory) {
         return type + "|" + category + "|" + (subCategory != null ? subCategory : "");
     }
 
@@ -108,7 +110,9 @@ class MfSchemeDtoToEntityMapperHelperImpl implements MfSchemeDtoToEntityMapperHe
             MFSchemeType newSchemeType = new MFSchemeType();
             newSchemeType.setType(type);
             newSchemeType.setCategory(category);
-            newSchemeType.setSubCategory(subCategory);
+            if (subCategory != null) {
+                newSchemeType.setSubCategory(subCategory);
+            }
             return mfSchemeTypeService.saveCategory(newSchemeType);
         });
     }

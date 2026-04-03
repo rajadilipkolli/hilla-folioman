@@ -12,6 +12,8 @@
 @ApplicationModule(
         displayName = "Portfolio Management",
         allowedDependencies = {"mfschemes", "shared"})
+@NullMarked
 package com.app.folioman.portfolio;
 
+import org.jspecify.annotations.NullMarked;
 import org.springframework.modulith.ApplicationModule;

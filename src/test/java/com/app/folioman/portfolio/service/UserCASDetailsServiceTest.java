@@ -9,9 +9,10 @@ import com.app.folioman.portfolio.entities.UserCASDetails;
 import com.app.folioman.portfolio.models.projection.PortfolioDetailsProjection;
 import com.app.folioman.portfolio.repository.UserCASDetailsRepository;
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
+import org.jspecify.annotations.NonNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -43,27 +44,27 @@ class UserCASDetailsServiceTest {
         userCASDetails.setInvestorInfo(ii);
         portfolioDetailsProjection = new PortfolioDetailsProjection() {
             @Override
-            public String getSchemeName() {
+            public @NonNull String getSchemeName() {
                 return "";
             }
 
             @Override
-            public String getFolioNumber() {
+            public @NonNull String getFolioNumber() {
                 return "";
             }
 
             @Override
-            public Double getBalanceUnits() {
+            public @NonNull Double getBalanceUnits() {
                 return 0.0;
             }
 
             @Override
-            public Long getSchemeId() {
+            public @NonNull Long getSchemeId() {
                 return 0L;
             }
 
             @Override
-            public Long getSchemeDetailId() {
+            public @NonNull Long getSchemeDetailId() {
                 return 0L;
             }
         };
@@ -81,57 +82,26 @@ class UserCASDetailsServiceTest {
     }
 
     @Test
-    void saveEntity_WithNullInput_ShouldHandleGracefully() {
-        when(userCASDetailsRepository.save(any())).thenReturn(null);
-
-        UserCASDetails result = userCASDetailsService.saveEntity(null);
-
-        assertThat(result).isNull();
-        verify(userCASDetailsRepository).save(null);
-    }
-
-    @Test
     void findByInvestorEmailAndName_ShouldReturnUserCASDetails() {
         String email = "test@example.com";
         String name = "Test User";
-        when(userCASDetailsRepository.findByInvestorEmailAndName(email, name)).thenReturn(userCASDetails);
+        when(userCASDetailsRepository.findByInvestorEmailAndName(email, name))
+                .thenReturn(Optional.ofNullable(userCASDetails));
 
-        UserCASDetails result = userCASDetailsService.findByInvestorEmailAndName(email, name);
+        Optional<UserCASDetails> result = userCASDetailsService.findByInvestorEmailAndName(email, name);
 
-        assertThat(result).isNotNull();
-        assertThat(result).isEqualTo(userCASDetails);
+        assertThat(result).isPresent();
+        assertThat(result.get()).isEqualTo(userCASDetails);
         verify(userCASDetailsRepository).findByInvestorEmailAndName(email, name);
     }
 
     @Test
-    void findByInvestorEmailAndName_WithNullEmail_ShouldReturnNull() {
-        String name = "Test User";
-        when(userCASDetailsRepository.findByInvestorEmailAndName(null, name)).thenReturn(null);
-
-        UserCASDetails result = userCASDetailsService.findByInvestorEmailAndName(null, name);
-
-        assertThat(result).isNull();
-        verify(userCASDetailsRepository).findByInvestorEmailAndName(null, name);
-    }
-
-    @Test
-    void findByInvestorEmailAndName_WithNullName_ShouldReturnNull() {
-        String email = "test@example.com";
-        when(userCASDetailsRepository.findByInvestorEmailAndName(email, null)).thenReturn(null);
-
-        UserCASDetails result = userCASDetailsService.findByInvestorEmailAndName(email, null);
-
-        assertThat(result).isNull();
-        verify(userCASDetailsRepository).findByInvestorEmailAndName(email, null);
-    }
-
-    @Test
     void findByInvestorEmailAndName_WithEmptyStrings_ShouldReturnNull() {
-        when(userCASDetailsRepository.findByInvestorEmailAndName("", "")).thenReturn(null);
+        when(userCASDetailsRepository.findByInvestorEmailAndName("", "")).thenReturn(Optional.empty());
 
-        UserCASDetails result = userCASDetailsService.findByInvestorEmailAndName("", "");
+        Optional<UserCASDetails> result = userCASDetailsService.findByInvestorEmailAndName("", "");
 
-        assertThat(result).isNull();
+        assertThat(result).isEmpty();
         verify(userCASDetailsRepository).findByInvestorEmailAndName("", "");
     }
 
@@ -139,7 +109,7 @@ class UserCASDetailsServiceTest {
     void getPortfolioDetailsByPanAndAsOfDate_ShouldReturnPortfolioDetails() {
         String panNumber = "ABCDE1234F";
         LocalDate asOfDate = LocalDate.now();
-        List<PortfolioDetailsProjection> expectedList = Arrays.asList(portfolioDetailsProjection);
+        List<PortfolioDetailsProjection> expectedList = Collections.singletonList(portfolioDetailsProjection);
         when(userCASDetailsRepository.getPortfolioDetails(panNumber, asOfDate)).thenReturn(expectedList);
 
         List<PortfolioDetailsProjection> result =

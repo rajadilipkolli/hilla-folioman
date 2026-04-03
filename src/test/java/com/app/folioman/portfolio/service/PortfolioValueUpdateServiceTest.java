@@ -34,16 +34,10 @@ import com.app.folioman.portfolio.util.XirrCalculator;
 import com.app.folioman.shared.LocalDateUtility;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -109,7 +103,7 @@ class PortfolioValueUpdateServiceTest {
         existingFolioScheme.setId(10L);
         existingFolioScheme.setUserSchemeDetails(
                 userCASDetails.getFolios().getFirst().getSchemes().getFirst());
-        when(folioSchemeRepository.findByUserSchemeDetails_Id(anyLong())).thenReturn(existingFolioScheme);
+        when(folioSchemeRepository.findByUserSchemeDetails_Id(anyLong())).thenReturn(Optional.of(existingFolioScheme));
         when(folioSchemeRepository.save(any(FolioScheme.class))).thenReturn(existingFolioScheme);
         when(folioSchemeRepository.findByUserFolioDetails_Id(anyLong()))
                 .thenReturn(Collections.singletonList(existingFolioScheme));
@@ -117,7 +111,7 @@ class PortfolioValueUpdateServiceTest {
         SchemeValue sv = new SchemeValue();
         sv.setDate(LocalDate.now().minusDays(10));
         when(schemeValueRepository.findFirstByUserSchemeDetails_UserFolioDetails_IdOrderByDateDesc(anyLong()))
-                .thenReturn(sv);
+                .thenReturn(Optional.of(sv));
         // Provide some historical transactions so cashflow calculation runs
         when(userTransactionDetailsRepository.findByUserSchemeDetails_IdAndTransactionDateBefore(
                         anyLong(), any(LocalDate.class)))
@@ -335,7 +329,7 @@ class PortfolioValueUpdateServiceTest {
                 scheme.setRta(schemeDTO.rta());
                 scheme.setType(schemeDTO.type());
                 scheme.setUserFolioDetails(folio);
-                scheme.setCreatedDate(LocalDateTime.now().minusMonths(1));
+                scheme.setCreatedAt(Instant.now().minus(30, ChronoUnit.DAYS));
 
                 List<UserTransactionDetails> transactions = new ArrayList<>();
                 schemeDTO.transactions().forEach(transactionDTO -> {

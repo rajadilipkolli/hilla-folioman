@@ -1,5 +1,6 @@
 package com.app.folioman.portfolio.entities;
 
+import com.app.folioman.shared.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -23,7 +24,7 @@ import java.util.Objects;
                     name = "uc_userportfoliovalue_date",
                     columnNames = {"date", "user_cas_details_id"})
         })
-public class UserPortfolioValue {
+public class UserPortfolioValue extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_portfolio_value_seq")

@@ -2,6 +2,7 @@ package com.app.folioman.mfschemes.service;
 
 import com.app.folioman.mfschemes.entities.MFSchemeType;
 import com.app.folioman.mfschemes.repository.MFSchemeTypeRepository;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,7 +17,8 @@ class MFSchemeTypeService {
         this.mfSchemeTypeRepository = mfSchemeTypeRepository;
     }
 
-    public MFSchemeType findByTypeAndCategoryAndSubCategory(String type, String category, String subCategory) {
+    public @Nullable MFSchemeType findByTypeAndCategoryAndSubCategory(
+            String type, String category, @Nullable String subCategory) {
         return mfSchemeTypeRepository.findByTypeAndCategoryAndSubCategory(type, category, subCategory);
     }
 

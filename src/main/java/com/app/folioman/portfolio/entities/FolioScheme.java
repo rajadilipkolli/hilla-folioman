@@ -1,5 +1,6 @@
 package com.app.folioman.portfolio.entities;
 
+import com.app.folioman.shared.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -14,7 +15,7 @@ import java.time.LocalDate;
 
 @Entity
 @Table(name = "folioscheme", schema = "portfolio")
-public class FolioScheme {
+public class FolioScheme extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "folio_scheme_gen")

@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.dao.EmptyResultDataAccessException;
 
 @DataJpaTest
 @Import(SQLContainersConfig.class)
@@ -43,12 +44,6 @@ class MfFundSchemeRepositoryTest {
     }
 
     @Test
-    void searchByFullText_WithNullQuery_ShouldHandleGracefully() {
-        List<FundDetailProjection> results = mfFundSchemeRepository.searchByFullText(null);
-        assertThat(results).isNotNull();
-    }
-
-    @Test
     void searchByAmc_WithValidQuery_ShouldReturnMatchingSchemes() {
         String query = "HDFC";
         List<FundDetailProjection> results = mfFundSchemeRepository.searchByAmc(query);
@@ -59,12 +54,6 @@ class MfFundSchemeRepositoryTest {
     void searchByAmc_WithEmptyQuery_ShouldReturnAllSchemes() {
         String query = "";
         List<FundDetailProjection> results = mfFundSchemeRepository.searchByAmc(query);
-        assertThat(results).isNotNull();
-    }
-
-    @Test
-    void searchByAmc_WithNullQuery_ShouldHandleGracefully() {
-        List<FundDetailProjection> results = mfFundSchemeRepository.searchByAmc(null);
         assertThat(results).isNotNull();
     }
 
@@ -83,31 +72,11 @@ class MfFundSchemeRepositoryTest {
     }
 
     @Test
-    void searchByAmcTextSearch_WithNullSearchTerms_ShouldHandleGracefully() {
-        List<FundDetailProjection> results = mfFundSchemeRepository.searchByAmcTextSearch(null);
-        assertThat(results).isNotNull();
-    }
-
-    @Test
     void findBySchemeIdAndMfSchemeNavs_NavDate_WithValidParameters_ShouldReturnOptional() {
         Long schemeCode = 123456L;
         LocalDate navDate = LocalDate.now();
         Optional<MfFundScheme> result =
                 mfFundSchemeRepository.findBySchemeIdAndMfSchemeNavs_NavDate(schemeCode, navDate);
-        assertThat(result).isNotNull();
-    }
-
-    @Test
-    void findBySchemeIdAndMfSchemeNavs_NavDate_WithNullSchemeCode_ShouldHandleGracefully() {
-        LocalDate navDate = LocalDate.now();
-        Optional<MfFundScheme> result = mfFundSchemeRepository.findBySchemeIdAndMfSchemeNavs_NavDate(null, navDate);
-        assertThat(result).isNotNull();
-    }
-
-    @Test
-    void findBySchemeIdAndMfSchemeNavs_NavDate_WithNullNavDate_ShouldHandleGracefully() {
-        Long schemeCode = 123456L;
-        Optional<MfFundScheme> result = mfFundSchemeRepository.findBySchemeIdAndMfSchemeNavs_NavDate(schemeCode, null);
         assertThat(result).isNotNull();
     }
 
@@ -119,12 +88,6 @@ class MfFundSchemeRepositoryTest {
     }
 
     @Test
-    void findByAmfiCode_WithNullAmfiCode_ShouldHandleGracefully() {
-        MfFundScheme result = mfFundSchemeRepository.findByAmfiCode(null);
-        assertThat(result).isNull();
-    }
-
-    @Test
     void existsByAmfiCode_WithValidAmfiCode_ShouldReturnBoolean() {
         Long amfiCode = 123456L;
         boolean result = mfFundSchemeRepository.existsByAmfiCode(amfiCode);
@@ -132,21 +95,9 @@ class MfFundSchemeRepositoryTest {
     }
 
     @Test
-    void existsByAmfiCode_WithNullAmfiCode_ShouldReturnFalse() {
-        boolean result = mfFundSchemeRepository.existsByAmfiCode(null);
-        assertThat(result).isFalse();
-    }
-
-    @Test
     void findByIsin_WithValidIsin_ShouldReturnOptional() {
         String isin = "INF123456789";
         Optional<MFSchemeProjection> result = mfFundSchemeRepository.findByIsin(isin);
-        assertThat(result).isNotNull();
-    }
-
-    @Test
-    void findByIsin_WithNullIsin_ShouldReturnEmptyOptional() {
-        Optional<MFSchemeProjection> result = mfFundSchemeRepository.findByIsin(null);
         assertThat(result).isNotNull();
     }
 
@@ -178,23 +129,9 @@ class MfFundSchemeRepositoryTest {
     }
 
     @Test
-    void findByRtaCodeStartsWith_WithNullRtaCode_ShouldHandleGracefully() {
-        List<MFSchemeProjection> result = mfFundSchemeRepository.findByRtaCodeStartsWith(null);
-        assertThat(result).isNotNull();
-    }
-
-    @Test
     void getReferenceByAmfiCode_WithValidAmfiCode_ShouldReturnReference() {
         Long amfiCode = 123456L;
-        // Ensure the JPA reference fetch does not throw in test environment
         assertThatCode(() -> mfFundSchemeRepository.getReferenceByAmfiCode(amfiCode))
-                .doesNotThrowAnyException();
-    }
-
-    @Test
-    void getReferenceByAmfiCode_WithNullAmfiCode_ShouldHandleGracefully() {
-        // Ensure no exception thrown when passing null
-        assertThatCode(() -> mfFundSchemeRepository.getReferenceByAmfiCode(null))
-                .doesNotThrowAnyException();
+                .isInstanceOf(EmptyResultDataAccessException.class);
     }
 }

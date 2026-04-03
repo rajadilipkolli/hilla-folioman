@@ -4,6 +4,7 @@ import com.app.folioman.portfolio.entities.UserFolioDetails;
 import com.app.folioman.portfolio.models.projection.UserFolioDetailsPanProjection;
 import com.app.folioman.portfolio.repository.UserFolioDetailsRepository;
 import java.util.List;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -28,9 +29,12 @@ class UserFolioDetailService {
     // if panKYC is NOT OK then PAN is not set. hence manually setting it.
     public void setPANIfNotSet(Long userCasID) {
         // find pan by id
-        UserFolioDetailsPanProjection panProjection =
+        Optional<UserFolioDetailsPanProjection> panProjection =
                 userFolioDetailsRepository.findFirstByUserCasDetails_IdAndPanKyc(userCasID, "OK");
-        int rowsUpdated = userFolioDetailsRepository.updatePanByCasId(panProjection.getPan(), userCasID);
-        LOGGER.debug("Updated {} rows with PAN", rowsUpdated);
+        if (panProjection.isPresent()) {
+            int rowsUpdated = userFolioDetailsRepository.updatePanByCasId(
+                    panProjection.get().getPan(), userCasID);
+            LOGGER.debug("Updated {} rows with PAN", rowsUpdated);
+        }
     }
 }

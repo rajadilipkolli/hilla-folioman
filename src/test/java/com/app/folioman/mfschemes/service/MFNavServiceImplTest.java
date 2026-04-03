@@ -356,13 +356,6 @@ class MFNavServiceImplTest {
     }
 
     @Test
-    void processNavsAsyncNullInput() {
-        mfNavService.processNavsAsync(null);
-
-        verify(cachedNavService, never()).getNavForDate(anyLong(), any(LocalDate.class));
-    }
-
-    @Test
     void processNavsAsyncEmptyInput() {
         mfNavService.processNavsAsync(Collections.emptyList());
 

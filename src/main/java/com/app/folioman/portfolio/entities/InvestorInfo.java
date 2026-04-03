@@ -1,6 +1,6 @@
 package com.app.folioman.portfolio.entities;
 
-import com.app.folioman.shared.Auditable;
+import com.app.folioman.shared.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -12,13 +12,12 @@ import jakarta.persistence.MapsId;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
-import java.io.Serializable;
 import java.util.Objects;
 import org.hibernate.Hibernate;
 
 @Entity
 @Table(name = "investor_info", schema = "portfolio")
-public class InvestorInfo extends Auditable<String> implements Serializable {
+public class InvestorInfo extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "investor_info_seq")
     @SequenceGenerator(name = "investor_info_seq", schema = "portfolio")

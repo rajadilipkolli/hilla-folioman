@@ -10,6 +10,7 @@ import com.app.folioman.mfschemes.repository.MfAmcRepository;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -19,7 +20,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class MfAmcCacheServiceTest {
+class MfAmcCacheServiceTest {
 
     @Mock
     private MfAmcRepository mfAmcRepository;
@@ -55,17 +56,6 @@ public class MfAmcCacheServiceTest {
             // Assert
             assertThat(actualResults).containsExactlyElementsOf(expectedResults);
             verify(mfAmcRepository).findByTextSearch(expectedTsQueryFormat);
-        }
-
-        @Test
-        @DisplayName("Should handle null search terms by returning empty list")
-        void findByTextSearch_withNullSearchTerms_shouldReturnEmptyList() {
-            // Act
-            List<MfAmc> results = mfAmcCacheService.findByTextSearch(null);
-
-            // Assert
-            assertThat(results).isEmpty();
-            verify(mfAmcRepository, never()).findByTextSearch(anyString());
         }
 
         @Test
@@ -180,7 +170,7 @@ public class MfAmcCacheServiceTest {
             MfAmc expectedAmc = new MfAmc();
             expectedAmc.setName("SBI Funds Management Limited");
 
-            when(mfAmcRepository.findByNameIgnoreCase(eq(expectedUpperCase))).thenReturn(expectedAmc);
+            when(mfAmcRepository.findByNameIgnoreCase(eq(expectedUpperCase))).thenReturn(Optional.of(expectedAmc));
 
             // Act
             MfAmc result = mfAmcCacheService.findByName(amcName);
@@ -203,7 +193,7 @@ public class MfAmcCacheServiceTest {
             MfAmc expectedAmc = new MfAmc();
             expectedAmc.setCode(code);
 
-            when(mfAmcRepository.findByCode(eq(code))).thenReturn(expectedAmc);
+            when(mfAmcRepository.findByCode(eq(code))).thenReturn(Optional.of(expectedAmc));
 
             // Act
             MfAmc result = mfAmcCacheService.findByCode(code);

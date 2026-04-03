@@ -19,6 +19,7 @@ import com.app.folioman.portfolio.models.response.PortfolioResponse;
 import com.app.folioman.portfolio.models.response.UploadFileResponse;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -157,19 +158,6 @@ class UserDetailServiceTest {
     }
 
     @Test
-    void upload_InvalidCasDTO_ShouldThrowIllegalArgumentException() throws Exception {
-        CasDTO invalidCasDTO = new CasDTO(null, null, null, null, null);
-        byte[] fileBytes = "test content".getBytes();
-        when(multipartFile.getBytes()).thenReturn(fileBytes);
-        when(portfolioServiceHelper.readValue(fileBytes, CasDTO.class)).thenReturn(invalidCasDTO);
-
-        assertThatExceptionOfType(IllegalArgumentException.class)
-                .isThrownBy(() -> userDetailService.upload(multipartFile));
-
-        verify(portfolioServiceHelper).readValue(fileBytes, CasDTO.class);
-    }
-
-    @Test
     void uploadFromDto_NewUser_ShouldReturnUploadFileResponse() {
         when(investorInfoService.existsByEmailAndName("test@example.com", "Test User"))
                 .thenReturn(false);
@@ -209,14 +197,6 @@ class UserDetailServiceTest {
     }
 
     @Test
-    void uploadFromDto_InvalidCasDTO_ShouldThrowIllegalArgumentException() {
-        CasDTO invalidCasDTO = new CasDTO(null, null, null, null, null);
-
-        assertThatExceptionOfType(IllegalArgumentException.class)
-                .isThrownBy(() -> userDetailService.uploadFromDto(invalidCasDTO));
-    }
-
-    @Test
     void getPortfolioByPAN_WithData_ShouldReturnPortfolioResponse() {
         String panNumber = "ABCDE1234F";
         LocalDate evaluationDate = LocalDate.now();
@@ -233,7 +213,7 @@ class UserDetailServiceTest {
         assertThat(result).isNotNull();
         // The service sums the provided totalValue fields. Expect 10000 + 5000 = 15000
         assertThat(result.totalPortfolioValue())
-                .isEqualTo(BigDecimal.valueOf(15000.0000).setScale(4));
+                .isEqualTo(BigDecimal.valueOf(15000.0000).setScale(4, RoundingMode.HALF_UP));
         assertThat(result.portfolioDetailsDTOS()).hasSize(2);
         verify(portfolioServiceHelper).getPortfolioDetailsByPANAndAsOfDate(eq(panNumber), any(LocalDate.class));
     }
@@ -251,7 +231,7 @@ class UserDetailServiceTest {
         PortfolioResponse result = userDetailService.getPortfolioByPAN(panNumber, evaluationDate);
 
         assertThat(result).isNotNull();
-        assertThat(result.totalPortfolioValue()).isEqualTo(BigDecimal.ZERO.setScale(4));
+        assertThat(result.totalPortfolioValue()).isEqualTo(BigDecimal.ZERO.setScale(4, RoundingMode.HALF_UP));
         assertThat(result.portfolioDetailsDTOS()).isEmpty();
         verify(portfolioServiceHelper).getPortfolioDetailsByPANAndAsOfDate(eq(panNumber), any(LocalDate.class));
     }

@@ -13,9 +13,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.context.request.WebRequest;
 
 @ExtendWith(MockitoExtension.class)
 class GlobalExceptionHandlerTest {
@@ -32,12 +37,17 @@ class GlobalExceptionHandlerTest {
         when(fieldError.getField()).thenReturn("testField");
         when(fieldError.getRejectedValue()).thenReturn("rejectedValue");
         when(fieldError.getDefaultMessage()).thenReturn("Test error message");
-        when(methodArgumentNotValidException.getAllErrors()).thenReturn(List.of(fieldError));
+        BindingResult bindingResult = mock(BindingResult.class);
+        when(bindingResult.getFieldErrors()).thenReturn(List.of(fieldError));
+        when(methodArgumentNotValidException.getBindingResult()).thenReturn(bindingResult);
 
-        ProblemDetail result = globalExceptionHandler.onException(methodArgumentNotValidException);
+        ResponseEntity<Object> resultEntity = globalExceptionHandler.handleMethodArgumentNotValid(
+                methodArgumentNotValidException, new HttpHeaders(), HttpStatus.BAD_REQUEST, mock(WebRequest.class));
 
+        assertThat(resultEntity).isNotNull();
+        assertThat(resultEntity.getStatusCode().value()).isEqualTo(400);
+        ProblemDetail result = (ProblemDetail) resultEntity.getBody();
         assertThat(result).isNotNull();
-        assertThat(result.getStatus()).isEqualTo(400);
         assertThat(result.getDetail()).isEqualTo("Invalid request content.");
         assertThat(result.getTitle()).isEqualTo("Constraint Violation");
         assertThat(result.getProperties().get("violations")).isNotNull();
@@ -60,10 +70,14 @@ class GlobalExceptionHandlerTest {
         when(fieldError.getField()).thenReturn("testField");
         when(fieldError.getRejectedValue()).thenReturn("rejectedValue");
         when(fieldError.getDefaultMessage()).thenReturn(null);
-        when(methodArgumentNotValidException.getAllErrors()).thenReturn(List.of(fieldError));
+        BindingResult bindingResult = mock(BindingResult.class);
+        when(bindingResult.getFieldErrors()).thenReturn(List.of(fieldError));
+        when(methodArgumentNotValidException.getBindingResult()).thenReturn(bindingResult);
 
-        ProblemDetail result = globalExceptionHandler.onException(methodArgumentNotValidException);
+        ResponseEntity<Object> resultEntity = globalExceptionHandler.handleMethodArgumentNotValid(
+                methodArgumentNotValidException, new HttpHeaders(), HttpStatus.BAD_REQUEST, mock(WebRequest.class));
 
+        ProblemDetail result = (ProblemDetail) resultEntity.getBody();
         assertThat(result).isNotNull();
         @SuppressWarnings("unchecked")
         List<GlobalExceptionHandler.ApiValidationError> violations = (List<GlobalExceptionHandler.ApiValidationError>)
@@ -87,10 +101,15 @@ class GlobalExceptionHandlerTest {
         when(fieldError2.getRejectedValue()).thenReturn("value2");
         when(fieldError2.getDefaultMessage()).thenReturn("message2");
 
-        when(methodArgumentNotValidException.getAllErrors()).thenReturn(List.of(fieldError1, fieldError2));
+        BindingResult bindingResult = mock(BindingResult.class);
+        when(bindingResult.getFieldErrors()).thenReturn(List.of(fieldError1, fieldError2));
+        when(methodArgumentNotValidException.getBindingResult()).thenReturn(bindingResult);
 
-        ProblemDetail result = globalExceptionHandler.onException(methodArgumentNotValidException);
+        ResponseEntity<Object> resultEntity = globalExceptionHandler.handleMethodArgumentNotValid(
+                methodArgumentNotValidException, new HttpHeaders(), HttpStatus.BAD_REQUEST, mock(WebRequest.class));
 
+        ProblemDetail result = (ProblemDetail) resultEntity.getBody();
+        assertThat(result).isNotNull();
         @SuppressWarnings("unchecked")
         List<GlobalExceptionHandler.ApiValidationError> violations = (List<GlobalExceptionHandler.ApiValidationError>)
                 result.getProperties().get("violations");

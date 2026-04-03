@@ -26,6 +26,7 @@ import java.util.stream.IntStream;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -73,22 +74,31 @@ class BSEStarMasterDataService {
                 .body(String.class);
 
         // Step 2: Parse the HTML response to extract hidden form fields
-        Map<String, String> formData = getExtractedFormData(response);
+        Map<String, String> formData = null;
+        if (response != null) {
+            formData = getExtractedFormData(response);
+        }
 
         // Step 4: POST request to submit the form and download the master data
-        String bseMasterData = restClient
-                .post()
-                .uri("https://bsestarmf.in/RptSchemeMaster.aspx")
-                .header(HttpHeaders.USER_AGENT, "folioman-java-httpclient/0.0.1")
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .accept(MediaType.ALL)
-                .body(ofFormData(formData)) // Form data encoded and passed in the request bseMasterData
-                .retrieve()
-                .body(String.class);
+        String bseMasterData = null;
+        if (formData != null) {
+            bseMasterData = restClient
+                    .post()
+                    .uri("https://bsestarmf.in/RptSchemeMaster.aspx")
+                    .header(HttpHeaders.USER_AGENT, "folioman-java-httpclient/0.0.1")
+                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .accept(MediaType.ALL)
+                    .body(ofFormData(formData)) // Form data encoded and passed in the request bseMasterData
+                    .retrieve()
+                    .body(String.class);
+        }
 
         LOGGER.info("BSE Master data downloaded successfully.");
 
-        return parseResponseText(bseMasterData, amfiDataMap, amfiCodeIsinMapping);
+        if (bseMasterData != null && !bseMasterData.isBlank()) {
+            return parseResponseText(bseMasterData, amfiDataMap, amfiCodeIsinMapping);
+        }
+        return Map.of();
     }
 
     private Map<String, MfFundScheme> parseResponseText(
@@ -98,47 +108,45 @@ class BSEStarMasterDataService {
         Map<String, MfFundScheme> isinMasterData = new ConcurrentHashMap<>();
 
         // Process BSE Master Data
-        if (bseMasterData != null && !bseMasterData.isEmpty()) {
-            try (StringReader stringReader = new StringReader(bseMasterData);
-                    CSVReader csvReader = new CSVReader(stringReader)) {
+        try (StringReader stringReader = new StringReader(bseMasterData);
+                CSVReader csvReader = new CSVReader(stringReader)) {
 
-                String[] headerRow = csvReader.readNext(); // Read first row as headers
-                if (headerRow == null) return masterData; // If empty, return immediately
+            String[] headerRow = csvReader.readNext(); // Read first row as headers
+            if (headerRow == null) return masterData; // If empty, return immediately
 
-                Map<String, Integer> headerIndexKeyMap = mapHeaders(headerRow); // Map headers once
+            Map<String, Integer> headerIndexKeyMap = mapHeaders(headerRow); // Map headers once
 
-                // Read and process rows one by one, avoiding readAll()
-                List<CompletableFuture<Void>> futures = new ArrayList<>();
-                String[] rows;
-                while ((rows = csvReader.readNext()) != null) {
-                    String[] row = getDataAsArray(rows);
-                    // Submit each task as a CompletableFuture for parallel execution
-                    CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
-                                String isin = row[headerIndexKeyMap.get("ISIN")].strip();
-                                String amfiCode = amfiCodeIsinMapping.get(isin);
+            // Read and process rows one by one, avoiding readAll()
+            List<CompletableFuture<Void>> futures = new ArrayList<>();
+            String[] rows;
+            while ((rows = csvReader.readNext()) != null) {
+                String[] row = getDataAsArray(rows);
+                // Submit each task as a CompletableFuture for parallel execution
+                CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+                            String isin = row[headerIndexKeyMap.get("ISIN")].strip();
+                            String amfiCode = amfiCodeIsinMapping.get(isin);
 
-                                if (amfiCode != null) {
-                                    // Ensure processSchemeData is thread-safe or synchronized if required
-                                    processSchemeData(
-                                            row, headerIndexKeyMap, masterData, isinMasterData, amfiDataMap, amfiCode);
-                                }
-                            })
-                            .exceptionally(ex -> {
-                                LOGGER.error("Error processing scheme data: ", ex);
-                                return null;
-                            });
-                    ;
+                            if (amfiCode != null) {
+                                // Ensure processSchemeData is thread-safe or synchronized if required
+                                processSchemeData(
+                                        row, headerIndexKeyMap, masterData, isinMasterData, amfiDataMap, amfiCode);
+                            }
+                        })
+                        .exceptionally(ex -> {
+                            LOGGER.error("Error processing scheme data: ", ex);
+                            return null;
+                        });
+                ;
 
-                    // Add the future to the list
-                    futures.add(future);
-                }
-
-                // Wait for all tasks to complete by combining all CompletableFutures
-                CompletableFuture<Void> allOf = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
-
-                // This ensures that the code waits for all parallel tasks to finish
-                allOf.join();
+                // Add the future to the list
+                futures.add(future);
             }
+
+            // Wait for all tasks to complete by combining all CompletableFutures
+            CompletableFuture<Void> allOf = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+
+            // This ensures that the code waits for all parallel tasks to finish
+            allOf.join();
         }
 
         // Fill remaining data from amfiCodeIsinMapping if not present in BSE Master Data
@@ -167,7 +175,7 @@ class BSEStarMasterDataService {
 
     private void processAmfiFallback(
             String amfiCode,
-            Map<String, String> amfiSchemeData,
+            @Nullable Map<String, String> amfiSchemeData,
             Map<String, MfFundScheme> masterData,
             Map<String, String> amfiCodeIsinMapping) {
         MfFundScheme fallbackScheme = new MfFundScheme();
@@ -234,7 +242,7 @@ class BSEStarMasterDataService {
     }
 
     private MfFundScheme createMfFundScheme(
-            String[] row, Map<String, Integer> headerIndexKeyMap, Map<String, String> amfiSchemeData) {
+            String[] row, Map<String, Integer> headerIndexKeyMap, @Nullable Map<String, String> amfiSchemeData) {
         MfFundScheme scheme = new MfFundScheme();
         scheme.setSid(Integer.parseInt(row[headerIndexKeyMap.get("Unique No")]));
         scheme.setName(row[headerIndexKeyMap.get("Scheme Name")].strip());

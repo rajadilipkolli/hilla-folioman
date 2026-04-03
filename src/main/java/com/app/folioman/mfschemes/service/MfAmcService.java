@@ -7,6 +7,7 @@ import java.util.Locale;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import org.apache.commons.text.similarity.FuzzyScore;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -27,20 +28,18 @@ class MfAmcService {
         this.mfAmcCacheService = mfAmcCacheService;
     }
 
-    public MfAmc findByCode(String code) {
+    public @Nullable MfAmc findByCode(String code) {
         return this.mfAmcCacheService.findByCode(code);
     }
 
     public MfAmc saveMfAmc(MfAmc amc) {
         MfAmc savedAmc = this.mfAmcCacheService.saveMfAmc(amc);
         // Update local cache after saving
-        if (savedAmc != null) {
-            amcNameCache.put(savedAmc.getName(), savedAmc);
-        }
+        amcNameCache.put(savedAmc.getName(), savedAmc);
         return savedAmc;
     }
 
-    public MfAmc findByName(String amcName) {
+    public @Nullable MfAmc findByName(String amcName) {
         // First check local cache
         MfAmc cachedAmc = amcNameCache.get(amcName);
         if (cachedAmc != null) {
@@ -110,7 +109,7 @@ class MfAmcService {
                 .collect(Collectors.toList());
     }
 
-    private MfAmc findClosestMatch(String amcName) {
+    private @Nullable MfAmc findClosestMatch(String amcName) {
         List<MfAmc> mfAmcList = mfAmcCacheService.findAllAmcs();
         FuzzyScore fuzzyScore = new FuzzyScore(Locale.ENGLISH);
         return mfAmcList.stream()
