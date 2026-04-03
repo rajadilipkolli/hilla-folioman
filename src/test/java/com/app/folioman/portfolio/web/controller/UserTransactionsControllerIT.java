@@ -408,6 +408,7 @@ class UserTransactionsControllerIT extends AbstractIntegrationTest {
     }
 
     @Test
+    @Order(51)
     void getInvestmentReturns_withInvalidPan() throws Exception {
         this.mockMvc
                 .perform(get("/api/portfolio/returns/{pan}", "INVALID123").accept(MediaType.APPLICATION_JSON))
@@ -415,6 +416,7 @@ class UserTransactionsControllerIT extends AbstractIntegrationTest {
     }
 
     @Test
+    @Order(52)
     void getInvestmentReturns_withValidPan_NoData() throws Exception {
         // Assuming ABCDE1234F is a valid PAN but has no data in the test DB
         this.mockMvc

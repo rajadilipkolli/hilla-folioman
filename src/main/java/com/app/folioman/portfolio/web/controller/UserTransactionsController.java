@@ -30,7 +30,7 @@ public class UserTransactionsController {
     }
 
     @GetMapping("/returns/{pan}")
-    @Cacheable(value = CacheNames.RETURNS_CACHE, key = "'returns_' + #pan")
+    @Cacheable(value = CacheNames.RETURNS_CACHE, key = "'returns_' + #pan", unless = "#result == null")
     public InvestmentReturnsDTO getInvestmentReturns(
             @PathVariable @Pattern(regexp = "[A-Z]{5}[0-9]{4}[A-Z]", message = "Invalid PAN number format")
                     String pan) {

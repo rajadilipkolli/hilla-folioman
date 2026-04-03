@@ -752,5 +752,7 @@ class XirrCalculatorTest {
                 .isNull();
         assertThat(XirrCalculator.cagr(null, new BigDecimal("1100"), 365)).isNull();
         assertThat(XirrCalculator.cagr(new BigDecimal("1000"), null, 365)).isNull();
+        assertThat(XirrCalculator.cagr(new BigDecimal("-1000"), new BigDecimal("1100"), 365))
+                .isNull();
     }
 }

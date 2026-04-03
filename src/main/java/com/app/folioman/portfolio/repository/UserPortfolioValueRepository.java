@@ -21,7 +21,7 @@ public interface UserPortfolioValueRepository extends JpaRepository<UserPortfoli
             JOIN portfolio.user_cas_details ucd ON upv.user_cas_details_id = ucd.id
             JOIN portfolio.user_folio_details ufd ON ufd.user_cas_details_id = ucd.id
             WHERE ufd.pan = :pan
-            ORDER BY upv.date DESC
+            ORDER BY upv.date DESC, upv.id DESC
             LIMIT 1
             """)
     Optional<UserPortfolioValueProjection> getLatestPortfolioValueByPan(@Param("pan") String pan);
