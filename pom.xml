@@ -358,7 +358,7 @@
                         <path>
                             <groupId>com.uber.nullaway</groupId>
                             <artifactId>nullaway</artifactId>
-                            <version>0.12.3</version>
+                            <version>0.13.1</version>
                         </path>
                     </annotationProcessorPaths>
                     <release>${java.version}</release>
