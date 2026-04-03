@@ -3,7 +3,7 @@ package com.app.folioman.portfolio.repository;
 import com.app.folioman.portfolio.entities.UserFolioDetails;
 import com.app.folioman.portfolio.models.projection.UserFolioDetailsPanProjection;
 import java.util.List;
-import org.jspecify.annotations.Nullable;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -20,8 +20,7 @@ public interface UserFolioDetailsRepository extends JpaRepository<UserFolioDetai
             """)
     List<UserFolioDetails> findByUserCasDetails_FoliosIn(@Param("folios") List<UserFolioDetails> folios);
 
-    @Nullable
-    UserFolioDetailsPanProjection findFirstByUserCasDetails_IdAndPanKyc(Long userCasID, String kycStatus);
+    Optional<UserFolioDetailsPanProjection> findFirstByUserCasDetails_IdAndPanKyc(Long userCasID, String kycStatus);
 
     @Modifying
     @Transactional(propagation = Propagation.REQUIRES_NEW)

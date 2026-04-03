@@ -16,6 +16,7 @@ import com.app.folioman.mfschemes.repository.MFSchemeNavRepository;
 import com.app.folioman.mfschemes.repository.MfFundSchemeRepository;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -116,7 +117,7 @@ class MfSchemeServiceImplTest {
         String query = "125494";
         MfFundScheme scheme =
                 createTestScheme(125494L, "SBI Small Cap Fund - Direct Plan - Growth", "SBI Funds Management Limited");
-        when(mfSchemeRepository.findByAmfiCode(125494L)).thenReturn(scheme);
+        when(mfSchemeRepository.findByAmfiCode(125494L)).thenReturn(Optional.of(scheme));
 
         // Act
         List<FundDetailProjection> actualResults = mfSchemeService.fetchSchemes(query);

@@ -39,9 +39,6 @@ class MfFundSchemeService {
      * @return Number of schemes successfully saved
      */
     int saveDataInBatches(List<MfFundScheme> mfFundSchemes, int batchSize) {
-        if (mfFundSchemes == null || mfFundSchemes.isEmpty()) {
-            return 0;
-        }
 
         final AtomicInteger successCount = new AtomicInteger(0);
 

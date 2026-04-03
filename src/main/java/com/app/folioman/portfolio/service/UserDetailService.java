@@ -29,6 +29,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
@@ -124,7 +125,7 @@ public class UserDetailService {
                 userCASDetails != null ? userCASDetails.getId() : 0L);
     }
 
-    private UserCASDetails importNewTransaction(
+    private @Nullable UserCASDetails importNewTransaction(
             CasDTO casDTO,
             AtomicInteger newFolios,
             AtomicInteger newSchemes,
@@ -132,20 +133,23 @@ public class UserDetailService {
             long userTransactionFromReqCount,
             Long userTransactionFromDBCount) {
 
-        UserCASDetails userCASDetails = userCASDetailsService.findByInvestorEmailAndName(
+        Optional<UserCASDetails> userCASDetails = userCASDetailsService.findByInvestorEmailAndName(
                 casDTO.investorInfo().email(), casDTO.investorInfo().name());
 
-        // Optimize folio and scheme processing by processing only if counts don't match
-        processNewFolios(casDTO.folios(), userCASDetails, newFolios, newSchemes, newTransactions);
-        processNewSchemesAndTransactions(
-                casDTO.folios(),
-                userCASDetails,
-                newSchemes,
-                newTransactions,
-                userTransactionFromReqCount,
-                userTransactionFromDBCount);
+        if (userCASDetails.isPresent()) {
+            // Optimize folio and scheme processing by processing only if counts don't match
+            processNewFolios(casDTO.folios(), userCASDetails.get(), newFolios, newSchemes, newTransactions);
+            processNewSchemesAndTransactions(
+                    casDTO.folios(),
+                    userCASDetails.get(),
+                    newSchemes,
+                    newTransactions,
+                    userTransactionFromReqCount,
+                    userTransactionFromDBCount);
 
-        return getUserCASDetails(userCASDetails);
+            return getUserCASDetails(userCASDetails.get());
+        }
+        return null;
     }
 
     private void addNewTransactions(
@@ -426,9 +430,6 @@ public class UserDetailService {
     }
 
     private boolean validateCasDTO(CasDTO casDTO) {
-        if (casDTO.investorInfo() == null) {
-            throw new IllegalArgumentException("Investor information is missing!");
-        }
         String email = casDTO.investorInfo().email();
         String name = casDTO.investorInfo().name();
         if (email.isEmpty() || name.isEmpty()) {

@@ -10,7 +10,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface SchemeValueRepository extends JpaRepository<@NonNull SchemeValue, @NonNull Long> {
 
-    SchemeValue findFirstByUserSchemeDetails_UserFolioDetails_IdOrderByDateDesc(Long id);
+    Optional<SchemeValue> findFirstByUserSchemeDetails_UserFolioDetails_IdOrderByDateDesc(Long id);
 
     Optional<SchemeValue> findFirstByUserSchemeDetails_IdAndDateBeforeOrderByDateDesc(
             Long id, LocalDate schemeFromDate);

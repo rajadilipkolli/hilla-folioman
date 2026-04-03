@@ -24,6 +24,7 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -98,7 +99,7 @@ class MfSchemeServiceImpl implements MfSchemeService {
     }
 
     public Optional<MfFundScheme> findBySchemeCode(Long schemeCode) {
-        return Optional.ofNullable(this.mFSchemeRepository.findByAmfiCode(schemeCode));
+        return this.mFSchemeRepository.findByAmfiCode(schemeCode);
     }
 
     @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
@@ -122,11 +123,9 @@ class MfSchemeServiceImpl implements MfSchemeService {
         if (query.matches("\\d{6}")) {
             LOGGER.info("Fetching scheme by AMFI code: {}", query);
             Long amfiCode = Long.parseLong(query);
-            MfFundScheme scheme = this.mFSchemeRepository.findByAmfiCode(amfiCode);
-            if (scheme != null) {
-                return List.of(createFundDetailProjection(scheme));
-            }
-            return List.of();
+            Optional<MfFundScheme> scheme = this.mFSchemeRepository.findByAmfiCode(amfiCode);
+            return scheme.map(mfFundScheme -> List.of(createFundDetailProjection(mfFundScheme)))
+                    .orElseGet(List::of);
         }
 
         String[] keywords = query.split("\\s+");
@@ -251,7 +250,9 @@ class MfSchemeServiceImpl implements MfSchemeService {
     @Override
     public void fetchSchemeDetails(Long schemeId) {
         NavResponse navResponse = getNavResponseResponseEntity(schemeId);
-        processResponseEntity(schemeId, navResponse);
+        if (navResponse != null) {
+            processResponseEntity(schemeId, navResponse);
+        }
     }
 
     @Override
@@ -262,13 +263,18 @@ class MfSchemeServiceImpl implements MfSchemeService {
     @Override
     public void fetchSchemeDetails(String oldSchemeCode, Long newSchemeCode) {
         NavResponse navResponse = getNavResponseResponseEntity(Long.valueOf(oldSchemeCode));
-        processResponseEntity(newSchemeCode, navResponse);
+        if (navResponse != null) {
+            processResponseEntity(newSchemeCode, navResponse);
+        }
     }
 
     private void processResponseEntity(Long schemeCode, NavResponse navResponse) {
         boolean existsByAmfiCode = this.mFSchemeRepository.existsByAmfiCode(schemeCode);
         if (existsByAmfiCode) {
-            mergeList(navResponse, this.mFSchemeRepository.findByAmfiCode(schemeCode), schemeCode);
+            mergeList(
+                    navResponse,
+                    this.mFSchemeRepository.findByAmfiCode(schemeCode).get(),
+                    schemeCode);
         } else {
             // Scenario where scheme is discontinued or merged with other
             LOGGER.error("Found Discontinued SchemeCode : {}", schemeCode);
@@ -395,7 +401,7 @@ class MfSchemeServiceImpl implements MfSchemeService {
         }
     }
 
-    private NavResponse getNavResponseResponseEntity(Long schemeCode) {
+    private @Nullable NavResponse getNavResponseResponseEntity(Long schemeCode) {
         return this.restClient
                 .get()
                 .uri(getUri(schemeCode))

@@ -5,7 +5,7 @@ import com.app.folioman.portfolio.models.projection.PortfolioDetailsProjection;
 import com.app.folioman.portfolio.repository.UserCASDetailsRepository;
 import java.time.LocalDate;
 import java.util.List;
-import org.jspecify.annotations.Nullable;
+import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,8 +25,8 @@ class UserCASDetailsService {
         return userCASDetailsRepository.save(userCASDetails);
     }
 
-    public @Nullable UserCASDetails findByInvestorEmailAndName(String email, String name) {
-        return userCASDetailsRepository.findByInvestorEmailAndName(email, name).orElse(null);
+    public Optional<UserCASDetails> findByInvestorEmailAndName(String email, String name) {
+        return userCASDetailsRepository.findByInvestorEmailAndName(email, name);
     }
 
     public List<PortfolioDetailsProjection> getPortfolioDetailsByPanAndAsOfDate(String panNumber, LocalDate asOfDate) {

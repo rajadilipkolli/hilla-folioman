@@ -36,6 +36,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
@@ -97,10 +98,10 @@ class PortfolioValueUpdateService {
 
             LocalDate fromDate2 = today;
 
-            SchemeValue schemeValue =
+            Optional<SchemeValue> schemeValue =
                     schemeValueRepository.findFirstByUserSchemeDetails_UserFolioDetails_IdOrderByDateDesc(portfolioId);
-            if (schemeValue != null) {
-                fromDate2 = schemeValue.getDate();
+            if (schemeValue.isPresent()) {
+                fromDate2 = schemeValue.get().getDate();
             }
 
             LocalDate startDateMin = fromDate1.isBefore(fromDate2) ? fromDate1 : fromDate2;
@@ -308,7 +309,7 @@ class PortfolioValueUpdateService {
     /**
      * Finds NAV for a specific date, with fallback to the most recent previous NAV if not available.
      */
-    private BigDecimal findNavForDate(LocalDate date, Map<LocalDate, BigDecimal> navsByDate) {
+    private @Nullable BigDecimal findNavForDate(LocalDate date, Map<LocalDate, BigDecimal> navsByDate) {
         if (navsByDate.containsKey(date)) {
             return navsByDate.get(date);
         }
@@ -329,7 +330,7 @@ class PortfolioValueUpdateService {
         return null; // No NAV found within lookback period
     }
 
-    private Map<String, Object> calculateSchemeData(
+    private @Nullable Map<String, Object> calculateSchemeData(
             FIFOUnits fifo,
             Optional<SchemeValue> schemeValueOpt,
             UserSchemeDetails userSchemeDetails,
@@ -391,7 +392,7 @@ class PortfolioValueUpdateService {
         return result;
     }
 
-    private LocalDate calculateToDate(
+    private @Nullable LocalDate calculateToDate(
             FIFOUnits fifo, List<ProcessedTransaction> transactionsProcessed, Long schemeId, LocalDate today) {
         if (fifo.getBalance().compareTo(BigDecimal.valueOf(1e-3)) > 0) {
             try {
@@ -471,7 +472,7 @@ class PortfolioValueUpdateService {
         methodStartTime.start();
 
         // Handle empty transaction list
-        if (transactionList == null || transactionList.isEmpty()) {
+        if (transactionList.isEmpty()) {
             LOGGER.info(
                     "No transactions found for CAS ID: {}. Skipping portfolio value calculation.",
                     userCASDetails.getId());
@@ -513,7 +514,7 @@ class PortfolioValueUpdateService {
             List<UserPortfolioValue> existing = userPortfolioValueRepository.findByUserCasDetails_IdAndDateBetween(
                     userCASDetails.getId(), firstDate, lastDate);
 
-            if (existing != null && !existing.isEmpty()) {
+            if (!existing.isEmpty()) {
                 Map<LocalDate, UserPortfolioValue> existingByDate =
                         existing.stream().collect(Collectors.toMap(UserPortfolioValue::getDate, upv -> upv));
 
@@ -544,6 +545,7 @@ class PortfolioValueUpdateService {
     private Set<Long> extractSchemeCodes(List<UserTransactionDetails> transactionList) {
         return transactionList.stream()
                 .map(transaction -> transaction.getUserSchemeDetails().getAmfi())
+                .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
     }
 
@@ -627,13 +629,14 @@ class PortfolioValueUpdateService {
         Double transactionUnits = getTransactionUnits(transaction);
 
         // Initialize cash flow tracking for this scheme if needed
-        dataContainer.cashFlowsByScheme().computeIfAbsent(amfiCode, key -> new HashMap<>());
+        if (amfiCode != null) {
+            dataContainer.cashFlowsByScheme().computeIfAbsent(amfiCode, key -> new HashMap<>());
+            recordCashFlows(transaction, amfiCode, transactionAmount, dataContainer);
 
-        recordCashFlows(transaction, amfiCode, transactionAmount, dataContainer);
-
-        // Update cumulative invested amount and units for the scheme
-        dataContainer.cumulativeInvestedAmountByScheme().merge(amfiCode, transactionAmount, BigDecimal::add);
-        dataContainer.cumulativeUnitsByScheme().merge(amfiCode, transactionUnits, Double::sum);
+            // Update cumulative invested amount and units for the scheme
+            dataContainer.cumulativeInvestedAmountByScheme().merge(amfiCode, transactionAmount, BigDecimal::add);
+            dataContainer.cumulativeUnitsByScheme().merge(amfiCode, transactionUnits, Double::sum);
+        }
     }
 
     private BigDecimal getTransactionAmount(UserTransactionDetails transaction) {
@@ -655,7 +658,7 @@ class PortfolioValueUpdateService {
             PortfolioDataContainer dataContainer) {
 
         TransactionType transactionType = transaction.getType();
-        if (transactionType != null && !TAX_TRANSACTION_TYPES.contains(transactionType)) {
+        if (!TAX_TRANSACTION_TYPES.contains(transactionType)) {
             // Investment is negative cash flow, redemption is positive
             BigDecimal cashFlowAmount = REDEMPTION_TRANSACTION_TYPES.contains(transactionType)
                     ? transactionAmount // Positive (money received)
@@ -693,7 +696,7 @@ class PortfolioValueUpdateService {
         return totalPortfolioValue;
     }
 
-    private MFSchemeNavProjection findNavForSchemeAndDate(
+    private @Nullable MFSchemeNavProjection findNavForSchemeAndDate(
             Long schemeCode,
             LocalDate currentDate,
             Map<Long, Map<LocalDate, MFSchemeNavProjection>> navsBySchemeAndDate) {
@@ -859,18 +862,18 @@ class PortfolioValueUpdateService {
         String operationId = generateOperationId(schemeDetailId);
         LOGGER.debug("[{}] Looking up FolioScheme for schemeDetailId: {}", operationId, schemeDetailId);
 
-        FolioScheme folioScheme = findExistingFolioScheme(schemeDetailId, operationId);
-        return folioScheme != null ? folioScheme : createNewFolioScheme(schemeDetailId, userSchemeDetails, operationId);
+        Optional<FolioScheme> folioScheme = findExistingFolioScheme(schemeDetailId, operationId);
+        return folioScheme.orElseGet(() -> createNewFolioScheme(schemeDetailId, userSchemeDetails, operationId));
     }
 
     private String generateOperationId(Long schemeDetailId) {
         return "folioScheme-" + schemeDetailId + "-" + UUID.randomUUID();
     }
 
-    private FolioScheme findExistingFolioScheme(Long schemeDetailId, String operationId) {
+    private Optional<FolioScheme> findExistingFolioScheme(Long schemeDetailId, String operationId) {
         try {
-            FolioScheme folioScheme = folioSchemeRepository.findByUserSchemeDetails_Id(schemeDetailId);
-            if (folioScheme != null) {
+            Optional<FolioScheme> folioScheme = folioSchemeRepository.findByUserSchemeDetails_Id(schemeDetailId);
+            if (folioScheme.isPresent()) {
                 LOGGER.debug("[{}] Found existing FolioScheme for schemeDetailId: {}", operationId, schemeDetailId);
             }
             return folioScheme;

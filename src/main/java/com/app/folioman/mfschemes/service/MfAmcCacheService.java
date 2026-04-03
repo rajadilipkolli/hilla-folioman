@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
+import org.jspecify.annotations.Nullable;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -22,13 +23,15 @@ class MfAmcCacheService {
     }
 
     @Cacheable(value = "findByAMCName", key = "#amcName", unless = "#result == null")
-    public MfAmc findByName(String amcName) {
-        return mfAmcRepository.findByNameIgnoreCase(amcName.toUpperCase(Locale.ENGLISH));
+    public @Nullable MfAmc findByName(String amcName) {
+        return mfAmcRepository
+                .findByNameIgnoreCase(amcName.toUpperCase(Locale.ENGLISH))
+                .orElse(null);
     }
 
     @Cacheable(value = "findByAMCCode", key = "#code", unless = "#result == null")
-    public MfAmc findByCode(String code) {
-        return this.mfAmcRepository.findByCode(code);
+    public @Nullable MfAmc findByCode(String code) {
+        return this.mfAmcRepository.findByCode(code).orElse(null);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -48,7 +51,7 @@ class MfAmcCacheService {
      */
     @Cacheable(value = "findAMCsByTextSearch", key = "#searchTerms", unless = "#result.isEmpty()")
     public List<MfAmc> findByTextSearch(String searchTerms) {
-        if (searchTerms == null || searchTerms.isBlank()) {
+        if (searchTerms.isBlank()) {
             return List.of();
         }
 

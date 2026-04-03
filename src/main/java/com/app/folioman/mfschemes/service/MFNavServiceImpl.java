@@ -24,6 +24,7 @@ import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -134,21 +135,23 @@ class MFNavServiceImpl implements MFNavService {
         List<Long> historicalDataNotLoadedSchemeIdList = getHistoricalDataNotLoadedSchemeIdList();
         if (!historicalDataNotLoadedSchemeIdList.isEmpty()) {
             String allNAVs = downloadAllNAVs();
-            Map<Long, NavHolder> amfiCodeNavMap = getAmfiCodeNavMap(allNAVs);
-            List<MFSchemeNav> mfSchemeNavList = historicalDataNotLoadedSchemeIdList.stream()
-                    .filter(amfiCodeNavMap::containsKey)
-                    .map(amfiCode -> {
-                        NavHolder navHolder = amfiCodeNavMap.get(amfiCode);
-                        MFSchemeNav mfSchemeNav = new MFSchemeNav();
-                        mfSchemeNav.setNav(navHolder.nav);
-                        mfSchemeNav.setNavDate(navHolder.navDate);
-                        mfSchemeNav.setMfScheme(mFSchemeRepository.getReferenceByAmfiCode(amfiCode));
-                        return mfSchemeNav;
-                    })
-                    .toList();
-
-            if (!mfSchemeNavList.isEmpty()) {
-                transactionTemplate.execute(status -> mfSchemeNavRepository.saveAll(mfSchemeNavList));
+            Map<Long, NavHolder> amfiCodeNavMap;
+            if (allNAVs != null && !allNAVs.isEmpty()) {
+                amfiCodeNavMap = getAmfiCodeNavMap(allNAVs);
+                List<MFSchemeNav> mfSchemeNavList = historicalDataNotLoadedSchemeIdList.stream()
+                        .filter(amfiCodeNavMap::containsKey)
+                        .map(amfiCode -> {
+                            NavHolder navHolder = amfiCodeNavMap.get(amfiCode);
+                            MFSchemeNav mfSchemeNav = new MFSchemeNav();
+                            mfSchemeNav.setNav(navHolder.nav);
+                            mfSchemeNav.setNavDate(navHolder.navDate);
+                            mfSchemeNav.setMfScheme(mFSchemeRepository.getReferenceByAmfiCode(amfiCode));
+                            return mfSchemeNav;
+                        })
+                        .toList();
+                if (!mfSchemeNavList.isEmpty()) {
+                    transactionTemplate.execute(status -> mfSchemeNavRepository.saveAll(mfSchemeNavList));
+                }
             }
         }
     }
@@ -167,12 +170,15 @@ class MFNavServiceImpl implements MFNavService {
     @Override
     public Map<String, String> getAmfiCodeIsinMap() {
         String downloadedAllNAVs = downloadAllNAVs();
-        return getAmfiCodeIsinMap(downloadedAllNAVs);
+        if (downloadedAllNAVs != null && !downloadedAllNAVs.isEmpty()) {
+            return getAmfiCodeIsinMap(downloadedAllNAVs);
+        }
+        return Map.of();
     }
 
     @Override
     public Optional<MFSchemeDTO> findTopBySchemeIdOrderByDateDesc(Long schemeId) {
-        return Optional.ofNullable(getNav(schemeId));
+        return Optional.of(getNav(schemeId));
     }
 
     /**
@@ -182,7 +188,7 @@ class MFNavServiceImpl implements MFNavService {
     @Override
     @Async("virtualThreadExecutor")
     public void processNavsAsync(List<Long> schemeCodes) {
-        if (schemeCodes == null || schemeCodes.isEmpty()) {
+        if (schemeCodes.isEmpty()) {
             LOGGER.info("No scheme codes provided for NAV processing.");
             return;
         }
@@ -232,24 +238,22 @@ class MFNavServiceImpl implements MFNavService {
 
     private Map<String, String> getAmfiCodeIsinMap(String allNAVs) {
         Map<String, String> amfiCodeIsinMap = new HashMap<>();
-        if (allNAVs != null && !allNAVs.isEmpty()) {
-            for (String row : allNAVs.split("\n")) {
-                Matcher matcher = schemeCodePattern.matcher(row);
-                if (matcher.find()) {
-                    String[] rowParts = row.split(SchemeConstants.NAV_SEPARATOR);
-                    if (rowParts.length >= 3 && !rowParts[1].equals("-")) {
-                        amfiCodeIsinMap.put(rowParts[1].trim(), rowParts[0].trim());
-                    }
-                    if (rowParts.length >= 4 && !rowParts[2].equals("-")) {
-                        amfiCodeIsinMap.put(rowParts[2].trim(), rowParts[0].trim());
-                    }
+        for (String row : allNAVs.split("\n")) {
+            Matcher matcher = schemeCodePattern.matcher(row);
+            if (matcher.find()) {
+                String[] rowParts = row.split(SchemeConstants.NAV_SEPARATOR);
+                if (rowParts.length >= 3 && !rowParts[1].equals("-")) {
+                    amfiCodeIsinMap.put(rowParts[1].trim(), rowParts[0].trim());
+                }
+                if (rowParts.length >= 4 && !rowParts[2].equals("-")) {
+                    amfiCodeIsinMap.put(rowParts[2].trim(), rowParts[0].trim());
                 }
             }
         }
         return amfiCodeIsinMap;
     }
 
-    private String downloadAllNAVs() {
+    private @Nullable String downloadAllNAVs() {
         LOGGER.info("Downloading NAVAll from AMFI");
         String allNAVs = null;
         try {
@@ -272,18 +276,17 @@ class MFNavServiceImpl implements MFNavService {
 
     private Map<Long, NavHolder> getAmfiCodeNavMap(String allNAVs) {
         Map<Long, NavHolder> amfiCodeIsinMap = new HashMap<>();
-        if (allNAVs != null && !allNAVs.isEmpty()) {
-            for (String row : allNAVs.split("\n")) {
-                Matcher matcher = schemeCodePattern.matcher(row);
-                if (matcher.find()) {
-                    String[] rowParts = row.split(SchemeConstants.NAV_SEPARATOR);
-                    String nav = rowParts[4].strip();
-                    LocalDate navDate = LocalDate.parse(rowParts[5].strip(), FLEXIBLE_DATE_FORMATTER);
-                    if (navDate.isEqual(LocalDateUtility.getYesterday())) {
-                        amfiCodeIsinMap.put(
-                                Long.valueOf(rowParts[0].strip()),
-                                new NavHolder("N.A.".equals(nav) ? BigDecimal.ZERO : new BigDecimal(nav), navDate));
-                    }
+
+        for (String row : allNAVs.split("\n")) {
+            Matcher matcher = schemeCodePattern.matcher(row);
+            if (matcher.find()) {
+                String[] rowParts = row.split(SchemeConstants.NAV_SEPARATOR);
+                String nav = rowParts[4].strip();
+                LocalDate navDate = LocalDate.parse(rowParts[5].strip(), FLEXIBLE_DATE_FORMATTER);
+                if (navDate.isEqual(LocalDateUtility.getYesterday())) {
+                    amfiCodeIsinMap.put(
+                            Long.valueOf(rowParts[0].strip()),
+                            new NavHolder("N.A.".equals(nav) ? BigDecimal.ZERO : new BigDecimal(nav), navDate));
                 }
             }
         }

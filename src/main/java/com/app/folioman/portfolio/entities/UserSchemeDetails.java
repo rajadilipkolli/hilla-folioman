@@ -19,6 +19,7 @@ import java.util.Objects;
 import org.hibernate.Hibernate;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
+import org.jspecify.annotations.Nullable;
 
 @Entity
 @Table(
@@ -50,7 +51,7 @@ public class UserSchemeDetails extends BaseEntity {
 
     private String type;
 
-    private Long amfi;
+    private @Nullable Long amfi;
 
     @Column(name = "open")
     private String myopen;
@@ -131,7 +132,7 @@ public class UserSchemeDetails extends BaseEntity {
         return this;
     }
 
-    public Long getAmfi() {
+    public @Nullable Long getAmfi() {
         return amfi;
     }
 

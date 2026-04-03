@@ -11,5 +11,5 @@ public interface MFSchemeTypeRepository extends JpaRepository<MFSchemeType, Inte
 
     @Nullable
     @Cacheable(cacheNames = "findByTypeAndCategoryAndSubCategory", unless = "#result == null")
-    MFSchemeType findByTypeAndCategoryAndSubCategory(String type, String category, String subCategory);
+    MFSchemeType findByTypeAndCategoryAndSubCategory(String type, String category, @Nullable String subCategory);
 }

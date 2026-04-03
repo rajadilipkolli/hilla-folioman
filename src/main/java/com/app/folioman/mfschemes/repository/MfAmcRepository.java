@@ -2,6 +2,7 @@ package com.app.folioman.mfschemes.repository;
 
 import com.app.folioman.mfschemes.entities.MfAmc;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.NativeQuery;
@@ -14,14 +15,14 @@ import org.springframework.transaction.annotation.Transactional;
 @Repository
 public interface MfAmcRepository extends JpaRepository<MfAmc, Long> {
 
-    MfAmc findByCode(String amcCode);
+    Optional<MfAmc> findByCode(String amcCode);
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Modifying
     @Query("update MfAmc m set m.name = :name where m.code = :code")
     void updateMfAmcBy(@Param("name") String name, @Param("code") String code);
 
-    MfAmc findByNameIgnoreCase(String amcName);
+    Optional<MfAmc> findByNameIgnoreCase(String amcName);
 
     /**
      * Find AMCs using PostgreSQL text search capabilities

@@ -18,6 +18,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Objects;
 import org.hibernate.Hibernate;
+import org.jspecify.annotations.Nullable;
 
 @Entity
 @Table(
@@ -34,7 +35,7 @@ public class UserTransactionDetails extends BaseEntity {
     private LocalDate transactionDate;
     private String description;
     private BigDecimal amount;
-    private Double units;
+    private @Nullable Double units;
     private Double nav;
     private Double balance;
 
@@ -84,7 +85,7 @@ public class UserTransactionDetails extends BaseEntity {
         return this;
     }
 
-    public Double getUnits() {
+    public @Nullable Double getUnits() {
         return units;
     }
 
