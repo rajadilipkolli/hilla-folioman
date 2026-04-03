@@ -407,6 +407,21 @@ class UserTransactionsControllerIT extends AbstractIntegrationTest {
         assertThat(data2024.yearlyInvestment()).isEqualByComparingTo(new BigDecimal("40000.00"));
     }
 
+    @Test
+    void getInvestmentReturns_withInvalidPan() throws Exception {
+        this.mockMvc
+                .perform(get("/api/portfolio/returns/{pan}", "INVALID123").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void getInvestmentReturns_withValidPan_NoData() throws Exception {
+        // Assuming ABCDE1234F is a valid PAN but has no data in the test DB
+        this.mockMvc
+                .perform(get("/api/portfolio/returns/{pan}", "ABCDE1234F").accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk()); // Should return 200 with empty/null body based on orElse(null)
+    }
+
     /**
      * Helper method to evict transaction caches - performs same operation as the
      * PortfolioCacheConfig.evictTransactionCaches() method but directly in the test

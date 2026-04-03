@@ -1,6 +1,7 @@
 package com.app.folioman.portfolio.web.controller;
 
 import com.app.folioman.config.redis.CacheNames;
+import com.app.folioman.portfolio.models.response.InvestmentReturnsDTO;
 import com.app.folioman.portfolio.models.response.MonthlyInvestmentResponseDTO;
 import com.app.folioman.portfolio.models.response.YearlyInvestmentResponseDTO;
 import com.app.folioman.portfolio.service.UserTransactionDetailsService;
@@ -26,6 +27,14 @@ public class UserTransactionsController {
 
     UserTransactionsController(UserTransactionDetailsService userTransactionDetailsService) {
         this.userTransactionDetailsService = userTransactionDetailsService;
+    }
+
+    @GetMapping("/returns/{pan}")
+    @Cacheable(value = CacheNames.RETURNS_CACHE, key = "'returns_' + #pan")
+    public InvestmentReturnsDTO getInvestmentReturns(
+            @PathVariable @Pattern(regexp = "[A-Z]{5}[0-9]{4}[A-Z]", message = "Invalid PAN number format")
+                    String pan) {
+        return userTransactionDetailsService.getInvestmentReturnsByPan(pan).orElse(null);
     }
 
     @GetMapping("/investments/{pan}")
