@@ -395,6 +395,7 @@ public class XirrCalculator {
         // BigDecimal doesn't support fractional exponents directly, so we use Math.pow
         double result = Math.pow(ratio.doubleValue(), exponent) - 1;
 
+        if (Double.isNaN(result)) return null;
         return new BigDecimal(String.valueOf(result), MC);
     }
 }
