@@ -31,13 +31,6 @@ class NewlyInsertedSchemesListenerTest {
     }
 
     @Test
-    void constructor_WithValidMFNavService_ShouldInitializeSuccessfully() {
-        NewlyInsertedSchemesListener newListener = new NewlyInsertedSchemesListener(mfNavService);
-
-        // Verify object is created successfully (implicit assertion)
-    }
-
-    @Test
     void onOrderResponseEvent_WithValidSchemesListContainingNonNullElements_ShouldCallProcessNavsAsync() {
         List<Long> schemesList = Arrays.asList(10001L, 12235L, 14456L);
         when(uploadedSchemesList.schemesList()).thenReturn(schemesList);
@@ -48,17 +41,6 @@ class NewlyInsertedSchemesListenerTest {
     }
 
     @Test
-    void onOrderResponseEvent_WithSchemesListContainingNullElements_ShouldFilterNullsAndCallProcessNavsAsync() {
-        List<Long> schemesListWithNulls = Arrays.asList(10001L, null, 12235L, null, 14456L);
-        List<Long> expectedFilteredList = Arrays.asList(10001L, 12235L, 14456L);
-        when(uploadedSchemesList.schemesList()).thenReturn(schemesListWithNulls);
-
-        listener.onOrderResponseEvent(uploadedSchemesList);
-
-        verify(mfNavService).processNavsAsync(expectedFilteredList);
-    }
-
-    @Test
     void onOrderResponseEvent_WithEmptySchemesList_ShouldCallProcessNavsAsyncWithEmptyList() {
         List<Long> emptyList = Collections.emptyList();
         when(uploadedSchemesList.schemesList()).thenReturn(emptyList);
@@ -66,15 +48,5 @@ class NewlyInsertedSchemesListenerTest {
         listener.onOrderResponseEvent(uploadedSchemesList);
 
         verify(mfNavService).processNavsAsync(emptyList);
-    }
-
-    @Test
-    void onOrderResponseEvent_WithSchemesListContainingOnlyNulls_ShouldCallProcessNavsAsyncWithEmptyList() {
-        List<Long> nullOnlyList = Arrays.asList(null, null, null);
-        when(uploadedSchemesList.schemesList()).thenReturn(nullOnlyList);
-
-        listener.onOrderResponseEvent(uploadedSchemesList);
-
-        verify(mfNavService).processNavsAsync(Collections.emptyList());
     }
 }

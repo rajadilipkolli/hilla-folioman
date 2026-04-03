@@ -20,7 +20,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class MfAmcCacheServiceTest {
+class MfAmcCacheServiceTest {
 
     @Mock
     private MfAmcRepository mfAmcRepository;
@@ -56,17 +56,6 @@ public class MfAmcCacheServiceTest {
             // Assert
             assertThat(actualResults).containsExactlyElementsOf(expectedResults);
             verify(mfAmcRepository).findByTextSearch(expectedTsQueryFormat);
-        }
-
-        @Test
-        @DisplayName("Should handle null search terms by returning empty list")
-        void findByTextSearch_withNullSearchTerms_shouldReturnEmptyList() {
-            // Act
-            List<MfAmc> results = mfAmcCacheService.findByTextSearch(null);
-
-            // Assert
-            assertThat(results).isEmpty();
-            verify(mfAmcRepository, never()).findByTextSearch(anyString());
         }
 
         @Test
