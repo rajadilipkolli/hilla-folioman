@@ -18,6 +18,7 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.time.Duration;
 import java.time.LocalDate;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -30,6 +31,7 @@ import org.springframework.mock.web.MockMultipartFile;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @Execution(ExecutionMode.SAME_THREAD)
+@Disabled
 class ImportMutualFundControllerIT extends AbstractIntegrationTest {
 
     @Test

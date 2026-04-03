@@ -98,13 +98,7 @@ class BSEStarMasterDataService {
         if (bseMasterData != null && !bseMasterData.isBlank()) {
             return parseResponseText(bseMasterData, amfiDataMap, amfiCodeIsinMapping);
         }
-        // Always process AMFI fallback when BSE data is unavailable
-        Map<String, MfFundScheme> masterData = new ConcurrentHashMap<>();
-        for (Map.Entry<String, Map<String, String>> amfiEntry : amfiDataMap.entrySet()) {
-            String amfiCode = amfiEntry.getKey();
-            processAmfiFallback(amfiCode, amfiEntry.getValue(), masterData, amfiCodeIsinMapping);
-        }
-        return masterData;
+        return Map.of();
     }
 
     private Map<String, MfFundScheme> parseResponseText(

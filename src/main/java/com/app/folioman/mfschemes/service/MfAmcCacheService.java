@@ -51,7 +51,7 @@ class MfAmcCacheService {
      */
     @Cacheable(value = "findAMCsByTextSearch", key = "#searchTerms", unless = "#result.isEmpty()")
     public List<MfAmc> findByTextSearch(String searchTerms) {
-        if (searchTerms == null || searchTerms.isBlank()) {
+        if (searchTerms.isBlank()) {
             return List.of();
         }
 
