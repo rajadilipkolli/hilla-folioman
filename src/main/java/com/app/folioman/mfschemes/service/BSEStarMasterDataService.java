@@ -29,6 +29,7 @@ import org.jsoup.nodes.Element;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -45,19 +46,23 @@ class BSEStarMasterDataService {
 
     private final RestClient restClient;
     private final MfAmcService mfAmcService;
+    private final MfAmcCacheService mfAmcCacheService;
     private final MfSchemeDtoToEntityMapperHelper mfSchemeDtoToEntityMapperHelper;
     private final ApplicationProperties applicationProperties;
 
-    // Local cache for AMCs by code to avoid repeated lookups in concurrent processing
+    // Local cache for AMCs by code to avoid repeated lookups in concurrent
+    // processing
     private final ConcurrentHashMap<String, MfAmc> amcCache = new ConcurrentHashMap<>();
 
     BSEStarMasterDataService(
             RestClient restClient,
             MfAmcService mfAmcService,
+            MfAmcCacheService mfAmcCacheService,
             MfSchemeDtoToEntityMapperHelper mfSchemeDtoToEntityMapperHelper,
             ApplicationProperties applicationProperties) {
         this.restClient = restClient;
         this.mfAmcService = mfAmcService;
+        this.mfAmcCacheService = mfAmcCacheService;
         this.mfSchemeDtoToEntityMapperHelper = mfSchemeDtoToEntityMapperHelper;
         this.applicationProperties = applicationProperties;
     }
@@ -253,18 +258,32 @@ class BSEStarMasterDataService {
         });
     }
 
-    private MfAmc getOrCreateAmc(String amcCode, @Nullable String amcName) {
+    MfAmc getOrCreateAmc(String amcCode, @Nullable String amcName) {
         // First try to get from local cache
         return amcCache.computeIfAbsent(amcCode, code -> {
             // If not in local cache, try to find in service
             MfAmc amc = mfAmcService.findByCode(code);
+            if (amc == null && amcName != null) {
+                // If not found by code, try to find by name to avoid duplicates (exact match
+                // only)
+                amc = mfAmcCacheService.findByName(amcName);
+            }
             if (amc == null) {
                 // If not found in service, create new one
                 MfAmc newAmc = new MfAmc();
                 newAmc.setName(amcName);
                 newAmc.setCode(code);
                 // Save the new AMC, which is a thread-safe operation in the service
-                return mfAmcService.saveMfAmc(newAmc);
+                try {
+                    return mfAmcService.saveMfAmc(newAmc);
+                } catch (DataIntegrityViolationException e) {
+                    LOGGER.info("AMC already exists, possibly due to a race condition: {}", amcName);
+                    MfAmc existing = mfAmcCacheService.findByName(amcName);
+                    if (existing != null) {
+                        return existing;
+                    }
+                    throw e;
+                }
             }
             return amc;
         });
