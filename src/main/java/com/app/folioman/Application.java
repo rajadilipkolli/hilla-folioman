@@ -1,7 +1,9 @@
 package com.app.folioman;
 
+import com.vaadin.flow.component.dependency.StyleSheet;
 import com.vaadin.flow.component.page.AppShellConfigurator;
 import com.vaadin.flow.theme.Theme;
+import com.vaadin.flow.theme.lumo.Lumo;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.modulith.Modulith;
@@ -16,6 +18,7 @@ import org.springframework.modulith.Modulith;
 @SpringBootApplication
 @Theme(value = "hilla-folioman")
 @Modulith(sharedModules = {"shared", "config"})
+@StyleSheet(Lumo.UTILITY_STYLESHEET)
 public class Application implements AppShellConfigurator {
 
     public static void main(String[] args) {
