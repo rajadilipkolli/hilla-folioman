@@ -2,7 +2,6 @@ package com.app.folioman.mfschemes.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -73,42 +72,13 @@ class BSEStarMasterDataServiceTest {
         schemeData.put("AMC", "Test AMC");
         schemeData.put("Scheme Category", "Equity-Large Cap");
         schemeData.put("Scheme Type", "Open Ended");
+        schemeData.put(BSEStarMasterDataService.AMFI_ISIN_KEY, "INF123456789");
         amfiDataMap.put("12345", schemeData);
 
-        String htmlResponse = """
-                <html>
-                <body>
-                <form id="frmOrdConfirm">
-                    <input type="hidden" name="__VIEWSTATE" value="testviewstate"/>
-                    <input type="hidden" name="__EVENTVALIDATION" value="testevent"/>
-                </form>
-                </body>
-                </html>
-                """;
-
         String csvResponse = """
-                Unique No|Scheme Code|ISIN|Scheme Name|AMC Code|AMC Scheme Code|Scheme Plan|RTA Agent Code|Channel Partner Code|Start Date|End Date
-                1|TEST001|INF123456789|Test Scheme Name|AMC001|SC001|DIRECT|RTA001|CP001|Jan 1 2020|Dec 31 2025
-                """;
-
-        when(applicationProperties.getBseStar()).thenReturn(bseStar);
-        when(bseStar.getScheme()).thenReturn(scheme);
-        when(scheme.getDataUrl()).thenReturn("https://test-url.com");
-
-        when(restClient.get()).thenReturn(requestHeadersUriSpec);
-        when(requestHeadersUriSpec.uri(anyString())).thenReturn(requestHeadersSpec);
-        when(requestHeadersSpec.header(anyString(), anyString())).thenReturn(requestHeadersSpec);
-        when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
-
-        when(restClient.post()).thenReturn(requestBodyUriSpec);
-        when(requestBodyUriSpec.uri(anyString())).thenReturn(requestBodySpec);
-        when(requestBodySpec.header(anyString(), anyString())).thenReturn(requestBodySpec);
-        when(requestBodySpec.contentType(any())).thenReturn(requestBodySpec);
-        when(requestBodySpec.accept(any())).thenReturn(requestBodySpec);
-        when(requestBodySpec.body(anyString())).thenReturn(requestBodySpec);
-        when(requestBodySpec.retrieve()).thenReturn(responseSpec);
-        // First call should return the HTML page, second call should return the CSV body
-        when(responseSpec.body(String.class)).thenReturn(htmlResponse, csvResponse);
+                                Unique No|Scheme Code|ISIN|Scheme Name|AMC Code|AMC Scheme Code|Scheme Plan|RTA Agent Code|Channel Partner Code|Start Date|End Date
+                                1|TEST001|INF123456789|Test Scheme Name|AMC001|SC001|DIRECT|RTA001|CP001|Jan 1 2020|Dec 31 2025
+                                """;
 
         MfAmc mockAmc = new MfAmc();
         mockAmc.setCode("AMC001");
@@ -116,8 +86,10 @@ class BSEStarMasterDataServiceTest {
         when(mfAmcService.findByCode(anyString())).thenReturn(mockAmc);
 
         // When
+        BSEStarMasterDataService.BseMasterDataResult bseDataResult =
+                bseStarMasterDataService.parseBseMasterData(csvResponse);
         Map<String, MfFundScheme> result =
-                bseStarMasterDataService.fetchBseStarMasterData(amfiDataMap, amfiCodeIsinMapping);
+                bseStarMasterDataService.processAmfiBatch(bseDataResult, amfiDataMap, amfiCodeIsinMapping);
 
         assertThat(result).containsKey("12345");
     }
@@ -141,7 +113,7 @@ class BSEStarMasterDataServiceTest {
         when(responseSpec.body(String.class)).thenReturn(invalidHtmlResponse);
 
         // When & Then
-        assertThatThrownBy(() -> bseStarMasterDataService.fetchBseStarMasterData(amfiDataMap, amfiCodeIsinMapping))
+        assertThatThrownBy(() -> bseStarMasterDataService.downloadBseMasterData())
                 .isInstanceOf(IOException.class)
                 .hasMessageContaining("Unable to find the form with ID 'frmOrdConfirm'");
     }
@@ -153,37 +125,21 @@ class BSEStarMasterDataServiceTest {
         Map<String, String> amfiCodeIsinMapping = new HashMap<>();
 
         String htmlResponse = """
-                <html>
-                <body>
-                <form id="frmOrdConfirm">
-                    <input type="hidden" name="__VIEWSTATE" value="testviewstate"/>
-                </form>
-                </body>
-                </html>
-                """;
+                                <html>
+                                <body>
+                                <form id="frmOrdConfirm">
+                                    <input type="hidden" name="__VIEWSTATE" value="testviewstate"/>
+                                </form>
+                                </body>
+                                </html>
+                                """;
 
-        when(applicationProperties.getBseStar()).thenReturn(bseStar);
-        when(bseStar.getScheme()).thenReturn(scheme);
-        when(scheme.getDataUrl()).thenReturn("https://test-url.com");
-
-        when(restClient.get()).thenReturn(requestHeadersUriSpec);
-        when(requestHeadersUriSpec.uri(anyString())).thenReturn(requestHeadersSpec);
-        when(requestHeadersSpec.header(anyString(), anyString())).thenReturn(requestHeadersSpec);
-        when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
-
-        when(restClient.post()).thenReturn(requestBodyUriSpec);
-        when(requestBodyUriSpec.uri(anyString())).thenReturn(requestBodySpec);
-        when(requestBodySpec.header(anyString(), anyString())).thenReturn(requestBodySpec);
-        when(requestBodySpec.contentType(any())).thenReturn(requestBodySpec);
-        when(requestBodySpec.accept(any())).thenReturn(requestBodySpec);
-        when(requestBodySpec.body(anyString())).thenReturn(requestBodySpec);
-        when(requestBodySpec.retrieve()).thenReturn(responseSpec);
-        // return HTML first, then empty CSV on second body() call
-        when(responseSpec.body(String.class)).thenReturn(htmlResponse, "");
+        // No stubbing needed for fetchBseStarMasterData empty response parsing
 
         // When
+        BSEStarMasterDataService.BseMasterDataResult bseDataResult = bseStarMasterDataService.parseBseMasterData("");
         Map<String, MfFundScheme> result =
-                bseStarMasterDataService.fetchBseStarMasterData(amfiDataMap, amfiCodeIsinMapping);
+                bseStarMasterDataService.processAmfiBatch(bseDataResult, amfiDataMap, amfiCodeIsinMapping);
 
         // Then
         assertThat(result).isEmpty();
@@ -245,47 +201,30 @@ class BSEStarMasterDataServiceTest {
         schemeData.put("AMC", "Fallback AMC");
         schemeData.put("Scheme Category", "Debt-Short Duration");
         schemeData.put("Scheme Type", "Close Ended");
+        schemeData.put(BSEStarMasterDataService.AMFI_ISIN_KEY, "INF987654321");
         amfiDataMap.put("54321", schemeData);
 
         String htmlResponse = """
-                <html>
-                <body>
-                <form id="frmOrdConfirm">
-                    <input type="hidden" name="__VIEWSTATE" value="testviewstate"/>
-                </form>
-                </body>
-                </html>
-                """;
+                                <html>
+                                <body>
+                                <form id="frmOrdConfirm">
+                                    <input type="hidden" name="__VIEWSTATE" value="testviewstate"/>
+                                </form>
+                                </body>
+                                </html>
+                                """;
 
         String emptyCsvResponse = "Header1|Header2\n";
-
-        when(applicationProperties.getBseStar()).thenReturn(bseStar);
-        when(bseStar.getScheme()).thenReturn(scheme);
-        when(scheme.getDataUrl()).thenReturn("https://test-url.com");
-
-        when(restClient.get()).thenReturn(requestHeadersUriSpec);
-        when(requestHeadersUriSpec.uri(anyString())).thenReturn(requestHeadersSpec);
-        when(requestHeadersSpec.header(anyString(), anyString())).thenReturn(requestHeadersSpec);
-        when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
-        when(responseSpec.body(String.class)).thenReturn(htmlResponse);
-
-        when(restClient.post()).thenReturn(requestBodyUriSpec);
-        when(requestBodyUriSpec.uri(anyString())).thenReturn(requestBodySpec);
-        when(requestBodySpec.header(anyString(), anyString())).thenReturn(requestBodySpec);
-        when(requestBodySpec.contentType(any())).thenReturn(requestBodySpec);
-        when(requestBodySpec.accept(any())).thenReturn(requestBodySpec);
-        when(requestBodySpec.body(anyString())).thenReturn(requestBodySpec);
-        when(requestBodySpec.retrieve()).thenReturn(responseSpec);
-        // return HTML first, then the empty CSV response
-        when(responseSpec.body(String.class)).thenReturn(htmlResponse, emptyCsvResponse);
 
         MfAmc mockAmc = new MfAmc();
         mockAmc.setName("Fallback AMC");
         when(mfAmcService.findOrCreateByName("Fallback AMC")).thenReturn(mockAmc);
 
         // When
+        BSEStarMasterDataService.BseMasterDataResult bseDataResult =
+                bseStarMasterDataService.parseBseMasterData(emptyCsvResponse);
         Map<String, MfFundScheme> result =
-                bseStarMasterDataService.fetchBseStarMasterData(amfiDataMap, amfiCodeIsinMapping);
+                bseStarMasterDataService.processAmfiBatch(bseDataResult, amfiDataMap, amfiCodeIsinMapping);
 
         assertThat(result).containsKey("54321");
         MfFundScheme scheme = result.get("54321");

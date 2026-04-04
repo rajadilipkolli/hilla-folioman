@@ -25,6 +25,12 @@ public class MfSchemesProperties {
      */
     private long retryDelayMs = 1000;
 
+    /**
+     * Batch size for processing CSV data.
+     * This is a preparatory hook for potential future batch processing enhancements.
+     */
+    private int csvProcessingBatchSize = 5000;
+
     public int getBatchSize() {
         return batchSize;
     }
@@ -47,5 +53,13 @@ public class MfSchemesProperties {
 
     public void setRetryDelayMs(long retryDelayMs) {
         this.retryDelayMs = retryDelayMs;
+    }
+
+    public int getCsvProcessingBatchSize() {
+        return csvProcessingBatchSize;
+    }
+
+    public void setCsvProcessingBatchSize(int csvProcessingBatchSize) {
+        this.csvProcessingBatchSize = csvProcessingBatchSize;
     }
 }
