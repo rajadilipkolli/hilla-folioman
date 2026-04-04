@@ -3,7 +3,6 @@ package com.app.folioman.mfschemes.service;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyMap;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doAnswer;
@@ -72,7 +71,7 @@ class InitializerTest {
         // Verify
         verify(amfiService, times(1)).fetchAmfiSchemeData(any(Consumer.class));
         // No data processing should happen
-        verify(bseStarMasterDataService, times(0)).fetchBseStarMasterData(anyString(), anyMap(), anyMap());
+        verify(bseStarMasterDataService, times(0)).processAmfiBatch(any(), anyMap(), anyMap());
     }
 
     @Test
@@ -96,11 +95,15 @@ class InitializerTest {
         given(mfNavService.getAmfiCodeIsinMap()).willReturn(Collections.emptyMap());
 
         // Mock BSE data
+        BSEStarMasterDataService.BseMasterDataResult mockBseResult =
+                new BSEStarMasterDataService.BseMasterDataResult(Map.of("ISIN", 0), Map.of());
+        given(bseStarMasterDataService.parseBseMasterData("bseRawData")).willReturn(mockBseResult);
+
         Map<String, MfFundScheme> bseData = new HashMap<>();
         for (String amfiCode : amfiData.keySet()) {
             bseData.put(amfiCode, new MfFundScheme());
         }
-        given(bseStarMasterDataService.fetchBseStarMasterData(eq("bseRawData"), anyMap(), anyMap()))
+        given(bseStarMasterDataService.processAmfiBatch(eq(mockBseResult), anyMap(), anyMap()))
                 .willReturn(bseData);
 
         // Mock DB data
@@ -111,7 +114,8 @@ class InitializerTest {
 
         // Verify
         verify(amfiService, times(1)).fetchAmfiSchemeData(any(Consumer.class));
-        verify(bseStarMasterDataService, times(1)).fetchBseStarMasterData(eq("bseRawData"), anyMap(), anyMap());
+        verify(bseStarMasterDataService, times(1)).parseBseMasterData("bseRawData");
+        verify(bseStarMasterDataService, times(1)).processAmfiBatch(eq(mockBseResult), anyMap(), anyMap());
         verify(mfFundSchemeService, times(1)).findDistinctAmfiCode();
 
         // Verify batching is done with the mocked batch size of 100

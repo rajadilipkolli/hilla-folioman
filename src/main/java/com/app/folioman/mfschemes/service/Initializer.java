@@ -24,7 +24,7 @@ import org.springframework.web.client.HttpClientErrorException;
 public class Initializer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Initializer.class);
-    private static final String ISIN_KEY = "ISIN Div Payout/ ISIN GrowthISIN Div Reinvestment";
+    private static final String ISIN_KEY = BSEStarMasterDataService.AMFI_ISIN_KEY;
 
     private final AmfiService amfiService;
     private final BSEStarMasterDataService bseStarMasterDataService;
@@ -67,19 +67,17 @@ public class Initializer {
                 String bseMasterData = bseStarMasterDataService.downloadBseMasterData();
 
                 if (bseMasterData != null) {
+                    BSEStarMasterDataService.BseMasterDataResult bseDataResult =
+                            bseStarMasterDataService.parseBseMasterData(bseMasterData);
+
                     amfiService.fetchAmfiSchemeData(amfiDataMap -> {
                         if (!amfiDataMap.isEmpty()) {
                             Map<String, String> amfiCodeIsinMapping = getAmfiCodeISINMapping(amfiDataMap);
-                            try {
-                                Map<String, MfFundScheme> bseStarMasterDataMap =
-                                        bseStarMasterDataService.fetchBseStarMasterData(
-                                                bseMasterData, amfiDataMap, amfiCodeIsinMapping);
+                            Map<String, MfFundScheme> bseStarMasterDataMap = bseStarMasterDataService.processAmfiBatch(
+                                    bseDataResult, amfiDataMap, amfiCodeIsinMapping);
 
-                                // Process data
-                                processMasterData(bseStarMasterDataMap, amfiDataMap.keySet());
-                            } catch (IOException | CsvException e) {
-                                throw new MutualFundDataException("Failed to process batch", e);
-                            }
+                            // Process data
+                            processMasterData(bseStarMasterDataMap, amfiDataMap.keySet());
                         }
                     });
                 }

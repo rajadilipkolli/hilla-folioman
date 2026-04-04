@@ -39,6 +39,8 @@ class BSEStarMasterDataService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BSEStarMasterDataService.class);
 
+    public static final String AMFI_ISIN_KEY = "ISIN Div Payout/ ISIN GrowthISIN Div Reinvestment";
+
     private final Pattern delimiterPattern = Pattern.compile("\\|");
 
     private final RestClient restClient;
@@ -99,82 +101,100 @@ class BSEStarMasterDataService {
             String bseMasterData, Map<String, Map<String, String>> amfiDataMap, Map<String, String> amfiCodeIsinMapping)
             throws IOException, CsvException {
         if (bseMasterData != null && !bseMasterData.isBlank()) {
-            return parseResponseText(bseMasterData, amfiDataMap, amfiCodeIsinMapping);
+            BseMasterDataResult bseDataResult = parseBseMasterData(bseMasterData);
+            return processAmfiBatch(bseDataResult, amfiDataMap, amfiCodeIsinMapping);
         }
         return Map.of();
     }
 
-    private Map<String, MfFundScheme> parseResponseText(
-            String bseMasterData, Map<String, Map<String, String>> amfiDataMap, Map<String, String> amfiCodeIsinMapping)
-            throws IOException, CsvException {
-        Map<String, MfFundScheme> masterData = new ConcurrentHashMap<>();
-        Map<String, MfFundScheme> isinMasterData = new ConcurrentHashMap<>();
+    public BseMasterDataResult parseBseMasterData(String bseMasterData) throws IOException, CsvException {
+        if (bseMasterData == null || bseMasterData.isBlank()) {
+            return new BseMasterDataResult(Map.of(), Map.of());
+        }
 
-        // Process BSE Master Data
+        Map<String, List<String[]>> isinToRowsMap = new ConcurrentHashMap<>();
+        Map<String, Integer> headerIndexKeyMap;
+
         try (StringReader stringReader = new StringReader(bseMasterData);
                 CSVReader csvReader = new CSVReader(stringReader)) {
 
-            String[] headerRow = csvReader.readNext(); // Read first row as headers
-            if (headerRow == null) return masterData; // If empty, return immediately
+            String[] headerRow = csvReader.readNext();
+            if (headerRow == null) return new BseMasterDataResult(Map.of(), Map.of());
 
-            Map<String, Integer> headerIndexKeyMap = mapHeaders(headerRow); // Map headers once
+            headerIndexKeyMap = mapHeaders(headerRow);
+            Integer isinIndex = headerIndexKeyMap.get("ISIN");
 
-            // Read and process rows one by one, avoiding readAll()
-            List<CompletableFuture<Void>> futures = new ArrayList<>();
+            if (isinIndex == null) {
+                LOGGER.warn("BSE Master Data is missing 'ISIN' header. Skipping parsing.");
+                return new BseMasterDataResult(headerIndexKeyMap, isinToRowsMap);
+            }
+
             String[] rows;
             while ((rows = csvReader.readNext()) != null) {
                 String[] row = getDataAsArray(rows);
-                // Submit each task as a CompletableFuture for parallel execution
-                CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
-                            String isin = row[headerIndexKeyMap.get("ISIN")].strip();
-                            String amfiCode = amfiCodeIsinMapping.get(isin);
-
-                            if (amfiCode != null && amfiDataMap.containsKey(amfiCode)) {
-                                // Ensure processSchemeData is thread-safe or synchronized if required
-                                processSchemeData(
-                                        row, headerIndexKeyMap, masterData, isinMasterData, amfiDataMap, amfiCode);
-                            }
-                        })
-                        .exceptionally(ex -> {
-                            LOGGER.error("Error processing scheme data: ", ex);
-                            return null;
-                        });
-                ;
-
-                // Add the future to the list
-                futures.add(future);
+                if (row.length > isinIndex) {
+                    String isin = row[isinIndex].strip();
+                    isinToRowsMap.computeIfAbsent(isin, k -> new ArrayList<>()).add(row);
+                }
             }
-
-            // Wait for all tasks to complete by combining all CompletableFutures
-            CompletableFuture<Void> allOf = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
-
-            // This ensures that the code waits for all parallel tasks to finish
-            allOf.join();
         }
+        return new BseMasterDataResult(headerIndexKeyMap, isinToRowsMap);
+    }
 
-        // Fill remaining data from amfiCodeIsinMapping if not present in BSE Master Data
+    public Map<String, MfFundScheme> processAmfiBatch(
+            BseMasterDataResult bseData,
+            Map<String, Map<String, String>> amfiDataMap,
+            Map<String, String> amfiCodeIsinMapping) {
+
+        Map<String, MfFundScheme> masterData = new ConcurrentHashMap<>();
+        Map<String, MfFundScheme> isinMasterData = new ConcurrentHashMap<>();
+
+        if (bseData.headerIndexKeyMap().isEmpty()) return masterData;
+
+        // Process based on current batch's AMFI codes and their ISINs
         List<CompletableFuture<Void>> futures = new ArrayList<>();
+
         for (Map.Entry<String, Map<String, String>> amfiEntry : amfiDataMap.entrySet()) {
-            // Submit each task as a CompletableFuture for parallel execution
             CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
                         String amfiCode = amfiEntry.getKey();
+                        String isin = amfiEntry.getValue().get(AMFI_ISIN_KEY);
+
+                        // Process ISIN if present
+                        if (isin != null) {
+                            // Extract exactly 12 chars if longer, to match BSE format
+                            String processedIsin = (isin.length() > 12) ? isin.substring(0, 12) : isin;
+                            if (bseData.isinToRowsMap().containsKey(processedIsin)) {
+                                List<String[]> bseRows = bseData.isinToRowsMap().get(processedIsin);
+                                for (String[] row : bseRows) {
+                                    processSchemeData(
+                                            row,
+                                            bseData.headerIndexKeyMap(),
+                                            masterData,
+                                            isinMasterData,
+                                            amfiDataMap,
+                                            amfiCode);
+                                }
+                            }
+                        }
+
+                        // If no master data was found (either no ISIN or no BSE match), fallback
                         if (!masterData.containsKey(amfiCode)) {
                             processAmfiFallback(amfiCode, amfiEntry.getValue(), masterData, amfiCodeIsinMapping);
                         }
                     })
                     .exceptionally(ex -> {
-                        LOGGER.error("Error processing scheme data: ", ex);
+                        LOGGER.error("Error processing scheme data for AMFI Code {}: ", amfiEntry.getKey(), ex);
                         return null;
                     });
             futures.add(future);
         }
-        // Wait for all tasks to complete by combining all CompletableFutures
-        CompletableFuture<Void> allOf = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
 
-        // This ensures that the code waits for all parallel tasks to finish
-        allOf.join();
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
         return masterData;
     }
+
+    public record BseMasterDataResult(
+            Map<String, Integer> headerIndexKeyMap, Map<String, List<String[]>> isinToRowsMap) {}
 
     private void processAmfiFallback(
             String amfiCode,
