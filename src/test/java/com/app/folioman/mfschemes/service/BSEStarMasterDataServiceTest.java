@@ -31,6 +31,9 @@ class BSEStarMasterDataServiceTest {
     private MfAmcService mfAmcService;
 
     @Mock
+    private MfAmcCacheService mfAmcCacheService;
+
+    @Mock
     private MfSchemeDtoToEntityMapperHelper mfSchemeDtoToEntityMapperHelper;
 
     @Mock

@@ -21,7 +21,7 @@
                 <constraints nullable="false" primaryKey="true" primaryKeyName="pk_mf_amc"/>
             </column>
             <column name="name" type="${string.type}">
-                <constraints nullable="false" unique="true"/>
+                <constraints nullable="false"/>
             </column>
             <column name="description" type="${string.type}"/>
             <column name="code" type="${string.type}">
@@ -35,6 +35,17 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
+
+        <!-- Create functional index -->
+        <sql dbms="postgresql">
+            CREATE UNIQUE INDEX idx_mf_amc_name_ci ON mfschemes.mf_amc (LOWER(name));
+        </sql>
+        <!-- Rollback strategy -->
+        <rollback>
+            <sql dbms="postgresql">
+                DROP INDEX IF EXISTS mfschemes.idx_mf_amc_name_ci;
+            </sql>
+        </rollback>
     </changeSet>
 
 </databaseChangeLog>

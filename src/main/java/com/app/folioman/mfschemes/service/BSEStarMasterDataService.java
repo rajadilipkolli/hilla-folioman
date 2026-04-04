@@ -45,6 +45,7 @@ class BSEStarMasterDataService {
 
     private final RestClient restClient;
     private final MfAmcService mfAmcService;
+    private final MfAmcCacheService mfAmcCacheService;
     private final MfSchemeDtoToEntityMapperHelper mfSchemeDtoToEntityMapperHelper;
     private final ApplicationProperties applicationProperties;
 
@@ -54,10 +55,12 @@ class BSEStarMasterDataService {
     BSEStarMasterDataService(
             RestClient restClient,
             MfAmcService mfAmcService,
+            MfAmcCacheService mfAmcCacheService,
             MfSchemeDtoToEntityMapperHelper mfSchemeDtoToEntityMapperHelper,
             ApplicationProperties applicationProperties) {
         this.restClient = restClient;
         this.mfAmcService = mfAmcService;
+        this.mfAmcCacheService = mfAmcCacheService;
         this.mfSchemeDtoToEntityMapperHelper = mfSchemeDtoToEntityMapperHelper;
         this.applicationProperties = applicationProperties;
     }
@@ -259,8 +262,8 @@ class BSEStarMasterDataService {
             // If not in local cache, try to find in service
             MfAmc amc = mfAmcService.findByCode(code);
             if (amc == null && amcName != null) {
-                // If not found by code, try to find by name to avoid duplicates
-                amc = mfAmcService.findByName(amcName);
+                // If not found by code, try to find by name to avoid duplicates (exact match only)
+                amc = mfAmcCacheService.findByName(amcName);
             }
             if (amc == null) {
                 // If not found in service, create new one
