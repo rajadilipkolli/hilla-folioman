@@ -39,7 +39,7 @@ class BSEStarMasterDataService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(BSEStarMasterDataService.class);
 
-    public static final String AMFI_ISIN_KEY = "ISIN Div Payout/ ISIN GrowthISIN Div Reinvestment";
+    static final String AMFI_ISIN_KEY = "ISIN Div Payout/ ISIN GrowthISIN Div Reinvestment";
 
     private final Pattern delimiterPattern = Pattern.compile("\\|");
 
