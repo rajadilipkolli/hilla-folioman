@@ -15,7 +15,6 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
-import org.jspecify.annotations.Nullable;
 
 @Table(
         name = "mf_amc",
@@ -33,7 +32,8 @@ public class MfAmc extends BaseEntity {
     @Column(name = "id", nullable = false)
     private Integer id;
 
-    private @Nullable String name;
+    @Column(nullable = false, unique = true)
+    private String name;
 
     private String description;
 
@@ -52,11 +52,11 @@ public class MfAmc extends BaseEntity {
         return this;
     }
 
-    public @Nullable String getName() {
+    public String getName() {
         return name;
     }
 
-    public MfAmc setName(@Nullable String name) {
+    public MfAmc setName(String name) {
         this.name = name;
         return this;
     }

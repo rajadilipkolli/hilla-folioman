@@ -10,15 +10,6 @@
     <property name="timestamp.type" value="timestamptz" dbms="postgresql"/>
 
     <changeSet id="add-auditing-columns-mfschemes" author="antigravity">
-        <addColumn schemaName="mfschemes" tableName="mf_amc">
-            <column name="created_at" type="${timestamp.type}" defaultValueComputed="CURRENT_TIMESTAMP">
-                <constraints nullable="false"/>
-            </column>
-            <column name="updated_at" type="${timestamp.type}" defaultValueComputed="CURRENT_TIMESTAMP">
-                <constraints nullable="false"/>
-            </column>
-            <column name="version" type="smallint" defaultValueNumeric="0"/>
-        </addColumn>
         <addColumn schemaName="mfschemes" tableName="mf_scheme_types">
             <column name="created_at" type="${timestamp.type}" defaultValueComputed="CURRENT_TIMESTAMP">
                 <constraints nullable="false"/>

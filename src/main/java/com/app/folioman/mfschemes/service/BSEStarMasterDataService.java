@@ -258,6 +258,10 @@ class BSEStarMasterDataService {
         return amcCache.computeIfAbsent(amcCode, code -> {
             // If not in local cache, try to find in service
             MfAmc amc = mfAmcService.findByCode(code);
+            if (amc == null && amcName != null) {
+                // If not found by code, try to find by name to avoid duplicates
+                amc = mfAmcService.findByName(amcName);
+            }
             if (amc == null) {
                 // If not found in service, create new one
                 MfAmc newAmc = new MfAmc();
