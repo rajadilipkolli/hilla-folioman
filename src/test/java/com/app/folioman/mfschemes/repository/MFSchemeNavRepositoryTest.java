@@ -38,6 +38,7 @@ class MFSchemeNavRepositoryTest {
     void setUp() {
         MfAmc amc = new MfAmc();
         amc.setCode("AMC001");
+        amc.setName("AMC001");
         amc = entityManager.persist(amc);
 
         testScheme1 = new MfFundScheme();
