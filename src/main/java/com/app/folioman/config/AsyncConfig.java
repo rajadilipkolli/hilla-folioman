@@ -23,12 +23,12 @@ public class AsyncConfig implements AsyncConfigurer {
     }
 
     @Bean("virtualThreadExecutor")
-    Executor virtualThreadExecutor(ContextPropagatingTaskDecorator contextPropagatingTaskDecorator) {
+    Executor virtualThreadExecutor() {
         // Create a custom virtual thread executor with naming and context propagation
         SimpleAsyncTaskExecutor executor = new SimpleAsyncTaskExecutor();
         executor.setVirtualThreads(true);
         executor.setThreadNamePrefix("AsyncFolioman-");
-        executor.setTaskDecorator(contextPropagatingTaskDecorator);
+        executor.setTaskDecorator(contextPropagatingTaskDecorator());
         return executor;
     }
 
