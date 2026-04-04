@@ -3,11 +3,16 @@ package com.app.folioman.mfschemes.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.when;
 
 import com.app.folioman.mfschemes.config.AmfiProperties;
 import com.app.folioman.mfschemes.config.ApplicationProperties;
+import com.app.folioman.mfschemes.config.MfSchemesProperties;
 import com.app.folioman.mfschemes.config.SchemeProperties;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,6 +37,9 @@ class AmfiServiceTest {
     private SchemeProperties scheme;
 
     @Mock
+    private MfSchemesProperties mfSchemesProperties;
+
+    @Mock
     private RestClient.RequestHeadersUriSpec requestHeadersUriSpec;
 
     @Mock
@@ -41,7 +49,7 @@ class AmfiServiceTest {
 
     @BeforeEach
     void setUp() {
-        amfiService = new AmfiService(restClient, applicationProperties);
+        amfiService = new AmfiService(restClient, applicationProperties, mfSchemesProperties);
     }
 
     @Test
@@ -57,17 +65,16 @@ class AmfiServiceTest {
         doReturn(requestHeadersUriSpec).when(requestHeadersUriSpec).uri(dataUrl);
         doReturn(responseSpec).when(requestHeadersUriSpec).retrieve();
         doReturn(responseSpec).when(responseSpec).onStatus(any(), any());
-        doReturn(csvContent).when(responseSpec).body(String.class);
+        when(responseSpec.body(String.class)).thenReturn(csvContent);
+        when(mfSchemesProperties.getCsvProcessingBatchSize()).thenReturn(5000);
 
-        Map<String, Map<String, String>> result = amfiService.fetchAmfiSchemeData();
+        List<Map<String, Map<String, String>>> batches = new ArrayList<>();
+        amfiService.fetchAmfiSchemeData(batches::add);
 
+        assertThat(batches).hasSize(1);
+        Map<String, Map<String, String>> result = batches.get(0);
         assertThat(result).hasSize(2);
-        assertThat(result.containsKey("Test Fund"))
-                .as("Expected key 'Test Fund' in result: " + result)
-                .isTrue();
-        assertThat(result.containsKey("Another Fund"))
-                .as("Expected key 'Another Fund' in result: " + result)
-                .isTrue();
+        assertThat(result).containsKey("Test Fund").containsKey("Another Fund");
         assertThat(result.get("Test Fund")).containsEntry("Scheme Code", "123");
         assertThat(result.get("Another Fund")).containsEntry("Scheme Code", "456");
     }
@@ -85,10 +92,10 @@ class AmfiServiceTest {
                 .when(requestHeadersUriSpec)
                 .retrieve();
 
-        Map<String, Map<String, String>> result = amfiService.fetchAmfiSchemeData();
+        List<Map<String, Map<String, String>>> batches = new ArrayList<>();
+        amfiService.fetchAmfiSchemeData(batches::add);
 
-        assertThat(result).isNotNull();
-        assertThat(result).isEmpty();
+        assertThat(batches).isEmpty();
     }
 
     @Test
@@ -105,7 +112,7 @@ class AmfiServiceTest {
         doReturn(null).when(responseSpec).body(String.class);
 
         IllegalStateException exception = assertThatExceptionOfType(IllegalStateException.class)
-                .isThrownBy(() -> amfiService.fetchAmfiSchemeData())
+                .isThrownBy(() -> amfiService.fetchAmfiSchemeData(batch -> {}))
                 .actual();
         assertThat(exception.getMessage()).isEqualTo("Invalid response! No data received.");
     }
@@ -124,7 +131,7 @@ class AmfiServiceTest {
         doReturn("   ").when(responseSpec).body(String.class);
 
         IllegalStateException exception = assertThatExceptionOfType(IllegalStateException.class)
-                .isThrownBy(() -> amfiService.fetchAmfiSchemeData())
+                .isThrownBy(() -> amfiService.fetchAmfiSchemeData(batch -> {}))
                 .actual();
         assertThat(exception.getMessage()).isEqualTo("Invalid response! No data received.");
     }
@@ -143,7 +150,7 @@ class AmfiServiceTest {
         doReturn("").when(responseSpec).body(String.class);
 
         IllegalStateException exception = assertThatExceptionOfType(IllegalStateException.class)
-                .isThrownBy(() -> amfiService.fetchAmfiSchemeData())
+                .isThrownBy(() -> amfiService.fetchAmfiSchemeData(batch -> {}))
                 .actual();
         assertThat(exception.getMessage()).isEqualTo("Invalid response! No data received.");
     }
@@ -161,11 +168,12 @@ class AmfiServiceTest {
         doReturn(responseSpec).when(requestHeadersUriSpec).retrieve();
         doReturn(responseSpec).when(responseSpec).onStatus(any(), any());
         doReturn(csvContent).when(responseSpec).body(String.class);
+        when(mfSchemesProperties.getCsvProcessingBatchSize()).thenReturn(5000);
 
-        Map<String, Map<String, String>> result = amfiService.fetchAmfiSchemeData();
+        List<Map<String, Map<String, String>>> batches = new ArrayList<>();
+        amfiService.fetchAmfiSchemeData(batches::add);
 
-        assertThat(result).isNotNull();
-        assertThat(result).isEmpty();
+        assertThat(batches).isEmpty();
     }
 
     @Test
@@ -182,9 +190,13 @@ class AmfiServiceTest {
         doReturn(responseSpec).when(requestHeadersUriSpec).retrieve();
         doReturn(responseSpec).when(responseSpec).onStatus(any(), any());
         doReturn(csvContent).when(responseSpec).body(String.class);
+        when(mfSchemesProperties.getCsvProcessingBatchSize()).thenReturn(5000);
 
-        Map<String, Map<String, String>> result = amfiService.fetchAmfiSchemeData();
+        List<Map<String, Map<String, String>>> batches = new ArrayList<>();
+        amfiService.fetchAmfiSchemeData(batches::add);
 
+        assertThat(batches).hasSize(1);
+        Map<String, Map<String, String>> result = batches.get(0);
         assertThat(result).hasSize(1).containsKey("Test Fund");
         assertThat(result.get("Test Fund")).containsEntry("Scheme Code", "123");
         assertThat(result.get("Test Fund")).containsEntry("Net Asset Value", "100.50");
@@ -204,9 +216,13 @@ class AmfiServiceTest {
         when(requestHeadersUriSpec.retrieve()).thenReturn(responseSpec);
         when(responseSpec.onStatus(any(), any())).thenReturn(responseSpec);
         when(responseSpec.body(String.class)).thenReturn(csvContent);
+        when(mfSchemesProperties.getCsvProcessingBatchSize()).thenReturn(5000);
 
-        Map<String, Map<String, String>> result = amfiService.fetchAmfiSchemeData();
+        List<Map<String, Map<String, String>>> batches = new ArrayList<>();
+        amfiService.fetchAmfiSchemeData(batches::add);
 
+        assertThat(batches).hasSize(1);
+        Map<String, Map<String, String>> result = batches.get(0);
         assertThat(result).hasSize(2).containsKey("Test Fund 1").containsKey("Test Fund 2");
         assertThat(result.get("Test Fund 2")).containsEntry("Scheme Code", "123");
     }

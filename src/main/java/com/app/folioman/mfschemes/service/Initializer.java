@@ -63,31 +63,28 @@ public class Initializer {
                 attempt++;
                 LOGGER.info("Fetching AMFI scheme data (attempt {}/{})", attempt, properties.getRetryAttempts());
 
-                Map<String, Map<String, String>> amfiDataMap = amfiService.fetchAmfiSchemeData();
-                if (!amfiDataMap.isEmpty()) {
-                    long totalCount = mfFundSchemeService.getTotalCount();
+                // Download BSE data once
+                String bseMasterData = bseStarMasterDataService.downloadBseMasterData();
 
-                    // Only proceed if there's more data to load
-                    if (amfiDataMap.size() > totalCount) {
-                        LOGGER.info("Found {} new schemes to process", amfiDataMap.size() - totalCount);
-                        Map<String, String> amfiCodeIsinMapping = getAmfiCodeISINMapping(amfiDataMap);
+                if (bseMasterData != null) {
+                    amfiService.fetchAmfiSchemeData(amfiDataMap -> {
+                        if (!amfiDataMap.isEmpty()) {
+                            Map<String, String> amfiCodeIsinMapping = getAmfiCodeISINMapping(amfiDataMap);
+                            try {
+                                Map<String, MfFundScheme> bseStarMasterDataMap =
+                                        bseStarMasterDataService.fetchBseStarMasterData(
+                                                bseMasterData, amfiDataMap, amfiCodeIsinMapping);
 
-                        Map<String, MfFundScheme> bseStarMasterDataMap =
-                                bseStarMasterDataService.fetchBseStarMasterData(amfiDataMap, amfiCodeIsinMapping);
-
-                        // Process data
-                        processMasterData(bseStarMasterDataMap, amfiDataMap.keySet());
-
-                        LOGGER.info("Successfully loaded all mutual fund data");
-                    } else {
-                        LOGGER.info(
-                                "No new schemes to load. Database has {} schemes, AMFI has {}",
-                                totalCount,
-                                amfiDataMap.size());
-                    }
-                } else {
-                    LOGGER.warn("Received empty AMFI data map");
+                                // Process data
+                                processMasterData(bseStarMasterDataMap, amfiDataMap.keySet());
+                            } catch (IOException | CsvException e) {
+                                throw new MutualFundDataException("Failed to process batch", e);
+                            }
+                        }
+                    });
                 }
+
+                LOGGER.info("Successfully loaded all mutual fund data");
 
                 // Record overall processing time
                 stopWatch.stop();

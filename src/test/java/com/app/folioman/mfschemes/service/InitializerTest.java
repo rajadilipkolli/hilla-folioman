@@ -1,9 +1,13 @@
 package com.app.folioman.mfschemes.service;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -14,6 +18,7 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -46,33 +51,48 @@ class InitializerTest {
     private Initializer initializer;
 
     @Test
+    @SuppressWarnings("unchecked")
     void handleApplicationStartedEventWithNoNewSchemes() throws Exception {
         // Configure properties needed for this test
         given(properties.getRetryAttempts()).willReturn(2);
+        given(bseStarMasterDataService.downloadBseMasterData()).willReturn("bseData");
 
         // Setup data for this specific test
-        given(amfiService.fetchAmfiSchemeData()).willReturn(createAmfiTestData(10));
-        given(mfFundSchemeService.getTotalCount()).willReturn(10L);
+        doAnswer(invocation -> {
+                    Consumer<Map<String, Map<String, String>>> consumer = invocation.getArgument(0);
+                    consumer.accept(Collections.emptyMap());
+                    return null;
+                })
+                .when(amfiService)
+                .fetchAmfiSchemeData(any(Consumer.class));
 
         // Execute
         initializer.handleApplicationStartedEvent(event);
 
         // Verify
-        verify(amfiService, times(1)).fetchAmfiSchemeData();
+        verify(amfiService, times(1)).fetchAmfiSchemeData(any(Consumer.class));
         // No data processing should happen
-        verify(bseStarMasterDataService, times(0)).fetchBseStarMasterData(anyMap(), anyMap());
+        verify(bseStarMasterDataService, times(0)).fetchBseStarMasterData(anyString(), anyMap(), anyMap());
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void handleApplicationStartedEventWithNewSchemes() throws Exception {
         // Configure properties needed for this test
         given(properties.getRetryAttempts()).willReturn(2);
         given(properties.getBatchSize()).willReturn(100);
+        given(bseStarMasterDataService.downloadBseMasterData()).willReturn("bseRawData");
 
         // Setup data for this specific test
         Map<String, Map<String, String>> amfiData = createAmfiTestData(20);
-        given(amfiService.fetchAmfiSchemeData()).willReturn(amfiData);
-        given(mfFundSchemeService.getTotalCount()).willReturn(10L);
+        doAnswer(invocation -> {
+                    Consumer<Map<String, Map<String, String>>> consumer = invocation.getArgument(0);
+                    consumer.accept(amfiData);
+                    return null;
+                })
+                .when(amfiService)
+                .fetchAmfiSchemeData(any(Consumer.class));
+
         given(mfNavService.getAmfiCodeIsinMap()).willReturn(Collections.emptyMap());
 
         // Mock BSE data
@@ -80,7 +100,7 @@ class InitializerTest {
         for (String amfiCode : amfiData.keySet()) {
             bseData.put(amfiCode, new MfFundScheme());
         }
-        given(bseStarMasterDataService.fetchBseStarMasterData(anyMap(), anyMap()))
+        given(bseStarMasterDataService.fetchBseStarMasterData(eq("bseRawData"), anyMap(), anyMap()))
                 .willReturn(bseData);
 
         // Mock DB data
@@ -90,8 +110,8 @@ class InitializerTest {
         initializer.handleApplicationStartedEvent(event);
 
         // Verify
-        verify(amfiService, times(1)).fetchAmfiSchemeData();
-        verify(bseStarMasterDataService, times(1)).fetchBseStarMasterData(anyMap(), anyMap());
+        verify(amfiService, times(1)).fetchAmfiSchemeData(any(Consumer.class));
+        verify(bseStarMasterDataService, times(1)).fetchBseStarMasterData(eq("bseRawData"), anyMap(), anyMap());
         verify(mfFundSchemeService, times(1)).findDistinctAmfiCode();
 
         // Verify batching is done with the mocked batch size of 100
@@ -99,23 +119,28 @@ class InitializerTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void handleApplicationStartedEventWithRetry() throws Exception {
         // Configure properties needed for this test
         given(properties.getRetryAttempts()).willReturn(2);
         given(properties.getRetryDelayMs()).willReturn(10L);
+        given(bseStarMasterDataService.downloadBseMasterData()).willReturn("bseData");
 
         // Setup - first call throws exception, second succeeds
-        given(amfiService.fetchAmfiSchemeData())
-                .willThrow(new IOException("Test exception"))
-                .willReturn(createAmfiTestData(10));
-
-        given(mfFundSchemeService.getTotalCount()).willReturn(10L);
+        doThrow(new IOException("Test exception"))
+                .doAnswer(invocation -> {
+                    Consumer<Map<String, Map<String, String>>> consumer = invocation.getArgument(0);
+                    consumer.accept(createAmfiTestData(10));
+                    return null;
+                })
+                .when(amfiService)
+                .fetchAmfiSchemeData(any(Consumer.class));
 
         // Execute
         initializer.handleApplicationStartedEvent(event);
 
         // Verify
-        verify(amfiService, times(2)).fetchAmfiSchemeData();
+        verify(amfiService, times(2)).fetchAmfiSchemeData(any(Consumer.class));
     }
 
     private Map<String, Map<String, String>> createAmfiTestData(int count) {

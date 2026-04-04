@@ -60,9 +60,7 @@ class BSEStarMasterDataService {
         this.applicationProperties = applicationProperties;
     }
 
-    public Map<String, MfFundScheme> fetchBseStarMasterData(
-            Map<String, Map<String, String>> amfiDataMap, Map<String, String> amfiCodeIsinMapping)
-            throws IOException, CsvException {
+    public @Nullable String downloadBseMasterData() throws IOException {
         LOGGER.info("BSE Master data Downloading...");
 
         // Step 1: Initial GET request to download the page
@@ -74,13 +72,13 @@ class BSEStarMasterDataService {
                 .body(String.class);
 
         // Step 2: Parse the HTML response to extract hidden form fields
-        @Nullable Map<String, String> formData = null;
+        Map<String, String> formData = null;
         if (response != null) {
             formData = getExtractedFormData(response);
         }
 
         // Step 4: POST request to submit the form and download the master data
-        @Nullable String bseMasterData = null;
+        String bseMasterData = null;
         if (formData != null) {
             bseMasterData = restClient
                     .post()
@@ -94,7 +92,12 @@ class BSEStarMasterDataService {
         }
 
         LOGGER.info("BSE Master data downloaded successfully.");
+        return bseMasterData;
+    }
 
+    public Map<String, MfFundScheme> fetchBseStarMasterData(
+            String bseMasterData, Map<String, Map<String, String>> amfiDataMap, Map<String, String> amfiCodeIsinMapping)
+            throws IOException, CsvException {
         if (bseMasterData != null && !bseMasterData.isBlank()) {
             return parseResponseText(bseMasterData, amfiDataMap, amfiCodeIsinMapping);
         }
@@ -126,7 +129,7 @@ class BSEStarMasterDataService {
                             String isin = row[headerIndexKeyMap.get("ISIN")].strip();
                             String amfiCode = amfiCodeIsinMapping.get(isin);
 
-                            if (amfiCode != null) {
+                            if (amfiCode != null && amfiDataMap.containsKey(amfiCode)) {
                                 // Ensure processSchemeData is thread-safe or synchronized if required
                                 processSchemeData(
                                         row, headerIndexKeyMap, masterData, isinMasterData, amfiDataMap, amfiCode);
@@ -212,12 +215,13 @@ class BSEStarMasterDataService {
                 return existingScheme;
             }
 
-            MfFundScheme scheme = createMfFundScheme(row, headerIndexKeyMap, amfiDataMap.get(amfiCode));
+            Map<String, String> amfiDataMapByAmfiCode = amfiDataMap.get(amfiCode);
+            MfFundScheme scheme = createMfFundScheme(row, headerIndexKeyMap, amfiDataMapByAmfiCode);
             scheme.setAmfiCode(Long.valueOf(amfiCode));
 
             // Process AMC
             String amcCode = row[headerIndexKeyMap.get("AMC Code")].strip();
-            MfAmc amc = getOrCreateAmc(amcCode, amfiDataMap.get(amfiCode).get("AMC"));
+            MfAmc amc = getOrCreateAmc(amcCode, amfiDataMapByAmfiCode.get("AMC"));
             scheme.setAmc(amc);
 
             // Add to masterData atomically
@@ -226,7 +230,7 @@ class BSEStarMasterDataService {
         });
     }
 
-    private MfAmc getOrCreateAmc(String amcCode, String amcName) {
+    private MfAmc getOrCreateAmc(String amcCode, @Nullable String amcName) {
         // First try to get from local cache
         return amcCache.computeIfAbsent(amcCode, code -> {
             // If not in local cache, try to find in service

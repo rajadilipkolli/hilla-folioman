@@ -1,12 +1,14 @@
 package com.app.folioman.mfschemes.service;
 
 import com.app.folioman.mfschemes.config.ApplicationProperties;
+import com.app.folioman.mfschemes.config.MfSchemesProperties;
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvException;
 import java.io.IOException;
 import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Consumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatusCode;
@@ -22,16 +24,20 @@ class AmfiService {
 
     private final RestClient restClient;
     private final ApplicationProperties applicationProperties;
+    private final MfSchemesProperties mfSchemesProperties;
 
-    AmfiService(RestClient restClient, ApplicationProperties applicationProperties) {
+    AmfiService(
+            RestClient restClient,
+            ApplicationProperties applicationProperties,
+            MfSchemesProperties mfSchemesProperties) {
         this.restClient = restClient;
         this.applicationProperties = applicationProperties;
+        this.mfSchemesProperties = mfSchemesProperties;
     }
 
-    public Map<String, Map<String, String>> fetchAmfiSchemeData() throws IOException, CsvException {
+    public void fetchAmfiSchemeData(Consumer<Map<String, Map<String, String>>> batchProcessor)
+            throws IOException, CsvException {
         LOGGER.info("Downloading AMFI scheme data...");
-        // Prepare a Map to store the scheme data
-        Map<String, Map<String, String>> data = new HashMap<>();
 
         // Fetch the CSV content from the remote server
         String csvContent;
@@ -47,7 +53,7 @@ class AmfiService {
         } catch (Exception e) {
             // website down scenario
             LOGGER.error("Unable to download data", e);
-            return data;
+            return;
         }
 
         if (csvContent == null || csvContent.isBlank()) {
@@ -60,12 +66,20 @@ class AmfiService {
 
             String[] headers = csvReader.readNext();
             if (headers == null) {
-                return data;
+                return;
             }
+
+            int batchSize = mfSchemesProperties.getCsvProcessingBatchSize();
+            Map<String, Map<String, String>> currentBatch = new HashMap<>(batchSize);
 
             // Process each row incrementally
             String[] row;
             while ((row = csvReader.readNext()) != null) {
+                // Skip malformed rows with insufficient columns
+                if (row.length < 2 || row.length < headers.length) {
+                    LOGGER.warn("Skipping malformed row with {} columns (expected {})", row.length, headers.length);
+                    continue;
+                }
                 // Get the 'Code' column value
                 String code = row[1].strip();
 
@@ -75,11 +89,19 @@ class AmfiService {
                     rowData.put(headers[j].strip(), row[j].strip());
                 }
 
-                // Store the row data in the main map using the code as key
-                data.put(code, rowData);
+                // Store the row data in the batch map using the code as key
+                currentBatch.put(code, rowData);
+
+                if (currentBatch.size() >= batchSize) {
+                    batchProcessor.accept(currentBatch);
+                    currentBatch.clear();
+                }
+            }
+
+            // Flush final batch
+            if (!currentBatch.isEmpty()) {
+                batchProcessor.accept(currentBatch);
             }
         }
-
-        return data; // Return the map with scheme data
     }
 }
