@@ -5,6 +5,7 @@ import com.app.folioman.portfolio.models.projection.MonthlyInvestmentResponse;
 import com.app.folioman.portfolio.models.projection.YearlyInvestmentResponse;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.NativeQuery;
 import org.springframework.data.jpa.repository.Query;
@@ -13,6 +14,10 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface UserTransactionDetailsRepository extends JpaRepository<UserTransactionDetails, Long> {
+
+    @Query(
+            "select min(u.transactionDate) from UserTransactionDetails u where u.userSchemeDetails.userFolioDetails.pan = :pan")
+    Optional<LocalDate> findMinTransactionDateByPan(@Param("pan") String pan);
 
     @Query("""
             select count (u.id) from UserTransactionDetails u
