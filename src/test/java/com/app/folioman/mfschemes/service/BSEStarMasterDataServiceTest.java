@@ -2,6 +2,7 @@ package com.app.folioman.mfschemes.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
@@ -19,6 +20,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.web.client.RestClient;
 
 @ExtendWith(MockitoExtension.class)
@@ -233,5 +235,33 @@ class BSEStarMasterDataServiceTest {
         MfFundScheme scheme = result.get("54321");
         assertThat(scheme.getAmfiCode()).isEqualTo(54321L);
         assertThat(scheme.getName()).isEqualTo("Fallback Scheme");
+    }
+
+    @Test
+    void getOrCreateAmc_ShouldHandleRaceCondition_WhenSaveThrowsDataIntegrityViolation() {
+        // Given
+        String amcCode = "AMC001";
+        String amcName = "Race AMC";
+
+        when(mfAmcService.findByCode(amcCode)).thenReturn(null);
+        when(mfAmcCacheService.findByName(amcName)).thenReturn(null);
+
+        // Mock save throwing exception
+        when(mfAmcService.saveMfAmc(any(MfAmc.class)))
+                .thenThrow(new DataIntegrityViolationException("Unique constraint violation"));
+
+        // Mock recovery lookup returning existing AMC
+        MfAmc existingAmc = new MfAmc();
+        existingAmc.setCode(amcCode);
+        existingAmc.setName(amcName);
+        when(mfAmcCacheService.findByName(amcName)).thenReturn(null, existingAmc);
+
+        // When
+        MfAmc result = bseStarMasterDataService.getOrCreateAmc(amcCode, amcName);
+
+        // Then
+        assertThat(result).isNotNull();
+        assertThat(result.getName()).isEqualTo(amcName);
+        assertThat(result.getCode()).isEqualTo(amcCode);
     }
 }
