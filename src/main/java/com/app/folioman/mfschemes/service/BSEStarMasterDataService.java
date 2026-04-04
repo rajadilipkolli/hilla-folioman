@@ -149,7 +149,9 @@ class BSEStarMasterDataService {
         Map<String, MfFundScheme> masterData = new ConcurrentHashMap<>();
         Map<String, MfFundScheme> isinMasterData = new ConcurrentHashMap<>();
 
-        if (bseData.headerIndexKeyMap().isEmpty()) return masterData;
+        if (bseData.headerIndexKeyMap().isEmpty()) {
+            return masterData;
+        }
 
         // Process based on current batch's AMFI codes and their ISINs
         List<CompletableFuture<Void>> futures = new ArrayList<>();
@@ -232,6 +234,7 @@ class BSEStarMasterDataService {
         isinMasterData.compute(isin, (key, existingScheme) -> {
             // Skip if better data exists (shorter scheme code is better)
             if (existingScheme != null && existingScheme.getAmcCode().length() <= schemeCode.length()) {
+                masterData.put(amfiCode, existingScheme);
                 return existingScheme;
             }
 

@@ -94,7 +94,7 @@ class AmfiService {
 
                 if (currentBatch.size() >= batchSize) {
                     batchProcessor.accept(currentBatch);
-                    currentBatch.clear();
+                    currentBatch = new HashMap<>(batchSize);
                 }
             }
 

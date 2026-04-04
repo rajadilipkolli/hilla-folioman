@@ -1,5 +1,6 @@
 package com.app.folioman.mfschemes.service;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyMap;
@@ -13,9 +14,11 @@ import static org.mockito.Mockito.verify;
 import com.app.folioman.mfschemes.MFNavService;
 import com.app.folioman.mfschemes.config.MfSchemesProperties;
 import com.app.folioman.mfschemes.entities.MfFundScheme;
+import com.app.folioman.mfschemes.exception.MutualFundDataException;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
@@ -65,11 +68,10 @@ class InitializerTest {
                 .when(amfiService)
                 .fetchAmfiSchemeData(any(Consumer.class));
 
-        // Execute
-        initializer.handleApplicationStartedEvent(event);
+        // Execute & Verify
+        assertThrows(MutualFundDataException.class, () -> initializer.handleApplicationStartedEvent(event));
 
-        // Verify
-        verify(amfiService, times(1)).fetchAmfiSchemeData(any(Consumer.class));
+        verify(amfiService, times(properties.getRetryAttempts())).fetchAmfiSchemeData(any(Consumer.class));
         // No data processing should happen
         verify(bseStarMasterDataService, times(0)).processAmfiBatch(any(), anyMap(), anyMap());
     }
@@ -139,6 +141,19 @@ class InitializerTest {
                 })
                 .when(amfiService)
                 .fetchAmfiSchemeData(any(Consumer.class));
+
+        // Mock BSE parsing and processing for success
+        BSEStarMasterDataService.BseMasterDataResult mockBseResult =
+                new BSEStarMasterDataService.BseMasterDataResult(Map.of("ISIN", 0), Map.of());
+        given(bseStarMasterDataService.parseBseMasterData("bseData")).willReturn(mockBseResult);
+
+        Map<String, MfFundScheme> bseDataResultMap = new HashMap<>();
+        bseDataResultMap.put("1", new MfFundScheme());
+        given(bseStarMasterDataService.processAmfiBatch(eq(mockBseResult), anyMap(), anyMap()))
+                .willReturn(bseDataResultMap);
+
+        given(mfNavService.getAmfiCodeIsinMap()).willReturn(Map.of("ISIN", "1"));
+        given(mfFundSchemeService.findDistinctAmfiCode()).willReturn(List.of());
 
         // Execute
         initializer.handleApplicationStartedEvent(event);

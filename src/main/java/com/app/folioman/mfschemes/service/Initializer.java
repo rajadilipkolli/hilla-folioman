@@ -12,6 +12,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
@@ -63,6 +64,9 @@ public class Initializer {
                 attempt++;
                 LOGGER.info("Fetching AMFI scheme data (attempt {}/{})", attempt, properties.getRetryAttempts());
 
+                // Track if any data was processed across all batches
+                var dataProcessed = new AtomicBoolean(false);
+
                 // Download BSE data once
                 String bseMasterData = bseStarMasterDataService.downloadBseMasterData();
 
@@ -70,16 +74,32 @@ public class Initializer {
                     BSEStarMasterDataService.BseMasterDataResult bseDataResult =
                             bseStarMasterDataService.parseBseMasterData(bseMasterData);
 
+                    // Load existing AMFI codes once to avoid redundant DB queries per batch
+                    Set<String> existingAmfiCodes = new HashSet<>(this.mfFundSchemeService.findDistinctAmfiCode());
+
                     amfiService.fetchAmfiSchemeData(amfiDataMap -> {
                         if (!amfiDataMap.isEmpty()) {
-                            Map<String, String> amfiCodeIsinMapping = getAmfiCodeISINMapping(amfiDataMap);
-                            Map<String, MfFundScheme> bseStarMasterDataMap = bseStarMasterDataService.processAmfiBatch(
-                                    bseDataResult, amfiDataMap, amfiCodeIsinMapping);
+                            try {
+                                Map<String, String> amfiCodeIsinMapping = getAmfiCodeISINMapping(amfiDataMap);
+                                Map<String, MfFundScheme> bseStarMasterDataMap =
+                                        bseStarMasterDataService.processAmfiBatch(
+                                                bseDataResult, amfiDataMap, amfiCodeIsinMapping);
 
-                            // Process data
-                            processMasterData(bseStarMasterDataMap, amfiDataMap.keySet());
+                                if (!bseStarMasterDataMap.isEmpty()) {
+                                    dataProcessed.set(true);
+                                }
+
+                                // Process data using the cached set and update it
+                                processMasterData(bseStarMasterDataMap, amfiDataMap.keySet(), existingAmfiCodes);
+                            } catch (Exception e) {
+                                throw new MutualFundDataException("Failed to process AMFI batch", e);
+                            }
                         }
                     });
+                }
+
+                if (!dataProcessed.get()) {
+                    throw new IOException("No mutual fund data was processed (BSE or AMFI returned empty results)");
                 }
 
                 LOGGER.info("Successfully loaded all mutual fund data");
@@ -91,7 +111,7 @@ public class Initializer {
                 // If we reach here, processing was successful
                 return;
 
-            } catch (HttpClientErrorException | IOException e) {
+            } catch (HttpClientErrorException | IOException | MutualFundDataException e) {
                 lastException = e;
                 LOGGER.warn(
                         "Attempt {}/{} failed to load mutual fund data: {}",
@@ -162,17 +182,16 @@ public class Initializer {
      *
      * @param bseStarMasterDataMap Map of scheme data from BSE Star
      * @param amfiCodeSet          Set of AMFI codes to process
+     * @param existingAmfiCodes    Set of already persisted AMFI codes to update
      */
-    private void processMasterData(Map<String, MfFundScheme> bseStarMasterDataMap, Set<String> amfiCodeSet) {
-        // Thread-safe read operation
-        Set<String> distinctAmfiCodeFromDB = new HashSet<>(this.mfFundSchemeService.findDistinctAmfiCode());
-
+    private void processMasterData(
+            Map<String, MfFundScheme> bseStarMasterDataMap, Set<String> amfiCodeSet, Set<String> existingAmfiCodes) {
         // All operations in this stream are stateless and have no side effects,
         // making it safe for potential parallel execution in the future if needed
         List<MfFundScheme> mfFundSchemeList = bseStarMasterDataMap.keySet().stream()
-                // These filter operations are stateless and thread-safe
+                // These filter operations are stateless and thread-safe using the passed-in set
                 .filter(amfiCodeSet::contains)
-                .filter(s -> !distinctAmfiCodeFromDB.contains(s))
+                .filter(s -> !existingAmfiCodes.contains(s))
                 .distinct()
                 // Map operation gets values from a shared map but doesn't modify it
                 .map(bseStarMasterDataMap::get)
@@ -190,6 +209,9 @@ public class Initializer {
             StopWatch batchStopWatch = new StopWatch();
             batchStopWatch.start("Batch Processing");
             int totalProcessed = mfFundSchemeService.saveDataInBatches(mfFundSchemeList, properties.getBatchSize());
+
+            // Update the in-memory cache with newly saved AMFI codes to prevent re-processing in subsequent batches
+            mfFundSchemeList.forEach(scheme -> existingAmfiCodes.add(String.valueOf(scheme.getAmfiCode())));
 
             batchStopWatch.stop();
 
