@@ -33,10 +33,13 @@
             <column name="nav" type="DECIMAL(12, 5)"/>
             <column name="nav_date" type="DATE"/>
             <column name="mf_scheme_id" type="BIGINT"/>
-            <column name="created_by" type="${string.type}"/>
-            <column name="created_date" type="${timestamp.type}"/>
-            <column name="last_modified_by" type="${string.type}"/>
-            <column name="last_modified_date" type="${timestamp.type}"/>
+            <column name="version" type="smallint" defaultValueNumeric="0"/>
+            <column name="created_at" type="${timestamp.type}" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="${timestamp.type}" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
         </createTable>
     </changeSet>
     

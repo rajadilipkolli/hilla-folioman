@@ -33,15 +33,17 @@
             <column name="isin" type="${string.type}"/>
             <column name="start_date" type="DATE"/>
             <column name="end_date" type="DATE"/>
-            <column name="version" type="tinyint" />
             <column name="mf_amc_id" type="INT">
                 <constraints nullable="false"/>
             </column>
             <column name="mf_category_id" type="INT"/>
-            <column name="created_by" type="${string.type}"/>
-            <column name="created_date" type="${timestamp.type}"/>
-            <column name="last_modified_by" type="${string.type}"/>
-            <column name="last_modified_date" type="${timestamp.type}"/>
+            <column name="version" type="smallint" defaultValueNumeric="0"/>
+            <column name="created_at" type="${timestamp.type}" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="${timestamp.type}" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
         </createTable>
     </changeSet>
 

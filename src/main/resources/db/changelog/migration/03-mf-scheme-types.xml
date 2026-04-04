@@ -37,11 +37,13 @@
                 <constraints nullable="false"/>
             </column>
             <column name="sub_category" type="${string.type}"/>
-            <column name="version" type="tinyint"/>
-            <column name="created_by" type="${string.type}"/>
-            <column name="created_date" type="${timestamp.type}"/>
-            <column name="last_modified_by" type="${string.type}"/>
-            <column name="last_modified_date" type="${timestamp.type}"/>
+            <column name="version" type="smallint" defaultValueNumeric="0"/>
+            <column name="created_at" type="${timestamp.type}" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="${timestamp.type}" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
         </createTable>
 
     </changeSet>

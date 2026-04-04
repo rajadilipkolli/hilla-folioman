@@ -35,14 +35,14 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
+    </changeSet>
 
-        <!-- Create functional index -->
-        <sql dbms="postgresql">
+    <changeSet id="1726868193115-3" author="appUser" dbms="postgresql">
+        <sql>
             CREATE UNIQUE INDEX idx_mf_amc_name_ci ON mfschemes.mf_amc (LOWER(name));
         </sql>
-        <!-- Rollback strategy -->
         <rollback>
-            <sql dbms="postgresql">
+            <sql>
                 DROP INDEX IF EXISTS mfschemes.idx_mf_amc_name_ci;
             </sql>
         </rollback>

@@ -46,6 +46,13 @@
             <column name="user_folio_id" type="BIGINT">
                 <constraints nullable="false"/>
             </column>
+            <column name="created_at" type="${timestamp.type}" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="${timestamp.type}" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="version" type="smallint" defaultValueNumeric="0"/>
         </createTable>
     </changeSet>
 
