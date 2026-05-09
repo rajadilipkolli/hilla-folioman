@@ -1,5 +1,5 @@
-import FundDetailProjection from 'Frontend/generated/com/app/folioman/mfschemes/FundDetailProjection';
-import MFSchemeDTO from 'Frontend/generated/com/app/folioman/mfschemes/MFSchemeDTO';
+import FundDetailProjection from 'Frontend/generated/com/app/folioman/mfschemes/rest/dtos/FundDetailProjection';
+import MFSchemeDTO from 'Frontend/generated/com/app/folioman/mfschemes/rest/dtos/MFSchemeDTO';
 import React, { useEffect, useState } from 'react';
 import { SchemeController } from 'Frontend/generated/endpoints';
 import {
