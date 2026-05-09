@@ -266,8 +266,8 @@ class PortfolioValueUpdateServiceTest {
         assertThat(operationId1).isNotEqualTo(operationId2);
 
         // Verify UUIDs are valid
-        String uuid1 = operationId1.substring("FolioSchemeEntity-123-".length());
-        String uuid2 = operationId2.substring("FolioSchemeEntity-123-".length());
+        String uuid1 = operationId1.substring("folio-scheme-123-".length());
+        String uuid2 = operationId2.substring("-123-".length());
 
         assertThatCode(() -> UUID.fromString(uuid1)).doesNotThrowAnyException();
         assertThatCode(() -> UUID.fromString(uuid2)).doesNotThrowAnyException();
