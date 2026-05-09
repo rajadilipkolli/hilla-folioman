@@ -7,8 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.app.folioman.portfolio.domain.PdfProcessingService;
-import com.app.folioman.portfolio.domain.UserDetailService;
+import com.app.folioman.portfolio.PortfolioAPI;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -24,10 +23,7 @@ class ImportMutualFundControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private UserDetailService userDetailService;
-
-    @MockitoBean
-    private PdfProcessingService pdfProcessingService;
+    private PortfolioAPI portfolioAPI;
 
     @Test
     void getPortfolioInvalidPan() throws Exception {

@@ -9,6 +9,7 @@ import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.Endpoint;
 import jakarta.validation.constraints.Pattern;
 import java.util.List;
+import org.jspecify.annotations.Nullable;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,7 +32,7 @@ public class UserTransactionsController {
 
     @GetMapping("/returns/{pan}")
     @Cacheable(value = CacheNames.RETURNS_CACHE, key = "'returns_' + #pan", unless = "#result == null")
-    public InvestmentReturnsDTO getInvestmentReturns(
+    public @Nullable InvestmentReturnsDTO getInvestmentReturns(
             @PathVariable @Pattern(regexp = "[A-Z]{5}[0-9]{4}[A-Z]", message = "Invalid PAN number format")
                     String pan) {
         return portfolioAPI.getInvestmentReturnsByPan(pan).orElse(null);
