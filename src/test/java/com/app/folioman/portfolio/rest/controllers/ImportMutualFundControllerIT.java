@@ -11,9 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.app.folioman.mfschemes.domain.MfSchemeNavRepository;
 import com.app.folioman.portfolio.TestData;
-import com.app.folioman.portfolio.domain.UserPortfolioValueRepository;
 import com.app.folioman.shared.AbstractIntegrationTest;
 import java.io.File;
 import java.io.FileInputStream;
@@ -26,7 +24,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
@@ -34,12 +31,6 @@ import org.springframework.mock.web.MockMultipartFile;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @Execution(ExecutionMode.SAME_THREAD)
 class ImportMutualFundControllerIT extends AbstractIntegrationTest {
-
-    @Autowired
-    private UserPortfolioValueRepository userPortfolioValueRepository;
-
-    @Autowired
-    private MfSchemeNavRepository MfSchemeNavRepository;
 
     @Test
     @Order(1)

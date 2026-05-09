@@ -88,7 +88,8 @@ class PortfolioValueUpdateService {
             LocalDate fromDate2 = today;
 
             Optional<SchemeValue> schemeValue =
-                    schemeValueRepository.findFirstByUserSchemeDetails_UserFolioDetails_IdOrderByDateDesc(portfolioId);
+                    schemeValueRepository.findFirstByUserSchemeDetailsEntity_UserFolioDetails_IdOrderByDateDesc(
+                            portfolioId);
             if (schemeValue.isPresent()) {
                 fromDate2 = schemeValue.get().getDate();
             }
@@ -117,7 +118,7 @@ class PortfolioValueUpdateService {
                             : startDateMin;
 
                     Optional<SchemeValue> schemeValueOpt =
-                            schemeValueRepository.findFirstByUserSchemeDetails_IdAndDateBeforeOrderByDateDesc(
+                            schemeValueRepository.findFirstByUserSchemeDetailsEntity_IdAndDateBeforeOrderByDateDesc(
                                     folioScheme.getUserSchemeDetails().getId(), schemeFromDate);
                     List<UserTransactionDetails> oldTransactions =
                             userTransactionDetailsRepository.findByUserSchemeDetails_IdAndTransactionDateBefore(
@@ -503,8 +504,9 @@ class PortfolioValueUpdateService {
             LocalDate firstDate = portfolioValueEntityList.getFirst().getDate();
             LocalDate lastDate = portfolioValueEntityList.getLast().getDate();
 
-            List<UserPortfolioValue> existing = userPortfolioValueRepository.findByUserCasDetails_IdAndDateBetween(
-                    userCasDetailsEntity.getId(), firstDate, lastDate);
+            List<UserPortfolioValue> existing =
+                    userPortfolioValueRepository.findByUserCasDetailsEntity_IdAndDateBetween(
+                            userCasDetailsEntity.getId(), firstDate, lastDate);
 
             if (!existing.isEmpty()) {
                 Map<LocalDate, UserPortfolioValue> existingByDate =

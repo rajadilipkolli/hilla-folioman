@@ -96,7 +96,7 @@ class PortfolioValueUpdateServiceTest {
 
         SchemeValue sv = new SchemeValue();
         sv.setDate(LocalDate.now().minusDays(10));
-        when(schemeValueRepository.findFirstByUserSchemeDetails_UserFolioDetails_IdOrderByDateDesc(anyLong()))
+        when(schemeValueRepository.findFirstByUserSchemeDetailsEntity_UserFolioDetails_IdOrderByDateDesc(anyLong()))
                 .thenReturn(Optional.of(sv));
         // Provide some historical transactions so cashflow calculation runs
         when(userTransactionDetailsRepository.findByUserSchemeDetails_IdAndTransactionDateBefore(

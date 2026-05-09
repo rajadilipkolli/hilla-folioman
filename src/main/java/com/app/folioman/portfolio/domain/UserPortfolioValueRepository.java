@@ -12,7 +12,8 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface UserPortfolioValueRepository extends JpaRepository<UserPortfolioValue, Long> {
 
-    List<UserPortfolioValue> findByUserCasDetails_IdAndDateBetween(Long id, LocalDate firstDate, LocalDate lastDate);
+    List<UserPortfolioValue> findByUserCasDetailsEntity_IdAndDateBetween(
+            Long id, LocalDate firstDate, LocalDate lastDate);
 
     @NativeQuery("""
             SELECT upv.xirr, upv.live_xirr as liveXirr, upv.invested, upv.value, upv.date

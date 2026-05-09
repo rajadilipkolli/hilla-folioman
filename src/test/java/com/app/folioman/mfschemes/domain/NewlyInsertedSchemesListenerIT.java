@@ -11,12 +11,8 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 
 class NewlyInsertedSchemesListenerIT extends AbstractIntegrationTest {
-
-    @Autowired
-    private MfSchemeNavRepository MfSchemeNavRepository;
 
     @Test
     void asyncNavProcessingTriggeredByEvent() {
@@ -28,14 +24,15 @@ class NewlyInsertedSchemesListenerIT extends AbstractIntegrationTest {
         applicationEventPublisher.publishEvent(event);
 
         // Record the time before processing to verify new NAVs
-        // Widen window to 7 days to include NAVs that may have older navDate values due to holidays
+        // Widen window to 7 days to include NAVs that may have older navDate values due
+        // to holidays
         LocalDate testStartDate = LocalDate.now().minusDays(7);
 
         // Then: Awaitility waits for async processing and checks repository state
         await().atMost(Duration.ofSeconds(30)).untilAsserted(() -> {
             // Verify NAVs were created for all scheme codes with recent dates
             List<MFSchemeNavProjection> navs =
-                    MfSchemeNavRepository.findByMfScheme_AmfiCodeInAndNavDateGreaterThanEqualAndNavDateLessThanEqual(
+                    mfSchemeNavRepository.findByMfScheme_AmfiCodeInAndNavDateGreaterThanEqualAndNavDateLessThanEqual(
                             Set.copyOf(schemeCodes), testStartDate, LocalDate.now());
 
             assertThat(navs).isNotEmpty().hasSizeGreaterThan(3);
