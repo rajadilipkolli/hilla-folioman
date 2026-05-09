@@ -3,7 +3,6 @@ package com.app.folioman.portfolio.domain;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 
-import com.app.folioman.portfolio.rest.dtos.*;
 import com.app.folioman.portfolio.rest.dtos.CasDTO;
 import com.app.folioman.portfolio.rest.dtos.TransactionType;
 import com.app.folioman.portfolio.rest.dtos.UserFolioDTO;

@@ -877,7 +877,7 @@ class PortfolioValueUpdateService {
     }
 
     private String generateOperationId(Long schemeDetailId) {
-        return "FolioSchemeEntity-" + schemeDetailId + "-" + UUID.randomUUID();
+        return "folio-scheme-" + schemeDetailId + "-" + UUID.randomUUID();
     }
 
     private Optional<FolioSchemeEntity> findExistingFolioScheme(Long schemeDetailId, String operationId) {
