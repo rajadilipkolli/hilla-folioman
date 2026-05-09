@@ -1,5 +1,7 @@
 package com.app.folioman.mfschemes;
 
+import com.app.folioman.mfschemes.rest.dtos.MFSchemeDTO;
+import com.app.folioman.mfschemes.rest.dtos.MFSchemeNavProjection;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;

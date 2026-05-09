@@ -1,0 +1,108 @@
+package com.app.folioman.mfschemes.domain;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataAccessException;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
+
+@Service
+@Transactional(readOnly = true)
+class MfFundSchemeService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(MfFundSchemeService.class);
+
+    private final MfFundSchemeRepository mfFundSchemeRepository;
+    private final TransactionTemplate transactionTemplate;
+
+    MfFundSchemeService(MfFundSchemeRepository mfFundSchemeRepository, PlatformTransactionManager transactionManager) {
+        this.mfFundSchemeRepository = mfFundSchemeRepository;
+        this.transactionTemplate = new TransactionTemplate(transactionManager);
+        this.transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+        this.transactionTemplate.setIsolationLevel(TransactionDefinition.ISOLATION_READ_COMMITTED);
+    }
+
+    /**
+     * Save a batch of mutual fund schemes with automatic transaction management.
+     * If a transaction fails, it will be retried with smaller batches.
+     *
+     * @param mfFundSchemes List of mutual fund schemes to save
+     * @param batchSize Size of each batch to process
+     * @return Number of schemes successfully saved
+     */
+    int saveDataInBatches(List<MfFundSchemeEntity> mfFundSchemes, int batchSize) {
+
+        final AtomicInteger successCount = new AtomicInteger(0);
+
+        int totalSize = mfFundSchemes.size();
+
+        // Process in batches
+        for (int startIdx = 0; startIdx < totalSize; startIdx += batchSize) {
+            final int batchStartIdx = startIdx;
+            final int batchEndIdx = Math.min(startIdx + batchSize, totalSize);
+            final int currentBatchSize = batchEndIdx - batchStartIdx;
+
+            try {
+                // Execute each batch in a separate transaction
+                transactionTemplate.execute(status -> {
+                    try {
+                        // Create a batch list limited to the current batch size
+                        List<MfFundSchemeEntity> batch = new ArrayList<>(currentBatchSize);
+
+                        for (int i = batchStartIdx; i < batchEndIdx; i++) {
+                            batch.add(mfFundSchemes.get(i));
+                        }
+
+                        mfFundSchemeRepository.saveAll(batch);
+                        successCount.addAndGet(batch.size());
+
+                        LOGGER.debug(
+                                "Successfully saved batch of {} schemes ({}-{})",
+                                batch.size(),
+                                batchStartIdx,
+                                batchEndIdx - 1);
+                    } catch (Exception e) {
+                        LOGGER.error("Error saving batch {}-{}: {}", batchStartIdx, batchEndIdx - 1, e.getMessage());
+                        status.setRollbackOnly();
+                        throw e;
+                    }
+                    return null;
+                });
+            } catch (DataAccessException e) {
+                LOGGER.warn("Failed to save batch as a whole, will attempt individual saves");
+
+                // If batch save fails, try individual saves
+                for (int i = batchStartIdx; i < batchEndIdx; i++) {
+                    final MfFundSchemeEntity scheme = mfFundSchemes.get(i);
+
+                    transactionTemplate.execute(status -> {
+                        try {
+                            mfFundSchemeRepository.save(scheme);
+                            successCount.incrementAndGet();
+                        } catch (Exception ex) {
+                            LOGGER.debug("Could not save individual scheme: {}", ex.getMessage());
+                            status.setRollbackOnly();
+                        }
+                        return null;
+                    });
+                }
+            }
+        }
+
+        return successCount.get();
+    }
+
+    long getTotalCount() {
+        return mfFundSchemeRepository.count();
+    }
+
+    List<String> findDistinctAmfiCode() {
+        return mfFundSchemeRepository.findDistinctAmfiCode();
+    }
+}

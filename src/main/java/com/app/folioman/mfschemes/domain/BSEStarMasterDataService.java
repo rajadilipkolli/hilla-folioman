@@ -1,0 +1,391 @@
+package com.app.folioman.mfschemes.domain;
+
+import com.app.folioman.mfschemes.config.ApplicationProperties;
+import com.app.folioman.shared.CommonConstants;
+import com.app.folioman.shared.LocalDateUtility;
+import com.opencsv.CSVReader;
+import com.opencsv.exceptions.CsvException;
+import java.io.IOException;
+import java.io.StringReader;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClient;
+
+@Service
+class BSEStarMasterDataService {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(BSEStarMasterDataService.class);
+
+    static final String AMFI_ISIN_KEY = "ISIN Div Payout/ ISIN GrowthISIN Div Reinvestment";
+
+    private final Pattern delimiterPattern = Pattern.compile("\\|");
+
+    private final RestClient restClient;
+    private final MfAmcService mfAmcService;
+    private final MfAmcCacheService mfAmcCacheService;
+    private final MfSchemeDtoToEntityMapperHelper mfSchemeDtoToEntityMapperHelper;
+    private final ApplicationProperties applicationProperties;
+
+    // Local cache for AMCs by code to avoid repeated lookups in concurrent
+    // processing
+    private final ConcurrentHashMap<String, MfAmcEntity> amcCache = new ConcurrentHashMap<>();
+
+    BSEStarMasterDataService(
+            RestClient restClient,
+            MfAmcService mfAmcService,
+            MfAmcCacheService mfAmcCacheService,
+            MfSchemeDtoToEntityMapperHelper mfSchemeDtoToEntityMapperHelper,
+            ApplicationProperties applicationProperties) {
+        this.restClient = restClient;
+        this.mfAmcService = mfAmcService;
+        this.mfAmcCacheService = mfAmcCacheService;
+        this.mfSchemeDtoToEntityMapperHelper = mfSchemeDtoToEntityMapperHelper;
+        this.applicationProperties = applicationProperties;
+    }
+
+    public @Nullable String downloadBseMasterData() throws IOException {
+        LOGGER.info("BSE Master data Downloading...");
+
+        // Step 1: Initial GET request to download the page
+        String response = restClient
+                .get()
+                .uri(applicationProperties.getBseStar().getScheme().getDataUrl())
+                .header(HttpHeaders.USER_AGENT, "folioman-java-httpclient/0.0.1")
+                .retrieve()
+                .body(String.class);
+
+        // Step 2: Parse the HTML response to extract hidden form fields
+        Map<String, String> formData = null;
+        if (response != null) {
+            formData = getExtractedFormData(response);
+        }
+
+        // Step 4: POST request to submit the form and download the master data
+        String bseMasterData = null;
+        if (formData != null) {
+            bseMasterData = restClient
+                    .post()
+                    .uri("https://bsestarmf.in/RptSchemeMaster.aspx")
+                    .header(HttpHeaders.USER_AGENT, "folioman-java-httpclient/0.0.1")
+                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                    .accept(MediaType.ALL)
+                    .body(ofFormData(formData)) // Form data encoded and passed in the request bseMasterData
+                    .retrieve()
+                    .body(String.class);
+        }
+
+        LOGGER.info("BSE Master data downloaded successfully.");
+        return bseMasterData;
+    }
+
+    public Map<String, MfFundSchemeEntity> fetchBseStarMasterData(
+            String bseMasterData, Map<String, Map<String, String>> amfiDataMap, Map<String, String> amfiCodeIsinMapping)
+            throws IOException, CsvException {
+        if (bseMasterData != null && !bseMasterData.isBlank()) {
+            BseMasterDataResult bseDataResult = parseBseMasterData(bseMasterData);
+            return processAmfiBatch(bseDataResult, amfiDataMap, amfiCodeIsinMapping);
+        }
+        return Map.of();
+    }
+
+    public BseMasterDataResult parseBseMasterData(String bseMasterData) throws IOException, CsvException {
+        if (bseMasterData == null || bseMasterData.isBlank()) {
+            return new BseMasterDataResult(Map.of(), Map.of());
+        }
+
+        Map<String, List<String[]>> isinToRowsMap = new ConcurrentHashMap<>();
+        Map<String, Integer> headerIndexKeyMap;
+
+        try (StringReader stringReader = new StringReader(bseMasterData);
+                CSVReader csvReader = new CSVReader(stringReader)) {
+
+            String[] headerRow = csvReader.readNext();
+            if (headerRow == null) return new BseMasterDataResult(Map.of(), Map.of());
+
+            headerIndexKeyMap = mapHeaders(headerRow);
+            Integer isinIndex = headerIndexKeyMap.get("ISIN");
+
+            if (isinIndex == null) {
+                LOGGER.warn("BSE Master Data is missing 'ISIN' header. Skipping parsing.");
+                return new BseMasterDataResult(headerIndexKeyMap, isinToRowsMap);
+            }
+
+            String[] rows;
+            while ((rows = csvReader.readNext()) != null) {
+                String[] row = getDataAsArray(rows);
+                if (row.length > isinIndex) {
+                    String isin = row[isinIndex].strip();
+                    isinToRowsMap.computeIfAbsent(isin, k -> new ArrayList<>()).add(row);
+                }
+            }
+        }
+        return new BseMasterDataResult(headerIndexKeyMap, isinToRowsMap);
+    }
+
+    public Map<String, MfFundSchemeEntity> processAmfiBatch(
+            BseMasterDataResult bseData,
+            Map<String, Map<String, String>> amfiDataMap,
+            Map<String, String> amfiCodeIsinMapping) {
+
+        Map<String, MfFundSchemeEntity> masterData = new ConcurrentHashMap<>();
+        Map<String, MfFundSchemeEntity> isinMasterData = new ConcurrentHashMap<>();
+
+        if (bseData.headerIndexKeyMap().isEmpty()) {
+            return masterData;
+        }
+
+        // Process based on current batch's AMFI codes and their ISINs
+        List<CompletableFuture<Void>> futures = new ArrayList<>();
+
+        for (Map.Entry<String, Map<String, String>> amfiEntry : amfiDataMap.entrySet()) {
+            CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
+                        String amfiCode = amfiEntry.getKey();
+                        String isin = amfiEntry.getValue().get(AMFI_ISIN_KEY);
+
+                        // Process ISIN if present
+                        if (isin != null) {
+                            // Extract exactly 12 chars if longer, to match BSE format
+                            String processedIsin = (isin.length() > 12) ? isin.substring(0, 12) : isin;
+                            if (bseData.isinToRowsMap().containsKey(processedIsin)) {
+                                List<String[]> bseRows = bseData.isinToRowsMap().get(processedIsin);
+                                for (String[] row : bseRows) {
+                                    processSchemeData(
+                                            row,
+                                            bseData.headerIndexKeyMap(),
+                                            masterData,
+                                            isinMasterData,
+                                            amfiDataMap,
+                                            amfiCode);
+                                }
+                            }
+                        }
+
+                        // If no master data was found (either no ISIN or no BSE match), fallback
+                        if (!masterData.containsKey(amfiCode)) {
+                            processAmfiFallback(amfiCode, amfiEntry.getValue(), masterData, amfiCodeIsinMapping);
+                        }
+                    })
+                    .exceptionally(ex -> {
+                        LOGGER.error("Error processing scheme data for AMFI Code {}: ", amfiEntry.getKey(), ex);
+                        return null;
+                    });
+            futures.add(future);
+        }
+
+        CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+        return masterData;
+    }
+
+    public record BseMasterDataResult(
+            Map<String, Integer> headerIndexKeyMap, Map<String, List<String[]>> isinToRowsMap) {}
+
+    private void processAmfiFallback(
+            String amfiCode,
+            @Nullable Map<String, String> amfiSchemeData,
+            Map<String, MfFundSchemeEntity> masterData,
+            Map<String, String> amfiCodeIsinMapping) {
+        MfFundSchemeEntity fallbackScheme = new MfFundSchemeEntity();
+        fallbackScheme.setAmfiCode(Long.valueOf(amfiCode));
+        fallbackScheme.setIsin(amfiCodeIsinMapping.get(amfiCode));
+        if (amfiSchemeData != null) {
+            fallbackScheme.setName(amfiSchemeData.get("Scheme Name"));
+            // Process AMC
+            String amcName = amfiSchemeData.get("AMC").strip();
+            MfAmcEntity amc = mfAmcService.findOrCreateByName(amcName);
+            fallbackScheme.setAmc(amc);
+            setMfSchemeCategory(amfiSchemeData, fallbackScheme);
+        } else {
+            LOGGER.error("amfiSchemeData is null");
+        }
+        masterData.put(amfiCode, fallbackScheme);
+    }
+
+    private void processSchemeData(
+            String[] row,
+            Map<String, Integer> headerIndexKeyMap,
+            Map<String, MfFundSchemeEntity> masterData,
+            Map<String, MfFundSchemeEntity> isinMasterData,
+            Map<String, Map<String, String>> amfiDataMap,
+            String amfiCode) {
+
+        String isin = row[headerIndexKeyMap.get("ISIN")].strip();
+        String schemeCode = row[headerIndexKeyMap.get("Scheme Code")].strip();
+
+        // Use atomic compute operation to ensure thread-safety
+        isinMasterData.compute(isin, (key, existingScheme) -> {
+            // Skip if better data exists (shorter scheme code is better)
+            if (existingScheme != null && existingScheme.getAmcCode().length() <= schemeCode.length()) {
+                masterData.put(amfiCode, existingScheme);
+                return existingScheme;
+            }
+
+            Map<String, String> amfiDataMapByAmfiCode = amfiDataMap.get(amfiCode);
+            MfFundSchemeEntity scheme = createMfFundScheme(row, headerIndexKeyMap, amfiDataMapByAmfiCode);
+            scheme.setAmfiCode(Long.valueOf(amfiCode));
+
+            // Process AMC
+            String amcCode = row[headerIndexKeyMap.get("AMC Code")].strip();
+            MfAmcEntity amc = getOrCreateAmc(amcCode, amfiDataMapByAmfiCode.get("AMC"));
+            scheme.setAmc(amc);
+
+            // Add to masterData atomically
+            masterData.put(amfiCode, scheme);
+            return scheme;
+        });
+    }
+
+    MfAmcEntity getOrCreateAmc(String amcCode, @Nullable String amcName) {
+        // First try to get from local cache
+        return amcCache.computeIfAbsent(amcCode, code -> {
+            // If not in local cache, try to find in service
+            MfAmcEntity amc = mfAmcService.findByCode(code);
+            if (amc == null && amcName != null) {
+                // If not found by code, try to find by name to avoid duplicates (exact match
+                // only)
+                amc = mfAmcCacheService.findByName(amcName);
+            }
+            if (amc == null) {
+                // If not found in service, create new one
+                MfAmcEntity newAmc = new MfAmcEntity();
+                newAmc.setName(amcName);
+                newAmc.setCode(code);
+                // Save the new AMC, which is a thread-safe operation in the service
+                try {
+                    return mfAmcService.saveMfAmc(newAmc);
+                } catch (DataIntegrityViolationException e) {
+                    LOGGER.info("AMC already exists, possibly due to a race condition: {}", amcName);
+                    MfAmcEntity existing = mfAmcCacheService.findByName(amcName);
+                    if (existing != null) {
+                        return existing;
+                    }
+                    throw e;
+                }
+            }
+            return amc;
+        });
+    }
+
+    private MfFundSchemeEntity createMfFundScheme(
+            String[] row, Map<String, Integer> headerIndexKeyMap, @Nullable Map<String, String> amfiSchemeData) {
+        MfFundSchemeEntity scheme = new MfFundSchemeEntity();
+        scheme.setSid(Integer.parseInt(row[headerIndexKeyMap.get("Unique No")]));
+        scheme.setName(row[headerIndexKeyMap.get("Scheme Name")].strip());
+        scheme.setRta(row[headerIndexKeyMap.get("RTA Agent Code")].strip());
+        scheme.setPlan(row[headerIndexKeyMap.get("Scheme Plan")].contains("DIRECT") ? "DIRECT" : "REGULAR");
+        scheme.setRtaCode(row[headerIndexKeyMap.get("Channel Partner Code")].strip());
+        scheme.setAmcCode(row[headerIndexKeyMap.get("AMC Scheme Code")].strip());
+        scheme.setIsin(row[headerIndexKeyMap.get("ISIN")].strip());
+        scheme.setStartDate(LocalDateUtility.parse(
+                row[headerIndexKeyMap.get("Start Date")].strip(), CommonConstants.FORMATTER_MMM_D_YYYY));
+        scheme.setEndDate(LocalDateUtility.parse(
+                row[headerIndexKeyMap.get("End Date")].strip(), CommonConstants.FORMATTER_MMM_D_YYYY));
+
+        if (amfiSchemeData != null) {
+            setMfSchemeCategory(amfiSchemeData, scheme);
+            String endDate = amfiSchemeData.get("Closure Date");
+            if (endDate != null && !endDate.isBlank()) {
+                LocalDate closureDate = LocalDateUtility.parse(endDate);
+                if (closureDate.isBefore(LocalDate.now().minusWeeks(1))) {
+                    scheme.setEndDate(closureDate);
+                }
+            }
+        }
+        return scheme;
+    }
+
+    private void setMfSchemeCategory(Map<String, String> amfiSchemeData, MfFundSchemeEntity mfFundScheme) {
+        String catStr = amfiSchemeData.get("Scheme Category");
+        String catSchemeType = amfiSchemeData.get("Scheme Type");
+        String category, subcategory;
+
+        if (catStr != null && catStr.contains("-")) {
+            category = catStr.substring(0, catStr.indexOf("-")).strip();
+            subcategory = catStr.substring(catStr.indexOf("-") + 1).strip();
+        } else {
+            category = catStr;
+            subcategory = null;
+        }
+
+        // Check if category already exists in cache
+        MFSchemeTypeEntity mfSchemeTypeEntity =
+                mfSchemeDtoToEntityMapperHelper.findOrCreateMFSchemeTypeEntity(catSchemeType, category, subcategory);
+        mfFundScheme.setMfSchemeTypeEntity(mfSchemeTypeEntity);
+    }
+
+    public Map<String, Integer> mapHeaders(String[] rows) {
+        String[] headers = getDataAsArray(rows);
+
+        // Create a map of index and header values
+        return IntStream.range(0, headers.length)
+                .boxed()
+                .collect(Collectors.toMap(
+                        index -> headers[index], // Value is the header at that index
+                        index -> index // Key is the index
+                        ));
+    }
+
+    private String[] getDataAsArray(String[] rows) {
+        // Assume the first row contains the data
+        return delimiterPattern.split(rows[0]); // Split using the precompiled pattern
+    }
+
+    private Map<String, String> getExtractedFormData(String response) throws IOException {
+        Document doc = Jsoup.parse(response);
+        Element formElement = doc.getElementById("frmOrdConfirm");
+
+        if (formElement == null) {
+            throw new IOException("Unable to find the form with ID 'frmOrdConfirm'.");
+        }
+
+        // Step 3: Extract hidden form fields and their values
+        Map<String, String> formData = new HashMap<>();
+        formData.put("ddlTypeOption", "SCHEMEMASTERPHYSICAL"); // Form dropdown value
+
+        // Include any other hidden input fields
+        formElement.select("input[type=hidden]").forEach(input -> {
+            String name = input.attr("name");
+            String value = input.attr("value");
+            formData.put(name, value);
+        });
+
+        // Additional fields for form submission
+        formData.put("btnText", "Export to Text");
+        return formData;
+    }
+
+    /**
+     * Helper method to encode form data for URL submission.
+     */
+    private String ofFormData(Map<String, String> data) {
+        return data.entrySet().stream()
+                .map(entry -> encode(entry.getKey()) + "=" + encode(entry.getValue()))
+                .collect(Collectors.joining("&"));
+    }
+
+    /**
+     * Helper method to safely encode form parameters using UTF-8 encoding.
+     */
+    private String encode(String value) {
+        return URLEncoder.encode(value, StandardCharsets.UTF_8);
+    }
+}
