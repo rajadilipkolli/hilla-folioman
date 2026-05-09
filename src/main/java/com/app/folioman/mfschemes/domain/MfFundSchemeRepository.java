@@ -55,11 +55,11 @@ interface MfFundSchemeRepository extends JpaRepository<MfFundSchemeEntity, Long>
             select m from MfFundSchemeEntity m inner join fetch m.mfSchemeNavs mfSchemeNavs
             where m.amfiCode = :schemeCode and mfSchemeNavs.navDate = :date
             """)
-    @EntityGraph(attributePaths = {"amc", "MFSchemeTypeEntity"})
+    @EntityGraph(attributePaths = {"amc", "mfSchemeTypeEntity"})
     Optional<MfFundSchemeEntity> findBySchemeIdAndMfSchemeNavs_NavDate(
             @Param("schemeCode") Long schemeCode, @Param("date") LocalDate navDate);
 
-    @EntityGraph(attributePaths = {"amc", "MFSchemeTypeEntity", "mfSchemeNavs"})
+    @EntityGraph(attributePaths = {"amc", "mfSchemeTypeEntity", "mfSchemeNavs"})
     Optional<MfFundSchemeEntity> findByAmfiCode(@Param("amfiCode") Long amfiCode);
 
     boolean existsByAmfiCode(Long amfiCode);
