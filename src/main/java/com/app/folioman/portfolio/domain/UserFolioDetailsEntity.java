@@ -54,7 +54,7 @@ public class UserFolioDetailsEntity extends BaseEntity {
 
     @ManyToOne
     @JoinColumn(name = "user_cas_details_id", nullable = false)
-    private UserCasDetailsEntity userCasDetailsEntity;
+    private UserCasDetailsEntity userCasDetails;
 
     public Long getId() {
         return id;
@@ -119,12 +119,12 @@ public class UserFolioDetailsEntity extends BaseEntity {
         return this;
     }
 
-    public UserCasDetailsEntity getUserCasDetailsEntity() {
-        return userCasDetailsEntity;
+    public UserCasDetailsEntity getUserCasDetails() {
+        return userCasDetails;
     }
 
-    public UserFolioDetailsEntity setUserCasDetailsEntity(UserCasDetailsEntity userCasDetailsEntity) {
-        this.userCasDetailsEntity = userCasDetailsEntity;
+    public UserFolioDetailsEntity setUserCasDetails(UserCasDetailsEntity userCasDetails) {
+        this.userCasDetails = userCasDetails;
         return this;
     }
 

@@ -94,6 +94,6 @@ public class UserCasDetailsEntity extends BaseEntity {
 
     public void addFolioEntity(UserFolioDetailsEntity userFolioDetailsEntity) {
         this.folios.add(userFolioDetailsEntity);
-        userFolioDetailsEntity.setUserCasDetailsEntity(this);
+        userFolioDetailsEntity.setUserCasDetails(this);
     }
 }

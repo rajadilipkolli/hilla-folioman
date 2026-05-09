@@ -301,7 +301,7 @@ class PortfolioValueUpdateServiceTest {
             folio.setPan(folioDTO.pan());
             folio.setKyc(folioDTO.kyc());
             folio.setPanKyc(folioDTO.panKyc());
-            folio.setUserCasDetailsEntity(userCasDetailsEntity);
+            folio.setUserCasDetails(userCasDetailsEntity);
 
             List<UserSchemeDetailsEntity> schemes = new ArrayList<>();
             folioDTO.schemes().forEach(schemeDTO -> {

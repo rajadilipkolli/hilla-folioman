@@ -51,7 +51,7 @@ class UserFolioDetailsRepositoryTest {
         folio.setAmc("AMC1");
         folio.setPan("PAN1");
         folio.setPanKyc("OK");
-        folio.setUserCasDetailsEntity(userCasDetailsEntity);
+        folio.setUserCasDetails(userCasDetailsEntity);
         UserFolioDetailsEntity saved = userFolioDetailsRepository.save(folio);
         folios.add(saved);
         entityManager.flush();
@@ -108,7 +108,7 @@ class UserFolioDetailsRepositoryTest {
         entity.setAmc("AMC_A");
         entity.setPan("OLDPAN");
         entity.setPanKyc("NOT OK");
-        entity.setUserCasDetailsEntity(userCasDetailsEntity);
+        entity.setUserCasDetails(userCasDetailsEntity);
         entity = userFolioDetailsRepository.save(entity);
         entityManager.flush();
 
@@ -166,7 +166,7 @@ class UserFolioDetailsRepositoryTest {
         entity.setAmc("AMC_B");
         entity.setPan("OLDPAN");
         entity.setPanKyc("NOT OK");
-        entity.setUserCasDetailsEntity(userCasDetailsEntity);
+        entity.setUserCasDetails(userCasDetailsEntity);
         entity = userFolioDetailsRepository.save(entity);
         entityManager.flush();
 

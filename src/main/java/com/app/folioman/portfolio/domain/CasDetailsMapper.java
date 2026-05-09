@@ -28,7 +28,7 @@ public interface CasDetailsMapper {
             CasDTO casDTO, AtomicInteger newFolios, AtomicInteger newSchemes, AtomicInteger newTransactions);
 
     @Mapping(target = "schemes", ignore = true)
-    @Mapping(target = "userCasDetailsEntity", ignore = true)
+    @Mapping(target = "userCasDetails", ignore = true)
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
