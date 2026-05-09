@@ -35,8 +35,8 @@ class UserSchemeDetailServiceImpl implements UserSchemeDetailService {
         userSchemeDetailsEntities.forEach(this::processUserSchemeDetails);
     }
 
-    public List<UserSchemeDetailsEntity> findBySchemesIn(List<UserSchemeDetailsEntity> UserSchemeDetailsEntity) {
-        return userSchemeDetailsRepository.findByUserFolioDetails_SchemesIn(UserSchemeDetailsEntity);
+    public List<UserSchemeDetailsEntity> findBySchemesIn(List<UserSchemeDetailsEntity> userSchemeDetailsEntities) {
+        return userSchemeDetailsRepository.findByUserFolioDetails_SchemesIn(userSchemeDetailsEntities);
     }
 
     private void processUserSchemeDetails(UserSchemeDetailsEntity userSchemeDetailsEntity) {

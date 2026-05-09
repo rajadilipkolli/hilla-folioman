@@ -35,15 +35,15 @@ class MfSchemeDtoToEntityMapperHelperImpl implements MfSchemeDtoToEntityMapperHe
 
     @Override
     public void updateMFScheme(MFSchemeDTO mfSchemeDTO, MfFundSchemeEntity mfScheme) {
-        MFSchemeNavEntity MFSchemeNavEntity = new MFSchemeNavEntity();
-        MFSchemeNavEntity.setNav(
+        MFSchemeNavEntity mfSchemeNavEntity = new MFSchemeNavEntity();
+        mfSchemeNavEntity.setNav(
                 "N.A.".equals(mfSchemeDTO.nav()) ? BigDecimal.ZERO : new BigDecimal(mfSchemeDTO.nav()));
         // Use the flexible formatter to parse the date
         LocalDate parsedDate = LocalDate.parse(mfSchemeDTO.date(), SchemeConstants.FLEXIBLE_DATE_FORMATTER);
-        MFSchemeNavEntity.setNavDate(parsedDate);
-        mfScheme.addSchemeNav(MFSchemeNavEntity);
+        mfSchemeNavEntity.setNavDate(parsedDate);
+        mfScheme.addSchemeNav(mfSchemeNavEntity);
 
-        MFSchemeTypeEntity MFSchemeTypeEntity = null;
+        MFSchemeTypeEntity mfSchemeTypeEntity = null;
         String schemeType = mfSchemeDTO.schemeType();
         Matcher matcher = TYPE_CATEGORY_SUBCATEGORY_PATTERN.matcher(schemeType);
         if (matcher.find()) {
@@ -59,18 +59,18 @@ class MfSchemeDtoToEntityMapperHelperImpl implements MfSchemeDtoToEntityMapperHe
             }
             String category = matcher.group(2).strip();
             String subCategory = matcher.group(3).strip();
-            MFSchemeTypeEntity = findOrCreateMFSchemeTypeEntity(type, category, subCategory);
+            mfSchemeTypeEntity = findOrCreateMFSchemeTypeEntity(type, category, subCategory);
         } else {
             if (!schemeType.contains("-")) {
                 String type = schemeType.substring(0, schemeType.indexOf('('));
                 String category = schemeType.substring(schemeType.indexOf('(') + 1, schemeType.length() - 1);
-                MFSchemeTypeEntity = findOrCreateMFSchemeTypeEntity(type, category, null);
+                mfSchemeTypeEntity = findOrCreateMFSchemeTypeEntity(type, category, null);
             } else {
                 LOGGER.error("Unable to parse schemeType :{}", schemeType);
             }
         }
-        if (MFSchemeTypeEntity != null) {
-            mfScheme.setMfSchemeTypeEntity(MFSchemeTypeEntity);
+        if (mfSchemeTypeEntity != null) {
+            mfScheme.setMfSchemeTypeEntity(mfSchemeTypeEntity);
         }
         if (mfScheme.getAmc().getId() == null) {
             mfScheme.setAmc(findOrCreateAmcEntity(mfSchemeDTO.amc()));

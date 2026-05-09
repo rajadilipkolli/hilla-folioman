@@ -47,8 +47,8 @@ class MFNavServiceImpl implements MFNavService {
     private final CachedNavService cachedNavService;
     private final MfSchemeService mfSchemeService;
     private final MfHistoricalNavService historicalNavService;
-    private final MfSchemeNavRepository MfSchemeNavRepository;
-    private final MfFundSchemeRepository mFSchemeRepository;
+    private final MfSchemeNavRepository mfSchemeNavRepository;
+    private final MfFundSchemeRepository mfSchemeRepository;
     private final RestClient restClient;
     private final TransactionTemplate transactionTemplate;
 
@@ -59,16 +59,16 @@ class MFNavServiceImpl implements MFNavService {
             CachedNavService cachedNavService,
             MfSchemeService mfSchemeService,
             MfHistoricalNavService historicalNavService,
-            MfSchemeNavRepository MfSchemeNavRepository,
-            MfFundSchemeRepository mFSchemeRepository,
+            MfSchemeNavRepository mfSchemeNavRepository,
+            MfFundSchemeRepository mfSchemeRepository,
             RestClient restClient,
             PlatformTransactionManager transactionManager,
             ApplicationProperties applicationProperties) {
         this.cachedNavService = cachedNavService;
         this.mfSchemeService = mfSchemeService;
         this.historicalNavService = historicalNavService;
-        this.MfSchemeNavRepository = MfSchemeNavRepository;
-        this.mFSchemeRepository = mFSchemeRepository;
+        this.mfSchemeNavRepository = mfSchemeNavRepository;
+        this.mfSchemeRepository = mfSchemeRepository;
         this.restClient = restClient;
         // Create a new TransactionTemplate with the desired propagation behavior
         this.transactionTemplate = new TransactionTemplate(transactionManager);
@@ -139,15 +139,15 @@ class MFNavServiceImpl implements MFNavService {
                         .filter(amfiCodeNavMap::containsKey)
                         .map(amfiCode -> {
                             NavHolder navHolder = amfiCodeNavMap.get(amfiCode);
-                            MFSchemeNavEntity MFSchemeNavEntity = new MFSchemeNavEntity();
-                            MFSchemeNavEntity.setNav(navHolder.nav);
-                            MFSchemeNavEntity.setNavDate(navHolder.navDate);
-                            MFSchemeNavEntity.setMfScheme(mFSchemeRepository.getReferenceByAmfiCode(amfiCode));
-                            return MFSchemeNavEntity;
+                            MFSchemeNavEntity mfSchemeNavEntity = new MFSchemeNavEntity();
+                            mfSchemeNavEntity.setNav(navHolder.nav);
+                            mfSchemeNavEntity.setNavDate(navHolder.navDate);
+                            mfSchemeNavEntity.setMfScheme(mfSchemeRepository.getReferenceByAmfiCode(amfiCode));
+                            return mfSchemeNavEntity;
                         })
                         .toList();
                 if (!mfSchemeNavList.isEmpty()) {
-                    transactionTemplate.execute(status -> MfSchemeNavRepository.saveAll(mfSchemeNavList));
+                    transactionTemplate.execute(status -> mfSchemeNavRepository.saveAll(mfSchemeNavList));
                 }
             }
         }
@@ -224,7 +224,8 @@ class MFNavServiceImpl implements MFNavService {
 
         // Fetch NAVs in bulk for all schemes and dates
         LOGGER.info("Fetching Nav for amfiCodes: {} from {} to {}", schemeCodes, startDate, endDate);
-        return MfSchemeNavRepository.findByMfScheme_AmfiCodeInAndNavDateGreaterThanEqualAndNavDateLessThanEqual(
+        return mfSchemeNavRepository
+                .findByMfScheme_AmfiCodeInAndNavDateGreaterThanEqualAndNavDateLessThanEqual(
                         schemeCodes, startDate, endDate)
                 .stream()
                 .collect(Collectors.groupingBy(
@@ -297,7 +298,7 @@ class MFNavServiceImpl implements MFNavService {
      */
     private List<Long> getHistoricalDataNotLoadedSchemeIdList() {
         LocalDate yesterday = LocalDateUtility.getYesterday();
-        return MfSchemeNavRepository.findMFSchemeNavsByNavNotLoaded(yesterday);
+        return mfSchemeNavRepository.findMFSchemeNavsByNavNotLoaded(yesterday);
     }
 
     private record NavHolder(BigDecimal nav, LocalDate navDate) {}

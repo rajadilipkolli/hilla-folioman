@@ -9,19 +9,19 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 class MFSchemeTypeService {
 
-    private final MFSchemeTypeRepository MfSchemeTypeRepository;
+    private final MFSchemeTypeRepository mfSchemeTypeRepository;
 
-    MFSchemeTypeService(MFSchemeTypeRepository MfSchemeTypeRepository) {
-        this.MfSchemeTypeRepository = MfSchemeTypeRepository;
+    MFSchemeTypeService(MFSchemeTypeRepository mfSchemeTypeRepository) {
+        this.mfSchemeTypeRepository = mfSchemeTypeRepository;
     }
 
     public @Nullable MFSchemeTypeEntity findByTypeAndCategoryAndSubCategory(
             String type, String category, @Nullable String subCategory) {
-        return MfSchemeTypeRepository.findByTypeAndCategoryAndSubCategory(type, category, subCategory);
+        return mfSchemeTypeRepository.findByTypeAndCategoryAndSubCategory(type, category, subCategory);
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public MFSchemeTypeEntity saveCategory(MFSchemeTypeEntity MFSchemeTypeEntity) {
-        return MfSchemeTypeRepository.save(MFSchemeTypeEntity);
+    public MFSchemeTypeEntity saveCategory(MFSchemeTypeEntity mfSchemeTypeEntity) {
+        return mfSchemeTypeRepository.save(mfSchemeTypeEntity);
     }
 }

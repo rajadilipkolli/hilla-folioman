@@ -196,7 +196,7 @@ class PortfolioValueUpdateService {
             Map<LocalDate, BigDecimal> navsByDate = (Map<LocalDate, BigDecimal>) schemeData.get("navsByDate");
 
             UserSchemeDetailsEntity userSchemeDetailsEntity =
-                    (UserSchemeDetailsEntity) schemeData.get("UserSchemeDetailsEntity");
+                    (UserSchemeDetailsEntity) schemeData.get("userSchemeDetailsEntity");
 
             if (processedTransactions == null || processedTransactions.isEmpty()) {
                 LOGGER.warn("No processed transactions for scheme {}, skipping", schemeId);
@@ -387,7 +387,7 @@ class PortfolioValueUpdateService {
         result.put("toDate", toDate);
         result.put("processedTransactions", transactionsProcessed);
         result.put("navsByDate", navsByDate);
-        result.put("UserSchemeDetailsEntity", userSchemeDetailsEntity);
+        result.put("userSchemeDetailsEntity", userSchemeDetailsEntity);
 
         return result;
     }

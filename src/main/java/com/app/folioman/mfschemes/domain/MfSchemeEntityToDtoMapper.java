@@ -32,9 +32,9 @@ public interface MfSchemeEntityToDtoMapper {
                 date = localDate.toString();
             }
         }
-        MFSchemeTypeEntity MFSchemeTypeEntity = mfFundSchemeEntity.getMfSchemeTypeEntity();
-        String subCategory = MFSchemeTypeEntity.getSubCategory();
-        String category = MFSchemeTypeEntity.getCategory();
+        MFSchemeTypeEntity mfSchemeTypeEntity = mfFundSchemeEntity.getMfSchemeTypeEntity();
+        String subCategory = mfSchemeTypeEntity.getSubCategory();
+        String category = mfSchemeTypeEntity.getCategory();
         String categoryAndSubCategory;
         if (StringUtils.hasText(subCategory)) {
             categoryAndSubCategory = category + " - " + subCategory;
@@ -42,6 +42,6 @@ public interface MfSchemeEntityToDtoMapper {
             categoryAndSubCategory = category;
         }
         return mfSchemeDTO.withNavAndDateAndSchemeType(
-                MFSchemeTypeEntity.getType() + "(" + categoryAndSubCategory + ")", nav, date);
+                mfSchemeTypeEntity.getType() + "(" + categoryAndSubCategory + ")", nav, date);
     }
 }

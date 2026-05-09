@@ -12,22 +12,22 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 class UserCASDetailsService {
 
-    private final UserCASDetailsRepository UserCasDetailsRepository;
+    private final UserCASDetailsRepository userCasDetailsRepository;
 
-    UserCASDetailsService(UserCASDetailsRepository UserCasDetailsRepository) {
-        this.UserCasDetailsRepository = UserCasDetailsRepository;
+    UserCASDetailsService(UserCASDetailsRepository userCasDetailsRepository) {
+        this.userCasDetailsRepository = userCasDetailsRepository;
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public UserCasDetailsEntity saveEntity(UserCasDetailsEntity userCasDetailsEntity) {
-        return UserCasDetailsRepository.save(userCasDetailsEntity);
+        return userCasDetailsRepository.save(userCasDetailsEntity);
     }
 
     public Optional<UserCasDetailsEntity> findByInvestorEmailAndName(String email, String name) {
-        return UserCasDetailsRepository.findByInvestorEmailAndName(email, name);
+        return userCasDetailsRepository.findByInvestorEmailAndName(email, name);
     }
 
     public List<PortfolioDetailsProjection> getPortfolioDetailsByPanAndAsOfDate(String panNumber, LocalDate asOfDate) {
-        return UserCasDetailsRepository.getPortfolioDetails(panNumber, asOfDate);
+        return userCasDetailsRepository.getPortfolioDetails(panNumber, asOfDate);
     }
 }
