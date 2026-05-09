@@ -3,7 +3,6 @@ package com.app.folioman.portfolio.domain;
 import com.app.folioman.mfschemes.MFNavService;
 import com.app.folioman.mfschemes.NavNotFoundException;
 import com.app.folioman.mfschemes.rest.dtos.MFSchemeNavProjection;
-import com.app.folioman.portfolio.domain.models.FIFOUnits;
 import com.app.folioman.portfolio.domain.models.ProcessedTransaction;
 import com.app.folioman.portfolio.domain.models.request.TransactionType;
 import com.app.folioman.portfolio.util.XirrCalculator;

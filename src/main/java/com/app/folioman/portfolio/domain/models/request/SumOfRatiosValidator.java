@@ -6,6 +6,8 @@ import java.util.List;
 
 public class SumOfRatiosValidator implements ConstraintValidator<ValidSumOfRatios, List<Fund>> {
 
+    SumOfRatiosValidator() {}
+
     @Override
     public boolean isValid(List<Fund> funds, ConstraintValidatorContext context) {
         if (funds == null || funds.isEmpty()) {

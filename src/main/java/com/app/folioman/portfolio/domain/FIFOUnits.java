@@ -1,6 +1,6 @@
-package com.app.folioman.portfolio.domain.models;
+package com.app.folioman.portfolio.domain;
 
-import com.app.folioman.portfolio.domain.UserTransactionDetails;
+import com.app.folioman.portfolio.domain.models.TransactionRecord;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Deque;
