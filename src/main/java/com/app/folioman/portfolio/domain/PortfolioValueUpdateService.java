@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -87,11 +88,11 @@ class PortfolioValueUpdateService {
 
             LocalDate fromDate2 = today;
 
-            Optional<SchemeValueEntity> SchemeValueEntity =
+            Optional<SchemeValueEntity> schemeValueEntity =
                     schemeValueRepository.findFirstByUserSchemeDetailsEntity_UserFolioDetails_IdOrderByDateDesc(
                             portfolioId);
-            if (SchemeValueEntity.isPresent()) {
-                fromDate2 = SchemeValueEntity.get().getDate();
+            if (schemeValueEntity.isPresent()) {
+                fromDate2 = schemeValueEntity.get().getDate();
             }
 
             LocalDate startDateMin = fromDate1.isBefore(fromDate2) ? fromDate1 : fromDate2;
@@ -103,29 +104,31 @@ class PortfolioValueUpdateService {
             List<Long> schemeListFromDB = userFolioDetailsEntity.getSchemes().stream()
                     .map(UserSchemeDetailsEntity::getId)
                     .toList();
-            for (FolioSchemeEntity FolioSchemeEntity : schemes) {
+            for (FolioSchemeEntity folioSchemeEntity : schemes) {
 
                 // Protect per-scheme processing so one failing scheme doesn't abort the whole async job
                 try {
 
                     LocalDate schemeFromDate = schemeListFromDB.contains(
-                                    FolioSchemeEntity.getUserSchemeDetails().getId())
-                            ? FolioSchemeEntity.getUserSchemeDetails()
+                                    folioSchemeEntity.getUserSchemeDetails().getId())
+                            ? folioSchemeEntity
+                                    .getUserSchemeDetails()
                                     .getCreatedAt()
-                                    .atZone(ZoneId.systemDefault())
+                                    .atZone(ZoneOffset.UTC)
                                     .toLocalDate()
                             : startDateMin;
 
                     Optional<SchemeValueEntity> schemeValueOpt =
                             schemeValueRepository.findFirstByUserSchemeDetailsEntity_IdAndDateBeforeOrderByDateDesc(
-                                    FolioSchemeEntity.getUserSchemeDetails().getId(), schemeFromDate);
+                                    folioSchemeEntity.getUserSchemeDetails().getId(), schemeFromDate);
                     List<UserTransactionDetailsEntity> oldTransactions =
                             userTransactionDetailsRepository.findByUserSchemeDetails_IdAndTransactionDateBefore(
-                                    FolioSchemeEntity.getUserSchemeDetails().getId(), schemeFromDate);
+                                    folioSchemeEntity.getUserSchemeDetails().getId(), schemeFromDate);
                     List<UserTransactionDetailsEntity> newTransactions =
                             userTransactionDetailsRepository
                                     .findByUserSchemeDetails_IdAndTransactionDateGreaterThanEqual(
-                                            FolioSchemeEntity.getUserSchemeDetails()
+                                            folioSchemeEntity
+                                                    .getUserSchemeDetails()
                                                     .getId(),
                                             schemeFromDate);
 
@@ -144,7 +147,7 @@ class PortfolioValueUpdateService {
                     Map<String, Object> schemeData = calculateSchemeData(
                             fifo,
                             schemeValueOpt,
-                            FolioSchemeEntity.getUserSchemeDetails(),
+                            folioSchemeEntity.getUserSchemeDetails(),
                             transactionsProcessed,
                             today);
                     if (schemeData != null) {
@@ -153,13 +156,13 @@ class PortfolioValueUpdateService {
                 } catch (NavNotFoundException nne) {
                     LOGGER.warn(
                             "NAV not found for scheme {} (AMFI: {}) on requested dates - skipping scheme. Reason: {}",
-                            FolioSchemeEntity.getUserSchemeDetails().getId(),
-                            FolioSchemeEntity.getUserSchemeDetails().getAmfi(),
+                            folioSchemeEntity.getUserSchemeDetails().getId(),
+                            folioSchemeEntity.getUserSchemeDetails().getAmfi(),
                             nne.getMessage());
                 } catch (Exception ex) {
                     LOGGER.error(
                             "Unexpected error while processing scheme {} - skipping scheme",
-                            FolioSchemeEntity.getUserSchemeDetails().getId(),
+                            folioSchemeEntity.getUserSchemeDetails().getId(),
                             ex);
                 }
             }
@@ -209,10 +212,10 @@ class PortfolioValueUpdateService {
             // Prepare FolioSchemeEntity update with latest valuation
             if (!schemeValues.isEmpty()) {
                 SchemeValueEntity latestSchemeValue = schemeValues.getLast();
-                FolioSchemeEntity FolioSchemeEntity = findOrCreateFolioScheme(schemeId, userSchemeDetailsEntity);
-                FolioSchemeEntity.setValuation(latestSchemeValue.getValue());
-                FolioSchemeEntity.setValuationDate(latestSchemeValue.getDate());
-                folioSchemeUpdates.put(schemeId, FolioSchemeEntity);
+                FolioSchemeEntity folioSchemeEntity = findOrCreateFolioScheme(schemeId, userSchemeDetailsEntity);
+                folioSchemeEntity.setValuation(latestSchemeValue.getValue());
+                folioSchemeEntity.setValuationDate(latestSchemeValue.getDate());
+                folioSchemeUpdates.put(schemeId, folioSchemeEntity);
             }
         }
 
@@ -768,14 +771,14 @@ class PortfolioValueUpdateService {
             MFSchemeNavProjection navOnCurrentDate = navMap.get(adjustedDate);
 
             if (navOnCurrentDate != null) {
-                BigDecimal SchemeValueEntity = navOnCurrentDate.nav().multiply(BigDecimal.valueOf(units));
+                BigDecimal schemeValueEntity = navOnCurrentDate.nav().multiply(BigDecimal.valueOf(units));
 
                 // Add current valuation as positive cash flow for XIRR calculation
                 if (dataContainer.cashFlowsByScheme().containsKey(schemeCode)) {
                     dataContainer
                             .cashFlowsByScheme()
                             .get(schemeCode)
-                            .merge(currentDate, SchemeValueEntity, BigDecimal::add);
+                            .merge(currentDate, schemeValueEntity, BigDecimal::add);
                 }
             }
         }

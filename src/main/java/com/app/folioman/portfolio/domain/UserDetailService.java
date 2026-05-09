@@ -71,7 +71,6 @@ public class UserDetailService {
         this.portfolioValueUpdateService = portfolioValueUpdateService;
     }
 
-    @Transactional
     public UploadFileResponse upload(MultipartFile multipartFile) throws IOException {
         CasDTO casDTO = parseCasDTO(multipartFile);
         boolean existingUser = validateCasDTO(casDTO);
@@ -85,7 +84,6 @@ public class UserDetailService {
      * @param casDTO The CasDTO object to process
      * @return UploadFileResponse with processing statistics
      */
-    @Transactional
     public UploadFileResponse uploadFromDto(CasDTO casDTO) {
         LOGGER.info("Processing CasDTO from converted source");
         boolean existingUser = validateCasDTO(casDTO);
