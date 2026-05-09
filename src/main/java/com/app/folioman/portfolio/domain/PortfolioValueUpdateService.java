@@ -109,9 +109,9 @@ class PortfolioValueUpdateService {
                 try {
 
                     LocalDate schemeFromDate = schemeListFromDB.contains(
-                                    folioScheme.getUserSchemeDetailsEntity().getId())
+                                    folioScheme.getUserSchemeDetails().getId())
                             ? folioScheme
-                                    .getUserSchemeDetailsEntity()
+                                    .getUserSchemeDetails()
                                     .getCreatedAt()
                                     .atZone(ZoneId.systemDefault())
                                     .toLocalDate()
@@ -119,17 +119,14 @@ class PortfolioValueUpdateService {
 
                     Optional<SchemeValue> schemeValueOpt =
                             schemeValueRepository.findFirstByUserSchemeDetails_IdAndDateBeforeOrderByDateDesc(
-                                    folioScheme.getUserSchemeDetailsEntity().getId(), schemeFromDate);
+                                    folioScheme.getUserSchemeDetails().getId(), schemeFromDate);
                     List<UserTransactionDetails> oldTransactions =
                             userTransactionDetailsRepository.findByUserSchemeDetails_IdAndTransactionDateBefore(
-                                    folioScheme.getUserSchemeDetailsEntity().getId(), schemeFromDate);
+                                    folioScheme.getUserSchemeDetails().getId(), schemeFromDate);
                     List<UserTransactionDetails> newTransactions =
                             userTransactionDetailsRepository
                                     .findByUserSchemeDetails_IdAndTransactionDateGreaterThanEqual(
-                                            folioScheme
-                                                    .getUserSchemeDetailsEntity()
-                                                    .getId(),
-                                            schemeFromDate);
+                                            folioScheme.getUserSchemeDetails().getId(), schemeFromDate);
 
                     FIFOUnits fifo = new FIFOUnits();
 
@@ -144,24 +141,20 @@ class PortfolioValueUpdateService {
                         transactionsProcessed = processTransactions(fifo, oldTransactions);
                     }
                     Map<String, Object> schemeData = calculateSchemeData(
-                            fifo,
-                            schemeValueOpt,
-                            folioScheme.getUserSchemeDetailsEntity(),
-                            transactionsProcessed,
-                            today);
+                            fifo, schemeValueOpt, folioScheme.getUserSchemeDetails(), transactionsProcessed, today);
                     if (schemeData != null) {
                         schemeResults.add(schemeData);
                     }
                 } catch (NavNotFoundException nne) {
                     LOGGER.warn(
                             "NAV not found for scheme {} (AMFI: {}) on requested dates - skipping scheme. Reason: {}",
-                            folioScheme.getUserSchemeDetailsEntity().getId(),
-                            folioScheme.getUserSchemeDetailsEntity().getAmfi(),
+                            folioScheme.getUserSchemeDetails().getId(),
+                            folioScheme.getUserSchemeDetails().getAmfi(),
                             nne.getMessage());
                 } catch (Exception ex) {
                     LOGGER.error(
                             "Unexpected error while processing scheme {} - skipping scheme",
-                            folioScheme.getUserSchemeDetailsEntity().getId(),
+                            folioScheme.getUserSchemeDetails().getId(),
                             ex);
                 }
             }
@@ -544,7 +537,7 @@ class PortfolioValueUpdateService {
 
     private Set<Long> extractSchemeCodes(List<UserTransactionDetails> transactionList) {
         return transactionList.stream()
-                .map(transaction -> transaction.getUserSchemeDetailsEntity().getAmfi())
+                .map(transaction -> transaction.getUserSchemeDetails().getAmfi())
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
     }
@@ -624,7 +617,7 @@ class PortfolioValueUpdateService {
 
     private void processTransaction(UserTransactionDetails transaction, PortfolioDataContainer dataContainer) {
 
-        Long amfiCode = transaction.getUserSchemeDetailsEntity().getAmfi();
+        Long amfiCode = transaction.getUserSchemeDetails().getAmfi();
         BigDecimal transactionAmount = getTransactionAmount(transaction);
         Double transactionUnits = getTransactionUnits(transaction);
 
@@ -789,8 +782,8 @@ class PortfolioValueUpdateService {
         Set<Long> processedSchemeIds = new HashSet<>();
 
         for (UserTransactionDetails transaction : transactionList) {
-            Long schemeCode = transaction.getUserSchemeDetailsEntity().getAmfi();
-            Long schemeDetailId = transaction.getUserSchemeDetailsEntity().getId();
+            Long schemeCode = transaction.getUserSchemeDetails().getAmfi();
+            Long schemeDetailId = transaction.getUserSchemeDetails().getId();
 
             // Skip if already processed
             if (processedSchemeIds.contains(schemeDetailId)) {
@@ -800,7 +793,7 @@ class PortfolioValueUpdateService {
 
             // Calculate and save XIRR for this scheme
             calculateAndSaveSchemeXirr(
-                    schemeCode, schemeDetailId, dataContainer, endDate, transaction.getUserSchemeDetailsEntity());
+                    schemeCode, schemeDetailId, dataContainer, endDate, transaction.getUserSchemeDetails());
         }
     }
 
@@ -891,7 +884,7 @@ class PortfolioValueUpdateService {
                 schemeDetailId);
         FolioScheme folioScheme = new FolioScheme();
         folioScheme.setUserSchemeDetailsEntity(userSchemeDetailsEntity);
-        folioScheme.setUserFolioDetailsEntity(userSchemeDetailsEntity.getUserFolioDetailsEntity());
+        folioScheme.setUserFolioDetailsEntity(userSchemeDetailsEntity.getUserFolioDetails());
         LOGGER.debug("[{}] New FolioScheme created for schemeDetailId: {}", operationId, schemeDetailId);
         return folioScheme;
     }

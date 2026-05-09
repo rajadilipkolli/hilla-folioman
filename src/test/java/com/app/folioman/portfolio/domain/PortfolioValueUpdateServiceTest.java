@@ -238,7 +238,7 @@ class PortfolioValueUpdateServiceTest {
 
         // Verify cashFlowsByScheme was initialized using computeIfAbsent
         assertThat(cashFlowsByScheme).isNotNull();
-        Long amfiCode = transaction.getUserSchemeDetailsEntity().getAmfi();
+        Long amfiCode = transaction.getUserSchemeDetails().getAmfi();
         assertThat(cashFlowsByScheme).containsKey(amfiCode);
 
         // Verify recordCashFlows added the transaction correctly
@@ -314,7 +314,7 @@ class PortfolioValueUpdateServiceTest {
                 scheme.setRtaCode(schemeDTO.rtaCode());
                 scheme.setRta(schemeDTO.rta());
                 scheme.setType(schemeDTO.type());
-                scheme.setUserFolioDetailsEntity(folio);
+                scheme.setUserFolioDetails(folio);
                 scheme.setCreatedAt(Instant.now().minus(30, ChronoUnit.DAYS));
 
                 List<UserTransactionDetails> transactions = new ArrayList<>();
@@ -335,7 +335,7 @@ class PortfolioValueUpdateServiceTest {
                         transaction.setBalance(transactionDTO.balance());
                         transaction.setType(transactionDTO.type());
                         transaction.setDividendRate(transactionDTO.dividendRate());
-                        transaction.setUserSchemeDetailsEntity(scheme);
+                        transaction.setUserSchemeDetails(scheme);
                         transactions.add(transaction);
                     }
                 });
@@ -357,8 +357,9 @@ class PortfolioValueUpdateServiceTest {
 
         // Get all scheme codes from the UserCasDetailsEntity
         Set<Long> schemeCodes = new HashSet<>();
-        userCasDetailsEntity.getFolios().forEach(folio -> folio.getSchemes()
-                .forEach(scheme -> schemeCodes.add(scheme.getAmfi())));
+        userCasDetailsEntity
+                .getFolios()
+                .forEach(folio -> folio.getSchemes().forEach(scheme -> schemeCodes.add(scheme.getAmfi())));
 
         // Create NAV data for each scheme
         schemeCodes.forEach(schemeCode -> {

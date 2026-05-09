@@ -63,9 +63,9 @@ public class UserSchemeDetailsEntity extends BaseEntity {
 
     @ManyToOne
     @JoinColumn(name = "user_folio_id", nullable = false)
-    private UserFolioDetailsEntity userFolioDetailsEntity;
+    private UserFolioDetailsEntity userFolioDetails;
 
-    @OneToMany(mappedBy = "userSchemeDetailsEntity", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "userSchemeDetails", cascade = CascadeType.ALL, orphanRemoval = true)
     @Fetch(FetchMode.SUBSELECT)
     private List<UserTransactionDetails> transactions = new ArrayList<>();
 
@@ -168,12 +168,12 @@ public class UserSchemeDetailsEntity extends BaseEntity {
         return this;
     }
 
-    public UserFolioDetailsEntity getUserFolioDetailsEntity() {
-        return userFolioDetailsEntity;
+    public UserFolioDetailsEntity getUserFolioDetails() {
+        return userFolioDetails;
     }
 
-    public UserSchemeDetailsEntity setUserFolioDetailsEntity(UserFolioDetailsEntity userFolioDetails) {
-        this.userFolioDetailsEntity = userFolioDetails;
+    public UserSchemeDetailsEntity setUserFolioDetails(UserFolioDetailsEntity userFolioDetails) {
+        this.userFolioDetails = userFolioDetails;
         return this;
     }
 
@@ -188,7 +188,7 @@ public class UserSchemeDetailsEntity extends BaseEntity {
 
     public void addTransaction(UserTransactionDetails userTransactionDetails) {
         this.transactions.add(userTransactionDetails);
-        userTransactionDetails.setUserSchemeDetailsEntity(this);
+        userTransactionDetails.setUserSchemeDetails(this);
     }
 
     @Override
@@ -199,8 +199,8 @@ public class UserSchemeDetailsEntity extends BaseEntity {
         return isin != null
                 && Objects.equals(isin, userSchemeDetails.isin)
                 && Objects.equals(
-                        userFolioDetailsEntity.getId(),
-                        userSchemeDetails.getUserFolioDetailsEntity().getId());
+                        userFolioDetails.getId(),
+                        userSchemeDetails.getUserFolioDetails().getId());
     }
 
     @Override

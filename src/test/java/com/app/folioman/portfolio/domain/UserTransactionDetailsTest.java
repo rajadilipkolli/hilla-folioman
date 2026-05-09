@@ -173,18 +173,10 @@ class UserTransactionDetailsTest {
     @Test
     void getAndSetUserSchemeDetails() {
         UserSchemeDetailsEntity userSchemeDetailsEntity = new UserSchemeDetailsEntity();
-        UserTransactionDetails result = this.userTransactionDetails.setUserSchemeDetailsEntity(userSchemeDetailsEntity);
+        UserTransactionDetails result = this.userTransactionDetails.setUserSchemeDetails(userSchemeDetailsEntity);
 
-        assertThat(this.userTransactionDetails.getUserSchemeDetailsEntity()).isEqualTo(userSchemeDetailsEntity);
+        assertThat(this.userTransactionDetails.getUserSchemeDetails()).isEqualTo(userSchemeDetailsEntity);
         assertThat(result).isSameAs(this.userTransactionDetails);
-    }
-
-    @Test
-    void getAndSetUserSchemeDetailsWithNull() {
-        UserTransactionDetails result = userTransactionDetails.setUserSchemeDetailsEntity(null);
-
-        assertThat(userTransactionDetails.getUserSchemeDetailsEntity()).isNull();
-        assertThat(result).isSameAs(userTransactionDetails);
     }
 
     @Test

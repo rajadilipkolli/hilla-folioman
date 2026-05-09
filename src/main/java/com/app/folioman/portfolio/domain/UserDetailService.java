@@ -221,7 +221,7 @@ public class UserDetailService {
                                     dto.description(),
                                     rtaCodeFromRequest);
                             UserTransactionDetails entity = casDetailsMapper.transactionDTOToTransactionEntity(dto);
-                            entity.setUserSchemeDetailsEntity(matchingScheme);
+                            entity.setUserSchemeDetails(matchingScheme);
                             newTransactions.incrementAndGet();
                             newTransactionsForScheme.add(entity);
                         }
@@ -340,7 +340,7 @@ public class UserDetailService {
                                     folioFromRequest);
                             UserSchemeDetailsEntity entity =
                                     casDetailsMapper.schemeDTOToSchemeEntity(userSchemeDTO, newTransactions);
-                            entity.setUserFolioDetailsEntity(matchingFolio);
+                            entity.setUserFolioDetails(matchingFolio);
                             newSchemes.incrementAndGet();
                             return entity;
                         })

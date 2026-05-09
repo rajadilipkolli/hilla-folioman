@@ -47,7 +47,7 @@ public class UserTransactionDetails extends BaseEntity {
 
     @ManyToOne
     @JoinColumn(name = "user_scheme_detail_id")
-    private UserSchemeDetailsEntity userSchemeDetailsEntity;
+    private UserSchemeDetailsEntity userSchemeDetails;
 
     public Long getId() {
         return id;
@@ -130,12 +130,12 @@ public class UserTransactionDetails extends BaseEntity {
         return this;
     }
 
-    public UserSchemeDetailsEntity getUserSchemeDetailsEntity() {
-        return userSchemeDetailsEntity;
+    public UserSchemeDetailsEntity getUserSchemeDetails() {
+        return userSchemeDetails;
     }
 
-    public UserTransactionDetails setUserSchemeDetailsEntity(UserSchemeDetailsEntity userSchemeDetails) {
-        this.userSchemeDetailsEntity = userSchemeDetails;
+    public UserTransactionDetails setUserSchemeDetails(UserSchemeDetailsEntity userSchemeDetails) {
+        this.userSchemeDetails = userSchemeDetails;
         return this;
     }
 

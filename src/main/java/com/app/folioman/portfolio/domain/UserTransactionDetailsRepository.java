@@ -15,12 +15,12 @@ import org.springframework.stereotype.Repository;
 interface UserTransactionDetailsRepository extends JpaRepository<UserTransactionDetails, Long> {
 
     @Query(
-            "select min(u.transactionDate) from UserTransactionDetails u where u.userSchemeDetailsEntity.userFolioDetailsEntity.pan = :pan")
+            "select min(u.transactionDate) from UserTransactionDetails u where u.userSchemeDetails.userFolioDetails.pan = :pan")
     Optional<LocalDate> findMinTransactionDateByPan(@Param("pan") String pan);
 
     @Query("""
             select count (u.id) from UserTransactionDetails u
-            where upper(u.userSchemeDetailsEntity.userFolioDetailsEntity.userCasDetails.investorInfo.email) = upper(:email) and u.userSchemeDetailsEntity.userFolioDetailsEntity.userCasDetails.investorInfo.name = :name and u.transactionDate >= :fromTransactionDate and u.transactionDate <= :toTransactionDate
+            where upper(u.userSchemeDetails.userFolioDetails.userCasDetails.investorInfo.email) = upper(:email) and u.userSchemeDetails.userFolioDetails.userCasDetails.investorInfo.name = :name and u.transactionDate >= :fromTransactionDate and u.transactionDate <= :toTransactionDate
             """)
     Long findAllTransactionByEmailAndNameAndInRange(
             @Param("email") String email,

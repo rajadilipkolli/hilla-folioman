@@ -15,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 interface UserFolioDetailsRepository extends JpaRepository<UserFolioDetailsEntity, Long> {
 
     @Query("""
-            select u from UserFolioDetailsEntity u left join u.userCasDetailsEntity.folios folios join fetch u.schemes where folios in :folios
+            select u from UserFolioDetailsEntity u left join u.userCasDetails.folios folios join fetch u.schemes where folios in :folios
             """)
     List<UserFolioDetailsEntity> findByUserCasDetails_FoliosIn(@Param("folios") List<UserFolioDetailsEntity> folios);
 
@@ -23,6 +23,6 @@ interface UserFolioDetailsRepository extends JpaRepository<UserFolioDetailsEntit
 
     @Modifying
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    @Query("update UserFolioDetailsEntity set pan = :pan where panKyc = 'NOT OK' and userCasDetailsEntity.id = :casId")
+    @Query("update UserFolioDetailsEntity set pan = :pan where panKyc = 'NOT OK' and userCasDetails.id = :casId")
     int updatePanByCasId(@Param("pan") String pan, @Param("casId") Long casId);
 }

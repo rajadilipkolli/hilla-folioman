@@ -33,11 +33,11 @@ public class FolioScheme extends BaseEntity {
 
     @ManyToOne
     @JoinColumn(name = "user_folio_id", nullable = false)
-    private UserFolioDetailsEntity userFolioDetailsEntity;
+    private UserFolioDetailsEntity userFolioDetails;
 
     @ManyToOne
     @JoinColumn(name = "user_scheme_detail_id", nullable = false)
-    private UserSchemeDetailsEntity userSchemeDetailsEntity;
+    private UserSchemeDetailsEntity userSchemeDetails;
 
     public Long getId() {
         return id;
@@ -75,21 +75,21 @@ public class FolioScheme extends BaseEntity {
         return this;
     }
 
-    public UserFolioDetailsEntity getUserFolioDetailsEntity() {
-        return userFolioDetailsEntity;
+    public UserFolioDetailsEntity getUserFolioDetails() {
+        return userFolioDetails;
     }
 
     public FolioScheme setUserFolioDetailsEntity(UserFolioDetailsEntity userFolioDetails) {
-        this.userFolioDetailsEntity = userFolioDetails;
+        this.userFolioDetails = userFolioDetails;
         return this;
     }
 
-    public UserSchemeDetailsEntity getUserSchemeDetailsEntity() {
-        return userSchemeDetailsEntity;
+    public UserSchemeDetailsEntity getUserSchemeDetails() {
+        return userSchemeDetails;
     }
 
     public FolioScheme setUserSchemeDetailsEntity(UserSchemeDetailsEntity userSchemeDetails) {
-        this.userSchemeDetailsEntity = userSchemeDetails;
+        this.userSchemeDetails = userSchemeDetails;
         return this;
     }
 }

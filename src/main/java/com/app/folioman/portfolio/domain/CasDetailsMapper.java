@@ -38,13 +38,13 @@ public interface CasDetailsMapper {
 
     @Mapping(target = "version", ignore = true)
     @Mapping(target = "transactions", ignore = true)
-    @Mapping(target = "userFolioDetailsEntity", ignore = true)
+    @Mapping(target = "userFolioDetails", ignore = true)
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     UserSchemeDetailsEntity schemeDTOToSchemeEntity(UserSchemeDTO schemeDTO, AtomicInteger newTransactions);
 
-    @Mapping(target = "userSchemeDetailsEntity", ignore = true)
+    @Mapping(target = "userSchemeDetails", ignore = true)
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "createdAt", ignore = true)

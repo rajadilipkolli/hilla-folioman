@@ -51,12 +51,12 @@ class FolioSchemeTest {
     @Test
     void shouldSetAndGetUserFolioDetails() {
         folioScheme.setUserFolioDetailsEntity(userFolioDetailsEntity);
-        assertThat(folioScheme.getUserFolioDetailsEntity()).isEqualTo(userFolioDetailsEntity);
+        assertThat(folioScheme.getUserFolioDetails()).isEqualTo(userFolioDetailsEntity);
     }
 
     @Test
     void shouldSetAndGetUserSchemeDetails() {
         folioScheme.setUserSchemeDetailsEntity(userSchemeDetailsEntity);
-        assertThat(folioScheme.getUserSchemeDetailsEntity()).isEqualTo(userSchemeDetailsEntity);
+        assertThat(folioScheme.getUserSchemeDetails()).isEqualTo(userSchemeDetailsEntity);
     }
 }

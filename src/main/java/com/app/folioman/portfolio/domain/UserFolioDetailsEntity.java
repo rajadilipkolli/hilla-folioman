@@ -48,7 +48,7 @@ public class UserFolioDetailsEntity extends BaseEntity {
     @Column(name = "pan_kyc")
     private String panKyc;
 
-    @OneToMany(mappedBy = "userFolioDetailsEntity", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "userFolioDetails", cascade = CascadeType.ALL, orphanRemoval = true)
     @Fetch(FetchMode.SUBSELECT)
     private List<UserSchemeDetailsEntity> schemes = new ArrayList<>();
 
@@ -130,7 +130,7 @@ public class UserFolioDetailsEntity extends BaseEntity {
 
     public void addScheme(UserSchemeDetailsEntity userSchemeDetails) {
         this.schemes.add(userSchemeDetails);
-        userSchemeDetails.setUserFolioDetailsEntity(this);
+        userSchemeDetails.setUserFolioDetails(this);
     }
 
     @Override

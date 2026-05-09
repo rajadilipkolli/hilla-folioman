@@ -52,7 +52,7 @@ class UserSchemeDetailsRepositoryTest {
         UserSchemeDetailsEntity scheme1 = new UserSchemeDetailsEntity();
         scheme1.setScheme("Scheme 1");
         scheme1.setIsin("ISIN-1");
-        scheme1.setUserFolioDetailsEntity(userFolio);
+        scheme1.setUserFolioDetails(userFolio);
         // add a transaction so the repository's join fetch on transactions returns this row
         var tx1 = new UserTransactionDetails();
         tx1.setType(TransactionType.PURCHASE);
@@ -61,7 +61,7 @@ class UserSchemeDetailsRepositoryTest {
         UserSchemeDetailsEntity scheme2 = new UserSchemeDetailsEntity();
         scheme2.setScheme("Scheme 2");
         scheme2.setIsin("ISIN-2");
-        scheme2.setUserFolioDetailsEntity(userFolio);
+        scheme2.setUserFolioDetails(userFolio);
         var tx2 = new UserTransactionDetails();
         tx2.setType(TransactionType.PURCHASE);
         scheme2.addTransaction(tx2);
@@ -113,12 +113,12 @@ class UserSchemeDetailsRepositoryTest {
         UserSchemeDetailsEntity schemeWithNullAmfi = new UserSchemeDetailsEntity();
         schemeWithNullAmfi.setAmfi(null);
         schemeWithNullAmfi.setScheme("S1");
-        schemeWithNullAmfi.setUserFolioDetailsEntity(userFolio);
+        schemeWithNullAmfi.setUserFolioDetails(userFolio);
 
         UserSchemeDetailsEntity schemeWithAmfi = new UserSchemeDetailsEntity();
         schemeWithAmfi.setAmfi(12345L);
         schemeWithAmfi.setScheme("S2");
-        schemeWithAmfi.setUserFolioDetailsEntity(userFolio);
+        schemeWithAmfi.setUserFolioDetails(userFolio);
 
         entityManager.persist(schemeWithNullAmfi);
         entityManager.persist(schemeWithAmfi);
@@ -155,7 +155,7 @@ class UserSchemeDetailsRepositoryTest {
         UserSchemeDetailsEntity schemeWithAmfi = new UserSchemeDetailsEntity();
         schemeWithAmfi.setAmfi(12345L);
         schemeWithAmfi.setScheme("S3");
-        schemeWithAmfi.setUserFolioDetailsEntity(userFolio);
+        schemeWithAmfi.setUserFolioDetails(userFolio);
 
         entityManager.persist(schemeWithAmfi);
         entityManager.flush();
@@ -193,7 +193,7 @@ class UserSchemeDetailsRepositoryTest {
         userFolio.setUserCasDetails(cas4);
         userFolio = entityManager.persistAndFlush(userFolio);
 
-        scheme.setUserFolioDetailsEntity(userFolio);
+        scheme.setUserFolioDetails(userFolio);
 
         entityManager.persist(scheme);
         entityManager.flush();
@@ -255,7 +255,7 @@ class UserSchemeDetailsRepositoryTest {
         userFolio.setUserCasDetails(cas);
         userFolio = entityManager.persistAndFlush(userFolio);
         scheme.setScheme("S5");
-        scheme.setUserFolioDetailsEntity(userFolio);
+        scheme.setUserFolioDetails(userFolio);
 
         entityManager.persist(scheme);
         entityManager.flush();
