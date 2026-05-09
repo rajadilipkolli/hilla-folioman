@@ -186,9 +186,9 @@ class UserSchemeDetailsEntity extends BaseEntity {
         return this;
     }
 
-    public void addTransaction(UserTransactionDetailsEntity UserTransactionDetailsEntity) {
-        this.transactions.add(UserTransactionDetailsEntity);
-        UserTransactionDetailsEntity.setUserSchemeDetails(this);
+    public void addTransaction(UserTransactionDetailsEntity userTransactionDetailsEntity) {
+        this.transactions.add(userTransactionDetailsEntity);
+        userTransactionDetailsEntity.setUserSchemeDetails(this);
     }
 
     @Override
