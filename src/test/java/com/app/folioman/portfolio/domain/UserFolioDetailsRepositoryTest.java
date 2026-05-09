@@ -51,7 +51,7 @@ class UserFolioDetailsRepositoryTest {
         folio.setAmc("AMC1");
         folio.setPan("PAN1");
         folio.setPanKyc("OK");
-        folio.setUserCasDetails(userCasDetailsEntity);
+        folio.setUserCasDetailsEntity(userCasDetailsEntity);
         UserFolioDetailsEntity saved = userFolioDetailsRepository.save(folio);
         folios.add(saved);
         entityManager.flush();
@@ -62,12 +62,13 @@ class UserFolioDetailsRepositoryTest {
     }
 
     @Test
-    void findFirstByUserCasDetailsIdAndPanKycWhenFound() {
+    void findFirstByUserCasDetailsEntityIdAndPanKycWhenFound() {
         Long userCasId = 1L;
         String kycStatus = "OK";
 
         // Result can be null if no data exists in test database; ensure call doesn't throw
-        assertThatCode(() -> userFolioDetailsRepository.findFirstByUserCasDetails_IdAndPanKyc(userCasId, kycStatus))
+        assertThatCode(() ->
+                        userFolioDetailsRepository.findFirstByUserCasDetailsEntity_IdAndPanKyc(userCasId, kycStatus))
                 .doesNotThrowAnyException();
     }
 
@@ -77,7 +78,7 @@ class UserFolioDetailsRepositoryTest {
         String kycStatus = "NOT OK";
 
         Optional<UserFolioDetailsPanProjection> result =
-                userFolioDetailsRepository.findFirstByUserCasDetails_IdAndPanKyc(nonExistentUserCasId, kycStatus);
+                userFolioDetailsRepository.findFirstByUserCasDetailsEntity_IdAndPanKyc(nonExistentUserCasId, kycStatus);
 
         assertThat(result).isEmpty();
     }
@@ -108,7 +109,7 @@ class UserFolioDetailsRepositoryTest {
         entity.setAmc("AMC_A");
         entity.setPan("OLDPAN");
         entity.setPanKyc("NOT OK");
-        entity.setUserCasDetails(userCasDetailsEntity);
+        entity.setUserCasDetailsEntity(userCasDetailsEntity);
         entity = userFolioDetailsRepository.save(entity);
         entityManager.flush();
 
@@ -166,7 +167,7 @@ class UserFolioDetailsRepositoryTest {
         entity.setAmc("AMC_B");
         entity.setPan("OLDPAN");
         entity.setPanKyc("NOT OK");
-        entity.setUserCasDetails(userCasDetailsEntity);
+        entity.setUserCasDetailsEntity(userCasDetailsEntity);
         entity = userFolioDetailsRepository.save(entity);
         entityManager.flush();
 

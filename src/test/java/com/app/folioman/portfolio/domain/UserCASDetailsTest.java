@@ -169,7 +169,7 @@ class UserCASDetailsTest {
         userCasDetailsEntity.addFolioEntity(mockUserFolioDetails);
 
         assertThat(userCasDetailsEntity.getFolios()).contains(mockUserFolioDetails);
-        verify(mockUserFolioDetails).setUserCasDetails(userCasDetailsEntity);
+        verify(mockUserFolioDetails).setUserCasDetailsEntity(userCasDetailsEntity);
     }
 
     @Test
@@ -182,7 +182,7 @@ class UserCASDetailsTest {
         assertThat(userCasDetailsEntity.getFolios()).hasSize(2);
         assertThat(userCasDetailsEntity.getFolios()).contains(mockUserFolioDetails);
         assertThat(userCasDetailsEntity.getFolios()).contains(anotherMockFolio);
-        verify(mockUserFolioDetails).setUserCasDetails(userCasDetailsEntity);
-        verify(anotherMockFolio).setUserCasDetails(userCasDetailsEntity);
+        verify(mockUserFolioDetails).setUserCasDetailsEntity(userCasDetailsEntity);
+        verify(anotherMockFolio).setUserCasDetailsEntity(userCasDetailsEntity);
     }
 }
