@@ -21,7 +21,7 @@ import org.springframework.util.StopWatch;
 import org.springframework.web.client.HttpClientErrorException;
 
 @Service
-public class Initializer {
+class Initializer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Initializer.class);
     private static final String ISIN_KEY = BSEStarMasterDataService.AMFI_ISIN_KEY;

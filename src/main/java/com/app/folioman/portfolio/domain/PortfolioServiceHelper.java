@@ -4,8 +4,8 @@ import com.app.folioman.mfschemes.MFNavService;
 import com.app.folioman.mfschemes.NavNotFoundException;
 import com.app.folioman.mfschemes.rest.dtos.MFSchemeDTO;
 import com.app.folioman.portfolio.domain.models.projection.PortfolioDetailsProjection;
-import com.app.folioman.portfolio.domain.models.request.UserFolioDTO;
-import com.app.folioman.portfolio.domain.models.response.PortfolioDetailsDTO;
+import com.app.folioman.portfolio.rest.dtos.PortfolioDetailsDTO;
+import com.app.folioman.portfolio.rest.dtos.UserFolioDTO;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 import tools.jackson.databind.json.JsonMapper;
 
 @Service
-class PortfolioServiceHelper {
+public class PortfolioServiceHelper {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PortfolioServiceHelper.class);
     private final JsonMapper mapper;

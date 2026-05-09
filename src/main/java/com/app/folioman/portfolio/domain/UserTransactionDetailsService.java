@@ -1,8 +1,8 @@
 package com.app.folioman.portfolio.domain;
 
-import com.app.folioman.portfolio.domain.models.response.InvestmentReturnsDTO;
-import com.app.folioman.portfolio.domain.models.response.MonthlyInvestmentResponseDTO;
-import com.app.folioman.portfolio.domain.models.response.YearlyInvestmentResponseDTO;
+import com.app.folioman.portfolio.rest.dtos.InvestmentReturnsDTO;
+import com.app.folioman.portfolio.rest.dtos.MonthlyInvestmentResponseDTO;
+import com.app.folioman.portfolio.rest.dtos.YearlyInvestmentResponseDTO;
 import com.app.folioman.portfolio.util.XirrCalculator;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -69,7 +69,7 @@ public class UserTransactionDetailsService {
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public List<UserTransactionDetails> saveTransactions(List<UserTransactionDetails> transactions) {
+    public List<UserTransactionDetailsEntity> saveTransactions(List<UserTransactionDetailsEntity> transactions) {
         return userTransactionDetailsRepository.saveAll(transactions);
     }
 }

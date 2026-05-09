@@ -1,6 +1,6 @@
 package com.app.folioman.portfolio.domain;
 
-public enum FileTypeEnum {
+enum FileTypeEnum {
     CAMS,
     KARVY,
     UNKNOWN

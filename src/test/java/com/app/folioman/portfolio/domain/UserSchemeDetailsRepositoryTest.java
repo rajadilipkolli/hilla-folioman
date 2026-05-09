@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
 import com.app.folioman.config.SQLContainersConfig;
-import com.app.folioman.portfolio.domain.models.request.TransactionType;
+import com.app.folioman.portfolio.rest.dtos.TransactionType;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import java.util.Collections;
@@ -54,7 +54,7 @@ class UserSchemeDetailsRepositoryTest {
         scheme1.setIsin("ISIN-1");
         scheme1.setUserFolioDetails(userFolio);
         // add a transaction so the repository's join fetch on transactions returns this row
-        var tx1 = new UserTransactionDetails();
+        UserTransactionDetailsEntity tx1 = new UserTransactionDetailsEntity();
         tx1.setType(TransactionType.PURCHASE);
         scheme1.addTransaction(tx1);
 
@@ -62,7 +62,7 @@ class UserSchemeDetailsRepositoryTest {
         scheme2.setScheme("Scheme 2");
         scheme2.setIsin("ISIN-2");
         scheme2.setUserFolioDetails(userFolio);
-        var tx2 = new UserTransactionDetails();
+        UserTransactionDetailsEntity tx2 = new UserTransactionDetailsEntity();
         tx2.setType(TransactionType.PURCHASE);
         scheme2.addTransaction(tx2);
 

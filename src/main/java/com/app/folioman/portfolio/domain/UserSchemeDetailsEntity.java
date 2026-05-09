@@ -30,7 +30,7 @@ import org.jspecify.annotations.Nullable;
                     name = "uc_userschemedetailsentity",
                     columnNames = {"isin", "user_folio_id"})
         })
-public class UserSchemeDetailsEntity extends BaseEntity {
+class UserSchemeDetailsEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_scheme_details_seq")
     @SequenceGenerator(name = "user_scheme_details_seq", schema = "portfolio")
@@ -67,7 +67,7 @@ public class UserSchemeDetailsEntity extends BaseEntity {
 
     @OneToMany(mappedBy = "userSchemeDetails", cascade = CascadeType.ALL, orphanRemoval = true)
     @Fetch(FetchMode.SUBSELECT)
-    private List<UserTransactionDetails> transactions = new ArrayList<>();
+    private List<UserTransactionDetailsEntity> transactions = new ArrayList<>();
 
     public Long getId() {
         return id;
@@ -177,18 +177,18 @@ public class UserSchemeDetailsEntity extends BaseEntity {
         return this;
     }
 
-    public List<UserTransactionDetails> getTransactions() {
+    public List<UserTransactionDetailsEntity> getTransactions() {
         return transactions;
     }
 
-    public UserSchemeDetailsEntity setTransactions(List<UserTransactionDetails> transactions) {
+    public UserSchemeDetailsEntity setTransactions(List<UserTransactionDetailsEntity> transactions) {
         this.transactions = transactions;
         return this;
     }
 
-    public void addTransaction(UserTransactionDetails userTransactionDetails) {
-        this.transactions.add(userTransactionDetails);
-        userTransactionDetails.setUserSchemeDetails(this);
+    public void addTransaction(UserTransactionDetailsEntity UserTransactionDetailsEntity) {
+        this.transactions.add(UserTransactionDetailsEntity);
+        UserTransactionDetailsEntity.setUserSchemeDetails(this);
     }
 
     @Override

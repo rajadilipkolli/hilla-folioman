@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { reBalance } from 'Frontend/generated/ReBalanceController';
-import Fund from 'Frontend/generated/com/app/folioman/portfolio/domain/models/request/Fund';
-import InvestmentResponse from 'Frontend/generated/com/app/folioman/portfolio/domain/models/response/InvestmentResponse';
+import Fund from 'Frontend/generated/com/app/folioman/portfolio/rest/dtos/Fund';
+import InvestmentResponse from 'Frontend/generated/com/app/folioman/portfolio/rest/dtos/InvestmentResponse';
 import {
   Button,
   FormLayout,

@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.app.folioman.config.SQLContainersConfig;
 import com.app.folioman.portfolio.domain.models.projection.PortfolioDetailsProjection;
-import com.app.folioman.portfolio.domain.models.request.TransactionType;
+import com.app.folioman.portfolio.rest.dtos.TransactionType;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -191,7 +191,7 @@ class UserCASDetailsRepositoryTest {
         folio.addScheme(scheme);
 
         // transaction with non-zero balance
-        UserTransactionDetails tx = new UserTransactionDetails();
+        UserTransactionDetailsEntity tx = new UserTransactionDetailsEntity();
         tx.setTransactionDate(transactionDate);
         tx.setBalance(balance);
         tx.setUnits(balance);
@@ -215,7 +215,7 @@ class UserCASDetailsRepositoryTest {
                 .setParameter("pan", pan)
                 .getSingleResult();
 
-        UserTransactionDetails excluded = new UserTransactionDetails();
+        UserTransactionDetailsEntity excluded = new UserTransactionDetailsEntity();
         excluded.setTransactionDate(transactionDate);
         excluded.setBalance(5.0);
         excluded.setUnits(5.0);

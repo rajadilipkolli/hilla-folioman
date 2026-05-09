@@ -7,8 +7,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.app.folioman.portfolio.domain.models.request.Fund;
-import com.app.folioman.portfolio.domain.models.request.InvestmentRequest;
+import com.app.folioman.portfolio.rest.dtos.Fund;
+import com.app.folioman.portfolio.rest.dtos.InvestmentRequest;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 
 class SchemeValueTest {
 
-    private SchemeValue schemeValue;
+    private SchemeValueEntity SchemeValueEntity;
     private final LocalDate date = LocalDate.of(2025, 5, 25);
     private final BigDecimal invested = BigDecimal.valueOf(10000);
     private final BigDecimal value = BigDecimal.valueOf(12000);
@@ -20,56 +20,56 @@ class SchemeValueTest {
 
     @BeforeEach
     void setUp() {
-        schemeValue = new SchemeValue();
+        SchemeValueEntity = new SchemeValueEntity();
         userSchemeDetailsEntity.setId(1L);
     }
 
     @Test
     void shouldSetAndGetId() {
         Long id = 42L;
-        schemeValue.setId(id);
-        assertThat(schemeValue.getId()).isEqualTo(id);
+        SchemeValueEntity.setId(id);
+        assertThat(SchemeValueEntity.getId()).isEqualTo(id);
     }
 
     @Test
     void shouldSetAndGetDate() {
-        schemeValue.setDate(date);
-        assertThat(schemeValue.getDate()).isEqualTo(date);
+        SchemeValueEntity.setDate(date);
+        assertThat(SchemeValueEntity.getDate()).isEqualTo(date);
     }
 
     @Test
     void shouldSetAndGetInvested() {
-        schemeValue.setInvested(invested);
-        assertThat(schemeValue.getInvested()).isEqualTo(invested);
+        SchemeValueEntity.setInvested(invested);
+        assertThat(SchemeValueEntity.getInvested()).isEqualTo(invested);
     }
 
     @Test
     void shouldSetAndGetValue() {
-        schemeValue.setValue(value);
-        assertThat(schemeValue.getValue()).isEqualTo(value);
+        SchemeValueEntity.setValue(value);
+        assertThat(SchemeValueEntity.getValue()).isEqualTo(value);
     }
 
     @Test
     void shouldSetAndGetAvgNav() {
-        schemeValue.setAvgNav(avgNav);
-        assertThat(schemeValue.getAvgNav()).isEqualTo(avgNav);
+        SchemeValueEntity.setAvgNav(avgNav);
+        assertThat(SchemeValueEntity.getAvgNav()).isEqualTo(avgNav);
     }
 
     @Test
     void shouldSetAndGetNav() {
-        schemeValue.setNav(nav);
-        assertThat(schemeValue.getNav()).isEqualTo(nav);
+        SchemeValueEntity.setNav(nav);
+        assertThat(SchemeValueEntity.getNav()).isEqualTo(nav);
     }
 
     @Test
     void shouldSetAndGetBalance() {
-        schemeValue.setBalance(balance);
-        assertThat(schemeValue.getBalance()).isEqualTo(balance);
+        SchemeValueEntity.setBalance(balance);
+        assertThat(SchemeValueEntity.getBalance()).isEqualTo(balance);
     }
 
     @Test
     void shouldSetAndGetUserSchemeDetails() {
-        schemeValue.setUserSchemeDetails(userSchemeDetailsEntity);
-        assertThat(schemeValue.getUserSchemeDetails()).isEqualTo(userSchemeDetailsEntity);
+        SchemeValueEntity.setUserSchemeDetails(userSchemeDetailsEntity);
+        assertThat(SchemeValueEntity.getUserSchemeDetails()).isEqualTo(userSchemeDetailsEntity);
     }
 }

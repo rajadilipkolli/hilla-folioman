@@ -1,14 +1,14 @@
 package com.app.folioman.portfolio.domain;
 
 import com.app.folioman.portfolio.UserSchemeDetailService;
-import com.app.folioman.portfolio.domain.models.request.CasDTO;
-import com.app.folioman.portfolio.domain.models.request.TransactionType;
-import com.app.folioman.portfolio.domain.models.request.UserFolioDTO;
-import com.app.folioman.portfolio.domain.models.request.UserSchemeDTO;
-import com.app.folioman.portfolio.domain.models.request.UserTransactionDTO;
-import com.app.folioman.portfolio.domain.models.response.PortfolioDetailsDTO;
-import com.app.folioman.portfolio.domain.models.response.PortfolioResponse;
-import com.app.folioman.portfolio.domain.models.response.UploadFileResponse;
+import com.app.folioman.portfolio.rest.dtos.CasDTO;
+import com.app.folioman.portfolio.rest.dtos.PortfolioDetailsDTO;
+import com.app.folioman.portfolio.rest.dtos.PortfolioResponse;
+import com.app.folioman.portfolio.rest.dtos.TransactionType;
+import com.app.folioman.portfolio.rest.dtos.UploadFileResponse;
+import com.app.folioman.portfolio.rest.dtos.UserFolioDTO;
+import com.app.folioman.portfolio.rest.dtos.UserSchemeDTO;
+import com.app.folioman.portfolio.rest.dtos.UserTransactionDTO;
 import com.app.folioman.shared.LocalDateUtility;
 import com.app.folioman.shared.UploadedSchemesList;
 import java.io.IOException;
@@ -71,6 +71,7 @@ public class UserDetailService {
         this.portfolioValueUpdateService = portfolioValueUpdateService;
     }
 
+    @Transactional
     public UploadFileResponse upload(MultipartFile multipartFile) throws IOException {
         CasDTO casDTO = parseCasDTO(multipartFile);
         boolean existingUser = validateCasDTO(casDTO);
@@ -84,6 +85,7 @@ public class UserDetailService {
      * @param casDTO The CasDTO object to process
      * @return UploadFileResponse with processing statistics
      */
+    @Transactional
     public UploadFileResponse uploadFromDto(CasDTO casDTO) {
         LOGGER.info("Processing CasDTO from converted source");
         boolean existingUser = validateCasDTO(casDTO);
@@ -166,7 +168,7 @@ public class UserDetailService {
                     .flatMap(List::stream)
                     .toList();
 
-            Map<String, List<UserTransactionDetails>> userSchemaTransactionMapFromDB =
+            Map<String, List<UserTransactionDetailsEntity>> userSchemaTransactionMapFromDB =
                     groupExistingTransactionsByRtaCode(existingUserSchemeDetailsList);
 
             // Update transactions in existing schemes
@@ -181,14 +183,14 @@ public class UserDetailService {
     private void processNewTransactions(
             AtomicInteger newTransactions,
             Map<String, List<UserTransactionDTO>> userSchemaTransactionMap,
-            Map<String, List<UserTransactionDetails>> userSchemaTransactionMapFromDB,
+            Map<String, List<UserTransactionDetailsEntity>> userSchemaTransactionMapFromDB,
             List<UserSchemeDetailsEntity> existingUserSchemeDetailsList) {
 
         // Create a map to collect new transactions by their scheme
-        Map<UserSchemeDetailsEntity, List<UserTransactionDetails>> transactionsByScheme = new HashMap<>();
+        Map<UserSchemeDetailsEntity, List<UserTransactionDetailsEntity>> transactionsByScheme = new HashMap<>();
 
         userSchemaTransactionMap.forEach((rtaCodeFromRequest, requestTransactions) -> {
-            List<UserTransactionDetails> dbTransactions =
+            List<UserTransactionDetailsEntity> dbTransactions =
                     userSchemaTransactionMapFromDB.getOrDefault(rtaCodeFromRequest, List.of());
 
             if (requestTransactions.size() != dbTransactions.size()) {
@@ -204,7 +206,7 @@ public class UserDetailService {
 
                 if (matchingScheme != null) {
                     // Process all transactions for this scheme focusing on finding the new ones
-                    List<UserTransactionDetails> newTransactionsForScheme = new ArrayList<>();
+                    List<UserTransactionDetailsEntity> newTransactionsForScheme = new ArrayList<>();
 
                     for (UserTransactionDTO dto : requestTransactions) {
                         TransactionKey key = TransactionKey.from(dto);
@@ -220,7 +222,8 @@ public class UserDetailService {
                                     dto.date(),
                                     dto.description(),
                                     rtaCodeFromRequest);
-                            UserTransactionDetails entity = casDetailsMapper.transactionDTOToTransactionEntity(dto);
+                            UserTransactionDetailsEntity entity =
+                                    casDetailsMapper.transactionDTOToTransactionEntity(dto);
                             entity.setUserSchemeDetails(matchingScheme);
                             newTransactions.incrementAndGet();
                             newTransactionsForScheme.add(entity);
@@ -236,7 +239,7 @@ public class UserDetailService {
 
         // Process all transactions in a single batch where possible
         if (!transactionsByScheme.isEmpty()) {
-            List<UserTransactionDetails> allNewTransactions = new ArrayList<>();
+            List<UserTransactionDetailsEntity> allNewTransactions = new ArrayList<>();
 
             // Update in-memory relationships
             transactionsByScheme.forEach((scheme, transactions) -> {
@@ -252,7 +255,7 @@ public class UserDetailService {
         }
     }
 
-    private Map<String, List<UserTransactionDetails>> groupExistingTransactionsByRtaCode(
+    private Map<String, List<UserTransactionDetailsEntity>> groupExistingTransactionsByRtaCode(
             List<UserSchemeDetailsEntity> existingUserSchemeDetailsList) {
         return existingUserSchemeDetailsList.stream()
                 .collect(Collectors.groupingBy(
@@ -486,7 +489,7 @@ public class UserDetailService {
                     dto.balance());
         }
 
-        static TransactionKey from(UserTransactionDetails entity) {
+        static TransactionKey from(UserTransactionDetailsEntity entity) {
             return new TransactionKey(
                     entity.getTransactionDate(),
                     entity.getDescription(),

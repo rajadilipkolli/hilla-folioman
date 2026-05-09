@@ -17,7 +17,7 @@ import org.hibernate.Hibernate;
 
 @Entity
 @Table(name = "investor_info", schema = "portfolio")
-public class InvestorInfoEntity extends BaseEntity {
+class InvestorInfoEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "investor_info_seq")
     @SequenceGenerator(name = "investor_info_seq", schema = "portfolio")

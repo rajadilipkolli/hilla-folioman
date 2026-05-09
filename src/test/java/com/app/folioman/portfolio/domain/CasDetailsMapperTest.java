@@ -3,7 +3,12 @@ package com.app.folioman.portfolio.domain;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 
-import com.app.folioman.portfolio.domain.models.request.*;
+import com.app.folioman.portfolio.rest.dtos.*;
+import com.app.folioman.portfolio.rest.dtos.CasDTO;
+import com.app.folioman.portfolio.rest.dtos.TransactionType;
+import com.app.folioman.portfolio.rest.dtos.UserFolioDTO;
+import com.app.folioman.portfolio.rest.dtos.UserSchemeDTO;
+import com.app.folioman.portfolio.rest.dtos.UserTransactionDTO;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -98,24 +103,16 @@ class CasDetailsMapperTest {
     void transactionDTOToTransactionEntity() {
 
         UserTransactionDTO localTxn = new UserTransactionDTO(
-                LocalDate.parse("2020-01-01"),
-                "BUY",
-                100.0d,
-                1.0d,
-                100.0d,
-                100.0d,
-                com.app.folioman.portfolio.domain.models.request.TransactionType.PURCHASE,
-                null);
-        UserTransactionDetails result = mapper.transactionDTOToTransactionEntity(localTxn);
+                LocalDate.parse("2020-01-01"), "BUY", 100.0d, 1.0d, 100.0d, 100.0d, TransactionType.PURCHASE, null);
+        UserTransactionDetailsEntity result = mapper.transactionDTOToTransactionEntity(localTxn);
 
         assertThat(result).isNotNull();
-        assertThat(result.getType())
-                .isEqualTo(com.app.folioman.portfolio.domain.models.request.TransactionType.PURCHASE);
+        assertThat(result.getType()).isEqualTo(TransactionType.PURCHASE);
     }
 
     @Test
     void transactionDTOToTransactionEntityWithNullInput() {
-        UserTransactionDetails result = mapper.transactionDTOToTransactionEntity(null);
+        UserTransactionDetailsEntity result = mapper.transactionDTOToTransactionEntity(null);
 
         assertThat(result).isNull();
     }

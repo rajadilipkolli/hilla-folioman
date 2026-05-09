@@ -49,7 +49,7 @@ public abstract class AbstractIntegrationTest {
     protected ApplicationEventPublisher applicationEventPublisher;
 
     @Autowired
-    protected MfSchemeDtoToEntityMapper mapper;
+    protected MfSchemeDtoToEntityMapper mfSchemeDtoToEntityMapper;
 
     @Autowired
     protected ApplicationProperties applicationProperties;

@@ -4,7 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.BDDMockito.given;
 
 import com.app.folioman.portfolio.domain.models.projection.UserPortfolioValueProjection;
-import com.app.folioman.portfolio.domain.models.response.InvestmentReturnsDTO;
+import com.app.folioman.portfolio.rest.dtos.InvestmentReturnsDTO;
 import com.app.folioman.portfolio.util.XirrCalculator;
 import java.math.BigDecimal;
 import java.time.LocalDate;

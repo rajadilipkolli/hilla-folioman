@@ -26,7 +26,7 @@ import org.hibernate.proxy.HibernateProxy;
                     columnNames = {"nav", "nav_date", "mf_scheme_id"})
         })
 @Entity
-public class MFSchemeNavEntity extends BaseEntity {
+class MFSchemeNavEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "scheme_nav_id_generator")

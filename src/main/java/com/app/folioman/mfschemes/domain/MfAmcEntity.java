@@ -21,7 +21,7 @@ import java.util.StringJoiner;
         schema = "mfschemes",
         indexes = {@Index(name = "idx_mf_amc_name_vector", columnList = "name_vector")})
 @Entity
-public class MfAmcEntity extends BaseEntity {
+class MfAmcEntity extends BaseEntity {
 
     @Serial
     private static final long serialVersionUID = 1L;

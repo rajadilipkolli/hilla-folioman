@@ -14,8 +14,8 @@ import static org.mockito.Mockito.when;
 import com.app.folioman.mfschemes.MFNavService;
 import com.app.folioman.mfschemes.rest.dtos.MFSchemeNavProjection;
 import com.app.folioman.portfolio.TestData;
-import com.app.folioman.portfolio.domain.models.request.CasDTO;
-import com.app.folioman.portfolio.domain.models.request.TransactionType;
+import com.app.folioman.portfolio.rest.dtos.CasDTO;
+import com.app.folioman.portfolio.rest.dtos.TransactionType;
 import com.app.folioman.portfolio.util.XirrCalculator;
 import com.app.folioman.shared.LocalDateUtility;
 import java.lang.reflect.Method;
@@ -58,10 +58,10 @@ class PortfolioValueUpdateServiceTest {
     private PortfolioValueUpdateService portfolioValueUpdateService;
 
     @Captor
-    private ArgumentCaptor<List<UserPortfolioValue>> portfolioValueCaptor;
+    private ArgumentCaptor<List<UserPortfolioValueEntity>> portfolioValueCaptor;
 
     @Captor
-    private ArgumentCaptor<FolioScheme> folioSchemeCaptor;
+    private ArgumentCaptor<FolioSchemeEntity> folioSchemeCaptor;
 
     private UserCasDetailsEntity userCasDetailsEntity;
     private MFSchemeNavProjection mfSchemeNavProjection;
@@ -84,17 +84,17 @@ class PortfolioValueUpdateServiceTest {
         when(mfNavService.getNavsForSchemesAndDates(anySet(), any(LocalDate.class), any(LocalDate.class)))
                 .thenReturn(createMockNavData());
 
-        // Return an existing FolioScheme so the service enters processing branch
-        FolioScheme existingFolioScheme = new FolioScheme();
+        // Return an existing FolioSchemeEntity so the service enters processing branch
+        FolioSchemeEntity existingFolioScheme = new FolioSchemeEntity();
         existingFolioScheme.setId(10L);
         existingFolioScheme.setUserSchemeDetailsEntity(
                 userCasDetailsEntity.getFolios().getFirst().getSchemes().getFirst());
         when(folioSchemeRepository.findByUserSchemeDetails_Id(anyLong())).thenReturn(Optional.of(existingFolioScheme));
-        when(folioSchemeRepository.save(any(FolioScheme.class))).thenReturn(existingFolioScheme);
+        when(folioSchemeRepository.save(any(FolioSchemeEntity.class))).thenReturn(existingFolioScheme);
         when(folioSchemeRepository.findByUserFolioDetails_Id(anyLong()))
                 .thenReturn(Collections.singletonList(existingFolioScheme));
 
-        SchemeValue sv = new SchemeValue();
+        SchemeValueEntity sv = new SchemeValueEntity();
         sv.setDate(LocalDate.now().minusDays(10));
         when(schemeValueRepository.findFirstByUserSchemeDetailsEntity_UserFolioDetails_IdOrderByDateDesc(anyLong()))
                 .thenReturn(Optional.of(sv));
@@ -128,12 +128,12 @@ class PortfolioValueUpdateServiceTest {
                 // Then
                 verify(userPortfolioValueRepository).saveAll(portfolioValueCaptor.capture());
 
-                List<UserPortfolioValue> savedValues = portfolioValueCaptor.getValue();
+                List<UserPortfolioValueEntity> savedValues = portfolioValueCaptor.getValue();
 
                 // Validate the contents of saved values
                 assertThat(savedValues).isNotEmpty();
 
-                UserPortfolioValue lastValue = savedValues.getLast();
+                UserPortfolioValueEntity lastValue = savedValues.getLast();
                 assertThat(lastValue.getDate()).isEqualTo(yesterday);
                 assertThat(lastValue.getValue()).isNotNull();
                 assertThat(lastValue.getInvested()).isNotNull();
@@ -214,7 +214,7 @@ class PortfolioValueUpdateServiceTest {
         // Given
         Method processTransactionMethod = PortfolioValueUpdateService.class.getDeclaredMethod(
                 "processTransaction",
-                UserTransactionDetails.class,
+                UserTransactionDetailsEntity.class,
                 PortfolioValueUpdateService.PortfolioDataContainer.class);
         processTransactionMethod.setAccessible(true);
 
@@ -222,7 +222,7 @@ class PortfolioValueUpdateServiceTest {
         PortfolioValueUpdateService.PortfolioDataContainer dataContainer = createDataContainer();
 
         // Get a transaction from the CAS data
-        UserTransactionDetails transaction = userCasDetailsEntity
+        UserTransactionDetailsEntity transaction = userCasDetailsEntity
                 .getFolios()
                 .getFirst()
                 .getSchemes()
@@ -259,15 +259,15 @@ class PortfolioValueUpdateServiceTest {
         String operationId2 = (String) generateOperationIdMethod.invoke(portfolioValueUpdateService, 123L);
 
         // Then
-        assertThat(operationId1).startsWith("folioScheme-123-");
-        assertThat(operationId2).startsWith("folioScheme-123-");
+        assertThat(operationId1).startsWith("FolioSchemeEntity-123-");
+        assertThat(operationId2).startsWith("FolioSchemeEntity-123-");
 
         // Verify UUIDs are unique
         assertThat(operationId1).isNotEqualTo(operationId2);
 
         // Verify UUIDs are valid
-        String uuid1 = operationId1.substring("folioScheme-123-".length());
-        String uuid2 = operationId2.substring("folioScheme-123-".length());
+        String uuid1 = operationId1.substring("FolioSchemeEntity-123-".length());
+        String uuid2 = operationId2.substring("FolioSchemeEntity-123-".length());
 
         assertThatCode(() -> UUID.fromString(uuid1)).doesNotThrowAnyException();
         assertThatCode(() -> UUID.fromString(uuid2)).doesNotThrowAnyException();
@@ -317,14 +317,14 @@ class PortfolioValueUpdateServiceTest {
                 scheme.setUserFolioDetails(folio);
                 scheme.setCreatedAt(Instant.now().minus(30, ChronoUnit.DAYS));
 
-                List<UserTransactionDetails> transactions = new ArrayList<>();
+                List<UserTransactionDetailsEntity> transactions = new ArrayList<>();
                 schemeDTO.transactions().forEach(transactionDTO -> {
                     if (transactionDTO.type() != null
                             && !TransactionType.STAMP_DUTY_TAX.equals(transactionDTO.type())
                             && !TransactionType.TDS_TAX.equals(transactionDTO.type())
                             && !TransactionType.STT_TAX.equals(transactionDTO.type())
                             && !TransactionType.MISC.equals(transactionDTO.type())) {
-                        UserTransactionDetails transaction = new UserTransactionDetails();
+                        UserTransactionDetailsEntity transaction = new UserTransactionDetailsEntity();
                         transaction.setTransactionDate(transactionDTO.date());
                         transaction.setDescription(transactionDTO.description());
                         if (transactionDTO.amount() != null) {

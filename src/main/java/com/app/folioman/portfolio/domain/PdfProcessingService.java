@@ -1,6 +1,6 @@
 package com.app.folioman.portfolio.domain;
 
-import com.app.folioman.portfolio.domain.models.request.CasDTO;
+import com.app.folioman.portfolio.rest.dtos.CasDTO;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
