@@ -259,8 +259,8 @@ class PortfolioValueUpdateServiceTest {
         String operationId2 = (String) generateOperationIdMethod.invoke(portfolioValueUpdateService, 123L);
 
         // Then
-        assertThat(operationId1).startsWith("FolioSchemeEntity-123-");
-        assertThat(operationId2).startsWith("FolioSchemeEntity-123-");
+        assertThat(operationId1).startsWith("folio-scheme-123-");
+        assertThat(operationId2).startsWith("folio-scheme-123-");
 
         // Verify UUIDs are unique
         assertThat(operationId1).isNotEqualTo(operationId2);
