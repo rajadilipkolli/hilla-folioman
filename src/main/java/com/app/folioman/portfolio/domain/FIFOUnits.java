@@ -18,6 +18,9 @@ public class FIFOUnits {
 
     private final Deque<TransactionRecord> transactions = new LinkedList<>(); // FIFO Queue
 
+    FIFOUnits() {
+    }
+
     public void addTransaction(UserTransactionDetails txn) {
         BigDecimal quantity =
                 new BigDecimal(txn.getUnits() == null ? "0.000" : txn.getUnits().toString());
