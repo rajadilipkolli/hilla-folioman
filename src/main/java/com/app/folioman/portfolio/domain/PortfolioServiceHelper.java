@@ -11,8 +11,10 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -23,11 +25,17 @@ class PortfolioServiceHelper {
     private final JsonMapper mapper;
     private final UserCASDetailsService userCASDetailsService;
     private final MFNavService mfNavService;
+    private final Executor virtualThreadExecutor;
 
-    PortfolioServiceHelper(JsonMapper mapper, UserCASDetailsService userCASDetailsService, MFNavService mfNavService) {
+    PortfolioServiceHelper(
+            JsonMapper mapper,
+            UserCASDetailsService userCASDetailsService,
+            MFNavService mfNavService,
+            @Qualifier("virtualThreadExecutor") Executor virtualThreadExecutor) {
         this.mapper = mapper;
         this.userCASDetailsService = userCASDetailsService;
         this.mfNavService = mfNavService;
+        this.virtualThreadExecutor = virtualThreadExecutor;
     }
 
     <T> T readValue(byte[] bytes, Class<T> responseClassType) {
@@ -49,7 +57,7 @@ class PortfolioServiceHelper {
         List<CompletableFuture<PortfolioDetailsDTO>> completableFutureList =
                 userCASDetailsService.getPortfolioDetailsByPanAndAsOfDate(panNumber, asOfDate).stream()
                         .map(portfolioDetails -> CompletableFuture.supplyAsync(
-                                () -> createPortfolioDetailsDTO(portfolioDetails, asOfDate)))
+                                () -> createPortfolioDetailsDTO(portfolioDetails, asOfDate), virtualThreadExecutor))
                         .toList();
         return joinFutures(completableFutureList);
     }

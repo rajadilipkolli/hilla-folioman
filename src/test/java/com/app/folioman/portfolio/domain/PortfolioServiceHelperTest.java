@@ -18,6 +18,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -45,7 +46,9 @@ class PortfolioServiceHelperTest {
 
     @BeforeEach
     void setUp() {
-        portfolioServiceHelper = new PortfolioServiceHelper(mapper, userCASDetailsService, mfNavService);
+        Executor virtualThreadExecutor = Runnable::run;
+        portfolioServiceHelper =
+                new PortfolioServiceHelper(mapper, userCASDetailsService, mfNavService, virtualThreadExecutor);
     }
 
     @Test
