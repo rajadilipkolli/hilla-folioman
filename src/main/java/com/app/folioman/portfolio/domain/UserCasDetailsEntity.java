@@ -37,7 +37,7 @@ public class UserCasDetailsEntity extends BaseEntity {
     @OneToOne(mappedBy = "userCasDetailsEntity", cascade = CascadeType.ALL, optional = false)
     private InvestorInfo investorInfo;
 
-    @OneToMany(mappedBy = "userCasDetailsEntity", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "userCasDetails", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserFolioDetailsEntity> folios = new ArrayList<>();
 
     public Long getId() {
