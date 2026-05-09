@@ -1,7 +1,7 @@
 package com.app.folioman.archunit;
 
 import static com.app.folioman.archunit.ArchitectureConstants.DEFAULT_PACKAGE;
-import static com.app.folioman.archunit.ArchitectureConstants.ENTITY_PACKAGE;
+import static com.app.folioman.archunit.ArchitectureConstants.DOMAIN_PACKAGE;
 import static com.app.folioman.archunit.CommonRules.publicAndFinalFieldsAreNotAllowedRule;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.fields;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
@@ -85,5 +85,5 @@ class GeneralCodingRulesTest {
 
     @ArchTest
     static final ArchRule public_and_final_fields_are_not_allowed =
-            publicAndFinalFieldsAreNotAllowedRule(ENTITY_PACKAGE);
+            publicAndFinalFieldsAreNotAllowedRule(DOMAIN_PACKAGE);
 }

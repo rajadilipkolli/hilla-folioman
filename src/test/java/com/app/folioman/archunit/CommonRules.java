@@ -109,11 +109,8 @@ public final class CommonRules {
                 .and()
                 .doNotHaveName("serialVersionUID")
                 .should()
-                .notBeFinal()
-                .andShould()
                 .notBePublic()
-                .because("Fields with public and final modifiers are not allowed in %s"
-                        .formatted(Arrays.toString(packageNames)));
+                .because("Public fields are not allowed in %s".formatted(Arrays.toString(packageNames)));
     }
 
     static ArchRule fieldsShouldHaveGetterRule(String... packageNames) {

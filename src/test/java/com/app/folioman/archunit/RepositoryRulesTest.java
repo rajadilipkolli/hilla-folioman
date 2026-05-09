@@ -1,7 +1,6 @@
 package com.app.folioman.archunit;
 
 import static com.app.folioman.archunit.ArchitectureConstants.*;
-import static com.app.folioman.archunit.CommonRules.interfacesAreOnlyAllowedRule;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 
 import com.tngtech.archunit.core.importer.ImportOption;
@@ -15,9 +14,11 @@ class RepositoryRulesTest {
 
     // Classes
     @ArchTest
-    static final ArchRule classes_should_be_annotated = classes()
+    static final ArchRule repositories_should_be_annotated = classes()
             .that()
-            .resideInAPackage(REPOSITORY_PACKAGE)
+            .resideInAPackage(DOMAIN_PACKAGE)
+            .and()
+            .haveSimpleNameEndingWith(REPOSITORY_SUFFIX)
             .and()
             .doNotHaveSimpleName("package-info")
             .should()
@@ -25,5 +26,12 @@ class RepositoryRulesTest {
             .because(ANNOTATED_EXPLANATION.formatted(REPOSITORY_SUFFIX, "@Repository"));
 
     @ArchTest
-    static final ArchRule classesShouldBeInterfaces = interfacesAreOnlyAllowedRule(REPOSITORY_PACKAGE);
+    static final ArchRule repositories_should_be_interfaces = classes()
+            .that()
+            .resideInAPackage(DOMAIN_PACKAGE)
+            .and()
+            .haveSimpleNameEndingWith(REPOSITORY_SUFFIX)
+            .should()
+            .beInterfaces()
+            .because("Repositories should be interfaces in %s".formatted(DOMAIN_PACKAGE));
 }

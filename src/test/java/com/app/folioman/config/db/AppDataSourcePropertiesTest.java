@@ -44,9 +44,10 @@ class AppDataSourcePropertiesTest {
 
     @Test
     void whenPropertiesAreMissing_thenBindingFails() {
-        contextRunner.withPropertyValues("app.datasource.maxOvergrowPoolSize=").run(context -> assertThatThrownBy(
-                        () -> context.getBean(AppDataSourceProperties.class))
-                .isInstanceOf(Exception.class));
+        contextRunner
+                .withPropertyValues("app.datasource.maxOvergrowPoolSize=")
+                .run(context -> assertThatThrownBy(() -> context.getBean(AppDataSourceProperties.class))
+                        .isInstanceOf(Exception.class));
     }
 
     @Test

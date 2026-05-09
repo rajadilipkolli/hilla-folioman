@@ -1,5 +1,7 @@
 package com.app.folioman.mfschemes;
 
+import com.app.folioman.mfschemes.rest.dtos.FundDetailProjection;
+import com.app.folioman.mfschemes.rest.dtos.MFSchemeProjection;
 import java.util.List;
 import java.util.Optional;
 

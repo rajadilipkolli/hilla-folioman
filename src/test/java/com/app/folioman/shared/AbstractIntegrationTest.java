@@ -6,10 +6,10 @@ import com.app.folioman.Application;
 import com.app.folioman.config.NoSQLContainersConfig;
 import com.app.folioman.config.SQLContainersConfig;
 import com.app.folioman.mfschemes.config.ApplicationProperties;
-import com.app.folioman.mfschemes.mapper.MfSchemeDtoToEntityMapper;
-import com.app.folioman.mfschemes.repository.MFSchemeNavRepository;
+import com.app.folioman.mfschemes.domain.MfSchemeDtoToEntityMapper;
+import com.app.folioman.mfschemes.domain.MfSchemeNavRepository;
 import com.app.folioman.portfolio.config.PortfolioCacheProperties;
-import com.app.folioman.portfolio.repository.UserPortfolioValueRepository;
+import com.app.folioman.portfolio.domain.UserPortfolioValueRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
@@ -43,10 +43,13 @@ public abstract class AbstractIntegrationTest {
     protected JsonMapper jsonMapper;
 
     @Autowired
-    protected UserPortfolioValueRepository userPortfolioValueRepository;
+    protected RedisTemplate<String, Object> redisTemplate;
 
     @Autowired
-    protected MFSchemeNavRepository mfSchemeNavRepository;
+    protected ApplicationEventPublisher applicationEventPublisher;
+
+    @Autowired
+    protected MfSchemeDtoToEntityMapper mapper;
 
     @Autowired
     protected ApplicationProperties applicationProperties;
@@ -55,13 +58,10 @@ public abstract class AbstractIntegrationTest {
     protected PortfolioCacheProperties portfolioCacheProperties;
 
     @Autowired
-    protected RedisTemplate<String, Object> redisTemplate;
+    protected UserPortfolioValueRepository userPortfolioValueRepository;
 
     @Autowired
-    protected ApplicationEventPublisher applicationEventPublisher;
-
-    @Autowired
-    protected MfSchemeDtoToEntityMapper mapper;
+    protected MfSchemeNavRepository mfSchemeNavRepository;
 
     @LocalServerPort
     protected int port;
