@@ -8,12 +8,12 @@ import org.mapstruct.MappingConstants;
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface SchemeNAVDataDtoToEntityMapper {
 
-    @Mapping(target = "mfScheme", ignore = true)
+    @Mapping(target = "mfFundSchemeEntity", ignore = true)
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "version", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "navDate", source = "date")
-    @Mapping(target = "mfScheme.amfiCode", source = "schemeId")
+    @Mapping(target = "mfFundSchemeEntity.amfiCode", source = "schemeId")
     MFSchemeNavEntity schemeNAVDataDTOToEntity(SchemeNAVDataDTO schemeNAVDataDTO);
 }

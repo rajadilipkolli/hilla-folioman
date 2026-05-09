@@ -21,8 +21,8 @@ class SchemeNAVDataDtoToEntityMapperTest {
         assertThat(result).isNotNull();
         assertThat(result.getNavDate()).isEqualTo(LocalDate.of(2023, 12, 15));
         assertThat(result.getNav()).isEqualTo(new BigDecimal("150.75"));
-        assertThat(result.getMfScheme()).isNotNull();
-        assertThat(result.getMfScheme().getAmfiCode()).isEqualTo(12345L);
+        assertThat(result.getMfFundSchemeEntity()).isNotNull();
+        assertThat(result.getMfFundSchemeEntity().getAmfiCode()).isEqualTo(12345L);
         assertThat(result.getId()).isNull();
         assertThat(result.getCreatedAt()).isNull();
         assertThat(result.getUpdatedAt()).isNull();
@@ -44,8 +44,8 @@ class SchemeNAVDataDtoToEntityMapperTest {
         assertThat(result).isNotNull();
         assertThat(result.getNavDate()).isNull();
         assertThat(result.getNav()).isNull();
-        assertThat(result.getMfScheme()).isNotNull();
-        assertThat(result.getMfScheme().getAmfiCode()).isNull();
+        assertThat(result.getMfFundSchemeEntity()).isNotNull();
+        assertThat(result.getMfFundSchemeEntity().getAmfiCode()).isNull();
     }
 
     @Test
@@ -55,8 +55,8 @@ class SchemeNAVDataDtoToEntityMapperTest {
         MFSchemeNavEntity result = mapper.schemeNAVDataDTOToEntity(dto);
 
         assertThat(result).isNotNull();
-        assertThat(result.getMfScheme()).isNotNull();
-        assertThat(result.getMfScheme().getAmfiCode()).isOne();
+        assertThat(result.getMfFundSchemeEntity()).isNotNull();
+        assertThat(result.getMfFundSchemeEntity().getAmfiCode()).isOne();
         assertThat(result.getNavDate()).isEqualTo(LocalDate.of(2023, 12, 15));
         assertThat(result.getNav()).isEqualTo(new BigDecimal("150.75"));
     }

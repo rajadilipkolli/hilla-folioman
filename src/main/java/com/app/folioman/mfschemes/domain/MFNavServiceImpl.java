@@ -142,7 +142,8 @@ class MFNavServiceImpl implements MFNavService {
                             MFSchemeNavEntity mfSchemeNavEntity = new MFSchemeNavEntity();
                             mfSchemeNavEntity.setNav(navHolder.nav);
                             mfSchemeNavEntity.setNavDate(navHolder.navDate);
-                            mfSchemeNavEntity.setMfScheme(mfSchemeRepository.getReferenceByAmfiCode(amfiCode));
+                            mfSchemeNavEntity.setMfFundSchemeEntity(
+                                    mfSchemeRepository.getReferenceByAmfiCode(amfiCode));
                             return mfSchemeNavEntity;
                         })
                         .toList();

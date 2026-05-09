@@ -18,7 +18,7 @@ public interface MfSchemeNavRepository extends JpaRepository<MFSchemeNavEntity, 
               ms1.amfiCode
             FROM
               MFSchemeNavEntity mn1
-              JOIN mn1.mfScheme ms1
+              JOIN mn1.mfFundSchemeEntity ms1
             WHERE
               NOT EXISTS (
                 SELECT
@@ -26,17 +26,17 @@ public interface MfSchemeNavRepository extends JpaRepository<MFSchemeNavEntity, 
                 FROM
                   MFSchemeNavEntity mn2
                 WHERE
-                  mn2.mfScheme.id = mn1.mfScheme.id
+                  mn2.mfFundSchemeEntity.id = mn1.mfFundSchemeEntity.id
                   AND mn2.navDate >=:asOfDate
               )
             """)
     List<Long> findMFSchemeNavsByNavNotLoaded(@Param("asOfDate") LocalDate asOfDate);
 
     @Query("""
-            select new com.app.folioman.mfschemes.rest.dtos.MFSchemeNavProjection(m.nav, m.navDate, m.mfScheme.amfiCode)
+            select new com.app.folioman.mfschemes.rest.dtos.MFSchemeNavProjection(m.nav, m.navDate, m.mfFundSchemeEntity.amfiCode)
             from MFSchemeNavEntity m
-            where m.mfScheme.amfiCode in :amfiCodes and m.navDate >= :startNavDate and m.navDate <= :endNavDate
-            order by m.mfScheme.amfiCode , m.navDate
+            where m.mfFundSchemeEntity.amfiCode in :amfiCodes and m.navDate >= :startNavDate and m.navDate <= :endNavDate
+            order by m.mfFundSchemeEntity.amfiCode , m.navDate
             """)
     List<MFSchemeNavProjection> findByMfScheme_AmfiCodeInAndNavDateGreaterThanEqualAndNavDateLessThanEqual(
             @Param("amfiCodes") Set<Long> amfiCodes,
@@ -48,6 +48,6 @@ public interface MfSchemeNavRepository extends JpaRepository<MFSchemeNavEntity, 
      * Used for batch processing to avoid individual existence checks
      */
     @Query(
-            "SELECT new com.app.folioman.mfschemes.domain.models.projection.NavDateValueProjection(n.nav, n.navDate) FROM MFSchemeNavEntity n WHERE n.mfScheme.id = :schemeId")
+            "SELECT new com.app.folioman.mfschemes.domain.models.projection.NavDateValueProjection(n.nav, n.navDate) FROM MFSchemeNavEntity n WHERE n.mfFundSchemeEntity.id = :schemeId")
     List<NavDateValueProjection> findAllNavDateValuesBySchemeId(@Param("schemeId") Long schemeId);
 }

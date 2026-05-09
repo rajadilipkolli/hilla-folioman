@@ -330,7 +330,7 @@ class MfSchemeServiceImpl implements MfSchemeService {
             List<MFSchemeNavEntity> navsToSave = newNavEntries.stream()
                     .filter(newNav ->
                             !existingNavs.contains(new NavDateValueProjection(newNav.getNav(), newNav.getNavDate())))
-                    .peek(newNav -> newNav.setMfScheme(mfFundSchemeEntity))
+                    .peek(newNav -> newNav.setMfFundSchemeEntity(mfFundSchemeEntity))
                     .toList();
 
             if (navsToSave.isEmpty()) {
