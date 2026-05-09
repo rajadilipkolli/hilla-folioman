@@ -123,8 +123,8 @@ public class UserFolioDetailsEntity extends BaseEntity {
         return userCasDetailsEntity;
     }
 
-    public UserFolioDetailsEntity setUserCasDetailsEntity(UserCasDetailsEntity userCasDetails) {
-        this.userCasDetailsEntity = userCasDetails;
+    public UserFolioDetailsEntity setUserCasDetailsEntity(UserCasDetailsEntity userCasDetailsEntity) {
+        this.userCasDetailsEntity = userCasDetailsEntity;
         return this;
     }
 
