@@ -4,7 +4,6 @@ import com.app.folioman.mfschemes.MFNavService;
 import com.app.folioman.mfschemes.NavNotFoundException;
 import com.app.folioman.mfschemes.rest.dtos.MFSchemeNavProjection;
 import com.app.folioman.portfolio.domain.models.ProcessedTransaction;
-import com.app.folioman.portfolio.rest.dtos.TransactionType;
 import com.app.folioman.portfolio.util.XirrCalculator;
 import com.app.folioman.shared.LocalDateUtility;
 import java.math.BigDecimal;

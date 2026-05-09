@@ -2,7 +2,6 @@ package com.app.folioman.portfolio.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.app.folioman.portfolio.rest.dtos.TransactionType;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeEach;

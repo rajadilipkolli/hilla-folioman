@@ -1,6 +1,6 @@
 package com.app.folioman.portfolio.rest.controllers;
 
-import com.app.folioman.portfolio.PortfolioAPI;
+import com.app.folioman.portfolio.domain.PortfolioAPI;
 import com.app.folioman.portfolio.rest.dtos.PortfolioResponse;
 import com.app.folioman.portfolio.rest.dtos.UploadFileResponse;
 import com.vaadin.flow.server.auth.AnonymousAllowed;

@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 import tools.jackson.databind.json.JsonMapper;
 
 @Service
-public class PortfolioServiceHelper {
+class PortfolioServiceHelper {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PortfolioServiceHelper.class);
     private final JsonMapper mapper;
@@ -30,22 +30,22 @@ public class PortfolioServiceHelper {
         this.mfNavService = mfNavService;
     }
 
-    public <T> T readValue(byte[] bytes, Class<T> responseClassType) {
+    <T> T readValue(byte[] bytes, Class<T> responseClassType) {
         return this.mapper.readValue(bytes, responseClassType);
     }
 
-    public long countTransactionsByUserFolioDTOList(List<UserFolioDTO> folios) {
+    long countTransactionsByUserFolioDTOList(List<UserFolioDTO> folios) {
         return folios.stream()
                 .flatMap(folio -> folio.schemes().stream())
                 .mapToLong(scheme -> scheme.transactions().size())
                 .sum();
     }
 
-    public <T> List<T> joinFutures(List<CompletableFuture<T>> futures) {
+    <T> List<T> joinFutures(List<CompletableFuture<T>> futures) {
         return futures.stream().map(CompletableFuture::join).toList();
     }
 
-    public List<PortfolioDetailsDTO> getPortfolioDetailsByPANAndAsOfDate(String panNumber, LocalDate asOfDate) {
+    List<PortfolioDetailsDTO> getPortfolioDetailsByPANAndAsOfDate(String panNumber, LocalDate asOfDate) {
         List<CompletableFuture<PortfolioDetailsDTO>> completableFutureList =
                 userCASDetailsService.getPortfolioDetailsByPanAndAsOfDate(panNumber, asOfDate).stream()
                         .map(portfolioDetails -> CompletableFuture.supplyAsync(

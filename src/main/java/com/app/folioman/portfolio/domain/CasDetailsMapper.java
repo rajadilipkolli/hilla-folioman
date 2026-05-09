@@ -14,7 +14,7 @@ import org.mapstruct.MappingConstants;
 import org.mapstruct.MappingTarget;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public interface CasDetailsMapper {
+interface CasDetailsMapper {
 
     @Mapping(target = "folios", ignore = true)
     @Mapping(target = "id", ignore = true)
@@ -98,4 +98,11 @@ public interface CasDetailsMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "version", ignore = true)
     InvestorInfoEntity mapInvestorInfoDTOToInvestorInfoEntity(InvestorInfoDTO investorInfo);
+
+    default TransactionType map(com.app.folioman.portfolio.rest.dtos.TransactionType type) {
+        if (type == null) {
+            return null;
+        }
+        return TransactionType.valueOf(type.name());
+    }
 }

@@ -1,8 +1,5 @@
-package com.app.folioman.portfolio;
+package com.app.folioman.portfolio.domain;
 
-import com.app.folioman.portfolio.domain.PdfProcessingService;
-import com.app.folioman.portfolio.domain.UserDetailService;
-import com.app.folioman.portfolio.domain.UserTransactionDetailsService;
 import com.app.folioman.portfolio.rest.dtos.CasDTO;
 import com.app.folioman.portfolio.rest.dtos.InvestmentReturnsDTO;
 import com.app.folioman.portfolio.rest.dtos.MonthlyInvestmentResponseDTO;
@@ -13,17 +10,17 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-@Component
+@Service
 public class PortfolioAPI {
 
     private final UserTransactionDetailsService userTransactionDetailsService;
     private final UserDetailService userDetailService;
     private final PdfProcessingService pdfProcessingService;
 
-    public PortfolioAPI(
+    PortfolioAPI(
             UserTransactionDetailsService userTransactionDetailsService,
             UserDetailService userDetailService,
             PdfProcessingService pdfProcessingService) {

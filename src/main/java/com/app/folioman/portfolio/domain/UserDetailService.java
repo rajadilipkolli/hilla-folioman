@@ -4,7 +4,6 @@ import com.app.folioman.portfolio.UserSchemeDetailService;
 import com.app.folioman.portfolio.rest.dtos.CasDTO;
 import com.app.folioman.portfolio.rest.dtos.PortfolioDetailsDTO;
 import com.app.folioman.portfolio.rest.dtos.PortfolioResponse;
-import com.app.folioman.portfolio.rest.dtos.TransactionType;
 import com.app.folioman.portfolio.rest.dtos.UploadFileResponse;
 import com.app.folioman.portfolio.rest.dtos.UserFolioDTO;
 import com.app.folioman.portfolio.rest.dtos.UserSchemeDTO;
@@ -71,7 +70,7 @@ public class UserDetailService {
         this.portfolioValueUpdateService = portfolioValueUpdateService;
     }
 
-    public UploadFileResponse upload(MultipartFile multipartFile) throws IOException {
+    UploadFileResponse upload(MultipartFile multipartFile) throws IOException {
         CasDTO casDTO = parseCasDTO(multipartFile);
         boolean existingUser = validateCasDTO(casDTO);
         return existingUser ? processExistingUser(casDTO) : processNewUser(casDTO);
@@ -84,7 +83,7 @@ public class UserDetailService {
      * @param casDTO The CasDTO object to process
      * @return UploadFileResponse with processing statistics
      */
-    public UploadFileResponse uploadFromDto(CasDTO casDTO) {
+    UploadFileResponse uploadFromDto(CasDTO casDTO) {
         LOGGER.info("Processing CasDTO from converted source");
         boolean existingUser = validateCasDTO(casDTO);
         return existingUser ? processExistingUser(casDTO) : processNewUser(casDTO);
@@ -482,7 +481,7 @@ public class UserDetailService {
                     dto.description(),
                     BigDecimal.valueOf(dto.amount() != null ? dto.amount() : 0.0)
                             .setScale(4, RoundingMode.HALF_UP),
-                    dto.type(),
+                    TransactionType.valueOf(dto.type().name()),
                     dto.units(),
                     dto.balance());
         }
@@ -500,7 +499,7 @@ public class UserDetailService {
         }
     }
 
-    public PortfolioResponse getPortfolioByPAN(String panNumber, LocalDate evaluationDate) {
+    PortfolioResponse getPortfolioByPAN(String panNumber, LocalDate evaluationDate) {
         List<PortfolioDetailsDTO> portfolioDetailsDTOList = portfolioServiceHelper.getPortfolioDetailsByPANAndAsOfDate(
                 panNumber, LocalDateUtility.getAdjustedDateOrDefault(evaluationDate));
         BigDecimal totalPortfolioValue = portfolioDetailsDTOList.stream()

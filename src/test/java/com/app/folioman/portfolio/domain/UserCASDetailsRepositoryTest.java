@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.app.folioman.config.SQLContainersConfig;
 import com.app.folioman.portfolio.domain.models.projection.PortfolioDetailsProjection;
-import com.app.folioman.portfolio.rest.dtos.TransactionType;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;

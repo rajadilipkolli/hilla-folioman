@@ -1,7 +1,7 @@
 package com.app.folioman.portfolio.rest.controllers;
 
 import com.app.folioman.config.redis.CacheNames;
-import com.app.folioman.portfolio.PortfolioAPI;
+import com.app.folioman.portfolio.domain.PortfolioAPI;
 import com.app.folioman.portfolio.rest.dtos.InvestmentReturnsDTO;
 import com.app.folioman.portfolio.rest.dtos.MonthlyInvestmentResponseDTO;
 import com.app.folioman.portfolio.rest.dtos.YearlyInvestmentResponseDTO;

@@ -15,7 +15,6 @@ import com.app.folioman.mfschemes.MFNavService;
 import com.app.folioman.mfschemes.rest.dtos.MFSchemeNavProjection;
 import com.app.folioman.portfolio.TestData;
 import com.app.folioman.portfolio.rest.dtos.CasDTO;
-import com.app.folioman.portfolio.rest.dtos.TransactionType;
 import com.app.folioman.portfolio.util.XirrCalculator;
 import com.app.folioman.shared.LocalDateUtility;
 import java.lang.reflect.Method;
@@ -186,7 +185,8 @@ class PortfolioValueUpdateServiceTest {
 
         BigDecimal portfolioValue = BigDecimal.valueOf(2000);
 
-        // When - mock the behavior of the adjusted date utility to ensure it returns 'today'
+        // When - mock the behavior of the adjusted date utility to ensure it returns
+        // 'today'
         try (MockedStatic<LocalDateUtility> localDateUtility = Mockito.mockStatic(LocalDateUtility.class)) {
             localDateUtility
                     .when(() -> LocalDateUtility.getAdjustedDate(any(LocalDate.class)))
@@ -197,7 +197,8 @@ class PortfolioValueUpdateServiceTest {
             // Then - verify allCashFlows was merged correctly (1000 + 2000 = 3000)
             assertThat(allCashFlows.get(today).doubleValue()).isEqualTo(3000.0);
 
-            // Verify scheme cash flows were merged correctly (500 + (100 units * 12.50 nav) = 1750)
+            // Verify scheme cash flows were merged correctly (500 + (100 units * 12.50 nav)
+            // = 1750)
             Map<LocalDate, BigDecimal> updatedSchemeCashFlows = cashFlowsByScheme.get(schemeCode);
             assertThat(updatedSchemeCashFlows.get(today).doubleValue()).isEqualTo(1750.0);
         }
@@ -320,10 +321,14 @@ class PortfolioValueUpdateServiceTest {
                 List<UserTransactionDetailsEntity> transactions = new ArrayList<>();
                 schemeDTO.transactions().forEach(transactionDTO -> {
                     if (transactionDTO.type() != null
-                            && !TransactionType.STAMP_DUTY_TAX.equals(transactionDTO.type())
-                            && !TransactionType.TDS_TAX.equals(transactionDTO.type())
-                            && !TransactionType.STT_TAX.equals(transactionDTO.type())
-                            && !TransactionType.MISC.equals(transactionDTO.type())) {
+                            && !com.app.folioman.portfolio.rest.dtos.TransactionType.STAMP_DUTY_TAX.equals(
+                                    transactionDTO.type())
+                            && !com.app.folioman.portfolio.rest.dtos.TransactionType.TDS_TAX.equals(
+                                    transactionDTO.type())
+                            && !com.app.folioman.portfolio.rest.dtos.TransactionType.STT_TAX.equals(
+                                    transactionDTO.type())
+                            && !com.app.folioman.portfolio.rest.dtos.TransactionType.MISC.equals(
+                                    transactionDTO.type())) {
                         UserTransactionDetailsEntity transaction = new UserTransactionDetailsEntity();
                         transaction.setTransactionDate(transactionDTO.date());
                         transaction.setDescription(transactionDTO.description());
@@ -333,7 +338,8 @@ class PortfolioValueUpdateServiceTest {
                         transaction.setUnits(transactionDTO.units());
                         transaction.setNav(transactionDTO.nav());
                         transaction.setBalance(transactionDTO.balance());
-                        transaction.setType(transactionDTO.type());
+                        transaction.setType(
+                                TransactionType.valueOf(transactionDTO.type().name()));
                         transaction.setDividendRate(transactionDTO.dividendRate());
                         transaction.setUserSchemeDetails(scheme);
                         transactions.add(transaction);

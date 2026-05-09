@@ -1,6 +1,5 @@
 package com.app.folioman.portfolio.domain;
 
-import com.app.folioman.portfolio.rest.dtos.TransactionType;
 import com.app.folioman.shared.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
