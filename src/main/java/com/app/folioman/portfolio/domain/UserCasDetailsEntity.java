@@ -35,9 +35,9 @@ public class UserCasDetailsEntity extends BaseEntity {
     private FileTypeEnum fileTypeEnum;
 
     @OneToOne(mappedBy = "userCasDetailsEntity", cascade = CascadeType.ALL, optional = false)
-    private InvestorInfo investorInfo;
+    private InvestorInfoEntity investorInfoEntity;
 
-    @OneToMany(mappedBy = "userCasDetails", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "userCasDetailsEntity", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<UserFolioDetailsEntity> folios = new ArrayList<>();
 
     public Long getId() {
@@ -76,24 +76,24 @@ public class UserCasDetailsEntity extends BaseEntity {
         return this;
     }
 
-    public InvestorInfo getInvestorInfo() {
-        return investorInfo;
+    public InvestorInfoEntity getInvestorInfoEntity() {
+        return investorInfoEntity;
     }
 
-    public UserCasDetailsEntity setInvestorInfo(InvestorInfo investorInfo) {
-        if (investorInfo == null) {
-            if (this.investorInfo != null) {
-                this.investorInfo.setUserCasDetailsEntity(null);
+    public UserCasDetailsEntity setInvestorInfoEntity(InvestorInfoEntity investorInfoEntity) {
+        if (investorInfoEntity == null) {
+            if (this.investorInfoEntity != null) {
+                this.investorInfoEntity.setUserCasDetailsEntity(null);
             }
         } else {
-            investorInfo.setUserCasDetailsEntity(this);
+            investorInfoEntity.setUserCasDetailsEntity(this);
         }
-        this.investorInfo = investorInfo;
+        this.investorInfoEntity = investorInfoEntity;
         return this;
     }
 
     public void addFolioEntity(UserFolioDetailsEntity userFolioDetailsEntity) {
         this.folios.add(userFolioDetailsEntity);
-        userFolioDetailsEntity.setUserCasDetails(this);
+        userFolioDetailsEntity.setUserCasDetailsEntity(this);
     }
 }

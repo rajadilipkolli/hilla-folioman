@@ -42,11 +42,11 @@ class UserSchemeDetailsRepositoryTest {
         UserCasDetailsEntity cas = new UserCasDetailsEntity();
         cas.setCasTypeEnum(CasTypeEnum.DETAILED);
         cas.setFileTypeEnum(FileTypeEnum.CAMS);
-        InvestorInfo info = new InvestorInfo();
-        cas.setInvestorInfo(info);
+        InvestorInfoEntity info = new InvestorInfoEntity();
+        cas.setInvestorInfoEntity(info);
         cas = entityManager.persistAndFlush(cas);
 
-        userFolio.setUserCasDetails(cas);
+        userFolio.setUserCasDetailsEntity(cas);
         userFolio = entityManager.persistAndFlush(userFolio);
 
         UserSchemeDetailsEntity scheme1 = new UserSchemeDetailsEntity();
@@ -103,11 +103,11 @@ class UserSchemeDetailsRepositoryTest {
         UserCasDetailsEntity cas2 = new UserCasDetailsEntity();
         cas2.setCasTypeEnum(CasTypeEnum.SUMMARY);
         cas2.setFileTypeEnum(FileTypeEnum.CAMS);
-        InvestorInfo info2 = new InvestorInfo();
-        cas2.setInvestorInfo(info2);
+        InvestorInfoEntity info2 = new InvestorInfoEntity();
+        cas2.setInvestorInfoEntity(info2);
         cas2 = entityManager.persistAndFlush(cas2);
 
-        userFolio.setUserCasDetails(cas2);
+        userFolio.setUserCasDetailsEntity(cas2);
         userFolio = entityManager.persistAndFlush(userFolio);
 
         UserSchemeDetailsEntity schemeWithNullAmfi = new UserSchemeDetailsEntity();
@@ -144,12 +144,12 @@ class UserSchemeDetailsRepositoryTest {
         UserCasDetailsEntity cas3 = new UserCasDetailsEntity();
         cas3.setCasTypeEnum(CasTypeEnum.DETAILED);
         cas3.setFileTypeEnum(FileTypeEnum.CAMS);
-        InvestorInfo info3 = new InvestorInfo();
+        InvestorInfoEntity info3 = new InvestorInfoEntity();
         info3.setName("Test User 3");
-        cas3.setInvestorInfo(info3);
+        cas3.setInvestorInfoEntity(info3);
         cas3 = entityManager.persistAndFlush(cas3);
 
-        userFolio.setUserCasDetails(cas3);
+        userFolio.setUserCasDetailsEntity(cas3);
         userFolio = entityManager.persistAndFlush(userFolio);
 
         UserSchemeDetailsEntity schemeWithAmfi = new UserSchemeDetailsEntity();
@@ -185,12 +185,12 @@ class UserSchemeDetailsRepositoryTest {
         UserCasDetailsEntity cas4 = new UserCasDetailsEntity();
         cas4.setCasTypeEnum(CasTypeEnum.SUMMARY);
         cas4.setFileTypeEnum(FileTypeEnum.UNKNOWN);
-        InvestorInfo info4 = new InvestorInfo();
+        InvestorInfoEntity info4 = new InvestorInfoEntity();
         info4.setName("Test User 4");
-        cas4.setInvestorInfo(info4);
+        cas4.setInvestorInfoEntity(info4);
         cas4 = entityManager.persistAndFlush(cas4);
 
-        userFolio.setUserCasDetails(cas4);
+        userFolio.setUserCasDetailsEntity(cas4);
         userFolio = entityManager.persistAndFlush(userFolio);
 
         scheme.setUserFolioDetails(userFolio);
@@ -252,7 +252,7 @@ class UserSchemeDetailsRepositoryTest {
         cas.setFileTypeEnum(FileTypeEnum.UNKNOWN);
         cas = entityManager.persistAndFlush(cas);
 
-        userFolio.setUserCasDetails(cas);
+        userFolio.setUserCasDetailsEntity(cas);
         userFolio = entityManager.persistAndFlush(userFolio);
         scheme.setScheme("S5");
         scheme.setUserFolioDetails(userFolio);

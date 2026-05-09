@@ -20,7 +20,9 @@ interface UserTransactionDetailsRepository extends JpaRepository<UserTransaction
 
     @Query("""
             select count (u.id) from UserTransactionDetails u
-            where upper(u.userSchemeDetails.userFolioDetails.userCasDetails.investorInfo.email) = upper(:email) and u.userSchemeDetails.userFolioDetails.userCasDetails.investorInfo.name = :name and u.transactionDate >= :fromTransactionDate and u.transactionDate <= :toTransactionDate
+            where upper(u.userSchemeDetails.userFolioDetails.userCasDetailsEntity.investorInfoEntity.email) = upper(:email)
+                        and u.userSchemeDetails.userFolioDetails.userCasDetailsEntity.investorInfoEntity.name = :name
+                                    and u.transactionDate >= :fromTransactionDate and u.transactionDate <= :toTransactionDate
             """)
     Long findAllTransactionByEmailAndNameAndInRange(
             @Param("email") String email,

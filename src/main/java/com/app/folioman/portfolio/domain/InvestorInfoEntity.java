@@ -17,7 +17,7 @@ import org.hibernate.Hibernate;
 
 @Entity
 @Table(name = "investor_info", schema = "portfolio")
-public class InvestorInfo extends BaseEntity {
+public class InvestorInfoEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "investor_info_seq")
     @SequenceGenerator(name = "investor_info_seq", schema = "portfolio")
@@ -45,7 +45,7 @@ public class InvestorInfo extends BaseEntity {
         return id;
     }
 
-    public InvestorInfo setId(Long id) {
+    public InvestorInfoEntity setId(Long id) {
         this.id = id;
         return this;
     }
@@ -54,7 +54,7 @@ public class InvestorInfo extends BaseEntity {
         return email;
     }
 
-    public InvestorInfo setEmail(String email) {
+    public InvestorInfoEntity setEmail(String email) {
         this.email = email;
         return this;
     }
@@ -63,7 +63,7 @@ public class InvestorInfo extends BaseEntity {
         return name;
     }
 
-    public InvestorInfo setName(String name) {
+    public InvestorInfoEntity setName(String name) {
         this.name = name;
         return this;
     }
@@ -72,7 +72,7 @@ public class InvestorInfo extends BaseEntity {
         return mobile;
     }
 
-    public InvestorInfo setMobile(String mobile) {
+    public InvestorInfoEntity setMobile(String mobile) {
         this.mobile = mobile;
         return this;
     }
@@ -81,7 +81,7 @@ public class InvestorInfo extends BaseEntity {
         return address;
     }
 
-    public InvestorInfo setAddress(String address) {
+    public InvestorInfoEntity setAddress(String address) {
         this.address = address;
         return this;
     }
@@ -90,7 +90,7 @@ public class InvestorInfo extends BaseEntity {
         return userCasDetailsEntity;
     }
 
-    public InvestorInfo setUserCasDetailsEntity(UserCasDetailsEntity userCasDetailsEntity) {
+    public InvestorInfoEntity setUserCasDetailsEntity(UserCasDetailsEntity userCasDetailsEntity) {
         this.userCasDetailsEntity = userCasDetailsEntity;
         return this;
     }
@@ -99,7 +99,7 @@ public class InvestorInfo extends BaseEntity {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
-        InvestorInfo that = (InvestorInfo) o;
+        InvestorInfoEntity that = (InvestorInfoEntity) o;
         return id != null && Objects.equals(email, that.email);
     }
 

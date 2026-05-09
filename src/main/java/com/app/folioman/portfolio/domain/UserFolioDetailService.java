@@ -28,7 +28,7 @@ class UserFolioDetailService {
     public void setPANIfNotSet(Long userCasID) {
         // find pan by id
         Optional<UserFolioDetailsPanProjection> panProjection =
-                userFolioDetailsRepository.findFirstByUserCasDetails_IdAndPanKyc(userCasID, "OK");
+                userFolioDetailsRepository.findFirstByUserCasDetailsEntity_IdAndPanKyc(userCasID, "OK");
         if (panProjection.isPresent()) {
             int rowsUpdated = userFolioDetailsRepository.updatePanByCasId(
                     panProjection.get().getPan(), userCasID);

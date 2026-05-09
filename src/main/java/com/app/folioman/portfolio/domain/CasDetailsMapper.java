@@ -21,14 +21,14 @@ public interface CasDetailsMapper {
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "version", ignore = true)
-    @Mapping(target = "investorInfo", ignore = true)
+    @Mapping(target = "investorInfoEntity", ignore = true)
     @Mapping(target = "casTypeEnum", source = "casDTO.casType")
     @Mapping(target = "fileTypeEnum", source = "casDTO.fileType")
     UserCasDetailsEntity convert(
             CasDTO casDTO, AtomicInteger newFolios, AtomicInteger newSchemes, AtomicInteger newTransactions);
 
     @Mapping(target = "schemes", ignore = true)
-    @Mapping(target = "userCasDetails", ignore = true)
+    @Mapping(target = "userCasDetailsEntity", ignore = true)
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
@@ -97,5 +97,5 @@ public interface CasDetailsMapper {
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "version", ignore = true)
-    InvestorInfo mapInvestorInfoDTOToInvestorInfo(InvestorInfoDTO investorInfo);
+    InvestorInfoEntity mapInvestorInfoDTOToInvestorInfoEntity(InvestorInfoDTO investorInfo);
 }

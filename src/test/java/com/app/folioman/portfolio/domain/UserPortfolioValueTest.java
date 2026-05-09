@@ -18,10 +18,10 @@ class UserPortfolioValueTest {
         userCasDetailsEntity = new UserCasDetailsEntity();
         userCasDetailsEntity.setCasTypeEnum(CasTypeEnum.DETAILED);
         userCasDetailsEntity.setFileTypeEnum(FileTypeEnum.CAMS);
-        InvestorInfo ii = new InvestorInfo();
+        InvestorInfoEntity ii = new InvestorInfoEntity();
         ii.setEmail("");
         ii.setName("");
-        userCasDetailsEntity.setInvestorInfo(ii);
+        userCasDetailsEntity.setInvestorInfoEntity(ii);
     }
 
     @Test

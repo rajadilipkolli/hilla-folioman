@@ -51,19 +51,19 @@ class MFSchemeNavRepositoryTest {
         entityManager.persist(testScheme2);
 
         MFSchemeNavEntity nav1 = new MFSchemeNavEntity();
-        nav1.setMfScheme(testScheme1);
+        nav1.setMfFundSchemeEntity(testScheme1);
         nav1.setNavDate(LocalDate.of(2023, 1, 15));
         nav1.setNav(new BigDecimal("100.50"));
         entityManager.persist(nav1);
 
         MFSchemeNavEntity nav2 = new MFSchemeNavEntity();
-        nav2.setMfScheme(testScheme1);
+        nav2.setMfFundSchemeEntity(testScheme1);
         nav2.setNavDate(LocalDate.of(2023, 2, 15));
         nav2.setNav(new BigDecimal("105.75"));
         entityManager.persist(nav2);
 
         MFSchemeNavEntity nav3 = new MFSchemeNavEntity();
-        nav3.setMfScheme(testScheme2);
+        nav3.setMfFundSchemeEntity(testScheme2);
         nav3.setNavDate(LocalDate.of(2023, 1, 10));
         nav3.setNav(new BigDecimal("200.25"));
         entityManager.persist(nav3);

@@ -457,9 +457,9 @@ public class UserDetailService {
                 casDetailsMapper.convert(casDTO, newFolios, newSchemes, newTransactions);
 
         // Ensure investor information matches the CAS DTO
-        if (userCasDetailsEntity.getInvestorInfo() == null) {
-            userCasDetailsEntity.setInvestorInfo(
-                    casDetailsMapper.mapInvestorInfoDTOToInvestorInfo(casDTO.investorInfo()));
+        if (userCasDetailsEntity.getInvestorInfoEntity() == null) {
+            userCasDetailsEntity.setInvestorInfoEntity(
+                    casDetailsMapper.mapInvestorInfoDTOToInvestorInfoEntity(casDTO.investorInfo()));
         }
 
         UserCasDetailsEntity savedCasDetailsEntity = getUserCASDetails(userCasDetailsEntity);

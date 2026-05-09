@@ -53,7 +53,7 @@ class MfFundSchemeEntity extends BaseEntity {
     @JoinColumn(name = "mf_category_id")
     private MFSchemeTypeEntity mfSchemeTypeEntity;
 
-    @OneToMany(mappedBy = "mfScheme", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "mfFundSchemeEntity", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MFSchemeNavEntity> mfSchemeNavs = new ArrayList<>();
 
     public Long getId() {
@@ -186,7 +186,7 @@ class MfFundSchemeEntity extends BaseEntity {
             throw new IllegalArgumentException("mfSchemeNav cannot be null");
         }
         mfSchemeNavs.add(mfSchemeNav);
-        mfSchemeNav.setMfScheme(this);
+        mfSchemeNav.setMfFundSchemeEntity(this);
         return this;
     }
 

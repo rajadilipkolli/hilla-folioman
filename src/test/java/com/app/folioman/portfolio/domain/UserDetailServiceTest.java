@@ -90,12 +90,12 @@ class UserDetailServiceTest {
         // ensure required enums and investor info are set to match DB constraints when used by services
         userCasDetailsEntity.setCasTypeEnum(CasTypeEnum.DETAILED);
         userCasDetailsEntity.setFileTypeEnum(FileTypeEnum.CAMS);
-        InvestorInfo ii = new InvestorInfo();
+        InvestorInfoEntity ii = new InvestorInfoEntity();
         ii.setEmail("test@example.com");
         ii.setName("Test User");
         ii.setMobile("9848022338");
         ii.setAddress("Test Address");
-        userCasDetailsEntity.setInvestorInfo(ii);
+        userCasDetailsEntity.setInvestorInfoEntity(ii);
 
         uploadFileResponse = new UploadFileResponse(1, 2, 3, 1L);
     }

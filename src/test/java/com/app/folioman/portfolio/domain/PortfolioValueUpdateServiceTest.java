@@ -284,12 +284,12 @@ class PortfolioValueUpdateServiceTest {
         userCasDetailsEntity.setFileTypeEnum(Enum.valueOf(FileTypeEnum.class, casDTO.fileType()));
 
         // Create InvestorInfo
-        InvestorInfo investorInfo = new InvestorInfo();
+        InvestorInfoEntity investorInfo = new InvestorInfoEntity();
         investorInfo.setEmail(casDTO.investorInfo().email());
         investorInfo.setName(casDTO.investorInfo().name());
         investorInfo.setMobile(casDTO.investorInfo().mobile());
         investorInfo.setAddress(casDTO.investorInfo().address());
-        userCasDetailsEntity.setInvestorInfo(investorInfo);
+        userCasDetailsEntity.setInvestorInfoEntity(investorInfo);
 
         // Convert folios
         List<UserFolioDetailsEntity> folios = new ArrayList<>();
@@ -301,7 +301,7 @@ class PortfolioValueUpdateServiceTest {
             folio.setPan(folioDTO.pan());
             folio.setKyc(folioDTO.kyc());
             folio.setPanKyc(folioDTO.panKyc());
-            folio.setUserCasDetails(userCasDetailsEntity);
+            folio.setUserCasDetailsEntity(userCasDetailsEntity);
 
             List<UserSchemeDetailsEntity> schemes = new ArrayList<>();
             folioDTO.schemes().forEach(schemeDTO -> {

@@ -42,7 +42,7 @@ public class MFSchemeNavEntity extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mf_scheme_id")
-    private MfFundSchemeEntity mfScheme;
+    private MfFundSchemeEntity mfFundSchemeEntity;
 
     public Long getId() {
         return id;
@@ -71,19 +71,18 @@ public class MFSchemeNavEntity extends BaseEntity {
         return this;
     }
 
-    public MfFundSchemeEntity getMfScheme() {
-        return mfScheme;
+    public MfFundSchemeEntity getMfFundSchemeEntity() {
+        return mfFundSchemeEntity;
     }
 
-    public MFSchemeNavEntity setMfScheme(MfFundSchemeEntity mfSchemeEntity) {
-        this.mfScheme = mfSchemeEntity;
+    public MFSchemeNavEntity setMfFundSchemeEntity(MfFundSchemeEntity mfSchemeEntity) {
+        this.mfFundSchemeEntity = mfSchemeEntity;
         return this;
     }
 
     @Override
     public final boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null) return false;
         Class<?> oEffectiveClass = o instanceof HibernateProxy hp
                 ? hp.getHibernateLazyInitializer().getPersistentClass()
                 : o.getClass();
@@ -94,7 +93,8 @@ public class MFSchemeNavEntity extends BaseEntity {
         MFSchemeNavEntity that = (MFSchemeNavEntity) o;
         return Objects.equals(getNav(), that.getNav())
                 && Objects.equals(
-                        getMfScheme().getAmfiCode(), that.getMfScheme().getAmfiCode())
+                        getMfFundSchemeEntity().getAmfiCode(),
+                        that.getMfFundSchemeEntity().getAmfiCode())
                 && Objects.equals(getNavDate(), that.getNavDate());
     }
 

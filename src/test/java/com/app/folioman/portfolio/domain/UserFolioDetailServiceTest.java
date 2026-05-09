@@ -89,13 +89,13 @@ class UserFolioDetailServiceTest {
         int expectedRowsUpdated = 1;
 
         when(panProjection.getPan()).thenReturn(testPan);
-        when(userFolioDetailsRepository.findFirstByUserCasDetails_IdAndPanKyc(userCasID, "OK"))
+        when(userFolioDetailsRepository.findFirstByUserCasDetailsEntity_IdAndPanKyc(userCasID, "OK"))
                 .thenReturn(Optional.of(panProjection));
         when(userFolioDetailsRepository.updatePanByCasId(testPan, userCasID)).thenReturn(expectedRowsUpdated);
 
         userFolioDetailService.setPANIfNotSet(userCasID);
 
-        verify(userFolioDetailsRepository).findFirstByUserCasDetails_IdAndPanKyc(userCasID, "OK");
+        verify(userFolioDetailsRepository).findFirstByUserCasDetailsEntity_IdAndPanKyc(userCasID, "OK");
         verify(panProjection).getPan();
         verify(userFolioDetailsRepository).updatePanByCasId(testPan, userCasID);
     }
@@ -104,12 +104,12 @@ class UserFolioDetailServiceTest {
     void setPANIfNotSetWithEmptyProjection() {
         Long userCasID = 456L;
 
-        when(userFolioDetailsRepository.findFirstByUserCasDetails_IdAndPanKyc(userCasID, "OK"))
+        when(userFolioDetailsRepository.findFirstByUserCasDetailsEntity_IdAndPanKyc(userCasID, "OK"))
                 .thenReturn(Optional.empty());
 
         userFolioDetailService.setPANIfNotSet(userCasID);
 
-        verify(userFolioDetailsRepository).findFirstByUserCasDetails_IdAndPanKyc(userCasID, "OK");
+        verify(userFolioDetailsRepository).findFirstByUserCasDetailsEntity_IdAndPanKyc(userCasID, "OK");
         verify(userFolioDetailsRepository, never()).updatePanByCasId(anyString(), eq(userCasID));
     }
 
@@ -120,20 +120,20 @@ class UserFolioDetailServiceTest {
         int expectedRowsUpdated = 0;
 
         when(panProjection.getPan()).thenReturn(testPan);
-        when(userFolioDetailsRepository.findFirstByUserCasDetails_IdAndPanKyc(userCasID, "OK"))
+        when(userFolioDetailsRepository.findFirstByUserCasDetailsEntity_IdAndPanKyc(userCasID, "OK"))
                 .thenReturn(Optional.of(panProjection));
         when(userFolioDetailsRepository.updatePanByCasId(testPan, userCasID)).thenReturn(expectedRowsUpdated);
 
         userFolioDetailService.setPANIfNotSet(userCasID);
 
-        verify(userFolioDetailsRepository).findFirstByUserCasDetails_IdAndPanKyc(userCasID, "OK");
+        verify(userFolioDetailsRepository).findFirstByUserCasDetailsEntity_IdAndPanKyc(userCasID, "OK");
         verify(panProjection).getPan();
         verify(userFolioDetailsRepository).updatePanByCasId(testPan, userCasID);
     }
 
     @Test
     void setPANIfNotSetWithNullUserCasID() {
-        when(userFolioDetailsRepository.findFirstByUserCasDetails_IdAndPanKyc(null, "OK"))
+        when(userFolioDetailsRepository.findFirstByUserCasDetailsEntity_IdAndPanKyc(null, "OK"))
                 .thenThrow(new IllegalArgumentException("UserCasID cannot be null"));
 
         assertThatExceptionOfType(IllegalArgumentException.class)

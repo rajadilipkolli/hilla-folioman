@@ -14,7 +14,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class InvestorInfoServiceTest {
 
     @Mock
-    private InvestorInfoRepository investorInfoRepository;
+    private InvestorInfoEntityRepository investorInfoRepository;
 
     @InjectMocks
     private InvestorInfoService investorInfoService;
