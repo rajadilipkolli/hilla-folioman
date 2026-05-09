@@ -8,9 +8,9 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional(readOnly = true)
 class InvestorInfoService {
 
-    private final InvestorInfoRepository investorInfoRepository;
+    private final InvestorInfoEntityRepository investorInfoRepository;
 
-    InvestorInfoService(InvestorInfoRepository investorInfoRepository) {
+    InvestorInfoService(InvestorInfoEntityRepository investorInfoRepository) {
         this.investorInfoRepository = investorInfoRepository;
     }
 

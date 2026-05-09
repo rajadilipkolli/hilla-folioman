@@ -1,7 +1,6 @@
 package com.app.folioman.portfolio.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
 
 import com.app.folioman.config.SQLContainersConfig;
 import com.app.folioman.portfolio.domain.models.projection.UserFolioDetailsPanProjection;
@@ -63,13 +62,26 @@ class UserFolioDetailsRepositoryTest {
 
     @Test
     void findFirstByUserCasDetailsEntityIdAndPanKycWhenFound() {
-        Long userCasId = 1L;
-        String kycStatus = "OK";
+        UserCasDetailsEntity userCasDetailsEntity = new UserCasDetailsEntity();
+        userCasDetailsEntity.setCasTypeEnum(CasTypeEnum.DETAILED);
+        userCasDetailsEntity.setFileTypeEnum(FileTypeEnum.CAMS);
+        entityManager.persist(userCasDetailsEntity);
 
-        // Result can be null if no data exists in test database; ensure call doesn't throw
-        assertThatCode(() ->
-                        userFolioDetailsRepository.findFirstByUserCasDetailsEntity_IdAndPanKyc(userCasId, kycStatus))
-                .doesNotThrowAnyException();
+        UserFolioDetailsEntity folio = new UserFolioDetailsEntity();
+        folio.setFolio("FOLIO_FOUND");
+        folio.setAmc("AMC_FOUND");
+        folio.setPan("ABCDE1234F");
+        folio.setPanKyc("OK");
+        folio.setUserCasDetailsEntity(userCasDetailsEntity);
+        entityManager.persist(folio);
+        entityManager.flush();
+
+        Optional<UserFolioDetailsPanProjection> result =
+                userFolioDetailsRepository.findFirstByUserCasDetailsEntity_IdAndPanKyc(
+                        userCasDetailsEntity.getId(), "OK");
+
+        assertThat(result).isPresent();
+        assertThat(result.get().getPan()).isEqualTo("ABCDE1234F");
     }
 
     @Test
@@ -94,11 +106,11 @@ class UserFolioDetailsRepositoryTest {
         entityManager.flush();
 
         // create and persist a matching InvestorInfo so repository reads that join investor_info succeed
-        InvestorInfo investorInfo = new InvestorInfo();
-        investorInfo.setName("Test User");
-        investorInfo.setEmail("test@example.com");
-        investorInfo.setUserCasDetailsEntity(userCasDetailsEntity);
-        entityManager.persist(investorInfo);
+        InvestorInfoEntity investorInfoEntity = new InvestorInfoEntity();
+        investorInfoEntity.setName("Test User");
+        investorInfoEntity.setEmail("test@example.com");
+        investorInfoEntity.setUserCasDetailsEntity(userCasDetailsEntity);
+        entityManager.persist(investorInfoEntity);
         entityManager.flush();
 
         Long casId = userCasDetailsEntity.getId();
@@ -152,11 +164,11 @@ class UserFolioDetailsRepositoryTest {
         entityManager.flush();
 
         // ensure an InvestorInfo exists for the UserCasDetailsEntity (the repository read joins investor_info)
-        InvestorInfo investorInfo = new InvestorInfo();
-        investorInfo.setName("Test User B");
-        investorInfo.setEmail("testb@example.com");
-        investorInfo.setUserCasDetailsEntity(userCasDetailsEntity);
-        entityManager.persist(investorInfo);
+        InvestorInfoEntity investorInfoEntity = new InvestorInfoEntity();
+        investorInfoEntity.setName("Test User B");
+        investorInfoEntity.setEmail("testb@example.com");
+        investorInfoEntity.setUserCasDetailsEntity(userCasDetailsEntity);
+        entityManager.persist(investorInfoEntity);
         entityManager.flush();
 
         Long casId = userCasDetailsEntity.getId();

@@ -18,7 +18,7 @@ class UserCASDetailsTest {
     private UserCasDetailsEntity userCasDetailsEntity;
 
     @Mock
-    private InvestorInfo mockInvestorInfo;
+    private InvestorInfoEntity mockInvestorInfo;
 
     @Mock
     private UserFolioDetailsEntity mockUserFolioDetails;
@@ -120,46 +120,46 @@ class UserCASDetailsTest {
 
     @Test
     void getInvestorInfo() {
-        assertThat(userCasDetailsEntity.getInvestorInfo()).isNull();
+        assertThat(userCasDetailsEntity.getInvestorInfoEntity()).isNull();
     }
 
     @Test
     void setInvestorInfoWithNonNull() {
-        UserCasDetailsEntity result = userCasDetailsEntity.setInvestorInfo(mockInvestorInfo);
+        UserCasDetailsEntity result = userCasDetailsEntity.setInvestorInfoEntity(mockInvestorInfo);
 
-        assertThat(userCasDetailsEntity.getInvestorInfo()).isEqualTo(mockInvestorInfo);
+        assertThat(userCasDetailsEntity.getInvestorInfoEntity()).isEqualTo(mockInvestorInfo);
         verify(mockInvestorInfo).setUserCasDetailsEntity(userCasDetailsEntity);
         assertThat(result).isSameAs(userCasDetailsEntity);
     }
 
     @Test
     void setInvestorInfoWithNullWhenCurrentIsNull() {
-        UserCasDetailsEntity result = userCasDetailsEntity.setInvestorInfo(null);
+        UserCasDetailsEntity result = userCasDetailsEntity.setInvestorInfoEntity(null);
 
-        assertThat(userCasDetailsEntity.getInvestorInfo()).isNull();
+        assertThat(userCasDetailsEntity.getInvestorInfoEntity()).isNull();
         assertThat(result).isSameAs(userCasDetailsEntity);
     }
 
     @Test
     void setInvestorInfoWithNullWhenCurrentIsNotNull() {
-        InvestorInfo currentInvestorInfo = mock(InvestorInfo.class);
-        userCasDetailsEntity.setInvestorInfo(currentInvestorInfo);
+        InvestorInfoEntity currentInvestorInfo = mock(InvestorInfoEntity.class);
+        userCasDetailsEntity.setInvestorInfoEntity(currentInvestorInfo);
 
-        UserCasDetailsEntity result = userCasDetailsEntity.setInvestorInfo(null);
+        UserCasDetailsEntity result = userCasDetailsEntity.setInvestorInfoEntity(null);
 
-        assertThat(userCasDetailsEntity.getInvestorInfo()).isNull();
+        assertThat(userCasDetailsEntity.getInvestorInfoEntity()).isNull();
         verify(currentInvestorInfo).setUserCasDetailsEntity(null);
         assertThat(result).isSameAs(userCasDetailsEntity);
     }
 
     @Test
     void setInvestorInfoReplaceExisting() {
-        InvestorInfo currentInvestorInfo = mock(InvestorInfo.class);
-        userCasDetailsEntity.setInvestorInfo(currentInvestorInfo);
+        InvestorInfoEntity currentInvestorInfo = mock(InvestorInfoEntity.class);
+        userCasDetailsEntity.setInvestorInfoEntity(currentInvestorInfo);
 
-        UserCasDetailsEntity result = userCasDetailsEntity.setInvestorInfo(mockInvestorInfo);
+        UserCasDetailsEntity result = userCasDetailsEntity.setInvestorInfoEntity(mockInvestorInfo);
 
-        assertThat(userCasDetailsEntity.getInvestorInfo()).isEqualTo(mockInvestorInfo);
+        assertThat(userCasDetailsEntity.getInvestorInfoEntity()).isEqualTo(mockInvestorInfo);
         verify(mockInvestorInfo).setUserCasDetailsEntity(userCasDetailsEntity);
         assertThat(result).isSameAs(userCasDetailsEntity);
     }

@@ -39,12 +39,12 @@ class UserCASDetailsRepositoryTest {
 
         // Assertions would depend on the actual entity structure and test data
         assertThat(result).isPresent();
-        assertThat(result.get().getInvestorInfo().getEmail()).isEqualTo(email);
-        assertThat(result.get().getInvestorInfo().getName()).isEqualTo(name);
+        assertThat(result.get().getInvestorInfoEntity().getEmail()).isEqualTo(email);
+        assertThat(result.get().getInvestorInfoEntity().getName()).isEqualTo(name);
     }
 
     private UserCasDetailsEntity getUserCASDetails(String email, String name) {
-        InvestorInfo investorInfo = new InvestorInfo();
+        InvestorInfoEntity investorInfo = new InvestorInfoEntity();
         investorInfo.setEmail(email);
         investorInfo.setName(name);
 
@@ -57,7 +57,7 @@ class UserCASDetailsRepositoryTest {
         userCasDetailsEntity.setCasTypeEnum(CasTypeEnum.DETAILED);
         userCasDetailsEntity.setFileTypeEnum(FileTypeEnum.CAMS);
         userCasDetailsEntity.addFolioEntity(folio);
-        userCasDetailsEntity.setInvestorInfo(investorInfo);
+        userCasDetailsEntity.setInvestorInfoEntity(investorInfo);
         return userCasDetailsEntity;
     }
 
@@ -173,10 +173,10 @@ class UserCASDetailsRepositoryTest {
         userCasDetailsEntity.setCasTypeEnum(CasTypeEnum.DETAILED);
         userCasDetailsEntity.setFileTypeEnum(FileTypeEnum.CAMS);
 
-        InvestorInfo investorInfo = new InvestorInfo();
+        InvestorInfoEntity investorInfo = new InvestorInfoEntity();
         investorInfo.setEmail("persisted@example.com");
         investorInfo.setName("Persisted User");
-        userCasDetailsEntity.setInvestorInfo(investorInfo);
+        userCasDetailsEntity.setInvestorInfoEntity(investorInfo);
 
         UserFolioDetailsEntity folio = new UserFolioDetailsEntity();
         folio.setFolio("FOLIO-" + pan);

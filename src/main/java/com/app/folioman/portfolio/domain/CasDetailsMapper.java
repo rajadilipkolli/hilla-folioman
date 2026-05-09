@@ -21,7 +21,7 @@ public interface CasDetailsMapper {
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "version", ignore = true)
-    @Mapping(target = "investorInfo", ignore = true)
+    @Mapping(target = "investorInfoEntity", ignore = true)
     @Mapping(target = "casTypeEnum", source = "casDTO.casType")
     @Mapping(target = "fileTypeEnum", source = "casDTO.fileType")
     UserCasDetailsEntity convert(
@@ -97,5 +97,5 @@ public interface CasDetailsMapper {
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "version", ignore = true)
-    InvestorInfo mapInvestorInfoDTOToInvestorInfo(InvestorInfoDTO investorInfo);
+    InvestorInfoEntity mapInvestorInfoDTOToInvestorInfoEntity(InvestorInfoDTO investorInfo);
 }

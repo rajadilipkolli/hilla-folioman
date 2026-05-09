@@ -34,12 +34,12 @@ class UserCASDetailsServiceTest {
     void setUp() {
         userCasDetailsEntity = new UserCasDetailsEntity();
         // ensure required enums and investor info for any potential use
-        userCasDetailsEntity.setCasTypeEnum(com.app.folioman.portfolio.domain.CasTypeEnum.DETAILED);
-        userCasDetailsEntity.setFileTypeEnum(com.app.folioman.portfolio.domain.FileTypeEnum.CAMS);
-        com.app.folioman.portfolio.domain.InvestorInfo ii = new com.app.folioman.portfolio.domain.InvestorInfo();
+        userCasDetailsEntity.setCasTypeEnum(CasTypeEnum.DETAILED);
+        userCasDetailsEntity.setFileTypeEnum(FileTypeEnum.CAMS);
+        InvestorInfoEntity ii = new InvestorInfoEntity();
         ii.setEmail("");
         ii.setName("");
-        userCasDetailsEntity.setInvestorInfo(ii);
+        userCasDetailsEntity.setInvestorInfoEntity(ii);
         portfolioDetailsProjection = new PortfolioDetailsProjection() {
             @Override
             public @NonNull String getSchemeName() {
