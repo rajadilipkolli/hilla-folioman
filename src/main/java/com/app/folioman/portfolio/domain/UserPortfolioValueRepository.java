@@ -10,9 +10,9 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface UserPortfolioValueRepository extends JpaRepository<UserPortfolioValue, Long> {
+public interface UserPortfolioValueRepository extends JpaRepository<UserPortfolioValueEntity, Long> {
 
-    List<UserPortfolioValue> findByUserCasDetailsEntity_IdAndDateBetween(
+    List<UserPortfolioValueEntity> findByUserCasDetailsEntity_IdAndDateBetween(
             Long id, LocalDate firstDate, LocalDate lastDate);
 
     @NativeQuery("""

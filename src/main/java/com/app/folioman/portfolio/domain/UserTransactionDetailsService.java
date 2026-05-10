@@ -1,8 +1,8 @@
 package com.app.folioman.portfolio.domain;
 
-import com.app.folioman.portfolio.domain.models.response.InvestmentReturnsDTO;
-import com.app.folioman.portfolio.domain.models.response.MonthlyInvestmentResponseDTO;
-import com.app.folioman.portfolio.domain.models.response.YearlyInvestmentResponseDTO;
+import com.app.folioman.portfolio.rest.dtos.InvestmentReturnsDTO;
+import com.app.folioman.portfolio.rest.dtos.MonthlyInvestmentResponseDTO;
+import com.app.folioman.portfolio.rest.dtos.YearlyInvestmentResponseDTO;
 import com.app.folioman.portfolio.util.XirrCalculator;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -34,7 +34,7 @@ public class UserTransactionDetailsService {
      * @param pan The PAN to query
      * @return An Optional containing the InvestmentReturnsDTO, or empty if no data exists
      */
-    public Optional<InvestmentReturnsDTO> getInvestmentReturnsByPan(String pan) {
+    Optional<InvestmentReturnsDTO> getInvestmentReturnsByPan(String pan) {
         return userPortfolioValueRepository.getLatestPortfolioValueByPan(pan).map(projection -> {
             BigDecimal cagr = null;
             Optional<LocalDate> firstTransactionDate =
@@ -52,24 +52,24 @@ public class UserTransactionDetailsService {
         });
     }
 
-    public Long findAllTransactionsByEmailNameAndPeriod(String name, String email, LocalDate from, LocalDate to) {
+    Long findAllTransactionsByEmailNameAndPeriod(String name, String email, LocalDate from, LocalDate to) {
         return userTransactionDetailsRepository.findAllTransactionByEmailAndNameAndInRange(email, name, from, to);
     }
 
-    public List<MonthlyInvestmentResponseDTO> getTotalInvestmentsByPanPerMonth(String pan) {
+    List<MonthlyInvestmentResponseDTO> getTotalInvestmentsByPanPerMonth(String pan) {
         return userTransactionDetailsRepository.findMonthlyInvestmentsByPan(pan).stream()
                 .map(MonthlyInvestmentResponseDTO::new)
                 .collect(Collectors.toList());
     }
 
-    public List<YearlyInvestmentResponseDTO> getTotalInvestmentsByPanPerYear(String pan) {
+    List<YearlyInvestmentResponseDTO> getTotalInvestmentsByPanPerYear(String pan) {
         return userTransactionDetailsRepository.findYearlyInvestmentsByPan(pan).stream()
                 .map(YearlyInvestmentResponseDTO::new)
                 .collect(Collectors.toList());
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public List<UserTransactionDetails> saveTransactions(List<UserTransactionDetails> transactions) {
+    List<UserTransactionDetailsEntity> saveTransactions(List<UserTransactionDetailsEntity> transactions) {
         return userTransactionDetailsRepository.saveAll(transactions);
     }
 }

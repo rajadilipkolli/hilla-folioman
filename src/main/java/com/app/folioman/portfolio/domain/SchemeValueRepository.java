@@ -7,10 +7,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-interface SchemeValueRepository extends JpaRepository<@NonNull SchemeValue, @NonNull Long> {
+interface SchemeValueRepository extends JpaRepository<@NonNull SchemeValueEntity, @NonNull Long> {
 
-    Optional<SchemeValue> findFirstByUserSchemeDetailsEntity_UserFolioDetails_IdOrderByDateDesc(Long id);
+    Optional<SchemeValueEntity> findFirstByUserSchemeDetailsEntity_UserFolioDetails_IdOrderByDateDesc(Long id);
 
-    Optional<SchemeValue> findFirstByUserSchemeDetailsEntity_IdAndDateBeforeOrderByDateDesc(
+    Optional<SchemeValueEntity> findFirstByUserSchemeDetailsEntity_IdAndDateBeforeOrderByDateDesc(
             Long id, LocalDate schemeFromDate);
 }

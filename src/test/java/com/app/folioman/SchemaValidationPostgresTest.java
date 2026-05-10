@@ -34,8 +34,8 @@ class SchemaValidationPostgresTest {
         Set<EntityType<?>> entities = metamodel.getEntities();
 
         // Expected entities: MfAmcEntity, MfFundSchemeEntity, MFSchemeNavEntity, UserCasDetailsEntity,
-        // UserFolioDetailsEntity, UserSchemeDetailsEntity, UserTransactionDetails,
-        // UserPortfolioValue, etc. (12 total)
+        // UserFolioDetailsEntity, UserSchemeDetailsEntity, UserTransactionDetailsEntity,
+        // UserPortfolioValueEntity, etc. (12 total)
         assertThat(entities).hasSize(12);
 
         for (EntityType<?> entity : entities) {

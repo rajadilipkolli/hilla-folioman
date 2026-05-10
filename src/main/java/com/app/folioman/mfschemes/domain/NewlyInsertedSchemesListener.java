@@ -10,7 +10,7 @@ import org.springframework.modulith.events.ApplicationModuleListener;
 import org.springframework.stereotype.Service;
 
 @Service
-public class NewlyInsertedSchemesListener {
+class NewlyInsertedSchemesListener {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(NewlyInsertedSchemesListener.class);
 

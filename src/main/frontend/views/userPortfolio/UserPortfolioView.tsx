@@ -13,9 +13,9 @@ import {
   Card,
   Notification,
 } from '@vaadin/react-components';
-import PortfolioResponse from 'Frontend/generated/com/app/folioman/portfolio/domain/models/response/PortfolioResponse';
-import MonthlyInvestmentResponseDTO from 'Frontend/generated/com/app/folioman/portfolio/domain/models/response/MonthlyInvestmentResponseDTO';
-import YearlyInvestmentResponseDTO from 'Frontend/generated/com/app/folioman/portfolio/domain/models/response/YearlyInvestmentResponseDTO';
+import PortfolioResponse from 'Frontend/generated/com/app/folioman/portfolio/rest/dtos/PortfolioResponse';
+import MonthlyInvestmentResponseDTO from 'Frontend/generated/com/app/folioman/portfolio/rest/dtos/MonthlyInvestmentResponseDTO';
+import YearlyInvestmentResponseDTO from 'Frontend/generated/com/app/folioman/portfolio/rest/dtos/YearlyInvestmentResponseDTO';
 import { getPortfolio } from 'Frontend/generated/ImportMutualFundController';
 import {
   getTotalInvestmentsByPanPerMonth,

@@ -1,8 +1,8 @@
 package com.app.folioman.portfolio.rest.controllers;
 
-import com.app.folioman.portfolio.domain.models.request.Fund;
-import com.app.folioman.portfolio.domain.models.request.InvestmentRequest;
-import com.app.folioman.portfolio.domain.models.response.InvestmentResponse;
+import com.app.folioman.portfolio.rest.dtos.Fund;
+import com.app.folioman.portfolio.rest.dtos.InvestmentRequest;
+import com.app.folioman.portfolio.rest.dtos.InvestmentResponse;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.Endpoint;
 import jakarta.validation.Valid;

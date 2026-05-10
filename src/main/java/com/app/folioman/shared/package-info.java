@@ -9,7 +9,7 @@
  *
  * This is a base module that can be used by any other module.
  */
-@ApplicationModule(displayName = "Shared Components")
+@ApplicationModule(displayName = "Shared Components", type = ApplicationModule.Type.OPEN)
 @NullMarked
 package com.app.folioman.shared;
 

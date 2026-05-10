@@ -20,7 +20,7 @@ class MfSchemeDtoToEntityMapperIT extends AbstractIntegrationTest {
                 "2020-01-01",
                 "Open Ended(Equity Scheme - ELSS)");
 
-        MfFundSchemeEntity result = mapper.mapMFSchemeDTOToMfFundScheme(dto);
+        MfFundSchemeEntity result = mfSchemeDtoToEntityMapper.mapMFSchemeDTOToMfFundScheme(dto);
 
         assertThat(result).isNotNull();
         assertThat(result.getAmc()).isNotNull();
@@ -35,7 +35,7 @@ class MfSchemeDtoToEntityMapperIT extends AbstractIntegrationTest {
     void mapMFSchemeDTOToMfFundScheme_WithNullFields_HandlesNullsCorrectly() {
         MFSchemeDTO dto = new MFSchemeDTO("", null, null, null, "0.00", "1970-01-01", "Open Ended(Test - Sample)");
 
-        MfFundSchemeEntity result = mapper.mapMFSchemeDTOToMfFundScheme(dto);
+        MfFundSchemeEntity result = mfSchemeDtoToEntityMapper.mapMFSchemeDTOToMfFundScheme(dto);
 
         assertThat(result).isNotNull();
         assertThat(result.getAmfiCode()).isNull();
@@ -47,7 +47,7 @@ class MfSchemeDtoToEntityMapperIT extends AbstractIntegrationTest {
         MFSchemeDTO dto = new MFSchemeDTO(
                 "Test AMC", 12345L, "INA100009859", "Test Scheme", "0.00", "2020-01-01", "Open Ended(Test - Sample)");
 
-        MfFundSchemeEntity result = mapper.mapMFSchemeDTOToMfFundScheme(dto);
+        MfFundSchemeEntity result = mfSchemeDtoToEntityMapper.mapMFSchemeDTOToMfFundScheme(dto);
 
         assertThat(result).isNotNull();
         // id should be null (not persisted)
@@ -74,7 +74,7 @@ class MfSchemeDtoToEntityMapperIT extends AbstractIntegrationTest {
     void mapMFSchemeDTOToMfFundScheme_WithEmptyStrings_MapsEmptyStrings() {
         MFSchemeDTO dto = new MFSchemeDTO("", null, null, "", "0.00", "1970-01-01", "Open Ended(Test - Sample)");
 
-        MfFundSchemeEntity result = mapper.mapMFSchemeDTOToMfFundScheme(dto);
+        MfFundSchemeEntity result = mfSchemeDtoToEntityMapper.mapMFSchemeDTOToMfFundScheme(dto);
 
         assertThat(result).isNotNull();
         assertThat(result.getAmc()).isNotNull();

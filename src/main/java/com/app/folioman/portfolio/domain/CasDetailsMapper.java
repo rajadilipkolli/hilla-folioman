@@ -1,10 +1,10 @@
 package com.app.folioman.portfolio.domain;
 
-import com.app.folioman.portfolio.domain.models.request.CasDTO;
-import com.app.folioman.portfolio.domain.models.request.InvestorInfoDTO;
-import com.app.folioman.portfolio.domain.models.request.UserFolioDTO;
-import com.app.folioman.portfolio.domain.models.request.UserSchemeDTO;
-import com.app.folioman.portfolio.domain.models.request.UserTransactionDTO;
+import com.app.folioman.portfolio.rest.dtos.CasDTO;
+import com.app.folioman.portfolio.rest.dtos.InvestorInfoDTO;
+import com.app.folioman.portfolio.rest.dtos.UserFolioDTO;
+import com.app.folioman.portfolio.rest.dtos.UserSchemeDTO;
+import com.app.folioman.portfolio.rest.dtos.UserTransactionDTO;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import org.mapstruct.AfterMapping;
@@ -14,7 +14,7 @@ import org.mapstruct.MappingConstants;
 import org.mapstruct.MappingTarget;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public interface CasDetailsMapper {
+interface CasDetailsMapper {
 
     @Mapping(target = "folios", ignore = true)
     @Mapping(target = "id", ignore = true)
@@ -50,7 +50,7 @@ public interface CasDetailsMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "version", ignore = true)
     @Mapping(target = "transactionDate", source = "date")
-    UserTransactionDetails transactionDTOToTransactionEntity(UserTransactionDTO transactionDTO);
+    UserTransactionDetailsEntity transactionDTOToTransactionEntity(UserTransactionDTO transactionDTO);
 
     @AfterMapping
     default void addFolioEntityToCaseDetails(
@@ -98,4 +98,11 @@ public interface CasDetailsMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "version", ignore = true)
     InvestorInfoEntity mapInvestorInfoDTOToInvestorInfoEntity(InvestorInfoDTO investorInfo);
+
+    default TransactionType map(com.app.folioman.portfolio.rest.dtos.TransactionType type) {
+        if (type == null) {
+            return null;
+        }
+        return TransactionType.valueOf(type.name());
+    }
 }

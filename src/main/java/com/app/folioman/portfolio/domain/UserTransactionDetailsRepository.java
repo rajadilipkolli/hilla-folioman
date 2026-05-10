@@ -12,14 +12,14 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
-interface UserTransactionDetailsRepository extends JpaRepository<UserTransactionDetails, Long> {
+interface UserTransactionDetailsRepository extends JpaRepository<UserTransactionDetailsEntity, Long> {
 
     @Query(
-            "select min(u.transactionDate) from UserTransactionDetails u where u.userSchemeDetails.userFolioDetails.pan = :pan")
+            "select min(u.transactionDate) from UserTransactionDetailsEntity u where u.userSchemeDetails.userFolioDetails.pan = :pan")
     Optional<LocalDate> findMinTransactionDateByPan(@Param("pan") String pan);
 
     @Query("""
-            select count (u.id) from UserTransactionDetails u
+            select count (u.id) from UserTransactionDetailsEntity u
             where upper(u.userSchemeDetails.userFolioDetails.userCasDetailsEntity.investorInfoEntity.email) = upper(:email)
                         and u.userSchemeDetails.userFolioDetails.userCasDetailsEntity.investorInfoEntity.name = :name
                                     and u.transactionDate >= :fromTransactionDate and u.transactionDate <= :toTransactionDate
@@ -30,9 +30,10 @@ interface UserTransactionDetailsRepository extends JpaRepository<UserTransaction
             @Param("fromTransactionDate") LocalDate fromTransactionDate,
             @Param("toTransactionDate") LocalDate toTransactionDate);
 
-    List<UserTransactionDetails> findByUserSchemeDetails_IdAndTransactionDateBefore(Long id, LocalDate schemeFromDate);
+    List<UserTransactionDetailsEntity> findByUserSchemeDetails_IdAndTransactionDateBefore(
+            Long id, LocalDate schemeFromDate);
 
-    List<UserTransactionDetails> findByUserSchemeDetails_IdAndTransactionDateGreaterThanEqual(
+    List<UserTransactionDetailsEntity> findByUserSchemeDetails_IdAndTransactionDateGreaterThanEqual(
             Long id, LocalDate schemeFromDate);
 
     @NativeQuery("""

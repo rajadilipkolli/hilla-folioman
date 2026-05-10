@@ -2,7 +2,6 @@ package com.app.folioman.portfolio.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.app.folioman.portfolio.domain.models.request.TransactionType;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,234 +9,235 @@ import org.junit.jupiter.api.Test;
 
 class UserTransactionDetailsTest {
 
-    private UserTransactionDetails userTransactionDetails;
+    private UserTransactionDetailsEntity UserTransactionDetailsEntity;
 
     @BeforeEach
     void setUp() {
-        userTransactionDetails = new UserTransactionDetails();
+        UserTransactionDetailsEntity = new UserTransactionDetailsEntity();
     }
 
     @Test
     void getAndSetId() {
         Long id = 1L;
-        UserTransactionDetails result = userTransactionDetails.setId(id);
+        UserTransactionDetailsEntity result = UserTransactionDetailsEntity.setId(id);
 
-        assertThat(userTransactionDetails.getId()).isEqualTo(id);
-        assertThat(result).isSameAs(userTransactionDetails);
+        assertThat(UserTransactionDetailsEntity.getId()).isEqualTo(id);
+        assertThat(result).isSameAs(UserTransactionDetailsEntity);
     }
 
     @Test
     void getAndSetIdWithNull() {
-        UserTransactionDetails result = userTransactionDetails.setId(null);
+        UserTransactionDetailsEntity result = UserTransactionDetailsEntity.setId(null);
 
-        assertThat(userTransactionDetails.getId()).isNull();
-        assertThat(result).isSameAs(userTransactionDetails);
+        assertThat(UserTransactionDetailsEntity.getId()).isNull();
+        assertThat(result).isSameAs(UserTransactionDetailsEntity);
     }
 
     @Test
     void getAndSetTransactionDate() {
         LocalDate date = LocalDate.of(2023, 1, 1);
-        UserTransactionDetails result = userTransactionDetails.setTransactionDate(date);
+        UserTransactionDetailsEntity result = UserTransactionDetailsEntity.setTransactionDate(date);
 
-        assertThat(userTransactionDetails.getTransactionDate()).isEqualTo(date);
-        assertThat(result).isSameAs(userTransactionDetails);
+        assertThat(UserTransactionDetailsEntity.getTransactionDate()).isEqualTo(date);
+        assertThat(result).isSameAs(UserTransactionDetailsEntity);
     }
 
     @Test
     void getAndSetTransactionDateWithNull() {
-        UserTransactionDetails result = userTransactionDetails.setTransactionDate(null);
+        UserTransactionDetailsEntity result = UserTransactionDetailsEntity.setTransactionDate(null);
 
-        assertThat(userTransactionDetails.getTransactionDate()).isNull();
-        assertThat(result).isSameAs(userTransactionDetails);
+        assertThat(UserTransactionDetailsEntity.getTransactionDate()).isNull();
+        assertThat(result).isSameAs(UserTransactionDetailsEntity);
     }
 
     @Test
     void getAndSetDescription() {
         String description = "Test Description";
-        UserTransactionDetails result = userTransactionDetails.setDescription(description);
+        UserTransactionDetailsEntity result = UserTransactionDetailsEntity.setDescription(description);
 
-        assertThat(userTransactionDetails.getDescription()).isEqualTo(description);
-        assertThat(result).isSameAs(userTransactionDetails);
+        assertThat(UserTransactionDetailsEntity.getDescription()).isEqualTo(description);
+        assertThat(result).isSameAs(UserTransactionDetailsEntity);
     }
 
     @Test
     void getAndSetDescriptionWithNull() {
-        UserTransactionDetails result = userTransactionDetails.setDescription(null);
+        UserTransactionDetailsEntity result = UserTransactionDetailsEntity.setDescription(null);
 
-        assertThat(userTransactionDetails.getDescription()).isNull();
-        assertThat(result).isSameAs(userTransactionDetails);
+        assertThat(UserTransactionDetailsEntity.getDescription()).isNull();
+        assertThat(result).isSameAs(UserTransactionDetailsEntity);
     }
 
     @Test
     void getAndSetAmount() {
         BigDecimal amount = new BigDecimal("100.50");
-        UserTransactionDetails result = userTransactionDetails.setAmount(amount);
+        UserTransactionDetailsEntity result = UserTransactionDetailsEntity.setAmount(amount);
 
-        assertThat(userTransactionDetails.getAmount()).isEqualTo(amount);
-        assertThat(result).isSameAs(userTransactionDetails);
+        assertThat(UserTransactionDetailsEntity.getAmount()).isEqualTo(amount);
+        assertThat(result).isSameAs(UserTransactionDetailsEntity);
     }
 
     @Test
     void getAndSetAmountWithNull() {
-        UserTransactionDetails result = userTransactionDetails.setAmount(null);
+        UserTransactionDetailsEntity result = UserTransactionDetailsEntity.setAmount(null);
 
-        assertThat(userTransactionDetails.getAmount()).isNull();
-        assertThat(result).isSameAs(userTransactionDetails);
+        assertThat(UserTransactionDetailsEntity.getAmount()).isNull();
+        assertThat(result).isSameAs(UserTransactionDetailsEntity);
     }
 
     @Test
     void getAndSetUnits() {
         Double units = 10.5;
-        UserTransactionDetails result = userTransactionDetails.setUnits(units);
+        UserTransactionDetailsEntity result = UserTransactionDetailsEntity.setUnits(units);
 
-        assertThat(userTransactionDetails.getUnits()).isEqualTo(units);
-        assertThat(result).isSameAs(userTransactionDetails);
+        assertThat(UserTransactionDetailsEntity.getUnits()).isEqualTo(units);
+        assertThat(result).isSameAs(UserTransactionDetailsEntity);
     }
 
     @Test
     void getAndSetUnitsWithNull() {
-        UserTransactionDetails result = userTransactionDetails.setUnits(null);
+        UserTransactionDetailsEntity result = UserTransactionDetailsEntity.setUnits(null);
 
-        assertThat(userTransactionDetails.getUnits()).isNull();
-        assertThat(result).isSameAs(userTransactionDetails);
+        assertThat(UserTransactionDetailsEntity.getUnits()).isNull();
+        assertThat(result).isSameAs(UserTransactionDetailsEntity);
     }
 
     @Test
     void getAndSetNav() {
         Double nav = 25.75;
-        UserTransactionDetails result = userTransactionDetails.setNav(nav);
+        UserTransactionDetailsEntity result = UserTransactionDetailsEntity.setNav(nav);
 
-        assertThat(userTransactionDetails.getNav()).isEqualTo(nav);
-        assertThat(result).isSameAs(userTransactionDetails);
+        assertThat(UserTransactionDetailsEntity.getNav()).isEqualTo(nav);
+        assertThat(result).isSameAs(UserTransactionDetailsEntity);
     }
 
     @Test
     void getAndSetNavWithNull() {
-        UserTransactionDetails result = userTransactionDetails.setNav(null);
+        UserTransactionDetailsEntity result = UserTransactionDetailsEntity.setNav(null);
 
-        assertThat(userTransactionDetails.getNav()).isNull();
-        assertThat(result).isSameAs(userTransactionDetails);
+        assertThat(UserTransactionDetailsEntity.getNav()).isNull();
+        assertThat(result).isSameAs(UserTransactionDetailsEntity);
     }
 
     @Test
     void getAndSetBalance() {
         Double balance = 1000.0;
-        UserTransactionDetails result = userTransactionDetails.setBalance(balance);
+        UserTransactionDetailsEntity result = UserTransactionDetailsEntity.setBalance(balance);
 
-        assertThat(userTransactionDetails.getBalance()).isEqualTo(balance);
-        assertThat(result).isSameAs(userTransactionDetails);
+        assertThat(UserTransactionDetailsEntity.getBalance()).isEqualTo(balance);
+        assertThat(result).isSameAs(UserTransactionDetailsEntity);
     }
 
     @Test
     void getAndSetBalanceWithNull() {
-        UserTransactionDetails result = userTransactionDetails.setBalance(null);
+        UserTransactionDetailsEntity result = UserTransactionDetailsEntity.setBalance(null);
 
-        assertThat(userTransactionDetails.getBalance()).isNull();
-        assertThat(result).isSameAs(userTransactionDetails);
+        assertThat(UserTransactionDetailsEntity.getBalance()).isNull();
+        assertThat(result).isSameAs(UserTransactionDetailsEntity);
     }
 
     @Test
     void getAndSetType() {
         TransactionType type = TransactionType.PURCHASE;
-        UserTransactionDetails result = userTransactionDetails.setType(type);
+        UserTransactionDetailsEntity result = UserTransactionDetailsEntity.setType(type);
 
-        assertThat(userTransactionDetails.getType()).isEqualTo(type);
-        assertThat(result).isSameAs(userTransactionDetails);
+        assertThat(UserTransactionDetailsEntity.getType()).isEqualTo(type);
+        assertThat(result).isSameAs(UserTransactionDetailsEntity);
     }
 
     @Test
     void getAndSetTypeWithNull() {
-        UserTransactionDetails result = userTransactionDetails.setType(null);
+        UserTransactionDetailsEntity result = UserTransactionDetailsEntity.setType(null);
 
-        assertThat(userTransactionDetails.getType()).isNull();
-        assertThat(result).isSameAs(userTransactionDetails);
+        assertThat(UserTransactionDetailsEntity.getType()).isNull();
+        assertThat(result).isSameAs(UserTransactionDetailsEntity);
     }
 
     @Test
     void getAndSetDividendRate() {
         String dividendRate = "5.5%";
-        UserTransactionDetails result = userTransactionDetails.setDividendRate(dividendRate);
+        UserTransactionDetailsEntity result = UserTransactionDetailsEntity.setDividendRate(dividendRate);
 
-        assertThat(userTransactionDetails.getDividendRate()).isEqualTo(dividendRate);
-        assertThat(result).isSameAs(userTransactionDetails);
+        assertThat(UserTransactionDetailsEntity.getDividendRate()).isEqualTo(dividendRate);
+        assertThat(result).isSameAs(UserTransactionDetailsEntity);
     }
 
     @Test
     void getAndSetDividendRateWithNull() {
-        UserTransactionDetails result = userTransactionDetails.setDividendRate(null);
+        UserTransactionDetailsEntity result = UserTransactionDetailsEntity.setDividendRate(null);
 
-        assertThat(userTransactionDetails.getDividendRate()).isNull();
-        assertThat(result).isSameAs(userTransactionDetails);
+        assertThat(UserTransactionDetailsEntity.getDividendRate()).isNull();
+        assertThat(result).isSameAs(UserTransactionDetailsEntity);
     }
 
     @Test
     void getAndSetUserSchemeDetails() {
         UserSchemeDetailsEntity userSchemeDetailsEntity = new UserSchemeDetailsEntity();
-        UserTransactionDetails result = this.userTransactionDetails.setUserSchemeDetails(userSchemeDetailsEntity);
+        UserTransactionDetailsEntity result =
+                this.UserTransactionDetailsEntity.setUserSchemeDetails(userSchemeDetailsEntity);
 
-        assertThat(this.userTransactionDetails.getUserSchemeDetails()).isEqualTo(userSchemeDetailsEntity);
-        assertThat(result).isSameAs(this.userTransactionDetails);
+        assertThat(this.UserTransactionDetailsEntity.getUserSchemeDetails()).isEqualTo(userSchemeDetailsEntity);
+        assertThat(result).isSameAs(this.UserTransactionDetailsEntity);
     }
 
     @Test
     void equalsWithSameReference() {
-        assertThat(userTransactionDetails).isEqualTo(userTransactionDetails);
+        assertThat(UserTransactionDetailsEntity).isEqualTo(UserTransactionDetailsEntity);
     }
 
     @Test
     void equalsWithNull() {
-        assertThat(userTransactionDetails).isNotEqualTo(null);
+        assertThat(UserTransactionDetailsEntity).isNotEqualTo(null);
     }
 
     @Test
     void equalsWithDifferentClass() {
-        assertThat(userTransactionDetails).isNotEqualTo("different class");
+        assertThat(UserTransactionDetailsEntity).isNotEqualTo("different class");
     }
 
     @Test
     void equalsWithNullId() {
-        UserTransactionDetails other = new UserTransactionDetails();
-        assertThat(other).isNotEqualTo(userTransactionDetails);
+        UserTransactionDetailsEntity other = new UserTransactionDetailsEntity();
+        assertThat(other).isNotEqualTo(UserTransactionDetailsEntity);
     }
 
     @Test
     void equalsWithSameId() {
         Long id = 1L;
-        userTransactionDetails.setId(id);
-        UserTransactionDetails other = new UserTransactionDetails().setId(id);
+        UserTransactionDetailsEntity.setId(id);
+        UserTransactionDetailsEntity other = new UserTransactionDetailsEntity().setId(id);
 
-        assertThat(other).isEqualTo(userTransactionDetails);
+        assertThat(other).isEqualTo(UserTransactionDetailsEntity);
     }
 
     @Test
     void equalsWithDifferentId() {
-        userTransactionDetails.setId(1L);
-        UserTransactionDetails other = new UserTransactionDetails().setId(2L);
+        UserTransactionDetailsEntity.setId(1L);
+        UserTransactionDetailsEntity other = new UserTransactionDetailsEntity().setId(2L);
 
-        assertThat(other).isNotEqualTo(userTransactionDetails);
+        assertThat(other).isNotEqualTo(UserTransactionDetailsEntity);
     }
 
     @Test
     void equalsWithOneNullId() {
-        userTransactionDetails.setId(1L);
-        UserTransactionDetails other = new UserTransactionDetails();
+        UserTransactionDetailsEntity.setId(1L);
+        UserTransactionDetailsEntity other = new UserTransactionDetailsEntity();
 
-        assertThat(other).isNotEqualTo(userTransactionDetails);
+        assertThat(other).isNotEqualTo(UserTransactionDetailsEntity);
     }
 
     @Test
     void testHashCode() {
-        int hashCode1 = userTransactionDetails.hashCode();
-        int hashCode2 = userTransactionDetails.hashCode();
+        int hashCode1 = UserTransactionDetailsEntity.hashCode();
+        int hashCode2 = UserTransactionDetailsEntity.hashCode();
 
         assertThat(hashCode2).isEqualTo(hashCode1);
     }
 
     @Test
     void hashCodeConsistency() {
-        UserTransactionDetails other = new UserTransactionDetails();
+        UserTransactionDetailsEntity other = new UserTransactionDetailsEntity();
 
-        assertThat(other).hasSameHashCodeAs(userTransactionDetails);
+        assertThat(other).hasSameHashCodeAs(UserTransactionDetailsEntity);
     }
 
     @Test
@@ -245,8 +245,7 @@ class UserTransactionDetailsTest {
         LocalDate date = LocalDate.of(2023, 1, 1);
         BigDecimal amount = new BigDecimal("100.00");
 
-        UserTransactionDetails result = userTransactionDetails
-                .setId(1L)
+        UserTransactionDetailsEntity result = UserTransactionDetailsEntity.setId(1L)
                 .setTransactionDate(date)
                 .setDescription("Test")
                 .setAmount(amount)
@@ -256,15 +255,15 @@ class UserTransactionDetailsTest {
                 .setType(TransactionType.PURCHASE)
                 .setDividendRate("5%");
 
-        assertThat(result).isSameAs(userTransactionDetails);
-        assertThat(userTransactionDetails.getId()).isOne();
-        assertThat(userTransactionDetails.getTransactionDate()).isEqualTo(date);
-        assertThat(userTransactionDetails.getDescription()).isEqualTo("Test");
-        assertThat(userTransactionDetails.getAmount()).isEqualTo(amount);
-        assertThat(userTransactionDetails.getUnits()).isEqualTo(10.0);
-        assertThat(userTransactionDetails.getNav()).isEqualTo(10.0);
-        assertThat(userTransactionDetails.getBalance()).isEqualTo(100.0);
-        assertThat(userTransactionDetails.getType()).isEqualTo(TransactionType.PURCHASE);
-        assertThat(userTransactionDetails.getDividendRate()).isEqualTo("5%");
+        assertThat(result).isSameAs(UserTransactionDetailsEntity);
+        assertThat(UserTransactionDetailsEntity.getId()).isOne();
+        assertThat(UserTransactionDetailsEntity.getTransactionDate()).isEqualTo(date);
+        assertThat(UserTransactionDetailsEntity.getDescription()).isEqualTo("Test");
+        assertThat(UserTransactionDetailsEntity.getAmount()).isEqualTo(amount);
+        assertThat(UserTransactionDetailsEntity.getUnits()).isEqualTo(10.0);
+        assertThat(UserTransactionDetailsEntity.getNav()).isEqualTo(10.0);
+        assertThat(UserTransactionDetailsEntity.getBalance()).isEqualTo(100.0);
+        assertThat(UserTransactionDetailsEntity.getType()).isEqualTo(TransactionType.PURCHASE);
+        assertThat(UserTransactionDetailsEntity.getDividendRate()).isEqualTo("5%");
     }
 }

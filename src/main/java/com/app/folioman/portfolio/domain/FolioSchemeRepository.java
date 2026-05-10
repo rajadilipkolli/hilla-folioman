@@ -6,15 +6,15 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 @Repository
-interface FolioSchemeRepository extends JpaRepository<FolioScheme, Long> {
+interface FolioSchemeRepository extends JpaRepository<FolioSchemeEntity, Long> {
 
     /**
-     * Find a FolioScheme by the user scheme detail ID
+     * Find a FolioSchemeEntity by the user scheme detail ID
      *
      * @param userSchemeDetailId the ID of the user scheme detail
-     * @return the FolioScheme if found
+     * @return the FolioSchemeEntity if found
      */
-    Optional<FolioScheme> findByUserSchemeDetails_Id(Long userSchemeDetailId);
+    Optional<FolioSchemeEntity> findByUserSchemeDetails_Id(Long userSchemeDetailId);
 
-    List<FolioScheme> findByUserFolioDetails_Id(Long id);
+    List<FolioSchemeEntity> findByUserFolioDetails_Id(Long id);
 }

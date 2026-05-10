@@ -1,6 +1,6 @@
 package com.app.folioman.portfolio.domain;
 
-import com.app.folioman.portfolio.domain.models.request.CasDTO;
+import com.app.folioman.portfolio.rest.dtos.CasDTO;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -89,7 +89,7 @@ public class PdfProcessingService {
      * @return A CasDTO object containing the parsed data
      * @throws IOException If there is an error reading or parsing the PDF
      */
-    public CasDTO convertPdfCasToJson(MultipartFile pdfFile, String password) throws IOException {
+    CasDTO convertPdfCasToJson(MultipartFile pdfFile, String password) throws IOException {
         LOGGER.info(
                 "Converting password-protected PDF CAS file to CasDTO Object using python casparser cli: {}",
                 pdfFile.getOriginalFilename());

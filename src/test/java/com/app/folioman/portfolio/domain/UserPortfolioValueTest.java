@@ -9,12 +9,12 @@ import org.junit.jupiter.api.Test;
 
 class UserPortfolioValueTest {
 
-    private UserPortfolioValue userPortfolioValue;
+    private UserPortfolioValueEntity UserPortfolioValueEntity;
     private UserCasDetailsEntity userCasDetailsEntity;
 
     @BeforeEach
     void setUp() {
-        userPortfolioValue = new UserPortfolioValue();
+        UserPortfolioValueEntity = new UserPortfolioValueEntity();
         userCasDetailsEntity = new UserCasDetailsEntity();
         userCasDetailsEntity.setCasTypeEnum(CasTypeEnum.DETAILED);
         userCasDetailsEntity.setFileTypeEnum(FileTypeEnum.CAMS);
@@ -28,124 +28,124 @@ class UserPortfolioValueTest {
     void getAndSetId() {
         Long id = 1L;
 
-        UserPortfolioValue result = userPortfolioValue.setId(id);
+        UserPortfolioValueEntity result = UserPortfolioValueEntity.setId(id);
 
-        assertThat(userPortfolioValue.getId()).isEqualTo(id);
-        assertThat(result).isSameAs(userPortfolioValue);
+        assertThat(UserPortfolioValueEntity.getId()).isEqualTo(id);
+        assertThat(result).isSameAs(UserPortfolioValueEntity);
     }
 
     @Test
     void getAndSetIdWithNull() {
-        UserPortfolioValue result = userPortfolioValue.setId(null);
+        UserPortfolioValueEntity result = UserPortfolioValueEntity.setId(null);
 
-        assertThat(userPortfolioValue.getId()).isNull();
-        assertThat(result).isSameAs(userPortfolioValue);
+        assertThat(UserPortfolioValueEntity.getId()).isNull();
+        assertThat(result).isSameAs(UserPortfolioValueEntity);
     }
 
     @Test
     void getAndSetDate() {
         LocalDate date = LocalDate.of(2023, 12, 15);
 
-        UserPortfolioValue result = userPortfolioValue.setDate(date);
+        UserPortfolioValueEntity result = UserPortfolioValueEntity.setDate(date);
 
-        assertThat(userPortfolioValue.getDate()).isEqualTo(date);
-        assertThat(result).isSameAs(userPortfolioValue);
+        assertThat(UserPortfolioValueEntity.getDate()).isEqualTo(date);
+        assertThat(result).isSameAs(UserPortfolioValueEntity);
     }
 
     @Test
     void getAndSetDateWithNull() {
-        UserPortfolioValue result = userPortfolioValue.setDate(null);
+        UserPortfolioValueEntity result = UserPortfolioValueEntity.setDate(null);
 
-        assertThat(userPortfolioValue.getDate()).isNull();
-        assertThat(result).isSameAs(userPortfolioValue);
+        assertThat(UserPortfolioValueEntity.getDate()).isNull();
+        assertThat(result).isSameAs(UserPortfolioValueEntity);
     }
 
     @Test
     void getAndSetInvested() {
         BigDecimal invested = new BigDecimal("10000.50");
 
-        UserPortfolioValue result = userPortfolioValue.setInvested(invested);
+        UserPortfolioValueEntity result = UserPortfolioValueEntity.setInvested(invested);
 
-        assertThat(userPortfolioValue.getInvested()).isEqualTo(invested);
-        assertThat(result).isSameAs(userPortfolioValue);
+        assertThat(UserPortfolioValueEntity.getInvested()).isEqualTo(invested);
+        assertThat(result).isSameAs(UserPortfolioValueEntity);
     }
 
     @Test
     void getAndSetInvestedWithNull() {
-        UserPortfolioValue result = userPortfolioValue.setInvested(null);
+        UserPortfolioValueEntity result = UserPortfolioValueEntity.setInvested(null);
 
-        assertThat(userPortfolioValue.getInvested()).isNull();
-        assertThat(result).isSameAs(userPortfolioValue);
+        assertThat(UserPortfolioValueEntity.getInvested()).isNull();
+        assertThat(result).isSameAs(UserPortfolioValueEntity);
     }
 
     @Test
     void getAndSetValue() {
         BigDecimal value = new BigDecimal("12000.75");
 
-        UserPortfolioValue result = userPortfolioValue.setValue(value);
+        UserPortfolioValueEntity result = UserPortfolioValueEntity.setValue(value);
 
-        assertThat(userPortfolioValue.getValue()).isEqualTo(value);
-        assertThat(result).isSameAs(userPortfolioValue);
+        assertThat(UserPortfolioValueEntity.getValue()).isEqualTo(value);
+        assertThat(result).isSameAs(UserPortfolioValueEntity);
     }
 
     @Test
     void getAndSetValueWithNull() {
-        UserPortfolioValue result = userPortfolioValue.setValue(null);
+        UserPortfolioValueEntity result = UserPortfolioValueEntity.setValue(null);
 
-        assertThat(userPortfolioValue.getValue()).isNull();
-        assertThat(result).isSameAs(userPortfolioValue);
+        assertThat(UserPortfolioValueEntity.getValue()).isNull();
+        assertThat(result).isSameAs(UserPortfolioValueEntity);
     }
 
     @Test
     void getAndSetXirr() {
         BigDecimal xirr = new BigDecimal("15.25");
 
-        UserPortfolioValue result = userPortfolioValue.setXirr(xirr);
+        UserPortfolioValueEntity result = UserPortfolioValueEntity.setXirr(xirr);
 
-        assertThat(userPortfolioValue.getXirr()).isEqualTo(xirr);
-        assertThat(result).isSameAs(userPortfolioValue);
+        assertThat(UserPortfolioValueEntity.getXirr()).isEqualTo(xirr);
+        assertThat(result).isSameAs(UserPortfolioValueEntity);
     }
 
     @Test
     void getAndSetXirrWithNull() {
-        UserPortfolioValue result = userPortfolioValue.setXirr(null);
+        UserPortfolioValueEntity result = UserPortfolioValueEntity.setXirr(null);
 
-        assertThat(userPortfolioValue.getXirr()).isNull();
-        assertThat(result).isSameAs(userPortfolioValue);
+        assertThat(UserPortfolioValueEntity.getXirr()).isNull();
+        assertThat(result).isSameAs(UserPortfolioValueEntity);
     }
 
     @Test
     void getAndSetLiveXirr() {
         BigDecimal liveXirr = new BigDecimal("16.75");
 
-        UserPortfolioValue result = userPortfolioValue.setLiveXirr(liveXirr);
+        UserPortfolioValueEntity result = UserPortfolioValueEntity.setLiveXirr(liveXirr);
 
-        assertThat(userPortfolioValue.getLiveXirr()).isEqualTo(liveXirr);
-        assertThat(result).isSameAs(userPortfolioValue);
+        assertThat(UserPortfolioValueEntity.getLiveXirr()).isEqualTo(liveXirr);
+        assertThat(result).isSameAs(UserPortfolioValueEntity);
     }
 
     @Test
     void getAndSetLiveXirrWithNull() {
-        UserPortfolioValue result = userPortfolioValue.setLiveXirr(null);
+        UserPortfolioValueEntity result = UserPortfolioValueEntity.setLiveXirr(null);
 
-        assertThat(userPortfolioValue.getLiveXirr()).isNull();
-        assertThat(result).isSameAs(userPortfolioValue);
+        assertThat(UserPortfolioValueEntity.getLiveXirr()).isNull();
+        assertThat(result).isSameAs(UserPortfolioValueEntity);
     }
 
     @Test
     void getAndSetUserCasDetails() {
-        UserPortfolioValue result = userPortfolioValue.setUserCasDetails(userCasDetailsEntity);
+        UserPortfolioValueEntity result = UserPortfolioValueEntity.setUserCasDetails(userCasDetailsEntity);
 
-        assertThat(userPortfolioValue.getUserCasDetails()).isEqualTo(userCasDetailsEntity);
-        assertThat(result).isSameAs(userPortfolioValue);
+        assertThat(UserPortfolioValueEntity.getUserCasDetails()).isEqualTo(userCasDetailsEntity);
+        assertThat(result).isSameAs(UserPortfolioValueEntity);
     }
 
     @Test
     void getAndSetUserCasDetailsWithNull() {
-        UserPortfolioValue result = userPortfolioValue.setUserCasDetails(null);
+        UserPortfolioValueEntity result = UserPortfolioValueEntity.setUserCasDetails(null);
 
-        assertThat(userPortfolioValue.getUserCasDetails()).isNull();
-        assertThat(result).isSameAs(userPortfolioValue);
+        assertThat(UserPortfolioValueEntity.getUserCasDetails()).isNull();
+        assertThat(result).isSameAs(UserPortfolioValueEntity);
     }
 
     @Test
@@ -157,8 +157,7 @@ class UserPortfolioValueTest {
         BigDecimal xirr = new BigDecimal("15.00");
         BigDecimal liveXirr = new BigDecimal("16.00");
 
-        UserPortfolioValue result = userPortfolioValue
-                .setId(id)
+        UserPortfolioValueEntity result = UserPortfolioValueEntity.setId(id)
                 .setDate(date)
                 .setInvested(invested)
                 .setValue(value)
@@ -166,13 +165,13 @@ class UserPortfolioValueTest {
                 .setLiveXirr(liveXirr)
                 .setUserCasDetails(userCasDetailsEntity);
 
-        assertThat(result).isSameAs(userPortfolioValue);
-        assertThat(userPortfolioValue.getId()).isEqualTo(id);
-        assertThat(userPortfolioValue.getDate()).isEqualTo(date);
-        assertThat(userPortfolioValue.getInvested()).isEqualTo(invested);
-        assertThat(userPortfolioValue.getValue()).isEqualTo(value);
-        assertThat(userPortfolioValue.getXirr()).isEqualTo(xirr);
-        assertThat(userPortfolioValue.getLiveXirr()).isEqualTo(liveXirr);
-        assertThat(userPortfolioValue.getUserCasDetails()).isEqualTo(userCasDetailsEntity);
+        assertThat(result).isSameAs(UserPortfolioValueEntity);
+        assertThat(UserPortfolioValueEntity.getId()).isEqualTo(id);
+        assertThat(UserPortfolioValueEntity.getDate()).isEqualTo(date);
+        assertThat(UserPortfolioValueEntity.getInvested()).isEqualTo(invested);
+        assertThat(UserPortfolioValueEntity.getValue()).isEqualTo(value);
+        assertThat(UserPortfolioValueEntity.getXirr()).isEqualTo(xirr);
+        assertThat(UserPortfolioValueEntity.getLiveXirr()).isEqualTo(liveXirr);
+        assertThat(UserPortfolioValueEntity.getUserCasDetails()).isEqualTo(userCasDetailsEntity);
     }
 }

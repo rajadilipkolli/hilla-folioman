@@ -1,14 +1,15 @@
 package com.app.folioman.portfolio.rest.controllers;
 
 import com.app.folioman.config.redis.CacheNames;
-import com.app.folioman.portfolio.domain.UserTransactionDetailsService;
-import com.app.folioman.portfolio.domain.models.response.InvestmentReturnsDTO;
-import com.app.folioman.portfolio.domain.models.response.MonthlyInvestmentResponseDTO;
-import com.app.folioman.portfolio.domain.models.response.YearlyInvestmentResponseDTO;
+import com.app.folioman.portfolio.domain.PortfolioAPI;
+import com.app.folioman.portfolio.rest.dtos.InvestmentReturnsDTO;
+import com.app.folioman.portfolio.rest.dtos.MonthlyInvestmentResponseDTO;
+import com.app.folioman.portfolio.rest.dtos.YearlyInvestmentResponseDTO;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.Endpoint;
 import jakarta.validation.constraints.Pattern;
 import java.util.List;
+import org.jspecify.annotations.Nullable;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,18 +24,18 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 public class UserTransactionsController {
 
-    private final UserTransactionDetailsService userTransactionDetailsService;
+    private final PortfolioAPI portfolioAPI;
 
-    UserTransactionsController(UserTransactionDetailsService userTransactionDetailsService) {
-        this.userTransactionDetailsService = userTransactionDetailsService;
+    public UserTransactionsController(PortfolioAPI portfolioAPI) {
+        this.portfolioAPI = portfolioAPI;
     }
 
     @GetMapping("/returns/{pan}")
     @Cacheable(value = CacheNames.RETURNS_CACHE, key = "'returns_' + #pan", unless = "#result == null")
-    public InvestmentReturnsDTO getInvestmentReturns(
+    public @Nullable InvestmentReturnsDTO getInvestmentReturns(
             @PathVariable @Pattern(regexp = "[A-Z]{5}[0-9]{4}[A-Z]", message = "Invalid PAN number format")
                     String pan) {
-        return userTransactionDetailsService.getInvestmentReturnsByPan(pan).orElse(null);
+        return portfolioAPI.getInvestmentReturnsByPan(pan).orElse(null);
     }
 
     @GetMapping("/investments/{pan}")
@@ -42,7 +43,7 @@ public class UserTransactionsController {
     public List<MonthlyInvestmentResponseDTO> getTotalInvestmentsByPanPerMonth(
             @PathVariable @Pattern(regexp = "[A-Z]{5}[0-9]{4}[A-Z]", message = "Invalid PAN number format")
                     String pan) {
-        return userTransactionDetailsService.getTotalInvestmentsByPanPerMonth(pan);
+        return portfolioAPI.getTotalInvestmentsByPanPerMonth(pan);
     }
 
     @GetMapping("/investments/yearly/{pan}")
@@ -50,6 +51,6 @@ public class UserTransactionsController {
     public List<YearlyInvestmentResponseDTO> getTotalInvestmentsByPanPerYear(
             @PathVariable @Pattern(regexp = "[A-Z]{5}[0-9]{4}[A-Z]", message = "Invalid PAN number format")
                     String pan) {
-        return userTransactionDetailsService.getTotalInvestmentsByPanPerYear(pan);
+        return portfolioAPI.getTotalInvestmentsByPanPerYear(pan);
     }
 }

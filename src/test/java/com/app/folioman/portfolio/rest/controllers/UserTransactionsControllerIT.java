@@ -10,8 +10,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.app.folioman.config.redis.CacheNames;
-import com.app.folioman.portfolio.domain.models.response.MonthlyInvestmentResponseDTO;
-import com.app.folioman.portfolio.domain.models.response.YearlyInvestmentResponseDTO;
+import com.app.folioman.portfolio.rest.dtos.MonthlyInvestmentResponseDTO;
+import com.app.folioman.portfolio.rest.dtos.YearlyInvestmentResponseDTO;
 import com.app.folioman.shared.AbstractIntegrationTest;
 import java.io.File;
 import java.io.FileInputStream;
@@ -20,6 +20,7 @@ import java.math.BigDecimal;
 import java.time.Duration;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -96,6 +97,7 @@ class UserTransactionsControllerIT extends AbstractIntegrationTest {
 
         // 3. Verify cache keys were created
         Set<String> cacheKeys = redisTemplate.keys(CacheNames.TRANSACTION_CACHE + "::*");
+        assertThat(cacheKeys).isNotNull();
         boolean monthlyKeyExists = cacheKeys.stream().anyMatch(key -> key.contains("monthly_" + TEST_PAN));
         boolean yearlyKeyExists = cacheKeys.stream().anyMatch(key -> key.contains("yearly_" + TEST_PAN));
 
@@ -169,6 +171,7 @@ class UserTransactionsControllerIT extends AbstractIntegrationTest {
 
         // 6. Verify cache was repopulated
         Set<String> cacheKeysNew = redisTemplate.keys(CacheNames.TRANSACTION_CACHE + "::*");
+        assertThat(cacheKeysNew).isNotNull();
         boolean newMonthlyKeyExists = cacheKeysNew.stream().anyMatch(key -> key.contains("monthly_" + TEST_PAN));
 
         assertThat(newMonthlyKeyExists).isTrue();
@@ -194,6 +197,7 @@ class UserTransactionsControllerIT extends AbstractIntegrationTest {
 
         // Verify both cache entries exist
         Set<String> cacheKeys = redisTemplate.keys(CacheNames.TRANSACTION_CACHE + "::*");
+        assertThat(cacheKeys).isNotNull();
         boolean originalPanCached = cacheKeys.stream().anyMatch(key -> key.contains(TEST_PAN));
         boolean newPanCached = cacheKeys.stream().anyMatch(key -> key.contains(otherPan));
 
@@ -345,31 +349,28 @@ class UserTransactionsControllerIT extends AbstractIntegrationTest {
             tempFile.deleteOnExit();
         }
 
-        // 3. Wait for processing to complete
-        await().atMost(Duration.ofSeconds(5)).pollDelay(Duration.ofMillis(500)).until(() -> {
-            Set<String> keys = redisTemplate.keys(CacheNames.TRANSACTION_CACHE + "::*");
-            return !keys.isEmpty();
-        });
-
-        // 4. First call to get monthly investments - should hit the database
+        // 3. First request should hit the database and populate the cache
         MvcResult firstMonthlyResult = mockMvc.perform(
                         get("/api/portfolio/investments/{pan}", testPan).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
 
-        // 5. First call to get yearly investments - should hit the database
         MvcResult firstYearlyResult = mockMvc.perform(
                         get("/api/portfolio/investments/yearly/{pan}", testPan).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
 
-        // 6. Verify cache entries were created
-        Set<String> cacheKeys = redisTemplate.keys(CacheNames.TRANSACTION_CACHE + "::*");
-        boolean monthlyKeyCached = cacheKeys.stream().anyMatch(key -> key.contains("monthly_" + testPan));
-        boolean yearlyKeyCached = cacheKeys.stream().anyMatch(key -> key.contains("yearly_" + testPan));
+        // 4. Verify cache keys were created for the specific PAN using Awaitility
+        // Since caching might have slight latency in Redis containers
+        await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+            Set<String> cacheKeys = redisTemplate.keys(CacheNames.TRANSACTION_CACHE + "::*");
+            assertThat(cacheKeys).isNotNull();
+            boolean monthlyKeyCached = cacheKeys.stream().anyMatch(key -> key.contains("monthly_" + testPan));
+            boolean yearlyKeyCached = cacheKeys.stream().anyMatch(key -> key.contains("yearly_" + testPan));
 
-        assertThat(monthlyKeyCached).isTrue();
-        assertThat(yearlyKeyCached).isTrue();
+            assertThat(monthlyKeyCached).isTrue();
+            assertThat(yearlyKeyCached).isTrue();
+        });
 
         // 7. Second calls - should use cached data
         MvcResult secondMonthlyResult = mockMvc.perform(
@@ -445,9 +446,14 @@ class UserTransactionsControllerIT extends AbstractIntegrationTest {
      * Helper method to clear cache for a specific PAN
      */
     private void clearCacheForPan(String pan) {
-        Set<String> keys = redisTemplate.keys(CacheNames.TRANSACTION_CACHE + "::*");
-        if (!keys.isEmpty()) {
-            keys.stream().filter(key -> key.contains("_" + pan)).forEach(key -> redisTemplate.delete(key));
+        String pattern = CacheNames.TRANSACTION_CACHE + "::*";
+        Set<String> keys = redisTemplate.keys(pattern);
+        if (keys != null && !keys.isEmpty()) {
+            Set<String> toDelete =
+                    keys.stream().filter(key -> key.contains("_" + pan)).collect(Collectors.toSet());
+            if (!toDelete.isEmpty()) {
+                redisTemplate.delete(toDelete);
+            }
         }
     }
 }

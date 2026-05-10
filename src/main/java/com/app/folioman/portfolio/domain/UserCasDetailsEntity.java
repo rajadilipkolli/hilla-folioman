@@ -18,7 +18,7 @@ import java.util.List;
 
 @Entity
 @Table(name = "user_cas_details", schema = "portfolio")
-public class UserCasDetailsEntity extends BaseEntity {
+class UserCasDetailsEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "usercasdetails_seq")

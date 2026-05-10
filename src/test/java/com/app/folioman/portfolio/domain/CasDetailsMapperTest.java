@@ -3,7 +3,10 @@ package com.app.folioman.portfolio.domain;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 
-import com.app.folioman.portfolio.domain.models.request.*;
+import com.app.folioman.portfolio.rest.dtos.CasDTO;
+import com.app.folioman.portfolio.rest.dtos.UserFolioDTO;
+import com.app.folioman.portfolio.rest.dtos.UserSchemeDTO;
+import com.app.folioman.portfolio.rest.dtos.UserTransactionDTO;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -104,18 +107,17 @@ class CasDetailsMapperTest {
                 1.0d,
                 100.0d,
                 100.0d,
-                com.app.folioman.portfolio.domain.models.request.TransactionType.PURCHASE,
+                com.app.folioman.portfolio.rest.dtos.TransactionType.PURCHASE,
                 null);
-        UserTransactionDetails result = mapper.transactionDTOToTransactionEntity(localTxn);
+        UserTransactionDetailsEntity result = mapper.transactionDTOToTransactionEntity(localTxn);
 
         assertThat(result).isNotNull();
-        assertThat(result.getType())
-                .isEqualTo(com.app.folioman.portfolio.domain.models.request.TransactionType.PURCHASE);
+        assertThat(result.getType()).isEqualTo(TransactionType.PURCHASE);
     }
 
     @Test
     void transactionDTOToTransactionEntityWithNullInput() {
-        UserTransactionDetails result = mapper.transactionDTOToTransactionEntity(null);
+        UserTransactionDetailsEntity result = mapper.transactionDTOToTransactionEntity(null);
 
         assertThat(result).isNull();
     }
@@ -238,7 +240,7 @@ class CasDetailsMapperTest {
                 1.0d,
                 100.0d,
                 100.0d,
-                TransactionType.PURCHASE,
+                com.app.folioman.portfolio.rest.dtos.TransactionType.PURCHASE,
                 null);
         UserSchemeDTO schemeWithTxn = new UserSchemeDTO(
                 "S1",
@@ -292,7 +294,7 @@ class CasDetailsMapperTest {
                 1.0d,
                 100.0d,
                 100.0d,
-                TransactionType.PURCHASE,
+                com.app.folioman.portfolio.rest.dtos.TransactionType.PURCHASE,
                 null);
         UserTransactionDTO t2 = new UserTransactionDTO(
                 java.time.LocalDate.parse("2020-01-02"),
@@ -301,7 +303,7 @@ class CasDetailsMapperTest {
                 0.5d,
                 100.0d,
                 50.0d,
-                TransactionType.REDEMPTION,
+                com.app.folioman.portfolio.rest.dtos.TransactionType.REDEMPTION,
                 null);
         UserSchemeDTO schemeWithTwo = new UserSchemeDTO(
                 "S1",

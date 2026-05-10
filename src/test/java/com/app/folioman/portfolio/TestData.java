@@ -1,13 +1,13 @@
 package com.app.folioman.portfolio;
 
-import com.app.folioman.portfolio.domain.models.request.CasDTO;
-import com.app.folioman.portfolio.domain.models.request.InvestorInfoDTO;
-import com.app.folioman.portfolio.domain.models.request.StatementPeriodDTO;
-import com.app.folioman.portfolio.domain.models.request.TransactionType;
-import com.app.folioman.portfolio.domain.models.request.UserFolioDTO;
-import com.app.folioman.portfolio.domain.models.request.UserSchemeDTO;
-import com.app.folioman.portfolio.domain.models.request.UserTransactionDTO;
-import com.app.folioman.portfolio.domain.models.request.ValuationDTO;
+import com.app.folioman.portfolio.rest.dtos.CasDTO;
+import com.app.folioman.portfolio.rest.dtos.InvestorInfoDTO;
+import com.app.folioman.portfolio.rest.dtos.StatementPeriodDTO;
+import com.app.folioman.portfolio.rest.dtos.TransactionType;
+import com.app.folioman.portfolio.rest.dtos.UserFolioDTO;
+import com.app.folioman.portfolio.rest.dtos.UserSchemeDTO;
+import com.app.folioman.portfolio.rest.dtos.UserTransactionDTO;
+import com.app.folioman.portfolio.rest.dtos.ValuationDTO;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;

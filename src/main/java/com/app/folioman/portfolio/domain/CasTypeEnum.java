@@ -1,6 +1,6 @@
 package com.app.folioman.portfolio.domain;
 
-public enum CasTypeEnum {
+enum CasTypeEnum {
     DETAILED,
     SUMMARY
 }

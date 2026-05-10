@@ -25,7 +25,7 @@ import org.hibernate.proxy.HibernateProxy;
         name = "user_folio_details",
         schema = "portfolio",
         indexes = {@Index(name = "user_details_idx_pan_id", columnList = "id, pan")})
-public class UserFolioDetailsEntity extends BaseEntity {
+class UserFolioDetailsEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_folio_details_seq")

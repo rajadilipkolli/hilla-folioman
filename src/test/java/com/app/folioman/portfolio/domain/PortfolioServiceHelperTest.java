@@ -9,8 +9,8 @@ import com.app.folioman.mfschemes.MFNavService;
 import com.app.folioman.mfschemes.NavNotFoundException;
 import com.app.folioman.mfschemes.rest.dtos.MFSchemeDTO;
 import com.app.folioman.portfolio.domain.models.projection.PortfolioDetailsProjection;
-import com.app.folioman.portfolio.domain.models.request.UserFolioDTO;
-import com.app.folioman.portfolio.domain.models.response.PortfolioDetailsDTO;
+import com.app.folioman.portfolio.rest.dtos.PortfolioDetailsDTO;
+import com.app.folioman.portfolio.rest.dtos.UserFolioDTO;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
@@ -18,6 +18,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -45,7 +46,9 @@ class PortfolioServiceHelperTest {
 
     @BeforeEach
     void setUp() {
-        portfolioServiceHelper = new PortfolioServiceHelper(mapper, userCASDetailsService, mfNavService);
+        Executor virtualThreadExecutor = Runnable::run;
+        portfolioServiceHelper =
+                new PortfolioServiceHelper(mapper, userCASDetailsService, mfNavService, virtualThreadExecutor);
     }
 
     @Test

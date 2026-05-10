@@ -20,7 +20,7 @@ public class FIFOUnits {
 
     FIFOUnits() {}
 
-    public void addTransaction(UserTransactionDetails txn) {
+    public void addTransaction(UserTransactionDetailsEntity txn) {
         BigDecimal quantity =
                 new BigDecimal(txn.getUnits() == null ? "0.000" : txn.getUnits().toString());
         BigDecimal nav =

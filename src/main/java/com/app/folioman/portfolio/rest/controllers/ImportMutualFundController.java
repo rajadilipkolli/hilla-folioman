@@ -1,9 +1,8 @@
 package com.app.folioman.portfolio.rest.controllers;
 
-import com.app.folioman.portfolio.domain.PdfProcessingService;
-import com.app.folioman.portfolio.domain.UserDetailService;
-import com.app.folioman.portfolio.domain.models.response.PortfolioResponse;
-import com.app.folioman.portfolio.domain.models.response.UploadFileResponse;
+import com.app.folioman.portfolio.domain.PortfolioAPI;
+import com.app.folioman.portfolio.rest.dtos.PortfolioResponse;
+import com.app.folioman.portfolio.rest.dtos.UploadFileResponse;
 import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.Endpoint;
 import jakarta.validation.constraints.PastOrPresent;
@@ -31,18 +30,16 @@ public class ImportMutualFundController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ImportMutualFundController.class);
 
-    private final UserDetailService userDetailService;
-    private final PdfProcessingService pdfProcessingService;
+    private final PortfolioAPI portfolioAPI;
 
-    public ImportMutualFundController(UserDetailService userDetailService, PdfProcessingService pdfProcessingService) {
-        this.userDetailService = userDetailService;
-        this.pdfProcessingService = pdfProcessingService;
+    public ImportMutualFundController(PortfolioAPI portfolioAPI) {
+        this.portfolioAPI = portfolioAPI;
     }
 
     @PostMapping(value = "/api/upload-handler", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     UploadFileResponse upload(@RequestPart("file") MultipartFile multipartFile) throws IOException {
         LOGGER.info("Received file :{} for processing", multipartFile.getOriginalFilename());
-        return userDetailService.upload(multipartFile);
+        return portfolioAPI.upload(multipartFile);
     }
 
     @PostMapping(value = "/api/upload-pdf-cas", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -51,10 +48,10 @@ public class ImportMutualFundController {
         LOGGER.info("Received password-protected PDF file: {} for processing", pdfFile.getOriginalFilename());
 
         // First convert the PDF to CasDTO
-        var casDTO = pdfProcessingService.convertPdfCasToJson(pdfFile, password);
+        var casDTO = portfolioAPI.convertPdfCasToJson(pdfFile, password);
 
         // Then process the CasDTO using the existing flow
-        return userDetailService.uploadFromDto(casDTO);
+        return portfolioAPI.uploadFromDto(casDTO);
     }
 
     @GetMapping("/api/portfolio/{pan}")
@@ -65,6 +62,6 @@ public class ImportMutualFundController {
                     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
                     @PastOrPresent(message = "Date should be past or today")
                     LocalDate asOfDate) {
-        return userDetailService.getPortfolioByPAN(panNumber, asOfDate);
+        return portfolioAPI.getPortfolioByPAN(panNumber, asOfDate);
     }
 }
