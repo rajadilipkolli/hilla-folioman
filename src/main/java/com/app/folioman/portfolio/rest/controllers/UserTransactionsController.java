@@ -26,7 +26,7 @@ public class UserTransactionsController {
 
     private final PortfolioAPI portfolioAPI;
 
-    UserTransactionsController(PortfolioAPI portfolioAPI) {
+    public UserTransactionsController(PortfolioAPI portfolioAPI) {
         this.portfolioAPI = portfolioAPI;
     }
 

@@ -417,9 +417,10 @@ public class UserDetailService {
         // Save entity in a single transaction
         UserCasDetailsEntity savedCasDetailsEntity = userCASDetailsService.saveEntity(userCasDetailsEntity);
 
+        // Run critical post-processing tasks synchronously
+        userFolioDetailService.setPANIfNotSet(savedCasDetailsEntity.getId());
+
         // Run non-critical post-processing tasks asynchronously
-        Long savedId = savedCasDetailsEntity.getId();
-        CompletableFuture.runAsync(() -> userFolioDetailService.setPANIfNotSet(savedId));
         CompletableFuture.runAsync(userSchemeDetailService::setUserSchemeAMFIIfNull);
 
         // Publish event with pre-collected schemes list
