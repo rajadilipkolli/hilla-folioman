@@ -3,7 +3,6 @@ package com.app.folioman.portfolio.rest.controllers;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.reset;
@@ -140,7 +139,7 @@ class ImportMutualFundControllerTest {
 
         // Mock PDF conversion
         CasDTO mockCasDto = new CasDTO(null, null, null, null, List.of());
-        doReturn(mockCasDto).when(portfolioAPI).convertPdfCasToJson(any(MultipartFile.class), anyString());
+        doReturn(mockCasDto).when(portfolioAPI).convertPdfCasToJson(any(MultipartFile.class), eq("pass123"));
         doReturn(response).when(portfolioAPI).uploadFromDto(mockCasDto);
 
         this.mockMvc
@@ -151,7 +150,7 @@ class ImportMutualFundControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.userCASDetailsId", is(100)));
 
-        verify(portfolioAPI).convertPdfCasToJson(any(MultipartFile.class), anyString());
+        verify(portfolioAPI).convertPdfCasToJson(any(MultipartFile.class), eq("pass123"));
         verify(portfolioAPI).uploadFromDto(mockCasDto);
     }
 }

@@ -97,6 +97,7 @@ class UserTransactionsControllerIT extends AbstractIntegrationTest {
 
         // 3. Verify cache keys were created
         Set<String> cacheKeys = redisTemplate.keys(CacheNames.TRANSACTION_CACHE + "::*");
+        assertThat(cacheKeys).isNotNull();
         boolean monthlyKeyExists = cacheKeys.stream().anyMatch(key -> key.contains("monthly_" + TEST_PAN));
         boolean yearlyKeyExists = cacheKeys.stream().anyMatch(key -> key.contains("yearly_" + TEST_PAN));
 
@@ -170,6 +171,7 @@ class UserTransactionsControllerIT extends AbstractIntegrationTest {
 
         // 6. Verify cache was repopulated
         Set<String> cacheKeysNew = redisTemplate.keys(CacheNames.TRANSACTION_CACHE + "::*");
+        assertThat(cacheKeysNew).isNotNull();
         boolean newMonthlyKeyExists = cacheKeysNew.stream().anyMatch(key -> key.contains("monthly_" + TEST_PAN));
 
         assertThat(newMonthlyKeyExists).isTrue();
@@ -195,6 +197,7 @@ class UserTransactionsControllerIT extends AbstractIntegrationTest {
 
         // Verify both cache entries exist
         Set<String> cacheKeys = redisTemplate.keys(CacheNames.TRANSACTION_CACHE + "::*");
+        assertThat(cacheKeys).isNotNull();
         boolean originalPanCached = cacheKeys.stream().anyMatch(key -> key.contains(TEST_PAN));
         boolean newPanCached = cacheKeys.stream().anyMatch(key -> key.contains(otherPan));
 
@@ -361,6 +364,7 @@ class UserTransactionsControllerIT extends AbstractIntegrationTest {
         // Since caching might have slight latency in Redis containers
         await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
             Set<String> cacheKeys = redisTemplate.keys(CacheNames.TRANSACTION_CACHE + "::*");
+            assertThat(cacheKeys).isNotNull();
             boolean monthlyKeyCached = cacheKeys.stream().anyMatch(key -> key.contains("monthly_" + testPan));
             boolean yearlyKeyCached = cacheKeys.stream().anyMatch(key -> key.contains("yearly_" + testPan));
 
