@@ -1,5 +1,6 @@
 package com.app.folioman.auth.domain;
 
+import com.app.folioman.auth.config.JwtProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
@@ -7,21 +8,17 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.function.Function;
 import javax.crypto.SecretKey;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 @Service
 public class JwtService {
 
-    @Value("${app.jwt.secret}")
-    private String secretKey;
+    private final JwtProperties jwtProperties;
 
-    @Value("${app.jwt.access-token-expiry:1800000}")
-    private long accessTokenExpiryMs;
-
-    @Value("${app.jwt.refresh-token-expiry:172800000}")
-    private long refreshTokenExpiryMs;
+    JwtService(JwtProperties jwtProperties) {
+        this.jwtProperties = jwtProperties;
+    }
 
     public String extractUsername(String token) {
         return extractClaim(token, Claims::getSubject);
@@ -45,11 +42,11 @@ public class JwtService {
     }
 
     public String generateAccessToken(UserDetails userDetails) {
-        return generateToken(userDetails, accessTokenExpiryMs);
+        return generateToken(userDetails, jwtProperties.getAccessTokenExpiry());
     }
 
     public String generateRefreshToken(UserDetails userDetails) {
-        return generateToken(userDetails, refreshTokenExpiryMs);
+        return generateToken(userDetails, jwtProperties.getRefreshTokenExpiry());
     }
 
     private String generateToken(UserDetails userDetails, long expirationMs) {
@@ -63,7 +60,7 @@ public class JwtService {
 
     public boolean isTokenValid(String token, UserDetails userDetails) {
         final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername())) && !isTokenExpired(token);
+        return userDetails.getUsername().equals(username) && !isTokenExpired(token);
     }
 
     public boolean validateToken(String token) {
@@ -79,7 +76,7 @@ public class JwtService {
     }
 
     private SecretKey getSignInKey() {
-        byte[] keyBytes = secretKey.getBytes(StandardCharsets.UTF_8);
+        byte[] keyBytes = jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 }

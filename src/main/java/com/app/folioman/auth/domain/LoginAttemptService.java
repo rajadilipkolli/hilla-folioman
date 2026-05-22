@@ -12,7 +12,7 @@ public class LoginAttemptService {
     private static final int MAX_ATTEMPTS = 5;
     private static final int LOCK_TIME_DURATION_MINUTES = 15;
 
-    public LoginAttemptService(UserRepository userRepository) {
+    LoginAttemptService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 

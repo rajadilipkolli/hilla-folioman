@@ -42,6 +42,10 @@
             </column>
         </createTable>
 
+        <createIndex tableName="users" schemaName="portfolio" indexName="idx_users_username">
+            <column name="username"/>
+        </createIndex>
+
         <createSequence sequenceName="refresh_tokens_seq" schemaName="portfolio" incrementBy="50" startValue="1"/>
 
         <createTable tableName="refresh_tokens" schemaName="portfolio">
@@ -68,6 +72,10 @@
                 <constraints nullable="false"/>
             </column>
         </createTable>
+
+        <createIndex tableName="refresh_tokens" schemaName="portfolio" indexName="idx_refresh_tokens_user_id">
+            <column name="user_id"/>
+        </createIndex>
     </changeSet>
 
 </databaseChangeLog>

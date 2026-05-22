@@ -6,10 +6,15 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(
@@ -44,6 +49,14 @@ public class UserEntity extends BaseEntity {
 
     @Column(name = "lock_expires_at")
     private Instant lockExpiresAt;
+
+    @ManyToMany
+    @JoinTable(
+            name = "user_roles",
+            schema = "portfolio",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "role_id"))
+    private Set<RoleEntity> roles = new HashSet<>();
 
     public Long getId() {
         return id;
@@ -107,5 +120,13 @@ public class UserEntity extends BaseEntity {
 
     public void setLockExpiresAt(Instant lockExpiresAt) {
         this.lockExpiresAt = lockExpiresAt;
+    }
+
+    public Set<RoleEntity> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<RoleEntity> roles) {
+        this.roles = roles;
     }
 }

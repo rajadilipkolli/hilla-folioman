@@ -16,3 +16,15 @@ const auth = configureAuth(UserInfoService.getUserInfo, {
 
 export const useAuth = auth.useAuth;
 export const AuthProvider = auth.AuthProvider;
+
+export const authenticatedFetch = async (
+  input: RequestInfo | URL,
+  init?: RequestInit,
+) => {
+  const headers = new Headers(init?.headers);
+  const token = localStorage.getItem('accessToken');
+  if (token) {
+    headers.set('Authorization', `Bearer ${token}`);
+  }
+  return fetch(input, { ...init, headers, credentials: 'include' });
+};

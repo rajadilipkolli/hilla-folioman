@@ -1,17 +1,23 @@
 package com.app.folioman.auth.domain;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Profile;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-@Component
+@Service
+@Profile({"local", "test"})
 public class UserDataSeeder implements CommandLineRunner {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(UserDataSeeder.class);
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public UserDataSeeder(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    UserDataSeeder(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }
@@ -20,6 +26,8 @@ public class UserDataSeeder implements CommandLineRunner {
     @Transactional
     public void run(String... args) {
         if (userRepository.findByUsername("admin").isEmpty()) {
+            LOGGER.warn(
+                    "⚠️  SECURITY WARNING: Creating default admin user with hardcoded password. CHANGE THIS IN PRODUCTION!");
             UserEntity user = new UserEntity();
             user.setUsername("admin");
             user.setEmail("admin@folioman.com");

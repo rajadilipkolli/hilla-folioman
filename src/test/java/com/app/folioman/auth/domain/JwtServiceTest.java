@@ -2,6 +2,7 @@ package com.app.folioman.auth.domain;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.app.folioman.auth.config.JwtProperties;
 import java.util.Collections;
 import java.util.Date;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,7 +11,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 class JwtServiceTest {
@@ -20,11 +20,12 @@ class JwtServiceTest {
 
     @BeforeEach
     void setUp() {
-        jwtService = new JwtService();
-        // Set the properties that would normally be injected by @Value
-        ReflectionTestUtils.setField(jwtService, "secretKey", "testSecretKeyThatNeedsToBeLongEnoughForHmacSha256");
-        ReflectionTestUtils.setField(jwtService, "accessTokenExpiryMs", 1800000L); // 30 mins
-        ReflectionTestUtils.setField(jwtService, "refreshTokenExpiryMs", 172800000L); // 2 days
+        JwtProperties jwtProperties = new JwtProperties();
+        jwtProperties.setSecret("testSecretKeyThatNeedsToBeLongEnoughForHmacSha256");
+        jwtProperties.setAccessTokenExpiry(1800000L); // 30 mins
+        jwtProperties.setRefreshTokenExpiry(172800000L); // 2 days
+
+        jwtService = new JwtService(jwtProperties);
 
         userDetails = User.builder()
                 .username("testuser")
@@ -70,12 +71,14 @@ class JwtServiceTest {
 
     @Test
     void validateTokenReturnsFalseForExpiredTokens() {
-        // Temporarily set a very short expiry for testing expiration
-        ReflectionTestUtils.setField(jwtService, "accessTokenExpiryMs", -1000L); // Expired 1 second ago
+        JwtProperties tempProps = new JwtProperties();
+        tempProps.setSecret("testSecretKeyThatNeedsToBeLongEnoughForHmacSha256");
+        tempProps.setAccessTokenExpiry(-1000L); // Expired 1 second ago
+        JwtService tempJwtService = new JwtService(tempProps);
 
-        String expiredToken = jwtService.generateAccessToken(userDetails);
+        String expiredToken = tempJwtService.generateAccessToken(userDetails);
 
-        assertFalse(jwtService.validateToken(expiredToken));
+        assertFalse(tempJwtService.validateToken(expiredToken));
     }
 
     @Test

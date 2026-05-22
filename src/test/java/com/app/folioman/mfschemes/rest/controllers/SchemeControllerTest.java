@@ -5,6 +5,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOf
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.app.folioman.auth.domain.JwtService;
 import com.app.folioman.mfschemes.MfSchemeService;
 import com.app.folioman.mfschemes.rest.dtos.FundDetailProjection;
 import java.util.ArrayList;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @ExtendWith(MockitoExtension.class)
 class SchemeControllerTest {
@@ -23,6 +25,9 @@ class SchemeControllerTest {
 
     @Mock
     private FundDetailProjection fundDetailProjection;
+
+    @MockitoBean
+    private JwtService jwtService;
 
     private SchemeController schemeController;
 

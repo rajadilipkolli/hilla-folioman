@@ -39,7 +39,7 @@ export const routes = [
       {
         path: '/',
         element: <MfSchemesView />,
-        handle: { title: 'Mutual Fund Schemes' },
+        handle: { title: 'Mutual Fund Schemes', requiresLogin: true },
       },
     ],
   },

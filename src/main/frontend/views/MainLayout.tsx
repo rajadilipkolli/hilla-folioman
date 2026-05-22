@@ -17,20 +17,16 @@ export default function MainLayout() {
   const navigate = useNavigate();
 
   const handleLogout = async () => {
-    const refreshToken = localStorage.getItem('refreshToken');
-    if (refreshToken) {
-      try {
-        await fetch('/api/auth/logout', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ refreshToken }),
-        });
-      } catch (e) {
-        console.error('Logout failed', e);
-      }
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+      });
+    } catch (e) {
+      console.error('Logout failed', e);
     }
     localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
     logout();
     navigate('/login');
   };

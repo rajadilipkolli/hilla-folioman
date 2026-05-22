@@ -7,12 +7,14 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.app.folioman.auth.domain.JwtService;
 import com.app.folioman.portfolio.domain.PortfolioAPI;
 import com.app.folioman.portfolio.rest.dtos.CasDTO;
 import com.app.folioman.portfolio.rest.dtos.PortfolioResponse;
@@ -28,11 +30,13 @@ import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.multipart.MultipartFile;
 
 @WebMvcTest(controllers = ImportMutualFundController.class)
+@WithMockUser(roles = "USER")
 @Execution(ExecutionMode.SAME_THREAD)
 class ImportMutualFundControllerTest {
 
@@ -41,6 +45,9 @@ class ImportMutualFundControllerTest {
 
     @MockitoBean
     private PortfolioAPI portfolioAPI;
+
+    @MockitoBean
+    private JwtService jwtService;
 
     @BeforeEach
     void setUp() {
@@ -120,7 +127,8 @@ class ImportMutualFundControllerTest {
         doReturn(response).when(portfolioAPI).upload(any(MultipartFile.class));
 
         this.mockMvc
-                .perform(multipart("/api/upload-handler").file(file).accept(MediaType.APPLICATION_JSON))
+                .perform(
+                        multipart("/api/upload-handler").with(csrf()).file(file).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.newFolios", is(1)))
                 .andExpect(jsonPath("$.newSchemes", is(2)))
@@ -144,6 +152,7 @@ class ImportMutualFundControllerTest {
 
         this.mockMvc
                 .perform(multipart("/api/upload-pdf-cas")
+                        .with(csrf())
                         .file(file)
                         .file(password)
                         .accept(MediaType.APPLICATION_JSON))

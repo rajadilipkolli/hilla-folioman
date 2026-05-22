@@ -1,4 +1,4 @@
-package com.app.folioman.config;
+package com.app.folioman.auth.config;
 
 import com.app.folioman.auth.filter.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
@@ -12,13 +12,13 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import tools.jackson.databind.json.JsonMapper;
 
 @Configuration(proxyBeanMethods = false)
 @EnableWebSecurity
@@ -27,24 +27,43 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final UserDetailsService userDetailsService;
+    private final JsonMapper jsonMapper;
 
-    public SecurityConfig(JwtAuthenticationFilter jwtAuthFilter, UserDetailsService userDetailsService) {
+    public SecurityConfig(
+            JwtAuthenticationFilter jwtAuthFilter, UserDetailsService userDetailsService, JsonMapper jsonMapper) {
         this.jwtAuthFilter = jwtAuthFilter;
         this.userDetailsService = userDetailsService;
+        this.jsonMapper = jsonMapper;
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationProvider authenticationProvider)
-            throws Exception {
-        http.csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(
-                        auth -> auth.requestMatchers("/api/auth/**")
-                                .permitAll()
-                                .requestMatchers("/api/**")
-                                .authenticated()
-                                .anyRequest()
-                                .permitAll() // Allow Hilla front-end and Vaadin internal routes
-                        )
+    SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationProvider authenticationProvider) {
+        http.csrf(csrf -> {})
+                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/auth/**")
+                        .permitAll()
+                        .requestMatchers("/api/**")
+                        .authenticated()
+                        .requestMatchers(
+                                "/",
+                                "/VAADIN/**",
+                                "/HILLA/**",
+                                "/images/**",
+                                "/icons/**",
+                                "/*.html",
+                                "/*.js",
+                                "/*.css",
+                                "/manifest.webmanifest",
+                                "/sw.js",
+                                "/assets/**",
+                                "/login",
+                                "/import-mutual-funds",
+                                "/portfolio",
+                                "/rebalance",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**")
+                        .permitAll()
+                        .anyRequest()
+                        .authenticated())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
@@ -53,35 +72,28 @@ public class SecurityConfig {
                             response.setStatus(HttpStatus.UNAUTHORIZED.value());
                             response.setContentType("application/problem+json");
                             ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
-                                    HttpStatus.UNAUTHORIZED, authException.getMessage());
+                                    HttpStatus.UNAUTHORIZED, "Authentication required");
                             problemDetail.setTitle("Unauthorized");
-                            // simple JSON serialization of ProblemDetail
-                            response.getWriter()
-                                    .write(String.format(
-                                            "{\"type\":\"%s\",\"title\":\"%s\",\"status\":%d,\"detail\":\"%s\"}",
-                                            problemDetail.getType(),
-                                            problemDetail.getTitle(),
-                                            problemDetail.getStatus(),
-                                            problemDetail.getDetail()));
+                            jsonMapper.writeValue(response.getWriter(), problemDetail);
                         }));
 
         return http.build();
     }
 
     @Bean
-    public AuthenticationProvider authenticationProvider(PasswordEncoder passwordEncoder) {
+    AuthenticationProvider authenticationProvider(PasswordEncoder passwordEncoder) {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider(userDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder);
         return authProvider;
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
+    AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder() {
+    PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 }

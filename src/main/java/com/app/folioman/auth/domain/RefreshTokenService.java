@@ -1,9 +1,9 @@
 package com.app.folioman.auth.domain;
 
+import com.app.folioman.auth.config.JwtProperties;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,12 +11,11 @@ import org.springframework.transaction.annotation.Transactional;
 public class RefreshTokenService {
 
     private final RefreshTokenRepository refreshTokenRepository;
+    private final JwtProperties jwtProperties;
 
-    @Value("${app.jwt.refresh-token-expiry:172800000}")
-    private long refreshTokenExpiryMs;
-
-    public RefreshTokenService(RefreshTokenRepository refreshTokenRepository) {
+    RefreshTokenService(RefreshTokenRepository refreshTokenRepository, JwtProperties jwtProperties) {
         this.refreshTokenRepository = refreshTokenRepository;
+        this.jwtProperties = jwtProperties;
     }
 
     @Transactional
@@ -24,7 +23,7 @@ public class RefreshTokenService {
         RefreshTokenEntity refreshToken = new RefreshTokenEntity();
         refreshToken.setUserId(userId);
         refreshToken.setToken(token);
-        refreshToken.setExpiresAt(Instant.now().plusMillis(refreshTokenExpiryMs));
+        refreshToken.setExpiresAt(Instant.now().plusMillis(jwtProperties.getRefreshTokenExpiry()));
         refreshToken.setRevoked(false);
 
         return refreshTokenRepository.save(refreshToken);

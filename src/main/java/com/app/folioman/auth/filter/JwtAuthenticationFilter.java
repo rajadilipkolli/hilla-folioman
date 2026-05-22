@@ -57,8 +57,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication(authToken);
                 }
             }
-        } catch (Exception e) {
+        } catch (io.jsonwebtoken.JwtException
+                | org.springframework.security.core.userdetails.UsernameNotFoundException e) {
             // Log error if needed, but continue filter chain without setting authentication
+            logger.debug("Failed to set user authentication in security context", e);
+        } catch (Exception e) {
+            logger.error("Unexpected error occurred during JWT authentication", e);
+            throw new ServletException("Unexpected error during JWT authentication", e);
         }
 
         filterChain.doFilter(request, response);

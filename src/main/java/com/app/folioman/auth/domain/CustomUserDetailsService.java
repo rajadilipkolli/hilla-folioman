@@ -1,5 +1,6 @@
 package com.app.folioman.auth.domain;
 
+import org.jspecify.annotations.NonNull;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -12,23 +13,25 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepository;
 
-    public CustomUserDetailsService(UserRepository userRepository) {
+    CustomUserDetailsService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
     @Override
     @Transactional(readOnly = true)
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+    public UserDetails loadUserByUsername(@NonNull String username) throws UsernameNotFoundException {
         UserEntity userEntity = userRepository
                 .findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
+
+        String[] roles = userEntity.getRoles().stream().map(RoleEntity::getName).toArray(String[]::new);
 
         return User.builder()
                 .username(userEntity.getUsername())
                 .password(userEntity.getPasswordHash())
                 .disabled(!userEntity.isEnabled())
                 .accountLocked(userEntity.isAccountLocked())
-                .roles("USER")
+                .roles(roles.length > 0 ? roles : new String[] {"USER"})
                 .build();
     }
 }

@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.app.folioman.auth.domain.JwtService;
 import com.app.folioman.portfolio.domain.PortfolioAPI;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,9 @@ class UserTransactionsControllerTest {
 
     @MockitoBean
     private PortfolioAPI portfolioAPI;
+
+    @MockitoBean
+    private JwtService jwtService;
 
     @Test
     void getTotalInvestmentsByPanPerMonth() throws Exception {

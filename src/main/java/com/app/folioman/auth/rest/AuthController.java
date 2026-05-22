@@ -1,5 +1,6 @@
 package com.app.folioman.auth.rest;
 
+import com.app.folioman.auth.config.JwtProperties;
 import com.app.folioman.auth.domain.CustomUserDetailsService;
 import com.app.folioman.auth.domain.JwtService;
 import com.app.folioman.auth.domain.LoginAttemptService;
@@ -9,20 +10,24 @@ import com.app.folioman.auth.domain.UserRepository;
 import com.app.folioman.auth.rest.dto.AuthResponse;
 import com.app.folioman.auth.rest.dto.LoginRequest;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import java.net.URI;
 import java.util.Map;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -33,7 +38,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    private static final Logger logger = LoggerFactory.getLogger(AuthController.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AuthController.class);
 
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
@@ -41,9 +46,7 @@ public class AuthController {
     private final CustomUserDetailsService userDetailsService;
     private final LoginAttemptService loginAttemptService;
     private final UserRepository userRepository;
-
-    @Value("${app.jwt.access-token-expiry:1800000}")
-    private long accessTokenExpiryMs;
+    private final JwtProperties jwtProperties;
 
     public AuthController(
             AuthenticationManager authenticationManager,
@@ -51,19 +54,22 @@ public class AuthController {
             RefreshTokenService refreshTokenService,
             CustomUserDetailsService userDetailsService,
             LoginAttemptService loginAttemptService,
-            UserRepository userRepository) {
+            UserRepository userRepository,
+            JwtProperties jwtProperties) {
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
         this.refreshTokenService = refreshTokenService;
         this.userDetailsService = userDetailsService;
         this.loginAttemptService = loginAttemptService;
         this.userRepository = userRepository;
+        this.jwtProperties = jwtProperties;
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest, HttpServletRequest request) {
+    public ResponseEntity<?> login(
+            @Valid @RequestBody LoginRequest loginRequest, HttpServletRequest request, HttpServletResponse response) {
         String username = loginRequest.getUsername();
-        String ipAddress = request.getRemoteAddr();
+        String ipAddress = getClientIpAddress(request);
 
         if (loginAttemptService.isAccountLocked(username)) {
             ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
@@ -83,23 +89,33 @@ public class AuthController {
             String accessToken = jwtService.generateAccessToken(userDetails);
             String refreshToken = jwtService.generateRefreshToken(userDetails);
 
-            Optional<UserEntity> userEntityOptional = userRepository.findByUsername(username);
+            Optional<UserEntity> userEntityOptional = userRepository.findByUsername(userDetails.getUsername());
             userEntityOptional.ifPresent(
                     userEntity -> refreshTokenService.createRefreshToken(userEntity.getId(), refreshToken));
 
-            logger.info("Successful login for user: {} from IP: {}", username, ipAddress);
+            LOGGER.info("Successful login for user: {} from IP: {}", maskUsername(username), maskIp(ipAddress));
 
-            return ResponseEntity.ok(new AuthResponse(accessToken, refreshToken, accessTokenExpiryMs));
+            ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)
+                    .httpOnly(true)
+                    .secure(true)
+                    .path("/api/auth")
+                    .maxAge(jwtProperties.getRefreshTokenExpiry() / 1000)
+                    .sameSite("Strict")
+                    .build();
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.SET_COOKIE, cookie.toString())
+                    .body(new AuthResponse(accessToken, refreshToken, jwtProperties.getAccessTokenExpiry()));
 
         } catch (BadCredentialsException e) {
             loginAttemptService.recordFailedAttempt(username);
-            logger.warn("Failed login attempt for user: {} from IP: {}", username, ipAddress);
+            LOGGER.warn("Failed login attempt for user: {} from IP: {}", maskUsername(username), maskIp(ipAddress));
             ProblemDetail problemDetail =
                     ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, "Invalid credentials");
             problemDetail.setType(URI.create("urn:folioman:auth:invalid-credentials"));
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(problemDetail);
         } catch (Exception e) {
-            logger.error("Error during login for user: {}", username, e);
+            LOGGER.error("Error during login for user: {}", maskUsername(username), e);
             ProblemDetail problemDetail =
                     ProblemDetail.forStatusAndDetail(HttpStatus.INTERNAL_SERVER_ERROR, "Authentication error");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(problemDetail);
@@ -107,10 +123,16 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<?> refreshToken(@RequestBody Map<String, String> request) {
-        String refreshToken = request.get("refreshToken");
+    public ResponseEntity<?> refreshToken(
+            @CookieValue(name = "refreshToken", required = false) String cookieToken,
+            @RequestBody(required = false) Map<String, String> request,
+            HttpServletResponse response) {
+        String refreshToken =
+                cookieToken != null ? cookieToken : (request != null ? request.get("refreshToken") : null);
         if (refreshToken == null) {
-            return ResponseEntity.badRequest().body("Refresh token is required");
+            ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Refresh token is required");
+            pd.setType(URI.create("urn:folioman:auth:missing-refresh-token"));
+            return ResponseEntity.badRequest().body(pd);
         }
 
         return refreshTokenService
@@ -128,8 +150,18 @@ public class AuthController {
                             String newRefreshToken = jwtService.generateRefreshToken(userDetails);
                             refreshTokenService.createRefreshToken(userOpt.get().getId(), newRefreshToken);
 
-                            return ResponseEntity.ok(
-                                    new AuthResponse(newAccessToken, newRefreshToken, accessTokenExpiryMs));
+                            ResponseCookie newCookie = ResponseCookie.from("refreshToken", newRefreshToken)
+                                    .httpOnly(true)
+                                    .secure(true)
+                                    .path("/api/auth")
+                                    .maxAge(jwtProperties.getRefreshTokenExpiry() / 1000)
+                                    .sameSite("Strict")
+                                    .build();
+
+                            return ResponseEntity.ok()
+                                    .header(HttpHeaders.SET_COOKIE, newCookie.toString())
+                                    .body(new AuthResponse(
+                                            newAccessToken, newRefreshToken, jwtProperties.getAccessTokenExpiry()));
                         }
                     }
                     ProblemDetail pd = ProblemDetail.forStatusAndDetail(
@@ -144,12 +176,26 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(@RequestBody Map<String, String> request) {
-        String refreshToken = request.get("refreshToken");
+    public ResponseEntity<?> logout(
+            @CookieValue(name = "refreshToken", required = false) String cookieToken,
+            @RequestBody(required = false) Map<String, String> request) {
+        String refreshToken =
+                cookieToken != null ? cookieToken : (request != null ? request.get("refreshToken") : null);
         if (refreshToken != null) {
             refreshTokenService.revokeToken(refreshToken);
         }
-        return ResponseEntity.ok().build();
+
+        ResponseCookie deleteCookie = ResponseCookie.from("refreshToken", "")
+                .httpOnly(true)
+                .secure(true)
+                .path("/api/auth")
+                .maxAge(0)
+                .sameSite("Strict")
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, deleteCookie.toString())
+                .build();
     }
 
     @GetMapping("/verify")
@@ -164,5 +210,30 @@ public class AuthController {
         }
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, "Invalid or missing token");
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(pd);
+    }
+
+    private String maskUsername(String username) {
+        if (username == null || username.length() < 3) return "***";
+        return username.substring(0, 2) + "***";
+    }
+
+    private String maskIp(String ip) {
+        if (ip == null) return "unknown";
+        int lastDot = ip.lastIndexOf('.');
+        if (lastDot > 0) {
+            return ip.substring(0, lastDot) + ".***";
+        }
+        if (ip.contains(":")) {
+            return "IPv6_masked";
+        }
+        return "***";
+    }
+
+    private String getClientIpAddress(HttpServletRequest request) {
+        String xfHeader = request.getHeader("X-Forwarded-For");
+        if (xfHeader != null && !xfHeader.isEmpty()) {
+            return xfHeader.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
     }
 }
