@@ -27,6 +27,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -123,9 +124,9 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
+    @Transactional
     public ResponseEntity<?> refreshToken(
-            @CookieValue(name = "refreshToken", required = false) String cookieToken, HttpServletRequest request) {
-        String refreshToken = cookieToken;
+            @CookieValue(required = false) String refreshToken, HttpServletRequest request) {
         if (refreshToken == null) {
             ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Refresh token is required");
             pd.setType(URI.create("urn:folioman:auth:missing-refresh-token"));
