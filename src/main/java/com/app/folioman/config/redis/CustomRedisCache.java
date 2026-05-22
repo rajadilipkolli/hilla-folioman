@@ -53,7 +53,9 @@ public class CustomRedisCache extends RedisCache {
             }
 
             // Store in local backup cache if Redis was successful and local cache isn't too large
-            if (localCache.size() < MAX_LOCAL_CACHE_SIZE) {
+            if (value == null) {
+                localCache.remove(key);
+            } else if (localCache.size() < MAX_LOCAL_CACHE_SIZE) {
                 localCache.put(key, value);
             }
 
@@ -62,7 +64,9 @@ public class CustomRedisCache extends RedisCache {
         } catch (Exception e) {
             LOGGER.warn("Failed to put key {} in Redis cache: {}", key, e.getMessage());
             // Still store in local cache as fallback
-            if (localCache.size() < MAX_LOCAL_CACHE_SIZE) {
+            if (value == null) {
+                localCache.remove(key);
+            } else if (localCache.size() < MAX_LOCAL_CACHE_SIZE) {
                 localCache.put(key, value);
             }
         }
