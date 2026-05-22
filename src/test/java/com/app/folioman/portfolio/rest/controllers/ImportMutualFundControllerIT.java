@@ -27,9 +27,11 @@ import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.security.test.context.support.WithMockUser;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @Execution(ExecutionMode.SAME_THREAD)
+@WithMockUser(roles = "USER")
 class ImportMutualFundControllerIT extends AbstractIntegrationTest {
 
     @Test
