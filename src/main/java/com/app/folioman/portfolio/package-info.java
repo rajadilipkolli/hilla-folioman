@@ -11,7 +11,7 @@
  */
 @ApplicationModule(
         displayName = "Portfolio Management",
-        allowedDependencies = {"mfschemes", "mfschemes::dtos", "shared"})
+        allowedDependencies = {"mfschemes", "mfschemes::dtos", "shared", "pythonbridge"})
 @NullMarked
 package com.app.folioman.portfolio;
 
