@@ -111,5 +111,5 @@ class ServiceRulesTest {
             .doNotHaveModifier(JavaModifier.SYNTHETIC)
             .should()
             .notBeStatic()
-            .because("Static methods are not allowed in %s (except for Enums)".formatted(DOMAIN_PACKAGE));
+            .because("Static methods are not allowed in %s (except for Enums and Records)".formatted(DOMAIN_PACKAGE));
 }

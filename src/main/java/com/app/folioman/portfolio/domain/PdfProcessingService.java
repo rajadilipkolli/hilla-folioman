@@ -10,7 +10,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -101,16 +100,13 @@ public class PdfProcessingService {
             // Save the uploaded file to a temporary location
             Files.copy(pdfFile.getInputStream(), tempPdfPath, StandardCopyOption.REPLACE_EXISTING);
 
-            // Sanitize the password to prevent command injection
-            String sanitizedPassword = StringEscapeUtils.escapeXSI(password);
-
             // Execute casparser via the centralized Python executor framework
             pythonExecutor
                     .execute(PythonCommands.cli(
                             pythonProperties.casparser().executable(),
                             tempPdfPath.toString(),
                             "-p",
-                            sanitizedPassword,
+                            password,
                             "-o",
                             tempJsonPath.toString()))
                     .orThrow();
