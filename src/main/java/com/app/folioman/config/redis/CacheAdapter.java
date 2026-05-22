@@ -1,6 +1,7 @@
 package com.app.folioman.config.redis;
 
 import io.micrometer.core.instrument.MeterRegistry;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -14,7 +15,7 @@ class CacheAdapter {
     private final RedisTemplate<String, Object> redisTemplate;
     private final MeterRegistry meterRegistry;
 
-    private CachePolicy currentPolicy;
+    private @Nullable CachePolicy currentPolicy;
 
     CacheAdapter(RedisTemplate<String, Object> redisTemplate, MeterRegistry meterRegistry) {
         this.redisTemplate = redisTemplate;

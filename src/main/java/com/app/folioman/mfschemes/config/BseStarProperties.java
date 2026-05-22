@@ -17,6 +17,7 @@ import org.springframework.validation.annotation.Validated;
  */
 @Validated
 @ConfigurationProperties(prefix = "app.bsestar")
+@SuppressWarnings("NullAway.Init")
 public class BseStarProperties {
 
     @Valid

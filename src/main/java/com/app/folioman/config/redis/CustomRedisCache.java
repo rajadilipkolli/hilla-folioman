@@ -3,6 +3,7 @@ package com.app.folioman.config.redis;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.Cache;
@@ -13,6 +14,7 @@ import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheWriter;
 import org.springframework.data.redis.serializer.RedisSerializer;
 
+@SuppressWarnings("NullAway")
 public class CustomRedisCache extends RedisCache {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CustomRedisCache.class);
@@ -37,10 +39,10 @@ public class CustomRedisCache extends RedisCache {
     }
 
     @Override
-    public void put(Object key, Object value) {
+    public void put(Object key, @Nullable Object value) {
         try {
             // Use circuit breaker to handle Redis connection failures
-            circuitBreaker.execute(() -> {
+            circuitBreaker.<@Nullable Void>execute(() -> {
                 super.put(key, value);
                 return null;
             });
@@ -51,7 +53,9 @@ public class CustomRedisCache extends RedisCache {
             }
 
             // Store in local backup cache if Redis was successful and local cache isn't too large
-            if (localCache.size() < MAX_LOCAL_CACHE_SIZE) {
+            if (value == null) {
+                localCache.remove(key);
+            } else if (localCache.size() < MAX_LOCAL_CACHE_SIZE) {
                 localCache.put(key, value);
             }
 
@@ -60,21 +64,24 @@ public class CustomRedisCache extends RedisCache {
         } catch (Exception e) {
             LOGGER.warn("Failed to put key {} in Redis cache: {}", key, e.getMessage());
             // Still store in local cache as fallback
-            if (localCache.size() < MAX_LOCAL_CACHE_SIZE) {
+            if (value == null) {
+                localCache.remove(key);
+            } else if (localCache.size() < MAX_LOCAL_CACHE_SIZE) {
                 localCache.put(key, value);
             }
         }
     }
 
     @Override
-    public Cache.ValueWrapper get(Object key) {
+    public Cache.@Nullable ValueWrapper get(Object key) {
         try {
             // Try to get from Redis with circuit breaker protection
-            ValueWrapper valueWrapper = circuitBreaker.executeWithFallback(() -> super.get(key), () -> {
-                // Fallback to local cache if Redis is unavailable
-                Object value = localCache.get(key);
-                return value != null ? new SimpleValueWrapper(value) : null;
-            });
+            ValueWrapper valueWrapper =
+                    circuitBreaker.<Cache.@Nullable ValueWrapper>executeWithFallback(() -> super.get(key), () -> {
+                        // Fallback to local cache if Redis is unavailable
+                        Object value = localCache.get(key);
+                        return value != null ? new SimpleValueWrapper(value) : null;
+                    });
 
             // Record access metrics
             recordMetrics(key, "access");
@@ -106,7 +113,7 @@ public class CustomRedisCache extends RedisCache {
     public void evict(Object key) {
         try {
             // Use circuit breaker for Redis eviction
-            circuitBreaker.execute(() -> {
+            circuitBreaker.<@Nullable Void>execute(() -> {
                 super.evict(key);
                 return null;
             });
@@ -128,7 +135,7 @@ public class CustomRedisCache extends RedisCache {
     public void clear() {
         try {
             // Use circuit breaker for Redis clear
-            circuitBreaker.execute(() -> {
+            circuitBreaker.<@Nullable Void>execute(() -> {
                 super.clear();
                 return null;
             });

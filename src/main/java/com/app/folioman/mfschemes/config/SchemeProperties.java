@@ -2,6 +2,7 @@ package com.app.folioman.mfschemes.config;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
 /**
@@ -9,6 +10,8 @@ import org.springframework.validation.annotation.Validated;
  * + * This class is used to validate and store URLs for accessing financial scheme data.
  * + */
 @Validated
+@ConfigurationProperties(prefix = "app.bsestar.scheme")
+@SuppressWarnings("NullAway.Init")
 public class SchemeProperties {
 
     @NotBlank(message = "Data URL must not be blank")

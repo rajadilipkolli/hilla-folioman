@@ -11,6 +11,7 @@ import com.vladmihalcea.flexypool.strategy.UniqueNamingStrategy;
 import com.zaxxer.hikari.HikariDataSource;
 import java.util.List;
 import javax.sql.DataSource;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aop.scope.ScopedProxyUtils;
@@ -58,6 +59,9 @@ public class FlexyPoolDataSourceConfig {
                 optimizeHikariPool(hikariDataSource, beanName);
 
                 AppDataSourceProperties appDataSourceProperties = getAppDataSourceProperties();
+                if (appDataSourceProperties == null) {
+                    return bean;
+                }
 
                 // Configure Flexy Pool with improved metrics and leak detection
                 FlexyPoolConfiguration<HikariDataSource> flexyPoolConfiguration =
@@ -106,6 +110,9 @@ public class FlexyPoolDataSourceConfig {
          */
         void optimizeHikariPool(HikariDataSource hikariDataSource, String poolName) {
             AppDataSourceProperties props = getAppDataSourceProperties();
+            if (props == null) {
+                return;
+            }
 
             // Enable leak detection if configured
             if (props.getConnectionLeak().isEnabled()) {
@@ -131,10 +138,12 @@ public class FlexyPoolDataSourceConfig {
             hikariDataSource.setConnectionTestQuery(null); // Let JDBC4 driver handle validation
         }
 
+        @Nullable
         AppDataSourceProperties getAppDataSourceProperties() {
             return appDataSourceProperties.getIfAvailable();
         }
 
+        @Nullable
         HikariDataSource getHikariDataSource(DataSource dataSource) {
             HikariDataSource hikariDataSource = null;
             if (dataSource instanceof HikariDataSource hikariDataSource1) {

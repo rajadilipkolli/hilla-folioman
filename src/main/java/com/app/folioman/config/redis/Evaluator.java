@@ -18,11 +18,16 @@ class Evaluator {
      * @throws IllegalArgumentException if the input map does not contain the expected keys or if the metric values are invalid
      */
     String evaluate(Map<String, Object> metrics) {
-        validateMetrics(metrics);
+        if (!metrics.containsKey("cacheSize")
+                || !metrics.containsKey("hitRate")
+                || !metrics.containsKey("memoryUsage")) {
+            throw new IllegalArgumentException("Input map does not contain the expected keys");
+        }
+        long cacheSize = toLong(metrics.get("cacheSize"));
+        double hitRate = toDouble(metrics.get("hitRate"));
+        long memoryUsage = toLong(metrics.get("memoryUsage"));
 
-        long cacheSize = (long) metrics.get("cacheSize");
-        double hitRate = (double) metrics.get("hitRate");
-        long memoryUsage = (long) metrics.get("memoryUsage");
+        validateRanges(cacheSize, hitRate, memoryUsage);
 
         if (hitRate < LOW_HIT_RATE_THRESHOLD && cacheSize > LARGE_CACHE_SIZE_THRESHOLD) {
             return "REDUCE_CACHE_SIZE";
@@ -34,19 +39,17 @@ class Evaluator {
         return "MAINTAIN_CURRENT";
     }
 
-    private void validateMetrics(Map<String, Object> metrics) {
-        if (!metrics.containsKey("cacheSize")
-                || !metrics.containsKey("hitRate")
-                || !metrics.containsKey("memoryUsage")) {
-            throw new IllegalArgumentException("Input map does not contain the expected keys");
-        }
-
-        long cacheSize = (long) metrics.get("cacheSize");
-        double hitRate = (double) metrics.get("hitRate");
-        long memoryUsage = (long) metrics.get("memoryUsage");
-
+    private void validateRanges(long cacheSize, double hitRate, long memoryUsage) {
         if (cacheSize < 0 || hitRate < 0 || hitRate > 1 || memoryUsage < 0) {
             throw new IllegalArgumentException("Invalid metric values");
         }
+    }
+
+    private long toLong(Object value) {
+        return value instanceof Number n ? n.longValue() : 0L;
+    }
+
+    private double toDouble(Object value) {
+        return value instanceof Number n ? n.doubleValue() : 0.0;
     }
 }

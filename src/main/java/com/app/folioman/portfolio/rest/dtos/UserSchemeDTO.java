@@ -4,12 +4,13 @@ package com.app.folioman.portfolio.rest.dtos;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 import java.util.List;
+import org.jspecify.annotations.Nullable;
 
 public record UserSchemeDTO(
         String scheme,
-        String isin,
-        Long amfi,
-        String advisor,
+        @Nullable String isin,
+        @Nullable Long amfi,
+        @Nullable String advisor,
         @JsonProperty("rta_code") String rtaCode,
         String type,
         String rta,

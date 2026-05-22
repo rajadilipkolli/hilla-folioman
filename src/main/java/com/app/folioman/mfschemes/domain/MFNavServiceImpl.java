@@ -15,6 +15,7 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -138,7 +139,7 @@ class MFNavServiceImpl implements MFNavService {
                 List<MFSchemeNavEntity> mfSchemeNavList = historicalDataNotLoadedSchemeIdList.stream()
                         .filter(amfiCodeNavMap::containsKey)
                         .map(amfiCode -> {
-                            NavHolder navHolder = amfiCodeNavMap.get(amfiCode);
+                            NavHolder navHolder = Objects.requireNonNull(amfiCodeNavMap.get(amfiCode));
                             MFSchemeNavEntity mfSchemeNavEntity = new MFSchemeNavEntity();
                             mfSchemeNavEntity.setNav(navHolder.nav);
                             mfSchemeNavEntity.setNavDate(navHolder.navDate);

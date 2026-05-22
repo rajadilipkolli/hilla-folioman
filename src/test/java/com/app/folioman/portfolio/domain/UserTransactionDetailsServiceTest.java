@@ -124,6 +124,6 @@ class UserTransactionDetailsServiceTest {
         Optional<InvestmentReturnsDTO> result = userTransactionDetailsService.getInvestmentReturnsByPan(pan);
 
         assertThat(result).isPresent();
-        assertThat(result.get().cagr()).isNull();
+        assertThat(result.get().cagr()).isEqualTo(BigDecimal.ZERO);
     }
 }

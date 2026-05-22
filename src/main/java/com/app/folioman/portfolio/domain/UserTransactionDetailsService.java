@@ -48,7 +48,11 @@ public class UserTransactionDetailsService {
             }
 
             return new InvestmentReturnsDTO(
-                    projection.getXirr(), cagr, projection.getInvested(), projection.getValue(), projection.getDate());
+                    projection.getXirr(),
+                    cagr != null ? cagr : BigDecimal.ZERO,
+                    projection.getInvested(),
+                    projection.getValue(),
+                    projection.getDate());
         });
     }
 

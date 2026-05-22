@@ -15,12 +15,14 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.StringJoiner;
+import org.jspecify.annotations.Nullable;
 
 @Table(
         name = "mf_amc",
         schema = "mfschemes",
         indexes = {@Index(name = "idx_mf_amc_name_vector", columnList = "name_vector")})
 @Entity
+@SuppressWarnings("NullAway.Init")
 class MfAmcEntity extends BaseEntity {
 
     @Serial
@@ -35,7 +37,7 @@ class MfAmcEntity extends BaseEntity {
     @Column(nullable = false, unique = true)
     private String name;
 
-    private String description;
+    private @Nullable String description;
 
     @Column(nullable = false)
     private String code;
@@ -61,11 +63,11 @@ class MfAmcEntity extends BaseEntity {
         return this;
     }
 
-    public String getDescription() {
+    public @Nullable String getDescription() {
         return description;
     }
 
-    public MfAmcEntity setDescription(String description) {
+    public MfAmcEntity setDescription(@Nullable String description) {
         this.description = description;
         return this;
     }

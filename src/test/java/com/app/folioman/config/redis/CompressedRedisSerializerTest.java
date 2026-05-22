@@ -2,7 +2,10 @@ package com.app.folioman.config.redis;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,9 +35,9 @@ class CompressedRedisSerializerTest {
     }
 
     @Test
-    void serialize_WithNullValue_ShouldReturnNull() {
+    void serialize_WithNullValue_ShouldReturnEmpty() {
         byte[] result = compressedSerializer.serialize(null);
-        assertThat(result).isNull();
+        assertThat(result).isEmpty();
         verifyNoInteractions(delegate);
     }
 

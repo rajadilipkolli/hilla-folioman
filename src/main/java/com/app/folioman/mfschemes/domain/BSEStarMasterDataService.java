@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
@@ -98,18 +99,8 @@ class BSEStarMasterDataService {
         return bseMasterData;
     }
 
-    public Map<String, MfFundSchemeEntity> fetchBseStarMasterData(
-            String bseMasterData, Map<String, Map<String, String>> amfiDataMap, Map<String, String> amfiCodeIsinMapping)
-            throws IOException, CsvException {
-        if (bseMasterData != null && !bseMasterData.isBlank()) {
-            BseMasterDataResult bseDataResult = parseBseMasterData(bseMasterData);
-            return processAmfiBatch(bseDataResult, amfiDataMap, amfiCodeIsinMapping);
-        }
-        return Map.of();
-    }
-
     public BseMasterDataResult parseBseMasterData(String bseMasterData) throws IOException, CsvException {
-        if (bseMasterData == null || bseMasterData.isBlank()) {
+        if (bseMasterData.isBlank()) {
             return new BseMasterDataResult(Map.of(), Map.of());
         }
 
@@ -208,9 +199,11 @@ class BSEStarMasterDataService {
         fallbackScheme.setAmfiCode(Long.valueOf(amfiCode));
         fallbackScheme.setIsin(amfiCodeIsinMapping.get(amfiCode));
         if (amfiSchemeData != null) {
-            fallbackScheme.setName(amfiSchemeData.get("Scheme Name"));
+            fallbackScheme.setName(
+                    Objects.requireNonNull(amfiSchemeData.get("Scheme Name"), "Missing 'Scheme Name' in AMFI data"));
             // Process AMC
-            String amcName = amfiSchemeData.get("AMC").strip();
+            String amcName = Objects.requireNonNull(amfiSchemeData.get("AMC"), "Missing 'AMC' in AMFI data")
+                    .strip();
             MfAmcEntity amc = mfAmcService.findOrCreateByName(amcName);
             fallbackScheme.setAmc(amc);
             setMfSchemeCategory(amfiSchemeData, fallbackScheme);
@@ -228,13 +221,15 @@ class BSEStarMasterDataService {
             Map<String, Map<String, String>> amfiDataMap,
             String amfiCode) {
 
-        String isin = row[headerIndexKeyMap.get("ISIN")].strip();
-        String schemeCode = row[headerIndexKeyMap.get("Scheme Code")].strip();
+        String isin = getRequiredValue(row, headerIndexKeyMap, "ISIN");
+        String schemeCode = getRequiredValue(row, headerIndexKeyMap, "Scheme Code");
 
         // Use atomic compute operation to ensure thread-safety
         isinMasterData.compute(isin, (key, existingScheme) -> {
             // Skip if better data exists (shorter scheme code is better)
-            if (existingScheme != null && existingScheme.getAmcCode().length() <= schemeCode.length()) {
+            if (existingScheme != null
+                    && existingScheme.getAmcCode() != null
+                    && existingScheme.getAmcCode().length() <= schemeCode.length()) {
                 masterData.put(amfiCode, existingScheme);
                 return existingScheme;
             }
@@ -244,8 +239,9 @@ class BSEStarMasterDataService {
             scheme.setAmfiCode(Long.valueOf(amfiCode));
 
             // Process AMC
-            String amcCode = row[headerIndexKeyMap.get("AMC Code")].strip();
-            MfAmcEntity amc = getOrCreateAmc(amcCode, amfiDataMapByAmfiCode.get("AMC"));
+            String amcCode = getRequiredValue(row, headerIndexKeyMap, "AMC Code");
+            MfAmcEntity amc =
+                    getOrCreateAmc(amcCode, amfiDataMapByAmfiCode != null ? amfiDataMapByAmfiCode.get("AMC") : null);
             scheme.setAmc(amc);
 
             // Add to masterData atomically
@@ -255,26 +251,28 @@ class BSEStarMasterDataService {
     }
 
     MfAmcEntity getOrCreateAmc(String amcCode, @Nullable String amcName) {
+        if (amcName == null) amcName = "UNKNOWN";
+        final String finalAmcName = amcName;
         // First try to get from local cache
         return amcCache.computeIfAbsent(amcCode, code -> {
             // If not in local cache, try to find in service
             MfAmcEntity amc = mfAmcService.findByCode(code);
-            if (amc == null && amcName != null) {
+            if (amc == null) {
                 // If not found by code, try to find by name to avoid duplicates (exact match
                 // only)
-                amc = mfAmcCacheService.findByName(amcName);
+                amc = mfAmcCacheService.findByName(finalAmcName);
             }
             if (amc == null) {
                 // If not found in service, create new one
                 MfAmcEntity newAmc = new MfAmcEntity();
-                newAmc.setName(amcName);
+                newAmc.setName(finalAmcName);
                 newAmc.setCode(code);
                 // Save the new AMC, which is a thread-safe operation in the service
                 try {
                     return mfAmcService.saveMfAmc(newAmc);
                 } catch (DataIntegrityViolationException e) {
-                    LOGGER.info("AMC already exists, possibly due to a race condition: {}", amcName);
-                    MfAmcEntity existing = mfAmcCacheService.findByName(amcName);
+                    LOGGER.info("AMC already exists, possibly due to a race condition: {}", finalAmcName);
+                    MfAmcEntity existing = mfAmcCacheService.findByName(finalAmcName);
                     if (existing != null) {
                         return existing;
                     }
@@ -285,20 +283,29 @@ class BSEStarMasterDataService {
         });
     }
 
+    private String getRequiredValue(String[] row, Map<String, Integer> headerIndexKeyMap, String key) {
+        Integer index = headerIndexKeyMap.get(key);
+        if (index == null || index >= row.length || row[index] == null) {
+            throw new IllegalArgumentException("Missing required value for key: " + key);
+        }
+        return row[index].strip();
+    }
+
     private MfFundSchemeEntity createMfFundScheme(
             String[] row, Map<String, Integer> headerIndexKeyMap, @Nullable Map<String, String> amfiSchemeData) {
         MfFundSchemeEntity scheme = new MfFundSchemeEntity();
-        scheme.setSid(Integer.parseInt(row[headerIndexKeyMap.get("Unique No")]));
-        scheme.setName(row[headerIndexKeyMap.get("Scheme Name")].strip());
-        scheme.setRta(row[headerIndexKeyMap.get("RTA Agent Code")].strip());
-        scheme.setPlan(row[headerIndexKeyMap.get("Scheme Plan")].contains("DIRECT") ? "DIRECT" : "REGULAR");
-        scheme.setRtaCode(row[headerIndexKeyMap.get("Channel Partner Code")].strip());
-        scheme.setAmcCode(row[headerIndexKeyMap.get("AMC Scheme Code")].strip());
-        scheme.setIsin(row[headerIndexKeyMap.get("ISIN")].strip());
+        scheme.setSid(Integer.parseInt(getRequiredValue(row, headerIndexKeyMap, "Unique No")));
+        scheme.setName(getRequiredValue(row, headerIndexKeyMap, "Scheme Name"));
+        scheme.setRta(getRequiredValue(row, headerIndexKeyMap, "RTA Agent Code"));
+        scheme.setPlan(
+                getRequiredValue(row, headerIndexKeyMap, "Scheme Plan").contains("DIRECT") ? "DIRECT" : "REGULAR");
+        scheme.setRtaCode(getRequiredValue(row, headerIndexKeyMap, "Channel Partner Code"));
+        scheme.setAmcCode(getRequiredValue(row, headerIndexKeyMap, "AMC Scheme Code"));
+        scheme.setIsin(getRequiredValue(row, headerIndexKeyMap, "ISIN"));
         scheme.setStartDate(LocalDateUtility.parse(
-                row[headerIndexKeyMap.get("Start Date")].strip(), CommonConstants.FORMATTER_MMM_D_YYYY));
+                getRequiredValue(row, headerIndexKeyMap, "Start Date"), CommonConstants.FORMATTER_MMM_D_YYYY));
         scheme.setEndDate(LocalDateUtility.parse(
-                row[headerIndexKeyMap.get("End Date")].strip(), CommonConstants.FORMATTER_MMM_D_YYYY));
+                getRequiredValue(row, headerIndexKeyMap, "End Date"), CommonConstants.FORMATTER_MMM_D_YYYY));
 
         if (amfiSchemeData != null) {
             setMfSchemeCategory(amfiSchemeData, scheme);
@@ -316,19 +323,19 @@ class BSEStarMasterDataService {
     private void setMfSchemeCategory(Map<String, String> amfiSchemeData, MfFundSchemeEntity mfFundScheme) {
         String catStr = amfiSchemeData.get("Scheme Category");
         String catSchemeType = amfiSchemeData.get("Scheme Type");
-        String category, subcategory;
+        String category = "Unknown";
+        String subcategory = null;
 
         if (catStr != null && catStr.contains("-")) {
             category = catStr.substring(0, catStr.indexOf("-")).strip();
             subcategory = catStr.substring(catStr.indexOf("-") + 1).strip();
-        } else {
+        } else if (catStr != null) {
             category = catStr;
-            subcategory = null;
         }
 
         // Check if category already exists in cache
-        MFSchemeTypeEntity mfSchemeTypeEntity =
-                mfSchemeDtoToEntityMapperHelper.findOrCreateMFSchemeTypeEntity(catSchemeType, category, subcategory);
+        MFSchemeTypeEntity mfSchemeTypeEntity = mfSchemeDtoToEntityMapperHelper.findOrCreateMFSchemeTypeEntity(
+                catSchemeType != null ? catSchemeType : "Unknown", category, subcategory);
         mfFundScheme.setMfSchemeTypeEntity(mfSchemeTypeEntity);
     }
 

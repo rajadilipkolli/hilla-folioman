@@ -9,6 +9,7 @@ import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Pattern;
 import java.io.IOException;
 import java.time.LocalDate;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -61,7 +62,8 @@ public class ImportMutualFundController {
             @RequestParam(required = false)
                     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
                     @PastOrPresent(message = "Date should be past or today")
+                    @Nullable
                     LocalDate asOfDate) {
-        return portfolioAPI.getPortfolioByPAN(panNumber, asOfDate);
+        return portfolioAPI.getPortfolioByPAN(panNumber, asOfDate != null ? asOfDate : LocalDate.now());
     }
 }

@@ -1,6 +1,7 @@
 package com.app.folioman.config.redis;
 
 import java.util.Map;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -23,7 +24,7 @@ public class AdaptiveStrategyScheduler {
     private final RedisAppProperties redisAppProperties;
 
     // Track the last applied strategy to avoid unnecessary changes
-    private String lastAppliedStrategy = null;
+    private @Nullable String lastAppliedStrategy = null;
 
     // Counter to track consecutive strategy matches
     private int consecutiveStrategyMatches = 0;

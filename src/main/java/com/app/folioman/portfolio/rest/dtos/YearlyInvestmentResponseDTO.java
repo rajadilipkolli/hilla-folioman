@@ -4,11 +4,13 @@ import com.app.folioman.portfolio.domain.models.projection.YearlyInvestmentRespo
 import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Serializable DTO wrapper for YearlyInvestmentResponse interface to support caching.
  */
-public record YearlyInvestmentResponseDTO(Integer year, BigDecimal yearlyInvestment) implements Serializable {
+public record YearlyInvestmentResponseDTO(
+        @Nullable Integer year, @Nullable BigDecimal yearlyInvestment) implements Serializable {
 
     @Serial
     private static final long serialVersionUID = 1L;

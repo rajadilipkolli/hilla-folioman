@@ -13,6 +13,7 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
@@ -230,7 +231,7 @@ class MfSchemeServiceImpl implements MfSchemeService {
      * @return Formatted terms in format: term1 & term2 & term3
      */
     private String formatTsQueryTerms(String terms) {
-        if (terms == null || terms.isEmpty()) {
+        if (terms.isEmpty()) {
             return "";
         }
 
@@ -305,12 +306,12 @@ class MfSchemeServiceImpl implements MfSchemeService {
         }
 
         // Execute the merge operation with scheme-specific synchronization
-        withSchemeLock(schemeCode, () -> {
+        this.<Boolean>withSchemeLock(schemeCode, () -> {
             // Check if NAV data is already up to date to avoid unnecessary processing
             if (navResponse.data().size()
                     == mfFundSchemeEntity.getMfSchemeNavs().size()) {
                 LOGGER.info("Data in DB and from api is same, no updates needed for scheme {}", schemeCode);
-                return null;
+                return true;
             }
 
             // Data from 3rd Party API
@@ -328,14 +329,14 @@ class MfSchemeServiceImpl implements MfSchemeService {
 
             // Filter out NAVs that already exist in the database
             List<MFSchemeNavEntity> navsToSave = newNavEntries.stream()
-                    .filter(newNav ->
-                            !existingNavs.contains(new NavDateValueProjection(newNav.getNav(), newNav.getNavDate())))
+                    .filter(newNav -> !existingNavs.contains(new NavDateValueProjection(
+                            Objects.requireNonNull(newNav.getNav()), Objects.requireNonNull(newNav.getNavDate()))))
                     .peek(newNav -> newNav.setMfFundSchemeEntity(mfFundSchemeEntity))
                     .toList();
 
             if (navsToSave.isEmpty()) {
                 LOGGER.info("All NAVs already exist in database for scheme {}", schemeCode);
-                return null;
+                return true;
             }
 
             // Use transaction to ensure database consistency
@@ -351,15 +352,13 @@ class MfSchemeServiceImpl implements MfSchemeService {
                         LOGGER.warn("Batch insert failed, switching to partitioned approach: {}", ex.getMessage());
                         saveNavsInBatches(navsToSave, 50); // Save in smaller batches of 50
                     }
-
-                    return null;
                 } catch (Exception e) {
-                    LOGGER.error("Error while saving NAVs for scheme {}: {}", schemeCode, e.getMessage(), e);
-                    throw e; // Rethrow to trigger transaction rollback
+                    LOGGER.error("Error saving NAVs for scheme {}", schemeCode, e);
+                    throw e;
                 }
+                return true;
             });
-
-            return null;
+            return true;
         });
     }
 

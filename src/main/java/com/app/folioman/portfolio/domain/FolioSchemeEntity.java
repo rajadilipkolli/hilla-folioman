@@ -12,9 +12,11 @@ import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import org.jspecify.annotations.Nullable;
 
 @Entity
 @Table(name = "folio_scheme", schema = "portfolio")
+@SuppressWarnings("NullAway.Init")
 class FolioSchemeEntity extends BaseEntity {
 
     @Id
@@ -24,12 +26,12 @@ class FolioSchemeEntity extends BaseEntity {
     private Long id;
 
     @Column(precision = 20, scale = 2)
-    private BigDecimal valuation;
+    private @Nullable BigDecimal valuation;
 
     @Column(precision = 20, scale = 4)
-    private BigDecimal xirr;
+    private @Nullable BigDecimal xirr;
 
-    private LocalDate valuationDate;
+    private @Nullable LocalDate valuationDate;
 
     @ManyToOne
     @JoinColumn(name = "user_folio_id", nullable = false)
@@ -48,29 +50,29 @@ class FolioSchemeEntity extends BaseEntity {
         return this;
     }
 
-    public BigDecimal getValuation() {
+    public @Nullable BigDecimal getValuation() {
         return valuation;
     }
 
-    public FolioSchemeEntity setValuation(BigDecimal valuation) {
+    public FolioSchemeEntity setValuation(@Nullable BigDecimal valuation) {
         this.valuation = valuation;
         return this;
     }
 
-    public BigDecimal getXirr() {
+    public @Nullable BigDecimal getXirr() {
         return xirr;
     }
 
-    public FolioSchemeEntity setXirr(BigDecimal xirr) {
+    public FolioSchemeEntity setXirr(@Nullable BigDecimal xirr) {
         this.xirr = xirr;
         return this;
     }
 
-    public LocalDate getValuationDate() {
+    public @Nullable LocalDate getValuationDate() {
         return valuationDate;
     }
 
-    public FolioSchemeEntity setValuationDate(LocalDate valuationDate) {
+    public FolioSchemeEntity setValuationDate(@Nullable LocalDate valuationDate) {
         this.valuationDate = valuationDate;
         return this;
     }

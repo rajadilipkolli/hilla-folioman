@@ -24,6 +24,7 @@ import org.jspecify.annotations.Nullable;
         name = "user_transaction_details",
         schema = "portfolio",
         indexes = {@Index(name = "user_details_idx_type_transaction_dat", columnList = "transaction_date, type")})
+@SuppressWarnings("NullAway.Init")
 class UserTransactionDetailsEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_transaction_details_seq")
@@ -31,22 +32,22 @@ class UserTransactionDetailsEntity extends BaseEntity {
     @Column(name = "id", nullable = false)
     private Long id;
 
-    private LocalDate transactionDate;
-    private String description;
-    private BigDecimal amount;
+    private @Nullable LocalDate transactionDate;
+    private @Nullable String description;
+    private @Nullable BigDecimal amount;
     private @Nullable Double units;
-    private Double nav;
-    private Double balance;
+    private @Nullable Double nav;
+    private @Nullable Double balance;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false)
     private TransactionType type;
 
-    private String dividendRate;
+    private @Nullable String dividendRate;
 
     @ManyToOne
     @JoinColumn(name = "user_scheme_detail_id")
-    private UserSchemeDetailsEntity userSchemeDetails;
+    private @Nullable UserSchemeDetailsEntity userSchemeDetails;
 
     public Long getId() {
         return id;
@@ -57,29 +58,29 @@ class UserTransactionDetailsEntity extends BaseEntity {
         return this;
     }
 
-    public LocalDate getTransactionDate() {
+    public @Nullable LocalDate getTransactionDate() {
         return transactionDate;
     }
 
-    public UserTransactionDetailsEntity setTransactionDate(LocalDate transactionDate) {
+    public UserTransactionDetailsEntity setTransactionDate(@Nullable LocalDate transactionDate) {
         this.transactionDate = transactionDate;
         return this;
     }
 
-    public String getDescription() {
+    public @Nullable String getDescription() {
         return description;
     }
 
-    public UserTransactionDetailsEntity setDescription(String description) {
+    public UserTransactionDetailsEntity setDescription(@Nullable String description) {
         this.description = description;
         return this;
     }
 
-    public BigDecimal getAmount() {
+    public @Nullable BigDecimal getAmount() {
         return amount;
     }
 
-    public UserTransactionDetailsEntity setAmount(BigDecimal amount) {
+    public UserTransactionDetailsEntity setAmount(@Nullable BigDecimal amount) {
         this.amount = amount;
         return this;
     }
@@ -93,20 +94,20 @@ class UserTransactionDetailsEntity extends BaseEntity {
         return this;
     }
 
-    public Double getNav() {
+    public @Nullable Double getNav() {
         return nav;
     }
 
-    public UserTransactionDetailsEntity setNav(Double nav) {
+    public UserTransactionDetailsEntity setNav(@Nullable Double nav) {
         this.nav = nav;
         return this;
     }
 
-    public Double getBalance() {
+    public @Nullable Double getBalance() {
         return balance;
     }
 
-    public UserTransactionDetailsEntity setBalance(Double balance) {
+    public UserTransactionDetailsEntity setBalance(@Nullable Double balance) {
         this.balance = balance;
         return this;
     }
@@ -120,20 +121,20 @@ class UserTransactionDetailsEntity extends BaseEntity {
         return this;
     }
 
-    public String getDividendRate() {
+    public @Nullable String getDividendRate() {
         return dividendRate;
     }
 
-    public UserTransactionDetailsEntity setDividendRate(String dividendRate) {
+    public UserTransactionDetailsEntity setDividendRate(@Nullable String dividendRate) {
         this.dividendRate = dividendRate;
         return this;
     }
 
-    public UserSchemeDetailsEntity getUserSchemeDetails() {
+    public @Nullable UserSchemeDetailsEntity getUserSchemeDetails() {
         return userSchemeDetails;
     }
 
-    public UserTransactionDetailsEntity setUserSchemeDetails(UserSchemeDetailsEntity userSchemeDetails) {
+    public UserTransactionDetailsEntity setUserSchemeDetails(@Nullable UserSchemeDetailsEntity userSchemeDetails) {
         this.userSchemeDetails = userSchemeDetails;
         return this;
     }

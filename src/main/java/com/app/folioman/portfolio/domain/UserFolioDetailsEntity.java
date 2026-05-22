@@ -19,12 +19,14 @@ import java.util.Objects;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 import org.hibernate.proxy.HibernateProxy;
+import org.jspecify.annotations.Nullable;
 
 @Entity
 @Table(
         name = "user_folio_details",
         schema = "portfolio",
         indexes = {@Index(name = "user_details_idx_pan_id", columnList = "id, pan")})
+@SuppressWarnings("NullAway.Init")
 class UserFolioDetailsEntity extends BaseEntity {
 
     @Id
@@ -43,10 +45,10 @@ class UserFolioDetailsEntity extends BaseEntity {
     private String pan;
 
     @Column(name = "kyc")
-    private String kyc;
+    private @Nullable String kyc;
 
     @Column(name = "pan_kyc")
-    private String panKyc;
+    private @Nullable String panKyc;
 
     @OneToMany(mappedBy = "userFolioDetails", cascade = CascadeType.ALL, orphanRemoval = true)
     @Fetch(FetchMode.SUBSELECT)
@@ -92,20 +94,20 @@ class UserFolioDetailsEntity extends BaseEntity {
         return this;
     }
 
-    public String getKyc() {
+    public @Nullable String getKyc() {
         return kyc;
     }
 
-    public UserFolioDetailsEntity setKyc(String kyc) {
+    public UserFolioDetailsEntity setKyc(@Nullable String kyc) {
         this.kyc = kyc;
         return this;
     }
 
-    public String getPanKyc() {
+    public @Nullable String getPanKyc() {
         return panKyc;
     }
 
-    public UserFolioDetailsEntity setPanKyc(String panKyc) {
+    public UserFolioDetailsEntity setPanKyc(@Nullable String panKyc) {
         this.panKyc = panKyc;
         return this;
     }

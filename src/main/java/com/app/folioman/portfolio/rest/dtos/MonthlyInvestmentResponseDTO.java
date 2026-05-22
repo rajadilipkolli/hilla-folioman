@@ -4,12 +4,16 @@ import com.app.folioman.portfolio.domain.models.projection.MonthlyInvestmentResp
 import java.io.Serial;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Serializable DTO wrapper for MonthlyInvestmentResponse interface to support caching.
  */
 public record MonthlyInvestmentResponseDTO(
-        Integer year, Integer monthNumber, BigDecimal investmentPerMonth, BigDecimal cumulativeInvestment)
+        @Nullable Integer year,
+        @Nullable Integer monthNumber,
+        @Nullable BigDecimal investmentPerMonth,
+        @Nullable BigDecimal cumulativeInvestment)
         implements Serializable {
 
     @Serial

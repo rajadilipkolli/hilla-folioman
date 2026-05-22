@@ -103,7 +103,9 @@ class MfAmcService {
 
         // Return AMCs with fuzzy score above threshold, sorted by score
         return mfAmcList.stream()
-                .map(amc -> new Object[] {amc, fuzzyScore.fuzzyScore(amc.getName(), searchTerms)})
+                .map(amc ->
+                        new Object[] {amc, amc.getName() != null ? fuzzyScore.fuzzyScore(amc.getName(), searchTerms) : 0
+                        })
                 .filter(pair -> (int) pair[1] > 20) // Filter out low-quality matches (score ≤20)
                 .sorted(Comparator.comparingInt(pair -> -1 * (int) pair[1])) // Sort by score desc
                 .map(pair -> (MfAmcEntity) pair[0])
@@ -115,7 +117,8 @@ class MfAmcService {
         List<MfAmcEntity> mfAmcList = mfAmcCacheService.findAllAmcs();
         FuzzyScore fuzzyScore = new FuzzyScore(Locale.ENGLISH);
         return mfAmcList.stream()
-                .max(Comparator.comparingInt(entry -> fuzzyScore.fuzzyScore(amcName, entry.getName())))
+                .max(Comparator.comparingInt(
+                        entry -> entry.getName() != null ? fuzzyScore.fuzzyScore(amcName, entry.getName()) : 0))
                 .orElse(null);
     }
 

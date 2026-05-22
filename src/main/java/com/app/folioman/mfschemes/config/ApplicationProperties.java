@@ -13,6 +13,7 @@ import org.springframework.validation.annotation.Validated;
 @Configuration(proxyBeanMethods = false)
 @ConfigurationProperties(prefix = "app")
 @Validated
+@SuppressWarnings("NullAway.Init")
 public class ApplicationProperties {
 
     @Valid

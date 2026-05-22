@@ -8,6 +8,7 @@ import com.app.folioman.portfolio.util.XirrCalculator;
 import com.app.folioman.shared.LocalDateUtility;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
@@ -65,6 +66,18 @@ class PortfolioValueUpdateService {
         this.userTransactionDetailsRepository = userTransactionDetailsRepository;
     }
 
+    private @Nullable Long getAmfiCodeSafe(UserTransactionDetailsEntity transaction) {
+        return transaction.getUserSchemeDetails() != null
+                ? transaction.getUserSchemeDetails().getAmfi()
+                : null;
+    }
+
+    private @Nullable Long getSchemeIdSafe(UserTransactionDetailsEntity transaction) {
+        return transaction.getUserSchemeDetails() != null
+                ? transaction.getUserSchemeDetails().getId()
+                : null;
+    }
+
     @Async
     public void updatePortfolioValue(UserCasDetailsEntity userCasDetailsEntity) {
         LOGGER.info("updatePortfolioValue called for CAS ID: {}", userCasDetailsEntity.getId());
@@ -77,11 +90,11 @@ class PortfolioValueUpdateService {
             LocalDate fromDate1 = today;
             if (!CollectionUtils.isEmpty(userFolioDetailsEntity.getSchemes())) {
                 fromDate1 = userFolioDetailsEntity.getSchemes().stream()
-                        .map(userSchemeDetailsEntity -> userSchemeDetailsEntity
-                                .getCreatedAt()
+                        .map(userSchemeDetailsEntity -> Objects.requireNonNullElse(
+                                        userSchemeDetailsEntity.getCreatedAt(), Instant.now())
                                 .atZone(ZoneId.systemDefault())
                                 .toLocalDate())
-                        .min(LocalDate::compareTo)
+                        .min(Comparator.naturalOrder())
                         .orElse(today);
             }
 
@@ -110,9 +123,11 @@ class PortfolioValueUpdateService {
 
                     LocalDate schemeFromDate = schemeListFromDB.contains(
                                     folioSchemeEntity.getUserSchemeDetails().getId())
-                            ? folioSchemeEntity
-                                    .getUserSchemeDetails()
-                                    .getCreatedAt()
+                            ? Objects.requireNonNullElse(
+                                            folioSchemeEntity
+                                                    .getUserSchemeDetails()
+                                                    .getCreatedAt(),
+                                            Instant.now())
                                     .atZone(ZoneOffset.UTC)
                                     .toLocalDate()
                             : startDateMin;
@@ -184,19 +199,20 @@ class PortfolioValueUpdateService {
         Map<Long, FolioSchemeEntity> folioSchemeUpdates = new HashMap<>();
 
         for (Map<String, Object> schemeData : schemeResults) {
-            Long schemeId = (Long) schemeData.get("schemeId");
-            LocalDate fromDate = (LocalDate) schemeData.get("fromDate");
-            LocalDate toDate = (LocalDate) schemeData.get("toDate");
+            Long schemeId = Objects.requireNonNull((Long) schemeData.get("schemeId"));
+            LocalDate fromDate = Objects.requireNonNull((LocalDate) schemeData.get("fromDate"));
+            LocalDate toDate = Objects.requireNonNull((LocalDate) schemeData.get("toDate"));
 
             @SuppressWarnings("unchecked")
             List<ProcessedTransaction> processedTransactions =
                     (List<ProcessedTransaction>) schemeData.get("processedTransactions");
 
             @SuppressWarnings("unchecked")
-            Map<LocalDate, BigDecimal> navsByDate = (Map<LocalDate, BigDecimal>) schemeData.get("navsByDate");
+            Map<LocalDate, BigDecimal> navsByDate =
+                    Objects.requireNonNull((Map<LocalDate, BigDecimal>) schemeData.get("navsByDate"));
 
             UserSchemeDetailsEntity userSchemeDetailsEntity =
-                    (UserSchemeDetailsEntity) schemeData.get("userSchemeDetailsEntity");
+                    Objects.requireNonNull((UserSchemeDetailsEntity) schemeData.get("userSchemeDetailsEntity"));
 
             if (processedTransactions == null || processedTransactions.isEmpty()) {
                 LOGGER.warn("No processed transactions for scheme {}, skipping", schemeId);
@@ -427,7 +443,10 @@ class PortfolioValueUpdateService {
         for (UserTransactionDetailsEntity txn : userTransactionDetailsList) {
             fifo.addTransaction(txn);
             processedTransactions.add(new ProcessedTransaction(
-                    txn.getTransactionDate(), fifo.getInvested(), fifo.getAverage(), fifo.getBalance()));
+                    Objects.requireNonNull(txn.getTransactionDate()),
+                    fifo.getInvested(),
+                    fifo.getAverage(),
+                    fifo.getBalance()));
         }
         return processedTransactions;
     }
@@ -480,7 +499,7 @@ class PortfolioValueUpdateService {
         }
 
         // Prepare data and date range
-        LocalDate startDate = transactionList.getFirst().getTransactionDate();
+        LocalDate startDate = Objects.requireNonNull(transactionList.getFirst().getTransactionDate());
         LocalDate endDate = LocalDateUtility.getYesterday();
 
         LOGGER.debug(
@@ -546,7 +565,7 @@ class PortfolioValueUpdateService {
 
     private Set<Long> extractSchemeCodes(List<UserTransactionDetailsEntity> transactionList) {
         return transactionList.stream()
-                .map(transaction -> transaction.getUserSchemeDetails().getAmfi())
+                .map(this::getAmfiCodeSafe)
                 .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
     }
@@ -626,7 +645,7 @@ class PortfolioValueUpdateService {
 
     private void processTransaction(UserTransactionDetailsEntity transaction, PortfolioDataContainer dataContainer) {
 
-        Long amfiCode = transaction.getUserSchemeDetails().getAmfi();
+        Long amfiCode = getAmfiCodeSafe(transaction);
         BigDecimal transactionAmount = getTransactionAmount(transaction);
         Double transactionUnits = getTransactionUnits(transaction);
 
@@ -669,11 +688,13 @@ class PortfolioValueUpdateService {
             // Add to scheme-specific cash flows (merge values for same date)
             dataContainer
                     .cashFlowsByScheme()
-                    .get(amfiCode)
-                    .merge(transaction.getTransactionDate(), cashFlowAmount, BigDecimal::add);
+                    .computeIfAbsent(amfiCode, k -> new HashMap<>())
+                    .merge(Objects.requireNonNull(transaction.getTransactionDate()), cashFlowAmount, BigDecimal::add);
 
             // Also add to the all cash flows map for overall XIRR (merge values for same date)
-            dataContainer.allCashFlows().merge(transaction.getTransactionDate(), cashFlowAmount, BigDecimal::add);
+            dataContainer
+                    .allCashFlows()
+                    .merge(Objects.requireNonNull(transaction.getTransactionDate()), cashFlowAmount, BigDecimal::add);
         }
     }
 
@@ -796,8 +817,12 @@ class PortfolioValueUpdateService {
         Set<Long> processedSchemeIds = new HashSet<>();
 
         for (UserTransactionDetailsEntity transaction : transactionList) {
-            Long schemeCode = transaction.getUserSchemeDetails().getAmfi();
-            Long schemeDetailId = transaction.getUserSchemeDetails().getId();
+            Long schemeCode = getAmfiCodeSafe(transaction);
+            Long schemeDetailId = getSchemeIdSafe(transaction);
+
+            if (schemeCode == null || schemeDetailId == null) {
+                continue;
+            }
 
             // Skip if already processed
             if (processedSchemeIds.contains(schemeDetailId)) {
@@ -807,7 +832,11 @@ class PortfolioValueUpdateService {
 
             // Calculate and save XIRR for this scheme
             calculateAndSaveSchemeXirr(
-                    schemeCode, schemeDetailId, dataContainer, endDate, transaction.getUserSchemeDetails());
+                    schemeCode,
+                    schemeDetailId,
+                    dataContainer,
+                    endDate,
+                    Objects.requireNonNull(transaction.getUserSchemeDetails()));
         }
     }
 

@@ -93,6 +93,7 @@ class MfHistoricalNavService {
                 if (tokenize.length == 1) {
                     String tempVal = lineValue;
                     lineValue = readNextNonEmptyLine(br);
+                    if (lineValue == null) break;
                     tokenize = lineValue.split(SchemeConstants.NAV_SEPARATOR);
                     if (tokenize.length == 1) {
                         schemeType = tempVal;
@@ -116,7 +117,7 @@ class MfHistoricalNavService {
         return oldSchemeId;
     }
 
-    private String handleMultipleTokenLine(
+    private @Nullable String handleMultipleTokenLine(
             @Nullable String isin,
             boolean persistSchemeInfo,
             String[] tokenize,
@@ -140,7 +141,7 @@ class MfHistoricalNavService {
         return oldSchemeId;
     }
 
-    private String readNextNonEmptyLine(BufferedReader br) throws IOException {
+    private @Nullable String readNextNonEmptyLine(BufferedReader br) throws IOException {
         String lineValue = br.readLine();
         while (lineValue != null && !StringUtils.hasText(lineValue)) {
             lineValue = br.readLine();
