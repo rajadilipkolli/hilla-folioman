@@ -6,6 +6,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.UUID;
 import java.util.function.Function;
 import javax.crypto.SecretKey;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -13,6 +14,10 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class JwtService {
+
+    private static final String TOKEN_TYPE_CLAIM = "token_type";
+    private static final String ACCESS_TOKEN_TYPE = "access";
+    private static final String REFRESH_TOKEN_TYPE = "refresh";
 
     private final JwtProperties jwtProperties;
 
@@ -42,16 +47,18 @@ public class JwtService {
     }
 
     public String generateAccessToken(UserDetails userDetails) {
-        return generateToken(userDetails, jwtProperties.getAccessTokenExpiry());
+        return generateToken(userDetails, jwtProperties.getAccessTokenExpiry(), ACCESS_TOKEN_TYPE);
     }
 
     public String generateRefreshToken(UserDetails userDetails) {
-        return generateToken(userDetails, jwtProperties.getRefreshTokenExpiry());
+        return generateToken(userDetails, jwtProperties.getRefreshTokenExpiry(), REFRESH_TOKEN_TYPE);
     }
 
-    private String generateToken(UserDetails userDetails, long expirationMs) {
+    private String generateToken(UserDetails userDetails, long expirationMs, String tokenType) {
         return Jwts.builder()
                 .subject(userDetails.getUsername())
+                .id(UUID.randomUUID().toString())
+                .claim(TOKEN_TYPE_CLAIM, tokenType)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + expirationMs))
                 .signWith(getSignInKey())

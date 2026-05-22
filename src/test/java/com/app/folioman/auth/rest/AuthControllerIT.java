@@ -1,7 +1,9 @@
 package com.app.folioman.auth.rest;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -10,6 +12,7 @@ import com.app.folioman.auth.domain.UserEntity;
 import com.app.folioman.auth.domain.UserRepository;
 import com.app.folioman.auth.rest.dto.LoginRequest;
 import com.app.folioman.shared.AbstractIntegrationTest;
+import jakarta.servlet.http.Cookie;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -52,11 +55,14 @@ class AuthControllerIT extends AbstractIntegrationTest {
         loginRequest.setPassword("password123");
 
         mockMvc.perform(post("/api/auth/login")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken").exists())
-                .andExpect(jsonPath("$.refreshToken").exists());
+                .andExpect(jsonPath("$.refreshToken").doesNotExist())
+                .andExpect(cookie().exists("refreshToken"))
+                .andExpect(cookie().httpOnly("refreshToken", true));
     }
 
     @Test
@@ -66,6 +72,7 @@ class AuthControllerIT extends AbstractIntegrationTest {
         loginRequest.setPassword("wrongpassword");
 
         mockMvc.perform(post("/api/auth/login")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isUnauthorized());
@@ -78,21 +85,20 @@ class AuthControllerIT extends AbstractIntegrationTest {
         loginRequest.setPassword("password123");
 
         MvcResult result = mockMvc.perform(post("/api/auth/login")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isOk())
                 .andReturn();
 
-        String responseStr = result.getResponse().getContentAsString();
-        Map<?, ?> responseMap = jsonMapper.readValue(responseStr, Map.class);
-        String refreshToken = (String) responseMap.get("refreshToken");
+        String refreshToken = result.getResponse().getCookie("refreshToken").getValue();
 
-        mockMvc.perform(post("/api/auth/refresh")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonMapper.writeValueAsString(Map.of("refreshToken", refreshToken))))
+        mockMvc.perform(post("/api/auth/refresh").with(csrf()).cookie(new Cookie("refreshToken", refreshToken)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.accessToken").exists())
-                .andExpect(jsonPath("$.refreshToken").exists());
+                .andExpect(jsonPath("$.refreshToken").doesNotExist())
+                .andExpect(cookie().exists("refreshToken"))
+                .andExpect(cookie().httpOnly("refreshToken", true));
     }
 
     @Test
@@ -102,25 +108,20 @@ class AuthControllerIT extends AbstractIntegrationTest {
         loginRequest.setPassword("password123");
 
         MvcResult result = mockMvc.perform(post("/api/auth/login")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isOk())
                 .andReturn();
 
-        String responseStr = result.getResponse().getContentAsString();
-        Map<?, ?> responseMap = jsonMapper.readValue(responseStr, Map.class);
-        String refreshToken = (String) responseMap.get("refreshToken");
+        String refreshToken = result.getResponse().getCookie("refreshToken").getValue();
 
         // Logout
-        mockMvc.perform(post("/api/auth/logout")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonMapper.writeValueAsString(Map.of("refreshToken", refreshToken))))
+        mockMvc.perform(post("/api/auth/logout").with(csrf()).cookie(new Cookie("refreshToken", refreshToken)))
                 .andExpect(status().isOk());
 
         // Refresh with revoked token should fail
-        mockMvc.perform(post("/api/auth/refresh")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(jsonMapper.writeValueAsString(Map.of("refreshToken", refreshToken))))
+        mockMvc.perform(post("/api/auth/refresh").with(csrf()).cookie(new Cookie("refreshToken", refreshToken)))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -136,6 +137,7 @@ class AuthControllerIT extends AbstractIntegrationTest {
         loginRequest.setPassword("password123");
 
         MvcResult result = mockMvc.perform(post("/api/auth/login")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isOk())
@@ -158,6 +160,7 @@ class AuthControllerIT extends AbstractIntegrationTest {
         // 5 failed attempts
         for (int i = 0; i < 5; i++) {
             mockMvc.perform(post("/api/auth/login")
+                            .with(csrf())
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(jsonMapper.writeValueAsString(loginRequest)))
                     .andExpect(status().isUnauthorized());
@@ -166,6 +169,7 @@ class AuthControllerIT extends AbstractIntegrationTest {
         // 6th attempt with correct password should still fail due to lock
         loginRequest.setPassword("password123");
         mockMvc.perform(post("/api/auth/login")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isUnauthorized())

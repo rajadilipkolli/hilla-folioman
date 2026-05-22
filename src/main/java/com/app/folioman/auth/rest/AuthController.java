@@ -105,7 +105,7 @@ public class AuthController {
 
             return ResponseEntity.ok()
                     .header(HttpHeaders.SET_COOKIE, cookie.toString())
-                    .body(new AuthResponse(accessToken, refreshToken, jwtProperties.getAccessTokenExpiry()));
+                    .body(new AuthResponse(accessToken, jwtProperties.getAccessTokenExpiry()));
 
         } catch (BadCredentialsException e) {
             loginAttemptService.recordFailedAttempt(username);
@@ -124,11 +124,8 @@ public class AuthController {
 
     @PostMapping("/refresh")
     public ResponseEntity<?> refreshToken(
-            @CookieValue(name = "refreshToken", required = false) String cookieToken,
-            @RequestBody(required = false) Map<String, String> request,
-            HttpServletResponse response) {
-        String refreshToken =
-                cookieToken != null ? cookieToken : (request != null ? request.get("refreshToken") : null);
+            @CookieValue(name = "refreshToken", required = false) String cookieToken, HttpServletResponse response) {
+        String refreshToken = cookieToken;
         if (refreshToken == null) {
             ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Refresh token is required");
             pd.setType(URI.create("urn:folioman:auth:missing-refresh-token"));
@@ -160,8 +157,7 @@ public class AuthController {
 
                             return ResponseEntity.ok()
                                     .header(HttpHeaders.SET_COOKIE, newCookie.toString())
-                                    .body(new AuthResponse(
-                                            newAccessToken, newRefreshToken, jwtProperties.getAccessTokenExpiry()));
+                                    .body(new AuthResponse(newAccessToken, jwtProperties.getAccessTokenExpiry()));
                         }
                     }
                     ProblemDetail pd = ProblemDetail.forStatusAndDetail(
@@ -176,13 +172,9 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(
-            @CookieValue(name = "refreshToken", required = false) String cookieToken,
-            @RequestBody(required = false) Map<String, String> request) {
-        String refreshToken =
-                cookieToken != null ? cookieToken : (request != null ? request.get("refreshToken") : null);
-        if (refreshToken != null) {
-            refreshTokenService.revokeToken(refreshToken);
+    public ResponseEntity<?> logout(@CookieValue(name = "refreshToken", required = false) String cookieToken) {
+        if (cookieToken != null) {
+            refreshTokenService.revokeToken(cookieToken);
         }
 
         ResponseCookie deleteCookie = ResponseCookie.from("refreshToken", "")

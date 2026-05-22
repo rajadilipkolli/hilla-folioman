@@ -26,12 +26,16 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         String[] roles = userEntity.getRoles().stream().map(RoleEntity::getName).toArray(String[]::new);
 
+        if (roles.length == 0) {
+            throw new UsernameNotFoundException("User has no roles assigned: " + username);
+        }
+
         return User.builder()
                 .username(userEntity.getUsername())
                 .password(userEntity.getPasswordHash())
                 .disabled(!userEntity.isEnabled())
                 .accountLocked(userEntity.isAccountLocked())
-                .roles(roles.length > 0 ? roles : new String[] {"USER"})
+                .roles(roles)
                 .build();
     }
 }

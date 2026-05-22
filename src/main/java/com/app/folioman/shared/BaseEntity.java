@@ -50,7 +50,7 @@ public abstract class BaseEntity implements Serializable {
         return version;
     }
 
-    public void setVersion(Short version) {
+    public void setVersion(@Nullable Short version) {
         this.version = version;
     }
 }

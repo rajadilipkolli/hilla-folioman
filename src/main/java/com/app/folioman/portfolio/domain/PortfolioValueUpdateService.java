@@ -542,8 +542,9 @@ class PortfolioValueUpdateService {
                 for (UserPortfolioValueEntity upv : portfolioValueEntityList) {
                     UserPortfolioValueEntity found = existingByDate.get(upv.getDate());
                     if (found != null) {
-                        // Reuse the existing ID so JPA will perform an update instead of insert
+                        // Reuse the existing ID and version so JPA will perform an update instead of insert
                         upv.setId(found.getId());
+                        upv.setVersion(found.getVersion());
                     }
                 }
             }

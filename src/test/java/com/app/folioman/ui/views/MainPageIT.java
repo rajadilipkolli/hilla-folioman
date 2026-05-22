@@ -2,6 +2,8 @@ package com.app.folioman.ui.views;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.app.folioman.auth.domain.RoleEntity;
+import com.app.folioman.auth.domain.RoleRepository;
 import com.app.folioman.auth.domain.UserRepository;
 import com.app.folioman.shared.AbstractIntegrationTest;
 import java.time.Duration;
@@ -49,6 +51,9 @@ class MainPageIT extends AbstractIntegrationTest {
     private UserRepository userRepository;
 
     @Autowired
+    private RoleRepository roleRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Test
@@ -62,6 +67,10 @@ class MainPageIT extends AbstractIntegrationTest {
             user.setEnabled(true);
             user.setAccountLocked(false);
             user.setFailedLoginAttempts(0);
+            RoleEntity userRole = roleRepository
+                    .findByName("USER")
+                    .orElseThrow(() -> new IllegalStateException("Required role USER not found"));
+            user.getRoles().add(userRole);
             userRepository.save(user);
         }
 
@@ -77,10 +86,14 @@ class MainPageIT extends AbstractIntegrationTest {
         JavascriptExecutor js = (JavascriptExecutor) driver;
 
         WebElement usernameField = driver.findElement(By.tagName("vaadin-text-field"));
-        usernameField.sendKeys("testuser");
+        js.executeScript(
+                "arguments[0].value = 'testuser'; arguments[0].dispatchEvent(new Event('input', { bubbles: true })); arguments[0].dispatchEvent(new Event('change', { bubbles: true }));",
+                usernameField);
 
         WebElement passwordField = driver.findElement(By.tagName("vaadin-password-field"));
-        passwordField.sendKeys("password123");
+        js.executeScript(
+                "arguments[0].value = 'password123'; arguments[0].dispatchEvent(new Event('input', { bubbles: true })); arguments[0].dispatchEvent(new Event('change', { bubbles: true }));",
+                passwordField);
 
         WebElement loginButton = driver.findElement(By.tagName("vaadin-button"));
         js.executeScript("arguments[0].click();", loginButton);

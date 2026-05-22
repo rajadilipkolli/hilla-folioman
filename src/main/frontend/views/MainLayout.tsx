@@ -18,17 +18,21 @@ export default function MainLayout() {
 
   const handleLogout = async () => {
     try {
-      await fetch('/api/auth/logout', {
+      const response = await fetch('/api/auth/logout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
       });
+      if (response.ok) {
+        localStorage.removeItem('accessToken');
+        logout();
+        navigate('/login');
+      } else {
+        console.error('Logout failed with status', response.status);
+      }
     } catch (e) {
-      console.error('Logout failed', e);
+      console.error('Logout network request failed', e);
     }
-    localStorage.removeItem('accessToken');
-    logout();
-    navigate('/login');
   };
 
   return (
