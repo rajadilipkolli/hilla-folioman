@@ -7,6 +7,7 @@ import com.app.folioman.portfolio.rest.dtos.UserSchemeDTO;
 import com.app.folioman.portfolio.rest.dtos.UserTransactionDTO;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
+import org.jspecify.annotations.Nullable;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -99,7 +100,7 @@ interface CasDetailsMapper {
     @Mapping(target = "version", ignore = true)
     InvestorInfoEntity mapInvestorInfoDTOToInvestorInfoEntity(InvestorInfoDTO investorInfo);
 
-    default TransactionType map(com.app.folioman.portfolio.rest.dtos.TransactionType type) {
+    default @Nullable TransactionType map(com.app.folioman.portfolio.rest.dtos.TransactionType type) {
         if (type == null) {
             return null;
         }

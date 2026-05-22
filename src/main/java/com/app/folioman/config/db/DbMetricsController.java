@@ -6,6 +6,7 @@ import com.zaxxer.hikari.HikariPoolMXBean;
 import java.util.Map;
 import javax.sql.DataSource;
 import net.ttddyy.dsproxy.support.ProxyDataSource;
+import org.jspecify.annotations.Nullable;
 import org.springframework.jdbc.datasource.LazyConnectionDataSourceProxy;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -53,7 +54,7 @@ public class DbMetricsController {
                 "threadsAwaitingConnection", hikariPoolMXBean.getThreadsAwaitingConnection());
     }
 
-    private static HikariPoolMXBean getHikariPoolMXBean(Object current) {
+    private static @Nullable HikariPoolMXBean getHikariPoolMXBean(@Nullable Object current) {
         HikariDataSource hikariDataSource = null;
         if (current instanceof HikariDataSource) {
             hikariDataSource = (HikariDataSource) current;

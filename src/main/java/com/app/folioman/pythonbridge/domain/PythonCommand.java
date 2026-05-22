@@ -11,7 +11,7 @@ public record PythonCommand(
         List<String> arguments,
         @Nullable String workingDirectory,
         @Nullable Integer timeoutSeconds,
-        @Nullable byte[] inputData) {
+        byte @Nullable [] inputData) {
     public PythonCommand {
         arguments = List.copyOf(arguments);
     }
@@ -68,7 +68,7 @@ public record PythonCommand(
                 this.inputData);
     }
 
-    public PythonCommand withInputData(byte[] inputData) {
+    public PythonCommand withInputData(byte @Nullable [] inputData) {
         return new PythonCommand(
                 this.customExecutable,
                 this.script,

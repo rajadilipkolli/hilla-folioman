@@ -30,6 +30,7 @@ import org.jspecify.annotations.Nullable;
                     name = "uc_userschemedetailsentity",
                     columnNames = {"isin", "user_folio_id"})
         })
+@SuppressWarnings("NullAway.Init")
 class UserSchemeDetailsEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_scheme_details_seq")
@@ -87,7 +88,7 @@ class UserSchemeDetailsEntity extends BaseEntity {
         return this;
     }
 
-    public String getIsin() {
+    public @Nullable String getIsin() {
         return isin;
     }
 
@@ -96,7 +97,7 @@ class UserSchemeDetailsEntity extends BaseEntity {
         return this;
     }
 
-    public String getAdvisor() {
+    public @Nullable String getAdvisor() {
         return advisor;
     }
 
@@ -105,7 +106,7 @@ class UserSchemeDetailsEntity extends BaseEntity {
         return this;
     }
 
-    public String getRtaCode() {
+    public @Nullable String getRtaCode() {
         return rtaCode;
     }
 
@@ -114,7 +115,7 @@ class UserSchemeDetailsEntity extends BaseEntity {
         return this;
     }
 
-    public String getRta() {
+    public @Nullable String getRta() {
         return rta;
     }
 
@@ -123,7 +124,7 @@ class UserSchemeDetailsEntity extends BaseEntity {
         return this;
     }
 
-    public String getType() {
+    public @Nullable String getType() {
         return type;
     }
 
@@ -141,7 +142,7 @@ class UserSchemeDetailsEntity extends BaseEntity {
         return this;
     }
 
-    public String getMyopen() {
+    public @Nullable String getMyopen() {
         return myopen;
     }
 
@@ -150,7 +151,7 @@ class UserSchemeDetailsEntity extends BaseEntity {
         return this;
     }
 
-    public String getClose() {
+    public @Nullable String getClose() {
         return close;
     }
 
@@ -159,7 +160,7 @@ class UserSchemeDetailsEntity extends BaseEntity {
         return this;
     }
 
-    public String getCloseCalculated() {
+    public @Nullable String getCloseCalculated() {
         return closeCalculated;
     }
 

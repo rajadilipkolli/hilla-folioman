@@ -14,9 +14,11 @@ import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import java.util.Objects;
 import org.hibernate.Hibernate;
+import org.jspecify.annotations.Nullable;
 
 @Entity
 @Table(name = "investor_info", schema = "portfolio")
+@SuppressWarnings("NullAway.Init")
 class InvestorInfoEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "investor_info_seq")
@@ -39,7 +41,7 @@ class InvestorInfoEntity extends BaseEntity {
     @OneToOne(fetch = FetchType.LAZY)
     @MapsId
     @JoinColumn(name = "user_cas_details_id")
-    private UserCasDetailsEntity userCasDetailsEntity;
+    private @Nullable UserCasDetailsEntity userCasDetailsEntity;
 
     public Long getId() {
         return id;
@@ -86,11 +88,12 @@ class InvestorInfoEntity extends BaseEntity {
         return this;
     }
 
-    public UserCasDetailsEntity getUserCasDetailsEntity() {
+    public @Nullable UserCasDetailsEntity getUserCasDetailsEntity() {
         return userCasDetailsEntity;
     }
 
-    public InvestorInfoEntity setUserCasDetailsEntity(UserCasDetailsEntity userCasDetailsEntity) {
+    public InvestorInfoEntity setUserCasDetailsEntity(
+            @org.jspecify.annotations.Nullable UserCasDetailsEntity userCasDetailsEntity) {
         this.userCasDetailsEntity = userCasDetailsEntity;
         return this;
     }

@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Utility class for financial calculations related to investments.
@@ -51,7 +52,7 @@ public class XirrCalculator {
 
     // Add null checks to handle invalid inputs
     public static BigDecimal xirr(Map<LocalDate, BigDecimal> valuesPerDate) {
-        if (valuesPerDate == null || valuesPerDate.isEmpty()) {
+        if (valuesPerDate.isEmpty()) {
             throw new IllegalArgumentException("Input map cannot be null or empty");
         }
         if (valuesPerDate.values().stream().allMatch(v -> v.compareTo(BigDecimal.ZERO) >= 0)) {
@@ -123,8 +124,8 @@ public class XirrCalculator {
             BigDecimal[] values = new BigDecimal[2];
 
             // Get values in chronological order
-            values[0] = valuesPerDate.get(dates[0]);
-            values[1] = valuesPerDate.get(dates[1]);
+            values[0] = java.util.Objects.requireNonNull(valuesPerDate.get(dates[0]));
+            values[1] = java.util.Objects.requireNonNull(valuesPerDate.get(dates[1]));
 
             // For very short-term investments (less than 7 days), use direct calculation
             if (days < 7) {
@@ -339,7 +340,7 @@ public class XirrCalculator {
         return new BigDecimal("0.1");
     }
 
-    public static BigDecimal cleanXirr(Map<LocalDate, BigDecimal> valuesPerDate) {
+    public static @Nullable BigDecimal cleanXirr(Map<LocalDate, BigDecimal> valuesPerDate) {
         Map<LocalDate, BigDecimal> cleanedValues = new HashMap<>();
         for (Map.Entry<LocalDate, BigDecimal> entry : valuesPerDate.entrySet()) {
             if (entry.getValue().setScale(2, RoundingMode.HALF_EVEN).compareTo(BigDecimal.ZERO) != 0) {
@@ -360,10 +361,10 @@ public class XirrCalculator {
         }
     }
 
-    public static BigDecimal listsXirr(
+    public static @Nullable BigDecimal listsXirr(
             List<LocalDate> dates,
             List<BigDecimal> values,
-            Function<Map<LocalDate, BigDecimal>, BigDecimal> whichXirr) {
+            Function<Map<LocalDate, BigDecimal>, @Nullable BigDecimal> whichXirr) {
         Map<LocalDate, BigDecimal> valuesPerDate = new HashMap<>();
         for (int i = 0; i < dates.size(); i++) {
             valuesPerDate.merge(dates.get(i), values.get(i), BigDecimal::add);
@@ -380,7 +381,8 @@ public class XirrCalculator {
      * @param days The number of days elapsed
      * @return The CAGR as a BigDecimal, or null if inputs are invalid
      */
-    public static BigDecimal cagr(BigDecimal invested, BigDecimal currentValue, long days) {
+    public static @Nullable BigDecimal cagr(
+            @Nullable BigDecimal invested, @Nullable BigDecimal currentValue, long days) {
         if (invested == null || currentValue == null || invested.compareTo(BigDecimal.ZERO) == 0 || days <= 0) {
             return null;
         }

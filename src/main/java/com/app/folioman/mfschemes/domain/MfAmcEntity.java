@@ -22,6 +22,7 @@ import org.jspecify.annotations.Nullable;
         schema = "mfschemes",
         indexes = {@Index(name = "idx_mf_amc_name_vector", columnList = "name_vector")})
 @Entity
+@SuppressWarnings("NullAway.Init")
 class MfAmcEntity extends BaseEntity {
 
     @Serial
@@ -62,7 +63,7 @@ class MfAmcEntity extends BaseEntity {
         return this;
     }
 
-    public String getDescription() {
+    public @Nullable String getDescription() {
         return description;
     }
 

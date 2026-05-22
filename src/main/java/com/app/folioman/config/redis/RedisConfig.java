@@ -121,7 +121,7 @@ class RedisConfig implements CachingConfigurer {
             }
 
             private void logCacheError(
-                    String operation, Cache cache, Object key, @Nullable Object value, Exception exception) {
+                    String operation, Cache cache, @Nullable Object key, @Nullable Object value, Exception exception) {
                 String cacheName = cache != null ? cache.getName() : "unknown";
                 String keyString = key != null ? key.toString() : "null";
 

@@ -27,6 +27,7 @@ import org.jspecify.annotations.Nullable;
                     columnNames = {"nav", "nav_date", "mf_scheme_id"})
         })
 @Entity
+@SuppressWarnings("NullAway.Init")
 class MFSchemeNavEntity extends BaseEntity {
 
     @Id
@@ -93,6 +94,8 @@ class MFSchemeNavEntity extends BaseEntity {
         if (thisEffectiveClass != oEffectiveClass) return false;
         MFSchemeNavEntity that = (MFSchemeNavEntity) o;
         return Objects.equals(getNav(), that.getNav())
+                && getMfFundSchemeEntity() != null
+                && that.getMfFundSchemeEntity() != null
                 && Objects.equals(
                         getMfFundSchemeEntity().getAmfiCode(),
                         that.getMfFundSchemeEntity().getAmfiCode())

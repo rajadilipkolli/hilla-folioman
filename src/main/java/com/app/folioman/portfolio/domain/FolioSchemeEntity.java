@@ -16,6 +16,7 @@ import org.jspecify.annotations.Nullable;
 
 @Entity
 @Table(name = "folio_scheme", schema = "portfolio")
+@SuppressWarnings("NullAway.Init")
 class FolioSchemeEntity extends BaseEntity {
 
     @Id
@@ -49,7 +50,7 @@ class FolioSchemeEntity extends BaseEntity {
         return this;
     }
 
-    public BigDecimal getValuation() {
+    public @Nullable BigDecimal getValuation() {
         return valuation;
     }
 
@@ -58,7 +59,7 @@ class FolioSchemeEntity extends BaseEntity {
         return this;
     }
 
-    public BigDecimal getXirr() {
+    public @Nullable BigDecimal getXirr() {
         return xirr;
     }
 
@@ -67,7 +68,7 @@ class FolioSchemeEntity extends BaseEntity {
         return this;
     }
 
-    public LocalDate getValuationDate() {
+    public @Nullable LocalDate getValuationDate() {
         return valuationDate;
     }
 

@@ -22,6 +22,7 @@ import org.jspecify.annotations.Nullable;
 
 @Table(name = "mf_fund_scheme", schema = "mfschemes")
 @Entity
+@SuppressWarnings("NullAway.Init")
 class MfFundSchemeEntity extends BaseEntity {
     @Serial
     private static final long serialVersionUID = 1L;
@@ -37,7 +38,7 @@ class MfFundSchemeEntity extends BaseEntity {
     private String rta;
     private String plan;
     private String rtaCode;
-    private String amcCode;
+    private @Nullable String amcCode;
 
     @Column(unique = true)
     private Long amfiCode;
@@ -110,7 +111,7 @@ class MfFundSchemeEntity extends BaseEntity {
         return this;
     }
 
-    public String getAmcCode() {
+    public @Nullable String getAmcCode() {
         return amcCode;
     }
 

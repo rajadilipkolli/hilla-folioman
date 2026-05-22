@@ -24,6 +24,7 @@ import org.jspecify.annotations.Nullable;
         name = "user_transaction_details",
         schema = "portfolio",
         indexes = {@Index(name = "user_details_idx_type_transaction_dat", columnList = "transaction_date, type")})
+@SuppressWarnings("NullAway.Init")
 class UserTransactionDetailsEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_transaction_details_seq")
@@ -42,7 +43,7 @@ class UserTransactionDetailsEntity extends BaseEntity {
     @Column(name = "type", nullable = false)
     private TransactionType type;
 
-    private String dividendRate;
+    private @Nullable String dividendRate;
 
     @ManyToOne
     @JoinColumn(name = "user_scheme_detail_id")
@@ -57,7 +58,7 @@ class UserTransactionDetailsEntity extends BaseEntity {
         return this;
     }
 
-    public LocalDate getTransactionDate() {
+    public @Nullable LocalDate getTransactionDate() {
         return transactionDate;
     }
 
@@ -66,7 +67,7 @@ class UserTransactionDetailsEntity extends BaseEntity {
         return this;
     }
 
-    public String getDescription() {
+    public @Nullable String getDescription() {
         return description;
     }
 
@@ -75,7 +76,7 @@ class UserTransactionDetailsEntity extends BaseEntity {
         return this;
     }
 
-    public BigDecimal getAmount() {
+    public @Nullable BigDecimal getAmount() {
         return amount;
     }
 
@@ -120,7 +121,7 @@ class UserTransactionDetailsEntity extends BaseEntity {
         return this;
     }
 
-    public String getDividendRate() {
+    public @Nullable String getDividendRate() {
         return dividendRate;
     }
 

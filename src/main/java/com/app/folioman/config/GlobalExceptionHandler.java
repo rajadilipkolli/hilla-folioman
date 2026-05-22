@@ -8,6 +8,7 @@ import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -46,8 +47,9 @@ class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(SchemeNotFoundException.class)
     ProblemDetail onException(SchemeNotFoundException schemeNotFoundException) {
-        ProblemDetail problemDetail =
-                ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, schemeNotFoundException.getMessage());
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.NOT_FOUND,
+                Objects.requireNonNullElse(schemeNotFoundException.getMessage(), "Unknown error"));
         problemDetail.setTitle("Scheme NotFound");
         problemDetail.setType(URI.create("https://api.hilla-folioman.com/errors/scheme-not-found"));
         return problemDetail;
@@ -55,8 +57,8 @@ class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(NavNotFoundException.class)
     ProblemDetail onException(NavNotFoundException navNotFoundException) {
-        ProblemDetail problemDetail =
-                ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, navNotFoundException.getMessage());
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.NOT_FOUND, Objects.requireNonNullElse(navNotFoundException.getMessage(), "Unknown error"));
         problemDetail.setTitle("NAV Not Found");
         problemDetail.setType(URI.create("https://api.hilla-folioman.com/errors/nav-not-found"));
         return problemDetail;
@@ -64,8 +66,9 @@ class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(ConstraintViolationException.class)
     ProblemDetail onException(ConstraintViolationException constraintViolationException) {
-        ProblemDetail problemDetail =
-                ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, constraintViolationException.getMessage());
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.BAD_REQUEST,
+                Objects.requireNonNullElse(constraintViolationException.getMessage(), "Unknown error"));
         problemDetail.setTitle("Constraint Violation");
         problemDetail.setType(URI.create("https://api.hilla-folioman.com/errors/validation-error"));
         return problemDetail;
@@ -81,5 +84,6 @@ class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return problemDetail;
     }
 
-    record ApiValidationError(String object, String field, Object rejectedValue, String message) {}
+    record ApiValidationError(
+            String object, String field, @Nullable Object rejectedValue, String message) {}
 }

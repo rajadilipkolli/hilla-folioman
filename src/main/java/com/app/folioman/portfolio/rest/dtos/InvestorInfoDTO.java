@@ -2,5 +2,10 @@
 package com.app.folioman.portfolio.rest.dtos;
 
 import java.io.Serializable;
+import org.jspecify.annotations.Nullable;
 
-public record InvestorInfoDTO(String email, String name, String mobile, String address) implements Serializable {}
+public record InvestorInfoDTO(
+        @Nullable String email,
+        String name,
+        @Nullable String mobile,
+        @Nullable String address) implements Serializable {}

@@ -6,7 +6,8 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
 @Validated
-@ConfigurationProperties(prefix = "app.nav.mfapi")
+@ConfigurationProperties(prefix = "application.nav.mfapi")
+@SuppressWarnings("NullAway.Init")
 public class MfApiProperties {
 
     @NotBlank(message = "Data URL must not be blank")

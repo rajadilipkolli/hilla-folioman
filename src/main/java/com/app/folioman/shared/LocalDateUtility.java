@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
+import org.jspecify.annotations.Nullable;
 
 public class LocalDateUtility {
 
@@ -37,7 +38,7 @@ public class LocalDateUtility {
         return adjustedDate;
     }
 
-    public static LocalDate getAdjustedDateOrDefault(LocalDate asOfDate) {
+    public static LocalDate getAdjustedDateOrDefault(@Nullable LocalDate asOfDate) {
         return asOfDate == null ? getAdjustedDate() : getAdjustedDate(asOfDate);
     }
 

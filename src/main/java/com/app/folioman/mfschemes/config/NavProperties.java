@@ -1,6 +1,7 @@
 package com.app.folioman.mfschemes.config;
 
 import jakarta.validation.Valid;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.validation.annotation.Validated;
 
@@ -8,6 +9,8 @@ import org.springframework.validation.annotation.Validated;
  * Configuration properties for NAV (Net Asset Value) related settings.
  */
 @Validated
+@ConfigurationProperties(prefix = "application.nav")
+@SuppressWarnings("NullAway.Init")
 public class NavProperties {
 
     @Valid

@@ -98,11 +98,15 @@ public class UserDetailService {
 
         long userTransactionFromReqCount = portfolioServiceHelper.countTransactionsByUserFolioDTOList(casDTO.folios());
         Long userTransactionFromDBCount = userTransactionDetailsService.findAllTransactionsByEmailNameAndPeriod(
-                casDTO.investorInfo().name(), casDTO.investorInfo().email(), from, to);
+                java.util.Objects.requireNonNull(casDTO.investorInfo().name()),
+                java.util.Objects.requireNonNull(casDTO.investorInfo().email()),
+                from,
+                to);
 
         UserCasDetailsEntity userCasDetailsEntity = userCASDetailsService
                 .findByInvestorEmailAndName(
-                        casDTO.investorInfo().email(), casDTO.investorInfo().name())
+                        java.util.Objects.requireNonNull(casDTO.investorInfo().email()),
+                        java.util.Objects.requireNonNull(casDTO.investorInfo().name()))
                 .orElseThrow(() -> new IllegalStateException("User should exist"));
 
         if (userTransactionFromReqCount == userTransactionFromDBCount) {
@@ -441,7 +445,7 @@ public class UserDetailService {
     private boolean validateCasDTO(CasDTO casDTO) {
         String email = casDTO.investorInfo().email();
         String name = casDTO.investorInfo().name();
-        if (email.isEmpty() || name.isEmpty()) {
+        if (email == null || name == null || email.isEmpty() || name.isEmpty()) {
             throw new IllegalArgumentException("Email or Name invalid!");
         }
         if (CollectionUtils.isEmpty(casDTO.folios())) {
@@ -469,8 +473,8 @@ public class UserDetailService {
     }
 
     private record TransactionKey(
-            LocalDate date,
-            String description,
+            @Nullable LocalDate date,
+            @Nullable String description,
             BigDecimal amount,
             TransactionType type,
             @Nullable Double units,
@@ -500,7 +504,7 @@ public class UserDetailService {
         }
     }
 
-    PortfolioResponse getPortfolioByPAN(String panNumber, LocalDate evaluationDate) {
+    PortfolioResponse getPortfolioByPAN(String panNumber, @Nullable LocalDate evaluationDate) {
         List<PortfolioDetailsDTO> portfolioDetailsDTOList = portfolioServiceHelper.getPortfolioDetailsByPANAndAsOfDate(
                 panNumber, LocalDateUtility.getAdjustedDateOrDefault(evaluationDate));
         BigDecimal totalPortfolioValue = portfolioDetailsDTOList.stream()

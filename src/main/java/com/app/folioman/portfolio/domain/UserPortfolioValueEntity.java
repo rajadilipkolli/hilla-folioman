@@ -25,6 +25,7 @@ import org.jspecify.annotations.Nullable;
                     name = "uc_userportfoliovalue_date",
                     columnNames = {"date", "user_cas_details_id"})
         })
+@SuppressWarnings("NullAway.Init")
 class UserPortfolioValueEntity extends BaseEntity {
 
     @Id
@@ -91,7 +92,7 @@ class UserPortfolioValueEntity extends BaseEntity {
         return this;
     }
 
-    public BigDecimal getXirr() {
+    public @Nullable BigDecimal getXirr() {
         return xirr;
     }
 
@@ -100,7 +101,7 @@ class UserPortfolioValueEntity extends BaseEntity {
         return this;
     }
 
-    public BigDecimal getLiveXirr() {
+    public @Nullable BigDecimal getLiveXirr() {
         return liveXirr;
     }
 

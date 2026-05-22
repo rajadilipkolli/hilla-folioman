@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.serializer.RedisSerializer;
@@ -29,9 +30,9 @@ public class CompressedRedisSerializer<T> implements RedisSerializer<T> {
     }
 
     @Override
-    public byte[] serialize(T value) throws SerializationException {
+    public byte[] serialize(@Nullable T value) throws SerializationException {
         if (value == null) {
-            return null;
+            return new byte[0];
         }
 
         try {
@@ -76,7 +77,7 @@ public class CompressedRedisSerializer<T> implements RedisSerializer<T> {
     }
 
     @Override
-    public T deserialize(byte[] bytes) throws SerializationException {
+    public @Nullable T deserialize(byte @Nullable [] bytes) throws SerializationException {
         // Treat both null and empty payloads as 'no value' and don't call the delegate.
         if (bytes == null || bytes.length == 0) {
             return null;

@@ -26,6 +26,7 @@ import org.jspecify.annotations.Nullable;
         name = "user_folio_details",
         schema = "portfolio",
         indexes = {@Index(name = "user_details_idx_pan_id", columnList = "id, pan")})
+@SuppressWarnings("NullAway.Init")
 class UserFolioDetailsEntity extends BaseEntity {
 
     @Id
@@ -93,7 +94,7 @@ class UserFolioDetailsEntity extends BaseEntity {
         return this;
     }
 
-    public String getKyc() {
+    public @Nullable String getKyc() {
         return kyc;
     }
 
@@ -102,7 +103,7 @@ class UserFolioDetailsEntity extends BaseEntity {
         return this;
     }
 
-    public String getPanKyc() {
+    public @Nullable String getPanKyc() {
         return panKyc;
     }
 

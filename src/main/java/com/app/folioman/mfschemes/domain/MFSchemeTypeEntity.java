@@ -23,6 +23,7 @@ import org.jspecify.annotations.Nullable;
                 @UniqueConstraint(
                         columnNames = {"type", "category", "sub_category"},
                         name = "UK_MF_SCHEME_CATEGORY_MF_SCHEME_TYPE"))
+@SuppressWarnings("NullAway.Init")
 class MFSchemeTypeEntity extends BaseEntity {
 
     @Id
@@ -74,7 +75,7 @@ class MFSchemeTypeEntity extends BaseEntity {
         return this;
     }
 
-    public String getSubCategory() {
+    public @Nullable String getSubCategory() {
         return subCategory;
     }
 

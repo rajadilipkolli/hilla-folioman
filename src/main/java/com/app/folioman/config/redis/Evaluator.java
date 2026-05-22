@@ -20,9 +20,13 @@ class Evaluator {
     String evaluate(Map<String, Object> metrics) {
         validateMetrics(metrics);
 
-        long cacheSize = (long) metrics.get("cacheSize");
-        double hitRate = (double) metrics.get("hitRate");
-        long memoryUsage = (long) metrics.get("memoryUsage");
+        Object cacheSizeObj = metrics.get("cacheSize");
+        Object hitRateObj = metrics.get("hitRate");
+        Object memoryUsageObj = metrics.get("memoryUsage");
+
+        long cacheSize = cacheSizeObj != null ? (long) cacheSizeObj : 0L;
+        double hitRate = hitRateObj != null ? (double) hitRateObj : 0.0;
+        long memoryUsage = memoryUsageObj != null ? (long) memoryUsageObj : 0L;
 
         if (hitRate < LOW_HIT_RATE_THRESHOLD && cacheSize > LARGE_CACHE_SIZE_THRESHOLD) {
             return "REDUCE_CACHE_SIZE";

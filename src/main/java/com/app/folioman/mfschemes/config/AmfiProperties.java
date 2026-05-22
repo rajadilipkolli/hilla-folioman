@@ -18,7 +18,8 @@ import org.springframework.boot.context.properties.NestedConfigurationProperty;
  * @property dataUrl The URL to fetch AMFI data
  * @property scheme Configuration for scheme-related settings
  */
-@ConfigurationProperties(prefix = "app.amfi")
+@ConfigurationProperties(prefix = "application.nav.amfi")
+@SuppressWarnings("NullAway.Init")
 public class AmfiProperties {
 
     @Valid

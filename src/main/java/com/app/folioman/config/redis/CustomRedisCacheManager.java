@@ -1,6 +1,7 @@
 package com.app.folioman.config.redis;
 
 import java.time.Duration;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.cache.RedisCache;
@@ -31,7 +32,7 @@ public class CustomRedisCacheManager extends RedisCacheManager {
     }
 
     @Override
-    protected RedisCache createRedisCache(String name, RedisCacheConfiguration cacheConfig) {
+    protected RedisCache createRedisCache(String name, @Nullable RedisCacheConfiguration cacheConfig) {
         // Configure cache with either provided config or default
         Duration ttl =
                 cacheConfig != null ? cacheConfig.getTtlFunction().getTimeToLive(Object.class, null) : defaultTtl;

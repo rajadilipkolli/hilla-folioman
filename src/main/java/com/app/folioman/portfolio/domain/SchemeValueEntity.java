@@ -15,6 +15,7 @@ import java.time.LocalDate;
 
 @Entity
 @Table(name = "scheme_value", schema = "portfolio")
+@SuppressWarnings("NullAway.Init")
 class SchemeValueEntity extends BaseEntity {
 
     @Id
