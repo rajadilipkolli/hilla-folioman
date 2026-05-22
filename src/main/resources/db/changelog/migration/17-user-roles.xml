@@ -38,7 +38,7 @@
         <addUniqueConstraint tableName="user_roles" schemaName="portfolio" columnNames="user_id, role_id" constraintName="uk_user_roles"/>
 
         <insert tableName="roles" schemaName="portfolio">
-            <column name="id" valueNumeric="1"/>
+            <column name="id" valueComputed="nextval('portfolio.roles_seq')"/>
             <column name="name" value="USER"/>
             <column name="created_at" valueDate="now()"/>
             <column name="version" valueNumeric="0"/>
@@ -48,7 +48,7 @@
             INSERT INTO portfolio.user_roles (user_id, role_id)
             SELECT u.id, r.id
             FROM portfolio.users u
-            CROSS JOIN portfolio.roles r
+                CROSS JOIN portfolio.roles r
             WHERE r.name = 'USER';
         </sql>
 

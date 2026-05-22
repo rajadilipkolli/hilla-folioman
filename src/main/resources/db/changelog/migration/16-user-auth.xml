@@ -42,10 +42,6 @@
             </column>
         </createTable>
 
-        <createIndex tableName="users" schemaName="portfolio" indexName="idx_users_username">
-            <column name="username"/>
-        </createIndex>
-
         <createSequence sequenceName="refresh_tokens_seq" schemaName="portfolio" incrementBy="50" startValue="1"/>
 
         <createTable tableName="refresh_tokens" schemaName="portfolio">

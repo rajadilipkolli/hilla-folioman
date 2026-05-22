@@ -15,10 +15,12 @@ public class UserDataSeeder implements CommandLineRunner {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserDataSeeder.class);
 
     private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
 
-    UserDataSeeder(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    UserDataSeeder(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -35,6 +37,10 @@ public class UserDataSeeder implements CommandLineRunner {
             user.setEnabled(true);
             user.setAccountLocked(false);
             user.setFailedLoginAttempts(0);
+            RoleEntity userRole = roleRepository
+                    .findByName("USER")
+                    .orElseThrow(() -> new IllegalStateException("Required role USER not found"));
+            user.getRoles().add(userRole);
             userRepository.save(user);
         }
     }

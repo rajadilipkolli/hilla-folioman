@@ -1,6 +1,8 @@
 package com.app.folioman.auth.config;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
 
@@ -9,11 +11,14 @@ import org.springframework.validation.annotation.Validated;
 public class JwtProperties {
 
     @NotBlank(message = "JWT secret key cannot be blank")
+    @Size(min = 32, message = "JWT secret key must be at least 32 characters")
     private String secret;
 
-    private long accessTokenExpiry = 1800000;
+    @Positive(message = "Access token expiry must be positive")
+    private Long accessTokenExpiry = 1800000L;
 
-    private long refreshTokenExpiry = 172800000;
+    @Positive(message = "Refresh token expiry must be positive")
+    private Long refreshTokenExpiry = 172800000L;
 
     public String getSecret() {
         return secret;

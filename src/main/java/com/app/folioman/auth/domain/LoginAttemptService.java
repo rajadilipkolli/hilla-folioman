@@ -19,6 +19,17 @@ public class LoginAttemptService {
     @Transactional
     public void recordFailedAttempt(String username) {
         userRepository.findByUsername(username).ifPresent(user -> {
+            if (user.isAccountLocked()
+                    && user.getLockExpiresAt() != null
+                    && user.getLockExpiresAt().isAfter(Instant.now())) {
+                return;
+            }
+
+            if (user.getLockExpiresAt() != null && !user.getLockExpiresAt().isAfter(Instant.now())) {
+                user.setAccountLocked(false);
+                user.setLockExpiresAt(null);
+                user.setFailedLoginAttempts(0);
+            }
             int attempts = user.getFailedLoginAttempts() + 1;
             user.setFailedLoginAttempts(attempts);
 

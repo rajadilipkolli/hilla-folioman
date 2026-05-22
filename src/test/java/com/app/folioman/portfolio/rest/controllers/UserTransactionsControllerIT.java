@@ -3,6 +3,7 @@ package com.app.folioman.portfolio.rest.controllers;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.is;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -342,7 +343,7 @@ class UserTransactionsControllerIT extends AbstractIntegrationTest {
             MockMultipartFile multipartFile = new MockMultipartFile(
                     "file", "test-cas-file.json", MediaType.APPLICATION_JSON_VALUE, fileInputStream);
 
-            mockMvc.perform(multipart("/api/upload-handler").file(multipartFile))
+            mockMvc.perform(multipart("/api/upload-handler").with(csrf()).file(multipartFile))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.newFolios", is(1)))
                     .andExpect(jsonPath("$.newSchemes", is(1)))
