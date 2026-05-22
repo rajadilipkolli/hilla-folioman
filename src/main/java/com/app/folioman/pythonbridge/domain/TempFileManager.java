@@ -13,6 +13,10 @@ public class TempFileManager implements AutoCloseable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TempFileManager.class);
 
+    TempFileManager() {
+        // package-private constructor for internal domain support
+    }
+
     private final List<Path> trackedFiles = new ArrayList<>();
 
     public Path createInputFile(String prefix, String suffix, byte[] content) throws IOException {

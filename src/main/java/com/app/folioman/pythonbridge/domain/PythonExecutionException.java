@@ -11,15 +11,14 @@ public class PythonExecutionException extends RuntimeException {
 
     private final String command;
 
-    public PythonExecutionException(String message, int exitCode, @Nullable String stderr, String command) {
+    PythonExecutionException(String message, int exitCode, @Nullable String stderr, String command) {
         super(message);
         this.exitCode = exitCode;
         this.stderr = stderr;
         this.command = command;
     }
 
-    public PythonExecutionException(
-            String message, Throwable cause, int exitCode, @Nullable String stderr, String command) {
+    PythonExecutionException(String message, Throwable cause, int exitCode, @Nullable String stderr, String command) {
         super(message, cause);
         this.exitCode = exitCode;
         this.stderr = stderr;

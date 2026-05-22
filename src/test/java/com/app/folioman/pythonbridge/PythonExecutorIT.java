@@ -3,7 +3,6 @@ package com.app.folioman.pythonbridge;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-import com.app.folioman.pythonbridge.domain.PythonCommand;
 import com.app.folioman.pythonbridge.domain.PythonExecutionException;
 import com.app.folioman.pythonbridge.domain.PythonResult;
 import com.app.folioman.shared.AbstractIntegrationTest;
@@ -23,8 +22,7 @@ class PythonExecutorIT extends AbstractIntegrationTest {
 
     @Test
     void executePythonVersion() {
-        PythonCommand cmd = PythonCommand.command("--version");
-        PythonResult result = pythonExecutor.execute(cmd);
+        PythonResult result = pythonExecutor.execute(PythonCommands.command("--version"));
 
         assertThat(result.isSuccess()).isTrue();
         assertThat(result.asText()).contains("Python");
@@ -33,9 +31,7 @@ class PythonExecutorIT extends AbstractIntegrationTest {
     @Test
     void executeInlineScriptWithJson() {
         String script = "import json; print(json.dumps({'status': 'ok', 'value': 42}))";
-        PythonCommand cmd = PythonCommand.command("-c", script);
-
-        PythonResult result = pythonExecutor.execute(cmd);
+        PythonResult result = pythonExecutor.execute(PythonCommands.command("-c", script));
         assertThat(result.isSuccess()).isTrue();
 
         Map<String, Object> json = result.asJson(Map.class);
@@ -45,9 +41,7 @@ class PythonExecutorIT extends AbstractIntegrationTest {
 
     @Test
     void executeFailingScript() {
-        PythonCommand cmd = PythonCommand.command("-c", "import sys; sys.exit(1)");
-
-        PythonResult result = pythonExecutor.execute(cmd);
+        PythonResult result = pythonExecutor.execute(PythonCommands.command("-c", "import sys; sys.exit(1)"));
         assertThat(result.isSuccess()).isFalse();
         assertThat(result.exitCode()).isEqualTo(1);
 

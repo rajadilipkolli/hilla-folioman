@@ -1,9 +1,9 @@
 package com.app.folioman.portfolio.domain;
 
 import com.app.folioman.portfolio.rest.dtos.CasDTO;
+import com.app.folioman.pythonbridge.PythonCommands;
 import com.app.folioman.pythonbridge.PythonExecutor;
 import com.app.folioman.pythonbridge.config.PythonBridgeProperties;
-import com.app.folioman.pythonbridge.domain.PythonCommand;
 import com.app.folioman.pythonbridge.domain.PythonResult;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -66,10 +66,11 @@ public class PdfProcessingService {
     private boolean isCasparserAvailable() {
         try {
             PythonResult result = pythonExecutor.execute(
-                    PythonCommand.cli(pythonProperties.casparser().executable(), "--version"));
+                    PythonCommands.cli(pythonProperties.casparser().executable(), "--version"));
             LOGGER.debug("casparser version check output: {}", result.asText());
             return result.isSuccess();
         } catch (Exception e) {
+            LOGGER.debug("casparser availability check failed", e);
             return false;
         }
     }
@@ -105,7 +106,7 @@ public class PdfProcessingService {
 
             // Execute casparser via the centralized Python executor framework
             pythonExecutor
-                    .execute(PythonCommand.cli(
+                    .execute(PythonCommands.cli(
                             pythonProperties.casparser().executable(),
                             tempPdfPath.toString(),
                             "-p",
