@@ -5,8 +5,8 @@ import com.app.folioman.portfolio.domain.PortfolioAPI;
 import com.app.folioman.portfolio.rest.dtos.InvestmentReturnsDTO;
 import com.app.folioman.portfolio.rest.dtos.MonthlyInvestmentResponseDTO;
 import com.app.folioman.portfolio.rest.dtos.YearlyInvestmentResponseDTO;
-import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.Endpoint;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.constraints.Pattern;
 import java.util.List;
 import org.jspecify.annotations.Nullable;
@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 @Endpoint
 @RestController
 @RequestMapping("/api/portfolio")
-@AnonymousAllowed
+@RolesAllowed("USER")
 @Validated
 public class UserTransactionsController {
 

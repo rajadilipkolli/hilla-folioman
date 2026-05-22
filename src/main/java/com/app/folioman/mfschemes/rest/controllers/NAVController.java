@@ -2,8 +2,8 @@ package com.app.folioman.mfschemes.rest.controllers;
 
 import com.app.folioman.mfschemes.MFNavService;
 import com.app.folioman.mfschemes.rest.dtos.MFSchemeDTO;
-import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.Endpoint;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@AnonymousAllowed
+@RolesAllowed("USER")
 @Endpoint
 @RestController
 @RequestMapping("/api/nav")

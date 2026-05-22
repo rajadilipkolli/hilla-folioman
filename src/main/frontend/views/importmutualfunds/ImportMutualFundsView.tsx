@@ -236,8 +236,15 @@ export default function ImportMutualFundsView() {
         const formData = new FormData();
         formData.append('file', jsonFile!);
 
+        const headers: Record<string, string> = {};
+        const token = localStorage.getItem('accessToken');
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
+        }
+
         return await fetch('/api/upload-handler', {
           method: 'POST',
+          headers,
           body: formData,
         });
       },

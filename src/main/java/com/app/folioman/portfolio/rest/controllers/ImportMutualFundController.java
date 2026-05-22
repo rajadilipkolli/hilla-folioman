@@ -3,8 +3,8 @@ package com.app.folioman.portfolio.rest.controllers;
 import com.app.folioman.portfolio.domain.PortfolioAPI;
 import com.app.folioman.portfolio.rest.dtos.PortfolioResponse;
 import com.app.folioman.portfolio.rest.dtos.UploadFileResponse;
-import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.Endpoint;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Pattern;
 import java.io.IOException;
@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-@AnonymousAllowed
+@RolesAllowed("USER")
 @Endpoint
 @RestController
 @Validated
