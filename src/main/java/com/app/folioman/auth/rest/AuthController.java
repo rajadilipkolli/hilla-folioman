@@ -97,7 +97,7 @@ public class AuthController {
 
             ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)
                     .httpOnly(true)
-                    .secure(true)
+                    .secure(request.isSecure() || jwtProperties.isSecureCookies())
                     .path("/api/auth")
                     .maxAge(jwtProperties.getRefreshTokenExpiry() / 1000)
                     .sameSite("Strict")
@@ -124,7 +124,7 @@ public class AuthController {
 
     @PostMapping("/refresh")
     public ResponseEntity<?> refreshToken(
-            @CookieValue(name = "refreshToken", required = false) String cookieToken, HttpServletResponse response) {
+            @CookieValue(name = "refreshToken", required = false) String cookieToken, HttpServletRequest request) {
         String refreshToken = cookieToken;
         if (refreshToken == null) {
             ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Refresh token is required");
@@ -138,18 +138,26 @@ public class AuthController {
                     if (refreshTokenService.isTokenValid(token)) {
                         Optional<UserEntity> userOpt = userRepository.findById(token.getUserId());
                         if (userOpt.isPresent()) {
-                            UserDetails userDetails = userDetailsService.loadUserByUsername(
-                                    userOpt.get().getUsername());
+                            UserEntity user = userOpt.get();
+                            if (!user.isEnabled() || loginAttemptService.isAccountLocked(user.getUsername())) {
+                                refreshTokenService.revokeToken(refreshToken);
+                                ProblemDetail pd = ProblemDetail.forStatusAndDetail(
+                                        HttpStatus.FORBIDDEN, "User account is locked or disabled");
+                                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                                        .body(pd);
+                            }
+
+                            UserDetails userDetails = userDetailsService.loadUserByUsername(user.getUsername());
                             String newAccessToken = jwtService.generateAccessToken(userDetails);
 
                             // Optionally rotate refresh token
                             refreshTokenService.revokeToken(refreshToken);
                             String newRefreshToken = jwtService.generateRefreshToken(userDetails);
-                            refreshTokenService.createRefreshToken(userOpt.get().getId(), newRefreshToken);
+                            refreshTokenService.createRefreshToken(user.getId(), newRefreshToken);
 
                             ResponseCookie newCookie = ResponseCookie.from("refreshToken", newRefreshToken)
                                     .httpOnly(true)
-                                    .secure(true)
+                                    .secure(request.isSecure() || jwtProperties.isSecureCookies())
                                     .path("/api/auth")
                                     .maxAge(jwtProperties.getRefreshTokenExpiry() / 1000)
                                     .sameSite("Strict")
@@ -172,14 +180,15 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(@CookieValue(name = "refreshToken", required = false) String cookieToken) {
+    public ResponseEntity<?> logout(
+            @CookieValue(name = "refreshToken", required = false) String cookieToken, HttpServletRequest request) {
         if (cookieToken != null) {
             refreshTokenService.revokeToken(cookieToken);
         }
 
         ResponseCookie deleteCookie = ResponseCookie.from("refreshToken", "")
                 .httpOnly(true)
-                .secure(true)
+                .secure(request.isSecure() || jwtProperties.isSecureCookies())
                 .path("/api/auth")
                 .maxAge(0)
                 .sameSite("Strict")

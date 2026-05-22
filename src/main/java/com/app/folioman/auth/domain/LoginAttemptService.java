@@ -18,7 +18,7 @@ public class LoginAttemptService {
 
     @Transactional
     public void recordFailedAttempt(String username) {
-        userRepository.findByUsername(username).ifPresent(user -> {
+        userRepository.findByUsernameForUpdate(username).ifPresent(user -> {
             if (user.isAccountLocked()
                     && user.getLockExpiresAt() != null
                     && user.getLockExpiresAt().isAfter(Instant.now())) {
@@ -43,7 +43,7 @@ public class LoginAttemptService {
 
     @Transactional
     public void recordSuccessfulLogin(String username) {
-        userRepository.findByUsername(username).ifPresent(user -> {
+        userRepository.findByUsernameForUpdate(username).ifPresent(user -> {
             user.setFailedLoginAttempts(0);
             user.setAccountLocked(false);
             user.setLockExpiresAt(null);
@@ -54,7 +54,7 @@ public class LoginAttemptService {
     @Transactional
     public boolean isAccountLocked(String username) {
         return userRepository
-                .findByUsername(username)
+                .findByUsernameForUpdate(username)
                 .map(user -> {
                     if (user.isAccountLocked()) {
                         if (user.getLockExpiresAt() != null

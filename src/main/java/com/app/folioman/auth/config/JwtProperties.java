@@ -20,6 +20,8 @@ public class JwtProperties {
     @Positive(message = "Refresh token expiry must be positive")
     private Long refreshTokenExpiry = 172800000L;
 
+    private boolean secureCookies = true;
+
     public String getSecret() {
         return secret;
     }
@@ -42,5 +44,13 @@ public class JwtProperties {
 
     public void setRefreshTokenExpiry(long refreshTokenExpiry) {
         this.refreshTokenExpiry = refreshTokenExpiry;
+    }
+
+    public boolean isSecureCookies() {
+        return secureCookies;
+    }
+
+    public void setSecureCookies(boolean secureCookies) {
+        this.secureCookies = secureCookies;
     }
 }
