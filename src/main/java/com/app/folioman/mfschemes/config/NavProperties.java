@@ -9,7 +9,7 @@ import org.springframework.validation.annotation.Validated;
  * Configuration properties for NAV (Net Asset Value) related settings.
  */
 @Validated
-@ConfigurationProperties(prefix = "application.nav")
+@ConfigurationProperties(prefix = "app.nav")
 @SuppressWarnings("NullAway.Init")
 public class NavProperties {
 

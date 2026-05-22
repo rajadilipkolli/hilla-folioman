@@ -10,7 +10,7 @@ import org.springframework.validation.annotation.Validated;
  * + * This class is used to validate and store URLs for accessing financial scheme data.
  * + */
 @Validated
-@ConfigurationProperties(prefix = "application.bse-star.scheme")
+@ConfigurationProperties(prefix = "app.bsestar.scheme")
 @SuppressWarnings("NullAway.Init")
 public class SchemeProperties {
 

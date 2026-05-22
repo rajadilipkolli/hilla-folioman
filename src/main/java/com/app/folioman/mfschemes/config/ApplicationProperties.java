@@ -11,7 +11,7 @@ import org.springframework.validation.annotation.Validated;
  * Configure using 'app.*' properties in application.properties/yaml.
  */
 @Configuration(proxyBeanMethods = false)
-@ConfigurationProperties(prefix = "application")
+@ConfigurationProperties(prefix = "app")
 @Validated
 @SuppressWarnings("NullAway.Init")
 public class ApplicationProperties {

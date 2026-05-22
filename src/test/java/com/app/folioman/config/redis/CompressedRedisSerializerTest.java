@@ -32,9 +32,9 @@ class CompressedRedisSerializerTest {
     }
 
     @Test
-    void serialize_WithNullValue_ShouldReturnNull() {
+    void serialize_WithNullValue_ShouldReturnEmpty() {
         byte[] result = compressedSerializer.serialize(null);
-        assertThat(result).isNull();
+        assertThat(result).isEmpty();
         verifyNoInteractions(delegate);
     }
 
