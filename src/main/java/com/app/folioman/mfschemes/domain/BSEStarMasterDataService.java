@@ -199,9 +199,11 @@ class BSEStarMasterDataService {
         fallbackScheme.setAmfiCode(Long.valueOf(amfiCode));
         fallbackScheme.setIsin(amfiCodeIsinMapping.get(amfiCode));
         if (amfiSchemeData != null) {
-            fallbackScheme.setName(Objects.requireNonNull(amfiSchemeData.get("Scheme Name")));
+            fallbackScheme.setName(
+                    Objects.requireNonNull(amfiSchemeData.get("Scheme Name"), "Missing 'Scheme Name' in AMFI data"));
             // Process AMC
-            String amcName = Objects.requireNonNull(amfiSchemeData.get("AMC")).strip();
+            String amcName = Objects.requireNonNull(amfiSchemeData.get("AMC"), "Missing 'AMC' in AMFI data")
+                    .strip();
             MfAmcEntity amc = mfAmcService.findOrCreateByName(amcName);
             fallbackScheme.setAmc(amc);
             setMfSchemeCategory(amfiSchemeData, fallbackScheme);
