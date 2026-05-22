@@ -1,6 +1,10 @@
 package com.app.folioman.portfolio.domain;
 
 import com.app.folioman.portfolio.rest.dtos.CasDTO;
+import com.app.folioman.pythonbridge.PythonExecutor;
+import com.app.folioman.pythonbridge.config.PythonBridgeProperties;
+import com.app.folioman.pythonbridge.domain.PythonCommand;
+import com.app.folioman.pythonbridge.domain.PythonResult;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -19,13 +23,19 @@ public class PdfProcessingService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PdfProcessingService.class);
 
-    private static final String CASPARSER_COMMAND = "casparser";
     private static final AtomicBoolean CASPARSER_CHECKED = new AtomicBoolean(false);
 
     private final PortfolioServiceHelper portfolioServiceHelper;
+    private final PythonExecutor pythonExecutor;
+    private final PythonBridgeProperties pythonProperties;
 
-    PdfProcessingService(PortfolioServiceHelper portfolioServiceHelper) {
+    PdfProcessingService(
+            PortfolioServiceHelper portfolioServiceHelper,
+            PythonExecutor pythonExecutor,
+            PythonBridgeProperties pythonProperties) {
         this.portfolioServiceHelper = portfolioServiceHelper;
+        this.pythonExecutor = pythonExecutor;
+        this.pythonProperties = pythonProperties;
     }
 
     /**
@@ -57,26 +67,11 @@ public class PdfProcessingService {
      */
     private boolean isCasparserAvailable() {
         try {
-            ProcessBuilder checkProcess = new ProcessBuilder(CASPARSER_COMMAND, "--version");
-            checkProcess.redirectErrorStream(true);
-            Process process = checkProcess.start();
-
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-                String line;
-                StringBuilder output = new StringBuilder();
-                while ((line = reader.readLine()) != null) {
-                    output.append(line);
-                }
-                LOGGER.debug("casparser version check output: {}", output);
-            }
-
-            int exitCode = process.waitFor();
-            return exitCode == 0;
-
-        } catch (IOException | InterruptedException e) {
-            if (e instanceof InterruptedException) {
-                Thread.currentThread().interrupt();
-            }
+            PythonResult result = pythonExecutor.execute(
+                    PythonCommand.cli(pythonProperties.casparser().executable(), "--version"));
+            LOGGER.debug("casparser version check output: {}", result.asText());
+            return result.isSuccess();
+        } catch (Exception e) {
             return false;
         }
     }
@@ -112,7 +107,12 @@ public class PdfProcessingService {
 
             // Build the command to run casparser
             ProcessBuilder processBuilder = new ProcessBuilder(
-                    CASPARSER_COMMAND, tempPdfPath.toString(), "-p", sanitizedPassword, "-o", tempJsonPath.toString());
+                    pythonProperties.casparser().executable(),
+                    tempPdfPath.toString(),
+                    "-p",
+                    sanitizedPassword,
+                    "-o",
+                    tempJsonPath.toString());
 
             processBuilder.redirectErrorStream(true);
 
