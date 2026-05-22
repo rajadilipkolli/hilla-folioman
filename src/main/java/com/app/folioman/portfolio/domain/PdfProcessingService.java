@@ -5,9 +5,7 @@ import com.app.folioman.pythonbridge.PythonExecutor;
 import com.app.folioman.pythonbridge.config.PythonBridgeProperties;
 import com.app.folioman.pythonbridge.domain.PythonCommand;
 import com.app.folioman.pythonbridge.domain.PythonResult;
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -105,43 +103,22 @@ public class PdfProcessingService {
             // Sanitize the password to prevent command injection
             String sanitizedPassword = StringEscapeUtils.escapeXSI(password);
 
-            // Build the command to run casparser
-            ProcessBuilder processBuilder = new ProcessBuilder(
-                    pythonProperties.casparser().executable(),
-                    tempPdfPath.toString(),
-                    "-p",
-                    sanitizedPassword,
-                    "-o",
-                    tempJsonPath.toString());
-
-            processBuilder.redirectErrorStream(true);
-
-            // Execute the command
-            Process process = processBuilder.start();
-
-            // Read and log the output
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    LOGGER.debug("casparser output: {}", line);
-                }
-            }
-
-            // Wait for the process to complete
-            int exitCode = process.waitFor();
-
-            if (exitCode != 0) {
-                throw new IOException("casparser failed with exit code: " + exitCode);
-            }
+            // Execute casparser via the centralized Python executor framework
+            pythonExecutor
+                    .execute(PythonCommand.cli(
+                            pythonProperties.casparser().executable(),
+                            tempPdfPath.toString(),
+                            "-p",
+                            sanitizedPassword,
+                            "-o",
+                            tempJsonPath.toString()))
+                    .orThrow();
 
             // Read the JSON file created by casparser
             byte[] jsonContent = Files.readAllBytes(tempJsonPath);
 
             // Parse the JSON Byte Array and convert to CasDTO
             return portfolioServiceHelper.readValue(jsonContent, CasDTO.class);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new IOException("casparser process interrupted", e);
         } finally {
             // Clean up temporary files
             try {
