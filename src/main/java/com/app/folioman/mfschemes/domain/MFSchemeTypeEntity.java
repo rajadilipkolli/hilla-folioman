@@ -13,6 +13,7 @@ import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import java.util.ArrayList;
 import java.util.List;
+import org.jspecify.annotations.Nullable;
 
 @Entity
 @Table(
@@ -41,7 +42,7 @@ class MFSchemeTypeEntity extends BaseEntity {
     private String category;
 
     @Column(name = "sub_category")
-    private String subCategory;
+    private @Nullable String subCategory;
 
     @OneToMany(mappedBy = "mfSchemeTypeEntity", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<MfFundSchemeEntity> mfSchemes = new ArrayList<>();
@@ -77,7 +78,7 @@ class MFSchemeTypeEntity extends BaseEntity {
         return subCategory;
     }
 
-    public MFSchemeTypeEntity setSubCategory(String subCategory) {
+    public MFSchemeTypeEntity setSubCategory(@Nullable String subCategory) {
         this.subCategory = subCategory;
         return this;
     }

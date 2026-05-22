@@ -14,6 +14,7 @@ import jakarta.persistence.UniqueConstraint;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Objects;
+import org.jspecify.annotations.Nullable;
 
 @Entity
 @Table(
@@ -45,10 +46,10 @@ class UserPortfolioValueEntity extends BaseEntity {
     private BigDecimal value;
 
     @Column(precision = 30, scale = 2)
-    private BigDecimal xirr;
+    private @Nullable BigDecimal xirr;
 
     @Column(precision = 30, scale = 2)
-    private BigDecimal liveXirr;
+    private @Nullable BigDecimal liveXirr;
 
     @ManyToOne
     @JoinColumn(name = "user_cas_details_id", nullable = false)
@@ -94,7 +95,7 @@ class UserPortfolioValueEntity extends BaseEntity {
         return xirr;
     }
 
-    public UserPortfolioValueEntity setXirr(BigDecimal xirr) {
+    public UserPortfolioValueEntity setXirr(@Nullable BigDecimal xirr) {
         this.xirr = xirr;
         return this;
     }
@@ -103,7 +104,7 @@ class UserPortfolioValueEntity extends BaseEntity {
         return liveXirr;
     }
 
-    public UserPortfolioValueEntity setLiveXirr(BigDecimal liveXirr) {
+    public UserPortfolioValueEntity setLiveXirr(@Nullable BigDecimal liveXirr) {
         this.liveXirr = liveXirr;
         return this;
     }

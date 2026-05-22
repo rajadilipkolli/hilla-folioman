@@ -19,6 +19,7 @@ import java.util.Objects;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 import org.hibernate.proxy.HibernateProxy;
+import org.jspecify.annotations.Nullable;
 
 @Entity
 @Table(
@@ -43,10 +44,10 @@ class UserFolioDetailsEntity extends BaseEntity {
     private String pan;
 
     @Column(name = "kyc")
-    private String kyc;
+    private @Nullable String kyc;
 
     @Column(name = "pan_kyc")
-    private String panKyc;
+    private @Nullable String panKyc;
 
     @OneToMany(mappedBy = "userFolioDetails", cascade = CascadeType.ALL, orphanRemoval = true)
     @Fetch(FetchMode.SUBSELECT)
@@ -96,7 +97,7 @@ class UserFolioDetailsEntity extends BaseEntity {
         return kyc;
     }
 
-    public UserFolioDetailsEntity setKyc(String kyc) {
+    public UserFolioDetailsEntity setKyc(@Nullable String kyc) {
         this.kyc = kyc;
         return this;
     }
@@ -105,7 +106,7 @@ class UserFolioDetailsEntity extends BaseEntity {
         return panKyc;
     }
 
-    public UserFolioDetailsEntity setPanKyc(String panKyc) {
+    public UserFolioDetailsEntity setPanKyc(@Nullable String panKyc) {
         this.panKyc = panKyc;
         return this;
     }

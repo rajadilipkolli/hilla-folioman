@@ -16,6 +16,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Objects;
 import org.hibernate.proxy.HibernateProxy;
+import org.jspecify.annotations.Nullable;
 
 @Table(
         name = "mf_scheme_nav",
@@ -35,14 +36,14 @@ class MFSchemeNavEntity extends BaseEntity {
     private Long id;
 
     @Column(precision = 12, scale = 5)
-    private BigDecimal nav;
+    private @Nullable BigDecimal nav;
 
     @Column(name = "nav_date")
-    private LocalDate navDate;
+    private @Nullable LocalDate navDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mf_scheme_id")
-    private MfFundSchemeEntity mfFundSchemeEntity;
+    private @Nullable MfFundSchemeEntity mfFundSchemeEntity;
 
     public Long getId() {
         return id;
@@ -53,29 +54,29 @@ class MFSchemeNavEntity extends BaseEntity {
         return this;
     }
 
-    public BigDecimal getNav() {
+    public @Nullable BigDecimal getNav() {
         return nav;
     }
 
-    public MFSchemeNavEntity setNav(BigDecimal nav) {
+    public MFSchemeNavEntity setNav(@Nullable BigDecimal nav) {
         this.nav = nav;
         return this;
     }
 
-    public LocalDate getNavDate() {
+    public @Nullable LocalDate getNavDate() {
         return navDate;
     }
 
-    public MFSchemeNavEntity setNavDate(LocalDate navDate) {
+    public MFSchemeNavEntity setNavDate(@Nullable LocalDate navDate) {
         this.navDate = navDate;
         return this;
     }
 
-    public MfFundSchemeEntity getMfFundSchemeEntity() {
+    public @Nullable MfFundSchemeEntity getMfFundSchemeEntity() {
         return mfFundSchemeEntity;
     }
 
-    public MFSchemeNavEntity setMfFundSchemeEntity(MfFundSchemeEntity mfSchemeEntity) {
+    public MFSchemeNavEntity setMfFundSchemeEntity(@Nullable MfFundSchemeEntity mfSchemeEntity) {
         this.mfFundSchemeEntity = mfSchemeEntity;
         return this;
     }

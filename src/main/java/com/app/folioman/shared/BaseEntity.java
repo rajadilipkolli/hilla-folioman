@@ -7,6 +7,7 @@ import jakarta.persistence.Version;
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.Instant;
+import org.jspecify.annotations.Nullable;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -20,32 +21,32 @@ public abstract class BaseEntity implements Serializable {
 
     @Column(name = "created_at", nullable = false, updatable = false)
     @CreatedDate
-    protected Instant createdAt;
+    protected @Nullable Instant createdAt;
 
     @Column(name = "updated_at", nullable = false)
     @LastModifiedDate
-    protected Instant updatedAt;
+    protected @Nullable Instant updatedAt;
 
     @Version
-    protected Short version;
+    protected @Nullable Short version;
 
-    public Instant getCreatedAt() {
+    public @Nullable Instant getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(Instant createdAt) {
+    public void setCreatedAt(@Nullable Instant createdAt) {
         this.createdAt = createdAt;
     }
 
-    public Instant getUpdatedAt() {
+    public @Nullable Instant getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(Instant updatedAt) {
+    public void setUpdatedAt(@Nullable Instant updatedAt) {
         this.updatedAt = updatedAt;
     }
 
-    public Short getVersion() {
+    public @Nullable Short getVersion() {
         return version;
     }
 

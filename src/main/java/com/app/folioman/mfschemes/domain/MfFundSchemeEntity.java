@@ -18,6 +18,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import org.jspecify.annotations.Nullable;
 
 @Table(name = "mf_fund_scheme", schema = "mfschemes")
 @Entity
@@ -41,9 +42,9 @@ class MfFundSchemeEntity extends BaseEntity {
     @Column(unique = true)
     private Long amfiCode;
 
-    private String isin;
-    private LocalDate startDate;
-    private LocalDate endDate;
+    private @Nullable String isin;
+    private @Nullable LocalDate startDate;
+    private @Nullable LocalDate endDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "mf_amc_id", nullable = false)
@@ -113,7 +114,7 @@ class MfFundSchemeEntity extends BaseEntity {
         return amcCode;
     }
 
-    public MfFundSchemeEntity setAmcCode(String amcCode) {
+    public MfFundSchemeEntity setAmcCode(@Nullable String amcCode) {
         this.amcCode = amcCode;
         return this;
     }
@@ -127,29 +128,29 @@ class MfFundSchemeEntity extends BaseEntity {
         return this;
     }
 
-    public String getIsin() {
+    public @Nullable String getIsin() {
         return isin;
     }
 
-    public MfFundSchemeEntity setIsin(String isin) {
+    public MfFundSchemeEntity setIsin(@Nullable String isin) {
         this.isin = isin;
         return this;
     }
 
-    public LocalDate getStartDate() {
+    public @Nullable LocalDate getStartDate() {
         return startDate;
     }
 
-    public MfFundSchemeEntity setStartDate(LocalDate startDate) {
+    public MfFundSchemeEntity setStartDate(@Nullable LocalDate startDate) {
         this.startDate = startDate;
         return this;
     }
 
-    public LocalDate getEndDate() {
+    public @Nullable LocalDate getEndDate() {
         return endDate;
     }
 
-    public MfFundSchemeEntity setEndDate(LocalDate endDate) {
+    public MfFundSchemeEntity setEndDate(@Nullable LocalDate endDate) {
         this.endDate = endDate;
         return this;
     }

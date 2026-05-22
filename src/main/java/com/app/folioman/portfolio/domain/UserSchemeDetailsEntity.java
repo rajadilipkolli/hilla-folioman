@@ -41,25 +41,25 @@ class UserSchemeDetailsEntity extends BaseEntity {
     private String scheme;
 
     @Column(name = "isin")
-    private String isin;
+    private @Nullable String isin;
 
-    private String advisor;
+    private @Nullable String advisor;
 
-    private String rtaCode;
+    private @Nullable String rtaCode;
 
-    private String rta;
+    private @Nullable String rta;
 
-    private String type;
+    private @Nullable String type;
 
     private @Nullable Long amfi;
 
     @Column(name = "open")
-    private String myopen;
+    private @Nullable String myopen;
 
-    private String close;
+    private @Nullable String close;
 
     @Column(name = "close_calculated")
-    private String closeCalculated;
+    private @Nullable String closeCalculated;
 
     @ManyToOne
     @JoinColumn(name = "user_folio_id", nullable = false)
@@ -91,7 +91,7 @@ class UserSchemeDetailsEntity extends BaseEntity {
         return isin;
     }
 
-    public UserSchemeDetailsEntity setIsin(String isin) {
+    public UserSchemeDetailsEntity setIsin(@Nullable String isin) {
         this.isin = isin;
         return this;
     }
@@ -100,7 +100,7 @@ class UserSchemeDetailsEntity extends BaseEntity {
         return advisor;
     }
 
-    public UserSchemeDetailsEntity setAdvisor(String advisor) {
+    public UserSchemeDetailsEntity setAdvisor(@Nullable String advisor) {
         this.advisor = advisor;
         return this;
     }
@@ -109,7 +109,7 @@ class UserSchemeDetailsEntity extends BaseEntity {
         return rtaCode;
     }
 
-    public UserSchemeDetailsEntity setRtaCode(String rtaCode) {
+    public UserSchemeDetailsEntity setRtaCode(@Nullable String rtaCode) {
         this.rtaCode = rtaCode;
         return this;
     }
@@ -118,7 +118,7 @@ class UserSchemeDetailsEntity extends BaseEntity {
         return rta;
     }
 
-    public UserSchemeDetailsEntity setRta(String rta) {
+    public UserSchemeDetailsEntity setRta(@Nullable String rta) {
         this.rta = rta;
         return this;
     }
@@ -127,7 +127,7 @@ class UserSchemeDetailsEntity extends BaseEntity {
         return type;
     }
 
-    public UserSchemeDetailsEntity setType(String type) {
+    public UserSchemeDetailsEntity setType(@Nullable String type) {
         this.type = type;
         return this;
     }
@@ -145,7 +145,7 @@ class UserSchemeDetailsEntity extends BaseEntity {
         return myopen;
     }
 
-    public UserSchemeDetailsEntity setMyopen(String myopen) {
+    public UserSchemeDetailsEntity setMyopen(@Nullable String myopen) {
         this.myopen = myopen;
         return this;
     }
@@ -154,7 +154,7 @@ class UserSchemeDetailsEntity extends BaseEntity {
         return close;
     }
 
-    public UserSchemeDetailsEntity setClose(String close) {
+    public UserSchemeDetailsEntity setClose(@Nullable String close) {
         this.close = close;
         return this;
     }
@@ -163,7 +163,7 @@ class UserSchemeDetailsEntity extends BaseEntity {
         return closeCalculated;
     }
 
-    public UserSchemeDetailsEntity setCloseCalculated(String closeCalculated) {
+    public UserSchemeDetailsEntity setCloseCalculated(@Nullable String closeCalculated) {
         this.closeCalculated = closeCalculated;
         return this;
     }
