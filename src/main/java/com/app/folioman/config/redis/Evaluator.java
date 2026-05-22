@@ -1,7 +1,6 @@
 package com.app.folioman.config.redis;
 
 import java.util.Map;
-import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -19,6 +18,11 @@ class Evaluator {
      * @throws IllegalArgumentException if the input map does not contain the expected keys or if the metric values are invalid
      */
     String evaluate(Map<String, Object> metrics) {
+        if (!metrics.containsKey("cacheSize")
+                || !metrics.containsKey("hitRate")
+                || !metrics.containsKey("memoryUsage")) {
+            throw new IllegalArgumentException("Input map does not contain the expected keys");
+        }
         long cacheSize = toLong(metrics.get("cacheSize"));
         double hitRate = toDouble(metrics.get("hitRate"));
         long memoryUsage = toLong(metrics.get("memoryUsage"));
@@ -41,11 +45,11 @@ class Evaluator {
         }
     }
 
-    private long toLong(@Nullable Object value) {
+    private long toLong(Object value) {
         return value instanceof Number n ? n.longValue() : 0L;
     }
 
-    private double toDouble(@Nullable Object value) {
+    private double toDouble(Object value) {
         return value instanceof Number n ? n.doubleValue() : 0.0;
     }
 }
