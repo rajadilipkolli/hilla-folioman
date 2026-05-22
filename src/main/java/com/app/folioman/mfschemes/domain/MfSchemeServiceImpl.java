@@ -13,6 +13,7 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Supplier;
@@ -329,8 +330,7 @@ class MfSchemeServiceImpl implements MfSchemeService {
             // Filter out NAVs that already exist in the database
             List<MFSchemeNavEntity> navsToSave = newNavEntries.stream()
                     .filter(newNav -> !existingNavs.contains(new NavDateValueProjection(
-                            java.util.Objects.requireNonNull(newNav.getNav()),
-                            java.util.Objects.requireNonNull(newNav.getNavDate()))))
+                            Objects.requireNonNull(newNav.getNav()), Objects.requireNonNull(newNav.getNavDate()))))
                     .peek(newNav -> newNav.setMfFundSchemeEntity(mfFundSchemeEntity))
                     .toList();
 

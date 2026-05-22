@@ -1,6 +1,7 @@
 package com.app.folioman.config.redis;
 
 import java.util.Map;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -40,11 +41,11 @@ class Evaluator {
         }
     }
 
-    private long toLong(Object value) {
+    private long toLong(@Nullable Object value) {
         return value instanceof Number n ? n.longValue() : 0L;
     }
 
-    private double toDouble(Object value) {
+    private double toDouble(@Nullable Object value) {
         return value instanceof Number n ? n.doubleValue() : 0.0;
     }
 }

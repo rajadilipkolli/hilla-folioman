@@ -8,6 +8,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import org.jspecify.annotations.Nullable;
 
@@ -124,8 +125,8 @@ public class XirrCalculator {
             BigDecimal[] values = new BigDecimal[2];
 
             // Get values in chronological order
-            values[0] = java.util.Objects.requireNonNull(valuesPerDate.get(dates[0]));
-            values[1] = java.util.Objects.requireNonNull(valuesPerDate.get(dates[1]));
+            values[0] = Objects.requireNonNull(valuesPerDate.get(dates[0]));
+            values[1] = Objects.requireNonNull(valuesPerDate.get(dates[1]));
 
             // For very short-term investments (less than 7 days), use direct calculation
             if (days < 7) {

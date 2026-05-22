@@ -14,6 +14,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
@@ -198,10 +199,9 @@ class BSEStarMasterDataService {
         fallbackScheme.setAmfiCode(Long.valueOf(amfiCode));
         fallbackScheme.setIsin(amfiCodeIsinMapping.get(amfiCode));
         if (amfiSchemeData != null) {
-            fallbackScheme.setName(java.util.Objects.requireNonNull(amfiSchemeData.get("Scheme Name")));
+            fallbackScheme.setName(Objects.requireNonNull(amfiSchemeData.get("Scheme Name")));
             // Process AMC
-            String amcName =
-                    java.util.Objects.requireNonNull(amfiSchemeData.get("AMC")).strip();
+            String amcName = Objects.requireNonNull(amfiSchemeData.get("AMC")).strip();
             MfAmcEntity amc = mfAmcService.findOrCreateByName(amcName);
             fallbackScheme.setAmc(amc);
             setMfSchemeCategory(amfiSchemeData, fallbackScheme);

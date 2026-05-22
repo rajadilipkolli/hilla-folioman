@@ -98,15 +98,15 @@ public class UserDetailService {
 
         long userTransactionFromReqCount = portfolioServiceHelper.countTransactionsByUserFolioDTOList(casDTO.folios());
         Long userTransactionFromDBCount = userTransactionDetailsService.findAllTransactionsByEmailNameAndPeriod(
-                java.util.Objects.requireNonNull(casDTO.investorInfo().name()),
-                java.util.Objects.requireNonNull(casDTO.investorInfo().email()),
+                Objects.requireNonNull(casDTO.investorInfo().name()),
+                Objects.requireNonNull(casDTO.investorInfo().email()),
                 from,
                 to);
 
         UserCasDetailsEntity userCasDetailsEntity = userCASDetailsService
                 .findByInvestorEmailAndName(
-                        java.util.Objects.requireNonNull(casDTO.investorInfo().email()),
-                        java.util.Objects.requireNonNull(casDTO.investorInfo().name()))
+                        Objects.requireNonNull(casDTO.investorInfo().email()),
+                        Objects.requireNonNull(casDTO.investorInfo().name()))
                 .orElseThrow(() -> new IllegalStateException("User should exist"));
 
         if (userTransactionFromReqCount == userTransactionFromDBCount) {
