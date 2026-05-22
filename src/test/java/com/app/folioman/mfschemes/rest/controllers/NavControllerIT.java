@@ -12,7 +12,9 @@ import com.app.folioman.shared.AbstractIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 
+@WithMockUser(roles = "USER")
 class NavControllerIT extends AbstractIntegrationTest {
 
     @Test

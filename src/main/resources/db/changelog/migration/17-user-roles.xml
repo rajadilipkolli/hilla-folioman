@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.29.xsd"
+                   objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+
+    <property name="string.type" value="varchar(255)" dbms="!postgresql"/>
+    <property name="string.type" value="text" dbms="postgresql"/>
+
+    <changeSet id="1716400000000-2" author="appUser">
+        <createSequence sequenceName="roles_seq" schemaName="portfolio" incrementBy="50" startValue="1"/>
+
+        <createTable tableName="roles" schemaName="portfolio">
+            <column name="id" type="BIGINT">
+                <constraints nullable="false" primaryKey="true" primaryKeyName="pk_roles"/>
+            </column>
+            <column name="name" type="${string.type}">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP"/>
+            <column name="version" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="user_roles" schemaName="portfolio">
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_user_roles_user" references="portfolio.users(id)"/>
+            </column>
+            <column name="role_id" type="BIGINT">
+                <constraints nullable="false" foreignKeyName="fk_user_roles_role" references="portfolio.roles(id)"/>
+            </column>
+        </createTable>
+
+        <addUniqueConstraint tableName="user_roles" schemaName="portfolio" columnNames="user_id, role_id" constraintName="uk_user_roles"/>
+
+        <insert tableName="roles" schemaName="portfolio">
+            <column name="id" valueComputed="nextval('portfolio.roles_seq')"/>
+            <column name="name" value="USER"/>
+            <column name="created_at" valueDate="now()"/>
+            <column name="version" valueNumeric="0"/>
+        </insert>
+
+        <sql>
+            INSERT INTO portfolio.user_roles (user_id, role_id)
+            SELECT u.id, r.id
+            FROM portfolio.users u
+                CROSS JOIN portfolio.roles r
+            WHERE r.name = 'USER';
+        </sql>
+
+    </changeSet>
+
+</databaseChangeLog>

@@ -3,8 +3,8 @@ package com.app.folioman.portfolio.rest.controllers;
 import com.app.folioman.portfolio.rest.dtos.Fund;
 import com.app.folioman.portfolio.rest.dtos.InvestmentRequest;
 import com.app.folioman.portfolio.rest.dtos.InvestmentResponse;
-import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.Endpoint;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/portfolio")
 @Validated
 @Endpoint
-@AnonymousAllowed // Allow anonymous access for this endpoint
+@RolesAllowed("USER")
 public class ReBalanceController {
 
     @PostMapping("/rebalance")

@@ -4,6 +4,8 @@ import { createBrowserRouter, RouteObject } from 'react-router-dom';
 import UserPortfolioView from 'Frontend/views/userPortfolio/UserPortfolioView';
 import ReBalanceView from 'Frontend/views/rebalance/ReBalanceView';
 import MfSchemesView from 'Frontend/views/mfschemes/MfSchemesView';
+import LoginView from 'Frontend/views/login/LoginView';
+import { protectRoutes } from '@vaadin/hilla-react-auth';
 
 const ImportMutualFundsView = lazy(
   async () => import('Frontend/views/importmutualfunds/ImportMutualFundsView'),
@@ -15,27 +17,32 @@ export const routes = [
     handle: { title: 'hilla-folioman' },
     children: [
       {
+        path: '/login',
+        element: <LoginView />,
+        handle: { title: 'Login' },
+      },
+      {
         path: '/importmutualfunds',
         element: <ImportMutualFundsView />,
-        handle: { title: 'Import Mutual Funds' },
+        handle: { title: 'Import Mutual Funds', requiresLogin: true },
       },
       {
         path: '/userPortfolio',
         element: <UserPortfolioView />,
-        handle: { title: 'UserPortfolio' },
+        handle: { title: 'UserPortfolio', requiresLogin: true },
       },
       {
         path: '/rebalance',
         element: <ReBalanceView />,
-        handle: { title: 'ReBalance Calculator' },
+        handle: { title: 'ReBalance Calculator', requiresLogin: true },
       },
       {
         path: '/',
         element: <MfSchemesView />,
-        handle: { title: 'Mutual Fund Schemes' },
+        handle: { title: 'Mutual Fund Schemes', requiresLogin: true },
       },
     ],
   },
 ] as RouteObject[];
 
-export default createBrowserRouter(routes);
+export default createBrowserRouter(protectRoutes(routes));

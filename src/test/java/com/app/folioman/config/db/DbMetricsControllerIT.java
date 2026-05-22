@@ -6,10 +6,12 @@ import com.app.folioman.shared.AbstractIntegrationTest;
 import java.util.LinkedHashMap;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.test.context.support.WithMockUser;
 
 class DbMetricsControllerIT extends AbstractIntegrationTest {
 
     @Test
+    @WithMockUser(username = "admin")
     void poolMetrics() {
 
         mockMvcTester

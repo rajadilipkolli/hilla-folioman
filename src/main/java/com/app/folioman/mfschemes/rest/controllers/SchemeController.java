@@ -3,8 +3,8 @@ package com.app.folioman.mfschemes.rest.controllers;
 import com.app.folioman.config.redis.CacheNames;
 import com.app.folioman.mfschemes.MfSchemeService;
 import com.app.folioman.mfschemes.rest.dtos.FundDetailProjection;
-import com.vaadin.flow.server.auth.AnonymousAllowed;
 import com.vaadin.hilla.Endpoint;
+import jakarta.annotation.security.RolesAllowed;
 import java.util.List;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@AnonymousAllowed
+@RolesAllowed("USER")
 @Endpoint
 @RestController
 @RequestMapping("/api/scheme")

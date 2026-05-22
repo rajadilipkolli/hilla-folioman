@@ -65,7 +65,13 @@ export default function MfSchemesView() {
       ? `/api/nav/${amfiCode}/${date}`
       : `/api/nav/${amfiCode}`;
 
-    fetch(fetchUrl, { method: 'GET' })
+    const headers: Record<string, string> = {};
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    fetch(fetchUrl, { method: 'GET', headers })
       .then((response) => {
         if (response.ok) {
           return response.json();

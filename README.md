@@ -140,6 +140,15 @@ The project is a standard Maven project. To run it from the command line,
 type `mvnw` (Windows), or `./mvnw` (Mac & Linux), then open
 http://localhost:8080 in your browser.
 
+### Login
+
+A default admin user is automatically created upon application startup for testing purposes.
+- **Username**: `admin`
+- **Password**: `admin`
+> ⚠️ Local/testing only. Do not use these defaults in shared or production environments.
+>
+> Configure secure credentials (or disable seeding) before deployment.
+
 You can also import the project to your IDE of choice as you would with any
 Maven project.
 

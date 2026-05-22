@@ -12,6 +12,7 @@ import {
   UploadBeforeEvent,
 } from '@vaadin/react-components/Upload';
 import { ImportMutualFundController } from 'Frontend/generated/endpoints';
+import { authenticatedFetch } from 'Frontend/auth';
 import './import-mutual-funds.css';
 
 // Password inactivity timeout in milliseconds (5 minutes)
@@ -236,7 +237,7 @@ export default function ImportMutualFundsView() {
         const formData = new FormData();
         formData.append('file', jsonFile!);
 
-        return await fetch('/api/upload-handler', {
+        return await authenticatedFetch('/api/upload-handler', {
           method: 'POST',
           body: formData,
         });

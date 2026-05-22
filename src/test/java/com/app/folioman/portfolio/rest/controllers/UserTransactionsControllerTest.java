@@ -7,16 +7,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.app.folioman.auth.domain.JwtService;
 import com.app.folioman.portfolio.domain.PortfolioAPI;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(controllers = UserTransactionsController.class)
+@WithMockUser(roles = "USER")
 class UserTransactionsControllerTest {
 
     @Autowired
@@ -24,6 +27,9 @@ class UserTransactionsControllerTest {
 
     @MockitoBean
     private PortfolioAPI portfolioAPI;
+
+    @MockitoBean
+    private JwtService jwtService;
 
     @Test
     void getTotalInvestmentsByPanPerMonth() throws Exception {

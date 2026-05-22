@@ -2,11 +2,13 @@ package com.app.folioman.portfolio.rest.controllers;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.app.folioman.auth.domain.JwtService;
 import com.app.folioman.portfolio.rest.dtos.Fund;
 import com.app.folioman.portfolio.rest.dtos.InvestmentRequest;
 import java.util.List;
@@ -14,10 +16,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.json.JsonMapper;
 
 @WebMvcTest(controllers = ReBalanceController.class)
+@WithMockUser(roles = "USER")
 class ReBalanceControllerTest {
 
     @Autowired
@@ -25,6 +30,9 @@ class ReBalanceControllerTest {
 
     @Autowired
     private JsonMapper jsonMapper;
+
+    @MockitoBean
+    private JwtService jwtService;
 
     @Test
     void rebalanceCalculation() throws Exception {
@@ -42,6 +50,7 @@ class ReBalanceControllerTest {
         // Fund C: Target = 0.3 * 11000 = 3300, Investment = 3300 - 2000 = 1300
 
         mockMvc.perform(post("/api/portfolio/rebalance")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -62,6 +71,7 @@ class ReBalanceControllerTest {
         // Fund B: Target = 0.5 * 1100000 = 550000, Investment = 550000 - 500000 = 50000
 
         mockMvc.perform(post("/api/portfolio/rebalance")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
@@ -73,6 +83,7 @@ class ReBalanceControllerTest {
     void reBalance() throws Exception {
         this.mockMvc
                 .perform(post("/api/portfolio/rebalance")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonMapper.writeValueAsString(new InvestmentRequest(
                                 List.of(new Fund(7000.00, 0.7), new Fund(3000.00, 0.25), new Fund(500.00, 0.05)),
@@ -85,7 +96,10 @@ class ReBalanceControllerTest {
 
     @Test
     void reBalanceWithNullInvestmentRequest() throws Exception {
-        mockMvc.perform(post("/api/portfolio/rebalance").content("{}").contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(post("/api/portfolio/rebalance")
+                        .with(csrf())
+                        .content("{}")
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON_VALUE))
                 .andExpect(jsonPath("$.type", is("https://api.hilla-folioman.com/errors/validation-error")))
@@ -108,6 +122,7 @@ class ReBalanceControllerTest {
                 1000.00);
 
         mockMvc.perform(post("/api/portfolio/rebalance")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonMapper.writeValueAsString(investmentRequest)))
                 .andExpect(status().isBadRequest())
@@ -129,6 +144,7 @@ class ReBalanceControllerTest {
                 new InvestmentRequest(List.of(new Fund(10000.00, 0.5)), -1000.00); // Negative amount to invest
 
         mockMvc.perform(post("/api/portfolio/rebalance")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonMapper.writeValueAsString(investmentRequest)))
                 .andExpect(status().isBadRequest())
@@ -156,6 +172,7 @@ class ReBalanceControllerTest {
                 1000.00);
 
         mockMvc.perform(post("/api/portfolio/rebalance")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonMapper.writeValueAsString(investmentRequest)))
                 .andExpect(status().isBadRequest())
@@ -178,6 +195,7 @@ class ReBalanceControllerTest {
                 1000.00);
 
         mockMvc.perform(post("/api/portfolio/rebalance")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonMapper.writeValueAsString(investmentRequest)))
                 .andExpect(status().isBadRequest())
@@ -202,6 +220,7 @@ class ReBalanceControllerTest {
                 1000.00);
 
         mockMvc.perform(post("/api/portfolio/rebalance")
+                        .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonMapper.writeValueAsString(investmentRequest)))
                 .andExpect(status().isBadRequest())
