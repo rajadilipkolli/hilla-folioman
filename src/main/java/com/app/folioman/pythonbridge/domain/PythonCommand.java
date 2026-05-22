@@ -16,6 +16,14 @@ public record PythonCommand(
         arguments = List.copyOf(arguments);
     }
 
+    public static PythonCommand command(String... args) {
+        return new PythonCommand(null, null, List.of(args), null, null, null);
+    }
+
+    public static PythonCommand cli(String executable, String... args) {
+        return new PythonCommand(executable, null, List.of(args), null, null, null);
+    }
+
     public PythonCommand withArgument(String arg) {
         List<String> newArgs = new ArrayList<>(this.arguments);
         newArgs.add(arg);

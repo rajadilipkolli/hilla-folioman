@@ -1,10 +1,27 @@
 package com.app.folioman.pythonbridge.domain;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import tools.jackson.databind.json.JsonMapper;
 
 public record PythonResult(
         int exitCode, byte[] stdout, byte[] stderr, long executionTimeMillis, JsonMapper jsonMapper) {
+
+    public PythonResult {
+        stdout = stdout == null ? new byte[0] : Arrays.copyOf(stdout, stdout.length);
+        stderr = stderr == null ? new byte[0] : Arrays.copyOf(stderr, stderr.length);
+    }
+
+    @Override
+    public byte[] stdout() {
+        return Arrays.copyOf(stdout, stdout.length);
+    }
+
+    @Override
+    public byte[] stderr() {
+        return Arrays.copyOf(stderr, stderr.length);
+    }
+
     public boolean isSuccess() {
         return exitCode == 0;
     }

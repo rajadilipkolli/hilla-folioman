@@ -53,15 +53,32 @@ class PythonExecutorImpl implements PythonExecutor {
         }
     }
 
+    public boolean isAvailable(String executable) {
+        if (executable == null || executable.equals(properties.executable())) {
+            return isAvailable();
+        }
+        try {
+            ProcessBuilder pb = new ProcessBuilder(executable, "--version");
+            pb.redirectErrorStream(true);
+            Process p = pb.start();
+            int exitCode = p.waitFor();
+            return exitCode == 0;
+        } catch (Exception e) {
+            LOGGER.warn("Custom Python executable not found or failed to run: {}", executable, e);
+            return false;
+        }
+    }
+
     @Override
     public PythonResult execute(PythonCommand command) {
-        if (!isAvailable()) {
+        String executable = command.customExecutable() != null ? command.customExecutable() : properties.executable();
+        if (!isAvailable(executable)) {
             throw new PythonNotFoundException(
-                    "Python executable not available: " + properties.executable(), getCommandString(command));
+                    "Python executable not available: " + executable, getCommandString(command));
         }
 
         List<String> cmdList = new ArrayList<>();
-        cmdList.add(command.customExecutable() != null ? command.customExecutable() : properties.executable());
+        cmdList.add(executable);
         if (command.script() != null) {
             cmdList.add(command.script());
         }
@@ -87,16 +104,11 @@ class PythonExecutorImpl implements PythonExecutor {
         try {
             process = pb.start();
 
-            if (command.inputData() != null) {
-                try (OutputStream os = process.getOutputStream()) {
+            try (OutputStream os = process.getOutputStream()) {
+                if (command.inputData() != null) {
                     os.write(command.inputData());
                     os.flush();
                 }
-            }
-
-            byte[] output;
-            try (InputStream is = process.getInputStream()) {
-                output = is.readAllBytes();
             }
 
             int timeout =
@@ -105,14 +117,24 @@ class PythonExecutorImpl implements PythonExecutor {
 
             if (!finished) {
                 process.destroyForcibly();
+                process.waitFor();
                 throw new PythonTimeoutException(
                         "Python process timed out after " + timeout + " seconds", getCommandString(command));
+            }
+
+            byte[] output;
+            try (InputStream is = process.getInputStream()) {
+                output = is.readAllBytes();
+            }
+            byte[] errorOutput;
+            try (InputStream es = process.getErrorStream()) {
+                errorOutput = es.readAllBytes();
             }
 
             int exitCode = process.exitValue();
             long executionTime = System.currentTimeMillis() - startTime;
 
-            return new PythonResult(exitCode, output, new byte[0], executionTime, jsonMapper);
+            return new PythonResult(exitCode, output, errorOutput, executionTime, jsonMapper);
 
         } catch (IOException e) {
             throw new PythonExecutionException(
