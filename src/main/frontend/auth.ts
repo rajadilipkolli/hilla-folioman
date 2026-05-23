@@ -52,8 +52,13 @@ export function isTokenExpired(token: string): boolean {
   try {
     const payloadBase64 = token.split('.')[1];
     if (!payloadBase64) return true;
-    // Handle base64url characters
-    const base64 = payloadBase64.replace(/-/g, '+').replace(/_/g, '/');
+
+    // Handle base64url characters and restore padding
+    let base64 = payloadBase64.replace(/-/g, '+').replace(/_/g, '/');
+    while (base64.length % 4 !== 0) {
+      base64 += '=';
+    }
+
     const jsonPayload = decodeURIComponent(
       atob(base64)
         .split('')
@@ -61,8 +66,11 @@ export function isTokenExpired(token: string): boolean {
         .join(''),
     );
     const payload = JSON.parse(jsonPayload);
-    if (!payload.exp) return false;
-    return payload.exp < (Date.now() / 1000) + 30; // consider token expired if it's within 30 seconds of expiring
+
+    if (typeof payload.exp !== 'number') {
+      return true;
+    }
+    return payload.exp < Date.now() / 1000 + 30; // consider token expired if it's within 30 seconds of expiring
   } catch {
     return true;
   }
