@@ -299,7 +299,11 @@ class PortfolioValueUpdateService {
                     .collect(Collectors.groupingBy(
                             ufv -> ufv.getUserFolioDetailsEntity().getId(),
                             Collectors.toMap(
-                                    UserFolioValueEntity::getDate, ufv -> ufv, (existing, replacement) -> existing)));
+                                    UserFolioValueEntity::getDate,
+                                    ufv -> ufv,
+                                    (existing, replacement) -> existing.getId().compareTo(replacement.getId()) > 0
+                                            ? existing
+                                            : replacement)));
 
             // Sum and upsert
             groupedByFolioAndDate.forEach((folioId, dateMap) -> {

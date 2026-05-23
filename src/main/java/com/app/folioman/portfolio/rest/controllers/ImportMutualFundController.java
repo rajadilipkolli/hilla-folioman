@@ -9,7 +9,6 @@ import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Pattern;
 import java.io.IOException;
-import java.security.Principal;
 import java.time.LocalDate;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -41,18 +40,22 @@ public class ImportMutualFundController {
     }
 
     @PostMapping(value = "/api/upload-handler", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @CacheEvict(cacheNames = CacheNames.USER_PROFILE_CACHE, key = "#principal.name")
-    public UploadFileResponse upload(@RequestPart("file") MultipartFile multipartFile, Principal principal)
-            throws IOException {
+    @CacheEvict(
+            cacheNames = CacheNames.USER_PROFILE_CACHE,
+            key =
+                    "T(org.springframework.security.core.context.SecurityContextHolder).getContext().getAuthentication().getName()")
+    public UploadFileResponse upload(@RequestPart("file") MultipartFile multipartFile) throws IOException {
         LOGGER.info("Received file :{} for processing", multipartFile.getOriginalFilename());
         return portfolioAPI.upload(multipartFile);
     }
 
     @PostMapping(value = "/api/upload-pdf-cas", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @CacheEvict(cacheNames = CacheNames.USER_PROFILE_CACHE, key = "#principal.name")
+    @CacheEvict(
+            cacheNames = CacheNames.USER_PROFILE_CACHE,
+            key =
+                    "T(org.springframework.security.core.context.SecurityContextHolder).getContext().getAuthentication().getName()")
     public UploadFileResponse uploadPasswordProtectedCasPdf(
-            @RequestPart("file") MultipartFile pdfFile, @RequestPart("password") String password, Principal principal)
-            throws IOException {
+            @RequestPart("file") MultipartFile pdfFile, @RequestPart("password") String password) throws IOException {
         LOGGER.info("Received password-protected PDF file: {} for processing", pdfFile.getOriginalFilename());
 
         // First convert the PDF to CasDTO
