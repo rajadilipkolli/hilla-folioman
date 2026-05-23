@@ -34,7 +34,7 @@ public class UserTransactionDetailsService {
      * @param pan The PAN to query
      * @return An Optional containing the InvestmentReturnsDTO, or empty if no data exists
      */
-    Optional<InvestmentReturnsDTO> getInvestmentReturnsByPan(String pan) {
+    public Optional<InvestmentReturnsDTO> getInvestmentReturnsByPan(String pan) {
         return userPortfolioValueRepository.getLatestPortfolioValueByPan(pan).map(projection -> {
             BigDecimal cagr = null;
             Optional<LocalDate> firstTransactionDate =
@@ -60,13 +60,13 @@ public class UserTransactionDetailsService {
         return userTransactionDetailsRepository.findAllTransactionByEmailAndNameAndInRange(email, name, from, to);
     }
 
-    List<MonthlyInvestmentResponseDTO> getTotalInvestmentsByPanPerMonth(String pan) {
+    public List<MonthlyInvestmentResponseDTO> getTotalInvestmentsByPanPerMonth(String pan) {
         return userTransactionDetailsRepository.findMonthlyInvestmentsByPan(pan).stream()
                 .map(MonthlyInvestmentResponseDTO::new)
                 .collect(Collectors.toList());
     }
 
-    List<YearlyInvestmentResponseDTO> getTotalInvestmentsByPanPerYear(String pan) {
+    public List<YearlyInvestmentResponseDTO> getTotalInvestmentsByPanPerYear(String pan) {
         return userTransactionDetailsRepository.findYearlyInvestmentsByPan(pan).stream()
                 .map(YearlyInvestmentResponseDTO::new)
                 .collect(Collectors.toList());

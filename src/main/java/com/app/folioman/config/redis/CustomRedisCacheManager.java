@@ -1,6 +1,8 @@
 package com.app.folioman.config.redis;
 
 import java.time.Duration;
+import java.util.Collections;
+import java.util.Map;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,8 +22,15 @@ public class CustomRedisCacheManager extends RedisCacheManager {
     private final CacheCircuitBreaker circuitBreaker;
 
     public CustomRedisCacheManager(
-            RedisCacheWriter cacheWriter, Monitor monitor, CacheCircuitBreaker circuitBreaker, Duration defaultTtl) {
-        super(cacheWriter, RedisCacheConfiguration.defaultCacheConfig());
+            RedisCacheWriter cacheWriter,
+            Map<String, RedisCacheConfiguration> initialCacheConfigurations,
+            Monitor monitor,
+            CacheCircuitBreaker circuitBreaker,
+            Duration defaultTtl) {
+        super(
+                cacheWriter,
+                RedisCacheConfiguration.defaultCacheConfig(),
+                initialCacheConfigurations != null ? initialCacheConfigurations : Collections.emptyMap());
         this.redisCacheWriter = cacheWriter;
         this.redisSerializer = RedisSerializer.java(); // Custom serializer if needed
         this.defaultTtl = defaultTtl != null ? defaultTtl : Duration.ofMinutes(10);

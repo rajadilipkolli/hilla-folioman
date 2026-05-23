@@ -9,6 +9,9 @@ public final class CacheNames {
     // MF Schemes module caches
     public static final String SCHEME_SEARCH_CACHE = "schemeSearchCache";
 
+    // Auth module caches
+    public static final String USER_PROFILE_CACHE = "userProfileCache";
+
     // Portfolio module caches
     public static final String TRANSACTION_CACHE = "transactionCache";
     public static final String RETURNS_CACHE = "returnsCache";

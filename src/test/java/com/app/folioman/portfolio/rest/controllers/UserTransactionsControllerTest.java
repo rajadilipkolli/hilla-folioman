@@ -9,7 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.app.folioman.auth.domain.JwtService;
 import com.app.folioman.auth.domain.TokenBlacklistService;
-import com.app.folioman.portfolio.domain.PortfolioAPI;
+import com.app.folioman.portfolio.domain.PortfolioAPIImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -27,7 +27,7 @@ class UserTransactionsControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private PortfolioAPI portfolioAPI;
+    private PortfolioAPIImpl portfolioAPI;
 
     @MockitoBean
     private JwtService jwtService;
