@@ -20,6 +20,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfigurationSource;
 import tools.jackson.databind.json.JsonMapper;
 
 @Configuration(proxyBeanMethods = false)
@@ -39,9 +40,16 @@ public class SecurityConfig {
     }
 
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationProvider authenticationProvider)
+    SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            AuthenticationProvider authenticationProvider,
+            CorsConfigurationSource corsConfigurationSource)
             throws Exception {
-        http.csrf(AbstractHttpConfigurer::disable)
+        // CORS is configured to allow only the application's own origin (or configured origins)
+        http.cors(cors -> cors.configurationSource(corsConfigurationSource))
+                // JWT access tokens are sent via Authorization header (not cookies), making CSRF attacks inapplicable;
+                // refresh tokens use httpOnly cookies protected by same-origin policy.
+                .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth.requestMatchers("/api/auth/**")
                         .permitAll()
                         .requestMatchers("/api/**", "/connect/**")
