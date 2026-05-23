@@ -5,6 +5,7 @@ import com.app.folioman.auth.domain.CustomUserDetailsService;
 import com.app.folioman.auth.domain.JwtService;
 import com.app.folioman.auth.domain.LoginAttemptService;
 import com.app.folioman.auth.domain.RefreshTokenService;
+import com.app.folioman.auth.domain.TokenBlacklistService;
 import com.app.folioman.auth.domain.UserEntity;
 import com.app.folioman.auth.domain.UserRepository;
 import com.app.folioman.auth.rest.dto.AuthResponse;
@@ -32,6 +33,7 @@ import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -48,6 +50,7 @@ public class AuthController {
     private final LoginAttemptService loginAttemptService;
     private final UserRepository userRepository;
     private final JwtProperties jwtProperties;
+    private final TokenBlacklistService tokenBlacklistService;
 
     public AuthController(
             AuthenticationManager authenticationManager,
@@ -56,7 +59,8 @@ public class AuthController {
             CustomUserDetailsService userDetailsService,
             LoginAttemptService loginAttemptService,
             UserRepository userRepository,
-            JwtProperties jwtProperties) {
+            JwtProperties jwtProperties,
+            TokenBlacklistService tokenBlacklistService) {
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
         this.refreshTokenService = refreshTokenService;
@@ -64,6 +68,7 @@ public class AuthController {
         this.loginAttemptService = loginAttemptService;
         this.userRepository = userRepository;
         this.jwtProperties = jwtProperties;
+        this.tokenBlacklistService = tokenBlacklistService;
     }
 
     @PostMapping("/login")
@@ -196,7 +201,24 @@ public class AuthController {
 
     @PostMapping("/logout")
     public ResponseEntity<?> logout(
-            @CookieValue(name = "refreshToken", required = false) String cookieToken, HttpServletRequest request) {
+            @CookieValue(name = "refreshToken", required = false) String cookieToken,
+            @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authHeader,
+            HttpServletRequest request) {
+
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            try {
+                String jti = jwtService.extractJti(token);
+                java.util.Date expiration = jwtService.extractExpiration(token);
+                long remainingTtl = expiration.getTime() - System.currentTimeMillis();
+                if (remainingTtl > 0) {
+                    tokenBlacklistService.blacklist(jti, remainingTtl);
+                }
+            } catch (Exception e) {
+                LOGGER.warn("Failed to extract or blacklist token during logout", e);
+            }
+        }
+
         if (cookieToken != null) {
             refreshTokenService.revokeToken(cookieToken);
         }

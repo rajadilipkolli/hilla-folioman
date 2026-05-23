@@ -1,6 +1,7 @@
 package com.app.folioman.auth.filter;
 
 import com.app.folioman.auth.domain.JwtService;
+import com.app.folioman.auth.domain.TokenBlacklistService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -24,10 +25,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
+    private final TokenBlacklistService tokenBlacklistService;
 
-    public JwtAuthenticationFilter(JwtService jwtService, UserDetailsService userDetailsService) {
+    public JwtAuthenticationFilter(
+            JwtService jwtService, UserDetailsService userDetailsService, TokenBlacklistService tokenBlacklistService) {
         this.jwtService = jwtService;
         this.userDetailsService = userDetailsService;
+        this.tokenBlacklistService = tokenBlacklistService;
     }
 
     @Override
@@ -49,6 +53,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         jwt = authHeader.substring(7);
         try {
             username = jwtService.extractUsername(jwt);
+            String jti = jwtService.extractJti(jwt);
+
+            if (tokenBlacklistService.isBlacklisted(jti)) {
+                LOGGER.debug("Token with jti {} is blacklisted", jti);
+                filterChain.doFilter(request, response);
+                return;
+            }
 
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
@@ -76,6 +87,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getServletPath();
+        if ("/api/auth/logout".equals(path)) {
+            return false;
+        }
         return path.startsWith("/api/auth/");
     }
 }

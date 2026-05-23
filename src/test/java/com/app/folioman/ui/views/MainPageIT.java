@@ -13,7 +13,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.openqa.selenium.By;
+import org.openqa.selenium.ElementNotInteractableException;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.StaleElementReferenceException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.edge.EdgeOptions;
@@ -80,25 +82,43 @@ class MainPageIT extends AbstractIntegrationTest {
         driver.get("http://host.testcontainers.internal:" + port + "/login");
 
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-        wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("vaadin-text-field")));
-
-        // Use JavascriptExecutor for shadow DOM elements in Vaadin
         JavascriptExecutor js = (JavascriptExecutor) driver;
 
-        WebElement usernameField = driver.findElement(By.tagName("vaadin-text-field"));
-        js.executeScript(
-                "arguments[0].value = 'testuser'; arguments[0].dispatchEvent(new Event('input', { bubbles: true })); arguments[0].dispatchEvent(new Event('change', { bubbles: true }));",
-                usernameField);
+        // Wait until navigation to /login completes and let the React auth state settle
+        // to prevent rapid re-rendering of the login form which causes StaleElementReferenceExceptions.
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
 
-        WebElement passwordField = driver.findElement(By.tagName("vaadin-password-field"));
-        js.executeScript(
-                "arguments[0].value = 'password123'; arguments[0].dispatchEvent(new Event('input', { bubbles: true })); arguments[0].dispatchEvent(new Event('change', { bubbles: true }));",
-                passwordField);
+        // Wait until the login form components are present
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("vaadin-text-field")));
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("vaadin-password-field")));
+        wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("vaadin-button")));
 
-        WebElement loginButton = driver.findElement(By.tagName("vaadin-button"));
-        js.executeScript("arguments[0].click();", loginButton);
+        // Use the original Javascript injection to interact with Vaadin Web Components.
+        // A fluent wait robustly retries the entire block to handle any asynchronous
+        // DOM re-renders that would otherwise cause a StaleElementReferenceException.
+        wait.until(d -> {
+            try {
+                WebElement usernameField = d.findElement(By.tagName("vaadin-text-field"));
+                js.executeScript(
+                        "arguments[0].value = 'testuser'; arguments[0].dispatchEvent(new Event('input', { bubbles: true })); arguments[0].dispatchEvent(new Event('change', { bubbles: true }));",
+                        usernameField);
 
-        // Wait until navigation to userPortfolio
+                WebElement passwordField = d.findElement(By.tagName("vaadin-password-field"));
+                js.executeScript(
+                        "arguments[0].value = 'password123'; arguments[0].dispatchEvent(new Event('input', { bubbles: true })); arguments[0].dispatchEvent(new Event('change', { bubbles: true }));",
+                        passwordField);
+
+                WebElement loginButton = d.findElement(By.tagName("vaadin-button"));
+                js.executeScript("arguments[0].click();", loginButton);
+                return true;
+            } catch (StaleElementReferenceException | ElementNotInteractableException e) {
+                return false; // Retry until success or timeout
+            }
+        }); // Wait until navigation to userPortfolio
         wait.until(ExpectedConditions.urlContains("/userPortfolio"));
 
         // Now navigate to main page

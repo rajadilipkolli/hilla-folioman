@@ -6,6 +6,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.app.folioman.auth.domain.JwtService;
+import com.app.folioman.auth.domain.TokenBlacklistService;
 import com.app.folioman.mfschemes.MfSchemeService;
 import com.app.folioman.mfschemes.rest.dtos.FundDetailProjection;
 import java.util.ArrayList;
@@ -28,6 +29,9 @@ class SchemeControllerTest {
 
     @MockitoBean
     private JwtService jwtService;
+
+    @MockitoBean
+    private TokenBlacklistService tokenBlacklistService;
 
     private SchemeController schemeController;
 
