@@ -14,6 +14,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import java.net.URI;
+import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
 import org.slf4j.Logger;
@@ -209,10 +210,12 @@ public class AuthController {
             String token = authHeader.substring(7);
             try {
                 String jti = jwtService.extractJti(token);
-                java.util.Date expiration = jwtService.extractExpiration(token);
-                long remainingTtl = expiration.getTime() - System.currentTimeMillis();
-                if (remainingTtl > 0) {
-                    tokenBlacklistService.blacklist(jti, remainingTtl);
+                Date expiration = jwtService.extractExpiration(token);
+                if (expiration != null) {
+                    long remainingTtl = expiration.getTime() - System.currentTimeMillis();
+                    if (remainingTtl > 0) {
+                        tokenBlacklistService.blacklist(jti, remainingTtl);
+                    }
                 }
             } catch (Exception e) {
                 LOGGER.warn("Failed to extract or blacklist token during logout", e);

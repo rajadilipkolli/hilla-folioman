@@ -43,7 +43,8 @@ public class TokenBlacklistService {
             return hasKey != null && hasKey;
         } catch (Exception e) {
             LOGGER.warn("Failed to check token blacklist for jti: {}. Assuming not blacklisted.", jti, e);
-            return false;
+            // Fail closed to preserve revocation guarantees when Redis is unavailable
+            return true;
         }
     }
 }
