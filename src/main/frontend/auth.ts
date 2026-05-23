@@ -47,11 +47,37 @@ export function handleAuthFailure(): void {
   }
 }
 
+/** Checks if the JWT is expired by reading the exp claim */
+export function isTokenExpired(token: string): boolean {
+  try {
+    const payloadBase64 = token.split('.')[1];
+    if (!payloadBase64) return true;
+    // Handle base64url characters
+    const base64 = payloadBase64.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join(''),
+    );
+    const payload = JSON.parse(jsonPayload);
+    if (!payload.exp) return false;
+    return payload.exp < Date.now() / 1000;
+  } catch {
+    return true;
+  }
+}
+
 // ─── Hilla ConnectClient Middleware ──────────────────────────────────────────
 
 client.middlewares.push(async (context, next) => {
   const token = localStorage.getItem('accessToken');
   if (token) {
+    if (isTokenExpired(token)) {
+      handleAuthFailure();
+      // Return a dummy rejected promise to halt request execution
+      return Promise.reject(new Error('Token expired'));
+    }
     context.request.headers.set('Authorization', `Bearer ${token}`);
   }
 
@@ -103,6 +129,10 @@ export const authenticatedFetch = async (
     }
     const token = localStorage.getItem('accessToken');
     if (token) {
+      if (isTokenExpired(token)) {
+        handleAuthFailure();
+        throw new Error('Token expired');
+      }
       headers.set('Authorization', `Bearer ${token}`);
     }
     return headers;
