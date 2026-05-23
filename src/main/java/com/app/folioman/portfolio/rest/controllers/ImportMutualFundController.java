@@ -1,5 +1,6 @@
 package com.app.folioman.portfolio.rest.controllers;
 
+import com.app.folioman.config.redis.CacheNames;
 import com.app.folioman.portfolio.PortfolioAPI;
 import com.app.folioman.portfolio.rest.dtos.PortfolioResponse;
 import com.app.folioman.portfolio.rest.dtos.UploadFileResponse;
@@ -8,10 +9,12 @@ import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Pattern;
 import java.io.IOException;
+import java.security.Principal;
 import java.time.LocalDate;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
@@ -38,14 +41,18 @@ public class ImportMutualFundController {
     }
 
     @PostMapping(value = "/api/upload-handler", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    UploadFileResponse upload(@RequestPart("file") MultipartFile multipartFile) throws IOException {
+    @CacheEvict(cacheNames = CacheNames.USER_PROFILE_CACHE, key = "#principal.name")
+    public UploadFileResponse upload(@RequestPart("file") MultipartFile multipartFile, Principal principal)
+            throws IOException {
         LOGGER.info("Received file :{} for processing", multipartFile.getOriginalFilename());
         return portfolioAPI.upload(multipartFile);
     }
 
     @PostMapping(value = "/api/upload-pdf-cas", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @CacheEvict(cacheNames = CacheNames.USER_PROFILE_CACHE, key = "#principal.name")
     public UploadFileResponse uploadPasswordProtectedCasPdf(
-            @RequestPart("file") MultipartFile pdfFile, @RequestPart("password") String password) throws IOException {
+            @RequestPart("file") MultipartFile pdfFile, @RequestPart("password") String password, Principal principal)
+            throws IOException {
         LOGGER.info("Received password-protected PDF file: {} for processing", pdfFile.getOriginalFilename());
 
         // First convert the PDF to CasDTO
