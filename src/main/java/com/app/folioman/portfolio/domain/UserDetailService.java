@@ -70,7 +70,7 @@ public class UserDetailService {
         this.portfolioValueUpdateService = portfolioValueUpdateService;
     }
 
-    UploadFileResponse upload(MultipartFile multipartFile) throws IOException {
+    public UploadFileResponse upload(MultipartFile multipartFile) throws IOException {
         CasDTO casDTO = parseCasDTO(multipartFile);
         boolean existingUser = validateCasDTO(casDTO);
         return existingUser ? processExistingUser(casDTO) : processNewUser(casDTO);
@@ -83,7 +83,7 @@ public class UserDetailService {
      * @param casDTO The CasDTO object to process
      * @return UploadFileResponse with processing statistics
      */
-    UploadFileResponse uploadFromDto(CasDTO casDTO) {
+    public UploadFileResponse uploadFromDto(CasDTO casDTO) {
         LOGGER.info("Processing CasDTO from converted source");
         boolean existingUser = validateCasDTO(casDTO);
         return existingUser ? processExistingUser(casDTO) : processNewUser(casDTO);
@@ -504,7 +504,7 @@ public class UserDetailService {
         }
     }
 
-    PortfolioResponse getPortfolioByPAN(String panNumber, @Nullable LocalDate evaluationDate) {
+    public PortfolioResponse getPortfolioByPAN(String panNumber, @Nullable LocalDate evaluationDate) {
         List<PortfolioDetailsDTO> portfolioDetailsDTOList = portfolioServiceHelper.getPortfolioDetailsByPANAndAsOfDate(
                 panNumber, LocalDateUtility.getAdjustedDateOrDefault(evaluationDate));
         BigDecimal totalPortfolioValue = portfolioDetailsDTOList.stream()

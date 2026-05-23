@@ -3,6 +3,8 @@ package com.app.folioman.config.redis;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import java.net.ConnectException;
 import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,9 +81,19 @@ class RedisConfig implements CachingConfigurer {
             LOGGER.info("Redis value compression disabled");
         }
 
+        // Prepare per-cache configurations
+        Map<String, RedisCacheConfiguration> initialCacheConfigurations = new HashMap<>();
+        initialCacheConfigurations.put(
+                CacheNames.USER_PROFILE_CACHE,
+                RedisCacheConfiguration.defaultCacheConfig().entryTtl(Duration.ofMinutes(5)));
+
         // Create the custom cache manager with our circuit breaker and default TTL
         return new CustomRedisCacheManager(
-                redisCacheWriter, monitor, circuitBreaker, Duration.ofSeconds(redisAppProperties.getDefaultTtl()));
+                redisCacheWriter,
+                initialCacheConfigurations,
+                monitor,
+                circuitBreaker,
+                Duration.ofSeconds(redisAppProperties.getDefaultTtl()));
     }
 
     /**

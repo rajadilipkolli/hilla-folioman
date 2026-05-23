@@ -19,7 +19,7 @@ import org.jspecify.annotations.Nullable;
 @Entity
 @Table(name = "investor_info", schema = "portfolio")
 @SuppressWarnings("NullAway.Init")
-class InvestorInfoEntity extends BaseEntity {
+public class InvestorInfoEntity extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "investor_info_seq")
     @SequenceGenerator(name = "investor_info_seq", schema = "portfolio")

@@ -11,7 +11,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
-interface UserCASDetailsRepository extends JpaRepository<UserCasDetailsEntity, Long> {
+public interface UserCASDetailsRepository extends JpaRepository<UserCasDetailsEntity, Long> {
 
     @Query("""
             select u from UserCasDetailsEntity u join fetch u.folios join fetch u.investorInfoEntity as i
@@ -56,4 +56,6 @@ interface UserCASDetailsRepository extends JpaRepository<UserCasDetailsEntity, L
             """)
     List<PortfolioDetailsProjection> getPortfolioDetails(
             @Param("pan") String panNumber, @Param("asOfDate") LocalDate asOfDate);
+
+    List<UserCasDetailsEntity> findAllByInvestorInfoEntityEmail(String email);
 }

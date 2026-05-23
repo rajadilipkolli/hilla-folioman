@@ -109,6 +109,10 @@ class MainPageIT extends AbstractIntegrationTest {
                 .as("Main page should load and have a title")
                 .isTrue();
 
+        // Assert we are on the User Profile page
+        wait.until(ExpectedConditions.presenceOfElementLocated(
+                By.xpath("//*[contains(text(), 'User Profile') or contains(text(), 'testuser')]")));
+
         // Click navigation links and verify page changes
         WebElement importLink = wait.until(ExpectedConditions.elementToBeClickable(By.linkText("Import Mutual Funds")));
         js.executeScript("arguments[0].click();", importLink);
@@ -132,6 +136,13 @@ class MainPageIT extends AbstractIntegrationTest {
                 .as("Should navigate to ReBalance Calculator page")
                 .isTrue();
         driver.navigate().back();
+
+        WebElement mfSchemesLink =
+                wait.until(ExpectedConditions.elementToBeClickable(By.linkText("Mutual Fund Schemes")));
+        js.executeScript("arguments[0].click();", mfSchemesLink);
+        assertThat(driver.getPageSource().contains("Mutual Fund Schemes"))
+                .as("Should navigate to Mutual Fund Schemes page")
+                .isTrue();
 
         // Interact with search field
         WebElement searchField = wait.until(ExpectedConditions.presenceOfElementLocated(

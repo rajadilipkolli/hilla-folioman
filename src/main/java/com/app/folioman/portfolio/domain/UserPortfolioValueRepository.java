@@ -1,5 +1,6 @@
 package com.app.folioman.portfolio.domain;
 
+import com.app.folioman.portfolio.domain.models.projection.PortfolioValueDateProjection;
 import com.app.folioman.portfolio.domain.models.projection.UserPortfolioValueProjection;
 import java.time.LocalDate;
 import java.util.List;
@@ -25,4 +26,13 @@ public interface UserPortfolioValueRepository extends JpaRepository<UserPortfoli
             LIMIT 1
             """)
     Optional<UserPortfolioValueProjection> getLatestPortfolioValueByPan(@Param("pan") String pan);
+
+    @NativeQuery("""
+            SELECT upv.value as value, upv.date as date, upv.xirr as xirr
+            FROM portfolio.user_portfolio_value upv
+            WHERE upv.user_cas_details_id = :casId
+            ORDER BY upv.date DESC, upv.id DESC
+            LIMIT 1
+            """)
+    Optional<PortfolioValueDateProjection> getLatestPortfolioValueByCasId(@Param("casId") Long casId);
 }

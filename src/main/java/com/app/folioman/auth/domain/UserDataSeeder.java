@@ -33,6 +33,8 @@ public class UserDataSeeder implements CommandLineRunner {
             UserEntity user = new UserEntity();
             user.setUsername("admin");
             user.setEmail("admin@folioman.com");
+            user.setFirstName("adminFirstName");
+            user.setLastName("adminLastName");
             user.setPasswordHash(passwordEncoder.encode("admin"));
             user.setEnabled(true);
             user.setAccountLocked(false);

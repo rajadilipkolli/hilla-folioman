@@ -55,26 +55,33 @@ export default function MainLayout() {
   return (
     <AppLayout primarySection="drawer">
       <div slot="drawer" className="flex flex-col justify-between h-full p-m">
-        <header className="flex flex-col gap-m">
-          <h1 className="text-l m-0">My App</h1>
-          <nav>
-            <NavLink className={navLinkClasses} to="/">
-              Mutual Fund Schemes
-            </NavLink>
-            <NavLink className={navLinkClasses} to="/importmutualfunds">
-              Import Mutual Funds
-            </NavLink>
-            <NavLink className={navLinkClasses} to="/userPortfolio">
-              UserPortfolio
-            </NavLink>
-            <NavLink className={navLinkClasses} to="/rebalance">
-              ReBalance Calculator
-            </NavLink>
-          </nav>
-        </header>
+        {state.user && (
+          <header className="flex flex-col gap-m">
+            <h1 className="text-l m-0">My App</h1>
+            <nav>
+              <NavLink className={navLinkClasses} to="/">
+                User Profile
+              </NavLink>
+              <NavLink className={navLinkClasses} to="/mfschemes">
+                Mutual Fund Schemes
+              </NavLink>
+              <NavLink className={navLinkClasses} to="/importmutualfunds">
+                Import Mutual Funds
+              </NavLink>
+              <NavLink className={navLinkClasses} to="/userPortfolio">
+                UserPortfolio
+              </NavLink>
+              <NavLink className={navLinkClasses} to="/rebalance">
+                ReBalance Calculator
+              </NavLink>
+            </nav>
+          </header>
+        )}
       </div>
 
-      <DrawerToggle slot="navbar" aria-label="Menu toggle"></DrawerToggle>
+      {state.user && (
+        <DrawerToggle slot="navbar" aria-label="Menu toggle"></DrawerToggle>
+      )}
       <h2 slot="navbar" className="text-l m-0 flex-1">
         {currentTitle}
       </h2>
