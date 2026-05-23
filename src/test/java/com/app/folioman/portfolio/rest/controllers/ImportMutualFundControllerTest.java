@@ -15,6 +15,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.app.folioman.auth.domain.JwtService;
+import com.app.folioman.auth.domain.TokenBlacklistService;
 import com.app.folioman.portfolio.domain.PortfolioAPI;
 import com.app.folioman.portfolio.rest.dtos.CasDTO;
 import com.app.folioman.portfolio.rest.dtos.PortfolioResponse;
@@ -48,6 +49,9 @@ class ImportMutualFundControllerTest {
 
     @MockitoBean
     private JwtService jwtService;
+
+    @MockitoBean
+    private TokenBlacklistService tokenBlacklistService;
 
     @BeforeEach
     void setUp() {

@@ -185,4 +185,34 @@ class AuthControllerIT extends AbstractIntegrationTest {
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.detail").value("Account is locked due to too many failed attempts."));
     }
+
+    @Test
+    void logoutBlacklistsAccessToken() throws Exception {
+        LoginRequest loginRequest = new LoginRequest();
+        loginRequest.setUsername("testuser");
+        loginRequest.setPassword("password123");
+
+        MvcResult result = mockMvc.perform(post("/api/auth/login")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonMapper.writeValueAsString(loginRequest)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String responseStr = result.getResponse().getContentAsString();
+        Map<?, ?> responseMap = jsonMapper.readValue(responseStr, Map.class);
+        String accessToken = (String) responseMap.get("accessToken");
+
+        // Authenticated request works
+        mockMvc.perform(get("/api/nav/122639").header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk());
+
+        // Logout
+        mockMvc.perform(post("/api/auth/logout").with(csrf()).header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk());
+
+        // Same request should now fail with 401
+        mockMvc.perform(get("/api/nav/122639").header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isUnauthorized());
+    }
 }

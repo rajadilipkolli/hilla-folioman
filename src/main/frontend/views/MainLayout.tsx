@@ -18,20 +18,37 @@ export default function MainLayout() {
 
   const handleLogout = async () => {
     try {
+      const accessToken = localStorage.getItem('accessToken');
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+      };
+      if (accessToken) {
+        headers['Authorization'] = `Bearer ${accessToken}`;
+      }
+
       const response = await fetch('/api/auth/logout', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         credentials: 'include',
       });
+
       if (response.ok) {
         localStorage.removeItem('accessToken');
         logout();
         navigate('/login');
       } else {
         console.error('Logout failed with status', response.status);
+        // Fallback: clear local state even if server fails
+        localStorage.removeItem('accessToken');
+        logout();
+        navigate('/login');
       }
     } catch (e) {
       console.error('Logout network request failed', e);
+      // Fallback: clear local state even on network error
+      localStorage.removeItem('accessToken');
+      logout();
+      navigate('/login');
     }
   };
 

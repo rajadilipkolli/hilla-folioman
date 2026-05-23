@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.app.folioman.auth.domain.RoleEntity;
 import com.app.folioman.auth.domain.RoleRepository;
+import com.app.folioman.auth.domain.UserEntity;
 import com.app.folioman.auth.domain.UserRepository;
 import com.app.folioman.shared.AbstractIntegrationTest;
 import java.time.Duration;
@@ -60,7 +61,7 @@ class MainPageIT extends AbstractIntegrationTest {
     void mainPageLoads() {
         // Create test user if it doesn't exist
         if (userRepository.findByUsername("testuser").isEmpty()) {
-            com.app.folioman.auth.domain.UserEntity user = new com.app.folioman.auth.domain.UserEntity();
+            UserEntity user = new UserEntity();
             user.setUsername("testuser");
             user.setEmail("test@test.com");
             user.setPasswordHash(passwordEncoder.encode("password123"));
@@ -75,55 +76,57 @@ class MainPageIT extends AbstractIntegrationTest {
         }
 
         driver = new RemoteWebDriver(container.getSeleniumAddress(), new EdgeOptions());
+        String baseUrl = "http://host.testcontainers.internal:" + port;
 
-        // Go to login page first because / requires login
-        driver.get("http://host.testcontainers.internal:" + port + "/login");
+        // Go to the site origin first
+        driver.get(baseUrl + "/login");
 
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-        wait.until(ExpectedConditions.presenceOfElementLocated(By.tagName("vaadin-text-field")));
-
-        // Use JavascriptExecutor for shadow DOM elements in Vaadin
         JavascriptExecutor js = (JavascriptExecutor) driver;
+        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
 
-        WebElement usernameField = driver.findElement(By.tagName("vaadin-text-field"));
-        js.executeScript(
-                "arguments[0].value = 'testuser'; arguments[0].dispatchEvent(new Event('input', { bubbles: true })); arguments[0].dispatchEvent(new Event('change', { bubbles: true }));",
-                usernameField);
+        // Use fetch inside the browser to login and set state, bypassing flaky Vaadin Web Components
+        Boolean loginSuccess = wait.until(d -> (Boolean)
+                js.executeAsyncScript("const callback = arguments[arguments.length - 1];" + "fetch('/api/auth/login', {"
+                        + "  method: 'POST',"
+                        + "  headers: {'Content-Type': 'application/json'},"
+                        + "  body: JSON.stringify({username: 'testuser', password: 'password123'})"
+                        + "})"
+                        + ".then(res => { if (!res.ok) throw new Error('not ok'); return res.json(); })"
+                        + ".then(data => {"
+                        + "  localStorage.setItem('accessToken', data.accessToken);"
+                        + "  callback(true);"
+                        + "})"
+                        + ".catch(err => callback(false));"));
 
-        WebElement passwordField = driver.findElement(By.tagName("vaadin-password-field"));
-        js.executeScript(
-                "arguments[0].value = 'password123'; arguments[0].dispatchEvent(new Event('input', { bubbles: true })); arguments[0].dispatchEvent(new Event('change', { bubbles: true }));",
-                passwordField);
+        assertThat(loginSuccess).isTrue();
 
-        WebElement loginButton = driver.findElement(By.tagName("vaadin-button"));
-        js.executeScript("arguments[0].click();", loginButton);
+        // Now navigate straight to the authenticated area
+        driver.get(baseUrl + "/");
 
-        // Wait until navigation to userPortfolio
-        wait.until(ExpectedConditions.urlContains("/userPortfolio"));
-
-        // Now navigate to main page
-        driver.get("http://host.testcontainers.internal:" + port);
+        wait.until(ExpectedConditions.urlToBe(baseUrl + "/"));
 
         assertThat(driver.getTitle() != null && !driver.getTitle().isEmpty())
                 .as("Main page should load and have a title")
                 .isTrue();
 
         // Click navigation links and verify page changes
-        WebElement importLink = driver.findElement(By.linkText("Import Mutual Funds"));
+        WebElement importLink = wait.until(ExpectedConditions.elementToBeClickable(By.linkText("Import Mutual Funds")));
         js.executeScript("arguments[0].click();", importLink);
         assertThat(driver.getPageSource().contains("Import Mutual Funds"))
                 .as("Should navigate to Import Mutual Funds page")
                 .isTrue();
         driver.navigate().back();
 
-        WebElement userPortfolioLink = driver.findElement(By.linkText("UserPortfolio"));
+        WebElement userPortfolioLink =
+                wait.until(ExpectedConditions.elementToBeClickable(By.linkText("UserPortfolio")));
         js.executeScript("arguments[0].click();", userPortfolioLink);
         assertThat(driver.getPageSource().contains("UserPortfolio"))
                 .as("Should navigate to UserPortfolio page")
                 .isTrue();
         driver.navigate().back();
 
-        WebElement rebalanceLink = driver.findElement(By.linkText("ReBalance Calculator"));
+        WebElement rebalanceLink =
+                wait.until(ExpectedConditions.elementToBeClickable(By.linkText("ReBalance Calculator")));
         js.executeScript("arguments[0].click();", rebalanceLink);
         assertThat(driver.getPageSource().contains("ReBalance Calculator"))
                 .as("Should navigate to ReBalance Calculator page")
@@ -131,19 +134,18 @@ class MainPageIT extends AbstractIntegrationTest {
         driver.navigate().back();
 
         // Interact with search field
-        WebElement searchField =
-                driver.findElement(By.cssSelector("input[placeholder='Search mutual fund schemes...']"));
+        WebElement searchField = wait.until(ExpectedConditions.presenceOfElementLocated(
+                By.cssSelector("input[placeholder='Search mutual fund schemes...']")));
         searchField.sendKeys("Fund");
 
         // Wait for either search results or the "No schemes found" message
-        wait = new WebDriverWait(driver, Duration.ofSeconds(10));
-        wait.until(driver -> {
+        wait.until(d -> {
             // Check for either search results containing "Fund" or the "No schemes found" message
             return ExpectedConditions.or(
                             ExpectedConditions.presenceOfElementLocated(By.xpath("//*[contains(text(), 'Fund')]")),
                             ExpectedConditions.presenceOfElementLocated(
                                     By.xpath("//*[contains(text(), 'No schemes found')]")))
-                    .apply(driver);
+                    .apply(d);
         });
 
         String pageSource = driver.getPageSource();

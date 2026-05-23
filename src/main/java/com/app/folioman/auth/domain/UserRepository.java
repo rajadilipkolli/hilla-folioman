@@ -2,6 +2,7 @@ package com.app.folioman.auth.domain;
 
 import jakarta.persistence.LockModeType;
 import java.util.Optional;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface UserRepository extends JpaRepository<UserEntity, Long> {
 
+    @EntityGraph(attributePaths = {"roles"})
     Optional<UserEntity> findByUsername(String username);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
