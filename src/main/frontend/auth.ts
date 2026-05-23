@@ -42,7 +42,9 @@ export async function refreshAccessToken(): Promise<boolean> {
 /** Clears auth state and redirects the user to /login */
 export function handleAuthFailure(): void {
   localStorage.removeItem('accessToken');
-  window.location.href = '/login';
+  if (window.location.pathname !== '/login') {
+    window.location.href = '/login';
+  }
 }
 
 // ─── Hilla ConnectClient Middleware ──────────────────────────────────────────

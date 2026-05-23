@@ -4,6 +4,7 @@ import com.app.folioman.auth.filter.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -12,6 +13,7 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -37,40 +39,22 @@ public class SecurityConfig {
     }
 
     @Bean
-    SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationProvider authenticationProvider) {
-        http.csrf(csrf -> {})
+    SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationProvider authenticationProvider)
+            throws Exception {
+        http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth.requestMatchers("/api/auth/**")
                         .permitAll()
-                        .requestMatchers("/api/**")
+                        .requestMatchers("/api/**", "/connect/**")
                         .authenticated()
-                        .requestMatchers(
-                                "/",
-                                "/VAADIN/**",
-                                "/HILLA/**",
-                                "/images/**",
-                                "/icons/**",
-                                "/*.html",
-                                "/*.js",
-                                "/*.css",
-                                "/manifest.webmanifest",
-                                "/sw.js",
-                                "/assets/**",
-                                "/login",
-                                "/import-mutual-funds",
-                                "/portfolio",
-                                "/rebalance",
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**")
-                        .permitAll()
                         .anyRequest()
-                        .authenticated())
+                        .permitAll())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(exceptions ->
                         exceptions.authenticationEntryPoint((request, response, authException) -> {
                             response.setStatus(HttpStatus.UNAUTHORIZED.value());
-                            response.setContentType("application/problem+json");
+                            response.setContentType(MediaType.APPLICATION_PROBLEM_XML_VALUE);
                             ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
                                     HttpStatus.UNAUTHORIZED, "Authentication required");
                             problemDetail.setTitle("Unauthorized");
