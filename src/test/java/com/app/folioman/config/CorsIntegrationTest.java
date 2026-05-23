@@ -17,11 +17,11 @@ class CorsIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Should return CORS headers for allowed origin")
     void shouldReturnCorsHeadersForAllowedOrigin() throws Exception {
         mockMvc.perform(post("/api/auth/login")
-                        .header(HttpHeaders.ORIGIN, "http://localhost")
+                        .header(HttpHeaders.ORIGIN, "http://localhost:8080")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(
                         status().isBadRequest()) // Because it requires a body, but CORS headers should still be present
-                .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "http://localhost"))
+                .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "http://localhost:8080"))
                 .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS, "true"));
     }
 
@@ -29,11 +29,11 @@ class CorsIntegrationTest extends AbstractIntegrationTest {
     @DisplayName("Should return CORS preflight headers for OPTIONS request from allowed origin")
     void shouldReturnCorsPreflightHeadersForAllowedOrigin() throws Exception {
         mockMvc.perform(options("/api/auth/login")
-                        .header(HttpHeaders.ORIGIN, "http://localhost")
+                        .header(HttpHeaders.ORIGIN, "http://localhost:8080")
                         .header(HttpHeaders.ACCESS_CONTROL_REQUEST_METHOD, "POST")
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "http://localhost"))
+                .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_ORIGIN, "http://localhost:8080"))
                 .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_METHODS, "GET,POST,PUT,DELETE,OPTIONS"))
                 .andExpect(header().string(HttpHeaders.ACCESS_CONTROL_ALLOW_CREDENTIALS, "true"));
     }

@@ -18,11 +18,14 @@ import jakarta.servlet.http.Cookie;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MvcResult;
 
+@Execution(ExecutionMode.SAME_THREAD)
 class AuthControllerIT extends AbstractIntegrationTest {
 
     @Autowired
@@ -213,6 +216,37 @@ class AuthControllerIT extends AbstractIntegrationTest {
 
         // Same request should now fail with 401
         mockMvc.perform(get("/api/nav/122639").header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void verifyReturns200AndUsernameForValidToken() throws Exception {
+        LoginRequest loginRequest = new LoginRequest();
+        loginRequest.setUsername("testuser");
+        loginRequest.setPassword("password123");
+
+        MvcResult result = mockMvc.perform(post("/api/auth/login")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonMapper.writeValueAsString(loginRequest)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String responseStr = result.getResponse().getContentAsString();
+        Map<?, ?> responseMap = jsonMapper.readValue(responseStr, Map.class);
+        String accessToken = (String) responseMap.get("accessToken");
+
+        mockMvc.perform(get("/api/auth/verify").header("Authorization", "Bearer " + accessToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.username").value("testuser"))
+                .andExpect(jsonPath("$.valid").value(true));
+    }
+
+    @Test
+    void verifyReturns401ForInvalidOrMissingToken() throws Exception {
+        mockMvc.perform(get("/api/auth/verify")).andExpect(status().isUnauthorized());
+
+        mockMvc.perform(get("/api/auth/verify").header("Authorization", "Bearer invalid.token.here"))
                 .andExpect(status().isUnauthorized());
     }
 }
