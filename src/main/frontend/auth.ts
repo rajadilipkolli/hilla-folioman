@@ -91,7 +91,14 @@ export const authenticatedFetch = async (
   init?: RequestInit,
 ): Promise<Response> => {
   const buildHeaders = () => {
-    const headers = new Headers(init?.headers);
+    const headers = new Headers(
+      input instanceof Request ? input.headers : undefined,
+    );
+    if (init?.headers) {
+      new Headers(init.headers).forEach((value, key) =>
+        headers.set(key, value),
+      );
+    }
     const token = localStorage.getItem('accessToken');
     if (token) {
       headers.set('Authorization', `Bearer ${token}`);
@@ -99,7 +106,8 @@ export const authenticatedFetch = async (
     return headers;
   };
 
-  let response = await fetch(input, {
+  const firstInput = input instanceof Request ? input.clone() : input;
+  let response = await fetch(firstInput, {
     ...init,
     headers: buildHeaders(),
     credentials: 'include',
@@ -108,7 +116,8 @@ export const authenticatedFetch = async (
   if (response.status === 401) {
     const refreshed = await refreshAccessToken();
     if (refreshed) {
-      response = await fetch(input, {
+      const retryInput = input instanceof Request ? input.clone() : input;
+      response = await fetch(retryInput, {
         ...init,
         headers: buildHeaders(),
         credentials: 'include',

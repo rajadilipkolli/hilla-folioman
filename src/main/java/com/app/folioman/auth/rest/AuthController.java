@@ -130,7 +130,11 @@ public class AuthController {
         if (refreshToken == null) {
             ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Refresh token is required");
             pd.setType(URI.create("urn:folioman:auth:missing-refresh-token"));
-            return ResponseEntity.badRequest().body(pd);
+            return ResponseEntity.badRequest()
+                    .header(
+                            HttpHeaders.SET_COOKIE,
+                            expiredRefreshCookie(request).toString())
+                    .body(pd);
         }
 
         return refreshTokenService
@@ -178,6 +182,16 @@ public class AuthController {
                             ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, "Refresh token not found");
                     return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(pd);
                 });
+    }
+
+    private ResponseCookie expiredRefreshCookie(HttpServletRequest request) {
+        return ResponseCookie.from("refreshToken", "")
+                .httpOnly(true)
+                .secure(request.isSecure() || jwtProperties.isSecureCookies())
+                .path("/api/auth")
+                .maxAge(0)
+                .sameSite("Strict")
+                .build();
     }
 
     @PostMapping("/logout")
