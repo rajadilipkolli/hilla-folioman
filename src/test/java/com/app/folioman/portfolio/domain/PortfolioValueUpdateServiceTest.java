@@ -61,6 +61,9 @@ class PortfolioValueUpdateServiceTest {
     @Mock
     private UserTransactionDetailsRepository userTransactionDetailsRepository;
 
+    @Mock
+    private UserFolioValueRepository userFolioValueRepository;
+
     @InjectMocks
     private PortfolioValueUpdateService portfolioValueUpdateService;
 
@@ -69,6 +72,18 @@ class PortfolioValueUpdateServiceTest {
 
     @Captor
     private ArgumentCaptor<FolioSchemeEntity> folioSchemeCaptor;
+
+    @Captor
+    private ArgumentCaptor<Long> folioIdCaptor;
+
+    @Captor
+    private ArgumentCaptor<LocalDate> dateCaptor;
+
+    @Captor
+    private ArgumentCaptor<BigDecimal> investedCaptor;
+
+    @Captor
+    private ArgumentCaptor<BigDecimal> valueCaptor;
 
     private UserCasDetailsEntity userCasDetailsEntity;
     private MFSchemeNavProjection mfSchemeNavProjection;
@@ -391,5 +406,132 @@ class PortfolioValueUpdateServiceTest {
         });
 
         return navData;
+    }
+
+    @Test
+    @DisplayName("Test aggregateAndSaveFolioValues grouping multiple schemes under one folio")
+    void testAggregateAndSaveFolioValues_Grouping() throws Exception {
+        // Given
+        Method aggregateMethod =
+                PortfolioValueUpdateService.class.getDeclaredMethod("aggregateAndSaveFolioValues", List.class);
+        aggregateMethod.setAccessible(true);
+
+        UserFolioDetailsEntity folio = new UserFolioDetailsEntity();
+        folio.setId(10L);
+
+        UserSchemeDetailsEntity scheme1 = new UserSchemeDetailsEntity();
+        scheme1.setUserFolioDetails(folio);
+        UserSchemeDetailsEntity scheme2 = new UserSchemeDetailsEntity();
+        scheme2.setUserFolioDetails(folio);
+
+        LocalDate date = LocalDate.of(2023, 10, 1);
+
+        SchemeValueEntity sv1 = new SchemeValueEntity();
+        sv1.setUserSchemeDetails(scheme1);
+        sv1.setDate(date);
+        sv1.setInvested(new BigDecimal("1000.00"));
+        sv1.setValue(new BigDecimal("1500.00"));
+
+        SchemeValueEntity sv2 = new SchemeValueEntity();
+        sv2.setUserSchemeDetails(scheme2);
+        sv2.setDate(date);
+        sv2.setInvested(new BigDecimal("2000.00"));
+        sv2.setValue(new BigDecimal("2500.00"));
+
+        List<SchemeValueEntity> list = List.of(sv1, sv2);
+
+        // When
+        aggregateMethod.invoke(portfolioValueUpdateService, list);
+
+        // Then
+        verify(userFolioValueRepository, Mockito.times(1))
+                .upsertFolioValue(
+                        folioIdCaptor.capture(), dateCaptor.capture(), investedCaptor.capture(), valueCaptor.capture());
+
+        assertThat(folioIdCaptor.getValue()).isEqualTo(10L);
+        assertThat(dateCaptor.getValue()).isEqualTo(date);
+    }
+
+    @Test
+    @DisplayName("Test aggregateAndSaveFolioValues summation of invested and value")
+    void testAggregateAndSaveFolioValues_Summation() throws Exception {
+        // Given
+        Method aggregateMethod =
+                PortfolioValueUpdateService.class.getDeclaredMethod("aggregateAndSaveFolioValues", List.class);
+        aggregateMethod.setAccessible(true);
+
+        UserFolioDetailsEntity folio = new UserFolioDetailsEntity();
+        folio.setId(20L);
+
+        UserSchemeDetailsEntity scheme1 = new UserSchemeDetailsEntity();
+        scheme1.setUserFolioDetails(folio);
+
+        LocalDate date = LocalDate.of(2023, 10, 2);
+
+        SchemeValueEntity sv1 = new SchemeValueEntity();
+        sv1.setUserSchemeDetails(scheme1);
+        sv1.setDate(date);
+        sv1.setInvested(new BigDecimal("100.50"));
+        sv1.setValue(new BigDecimal("150.25"));
+
+        SchemeValueEntity sv2 = new SchemeValueEntity();
+        sv2.setUserSchemeDetails(scheme1);
+        sv2.setDate(date);
+        sv2.setInvested(new BigDecimal("200.25"));
+        sv2.setValue(new BigDecimal("350.50"));
+
+        // When
+        aggregateMethod.invoke(portfolioValueUpdateService, List.of(sv1, sv2));
+
+        // Then
+        verify(userFolioValueRepository, Mockito.times(1))
+                .upsertFolioValue(
+                        folioIdCaptor.capture(), dateCaptor.capture(), investedCaptor.capture(), valueCaptor.capture());
+
+        assertThat(investedCaptor.getValue()).isEqualTo(new BigDecimal("300.75"));
+        assertThat(valueCaptor.getValue()).isEqualTo(new BigDecimal("500.75"));
+    }
+
+    @Test
+    @DisplayName("Test aggregateAndSaveFolioValues with multiple folios")
+    void testAggregateAndSaveFolioValues_MultipleFolios() throws Exception {
+        // Given
+        Method aggregateMethod =
+                PortfolioValueUpdateService.class.getDeclaredMethod("aggregateAndSaveFolioValues", List.class);
+        aggregateMethod.setAccessible(true);
+
+        UserFolioDetailsEntity folio1 = new UserFolioDetailsEntity();
+        folio1.setId(1L);
+        UserSchemeDetailsEntity scheme1 = new UserSchemeDetailsEntity();
+        scheme1.setUserFolioDetails(folio1);
+
+        UserFolioDetailsEntity folio2 = new UserFolioDetailsEntity();
+        folio2.setId(2L);
+        UserSchemeDetailsEntity scheme2 = new UserSchemeDetailsEntity();
+        scheme2.setUserFolioDetails(folio2);
+
+        LocalDate date = LocalDate.of(2023, 10, 3);
+
+        SchemeValueEntity sv1 = new SchemeValueEntity();
+        sv1.setUserSchemeDetails(scheme1);
+        sv1.setDate(date);
+        sv1.setInvested(new BigDecimal("100"));
+        sv1.setValue(new BigDecimal("150"));
+
+        SchemeValueEntity sv2 = new SchemeValueEntity();
+        sv2.setUserSchemeDetails(scheme2);
+        sv2.setDate(date);
+        sv2.setInvested(new BigDecimal("200"));
+        sv2.setValue(new BigDecimal("250"));
+
+        // When
+        aggregateMethod.invoke(portfolioValueUpdateService, List.of(sv1, sv2));
+
+        // Then
+        verify(userFolioValueRepository, Mockito.times(2))
+                .upsertFolioValue(
+                        folioIdCaptor.capture(), dateCaptor.capture(), investedCaptor.capture(), valueCaptor.capture());
+
+        assertThat(folioIdCaptor.getAllValues()).containsExactlyInAnyOrder(1L, 2L);
     }
 }

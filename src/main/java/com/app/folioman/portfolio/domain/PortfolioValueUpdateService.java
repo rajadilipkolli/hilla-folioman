@@ -52,18 +52,21 @@ class PortfolioValueUpdateService {
     private final FolioSchemeRepository folioSchemeRepository;
     private final SchemeValueRepository schemeValueRepository;
     private final UserTransactionDetailsRepository userTransactionDetailsRepository;
+    private final UserFolioValueRepository userFolioValueRepository;
 
     PortfolioValueUpdateService(
             UserPortfolioValueRepository userPortfolioValueRepository,
             MFNavService mfNavService,
             FolioSchemeRepository folioSchemeRepository,
             SchemeValueRepository schemeValueRepository,
-            UserTransactionDetailsRepository userTransactionDetailsRepository) {
+            UserTransactionDetailsRepository userTransactionDetailsRepository,
+            UserFolioValueRepository userFolioValueRepository) {
         this.userPortfolioValueRepository = userPortfolioValueRepository;
         this.mfNavService = mfNavService;
         this.folioSchemeRepository = folioSchemeRepository;
         this.schemeValueRepository = schemeValueRepository;
         this.userTransactionDetailsRepository = userTransactionDetailsRepository;
+        this.userFolioValueRepository = userFolioValueRepository;
     }
 
     private @Nullable Long getAmfiCodeSafe(UserTransactionDetailsEntity transaction) {
@@ -239,6 +242,9 @@ class PortfolioValueUpdateService {
             LOGGER.info("Saving {} SchemeValueEntity records", allSchemeValues.size());
             schemeValueRepository.saveAll(allSchemeValues);
             LOGGER.info("SchemeValueEntity data imported successfully");
+
+            // Phase B: Aggregate and save Folio-Level Daily Values
+            aggregateAndSaveFolioValues(allSchemeValues);
         }
 
         // Step 3: Update FolioSchemeEntity entities
@@ -250,6 +256,32 @@ class PortfolioValueUpdateService {
 
         // Note: UserPortfolioValueEntity is already handled in the main handleDailyPortFolioValueUpdate flow
         LOGGER.info("Portfolio value update completed");
+    }
+
+    private void aggregateAndSaveFolioValues(List<SchemeValueEntity> schemeValues) {
+        // Group by Folio ID and Date
+        Map<Long, Map<LocalDate, List<SchemeValueEntity>>> groupedByFolioAndDate = schemeValues.stream()
+                .filter(sv -> sv.getUserSchemeDetails() != null
+                        && sv.getUserSchemeDetails().getUserFolioDetails() != null)
+                .collect(Collectors.groupingBy(
+                        sv -> sv.getUserSchemeDetails().getUserFolioDetails().getId(),
+                        Collectors.groupingBy(SchemeValueEntity::getDate)));
+
+        // Sum and upsert
+        groupedByFolioAndDate.forEach((folioId, dateMap) -> {
+            dateMap.forEach((date, values) -> {
+                BigDecimal totalInvested = values.stream()
+                        .map(SchemeValueEntity::getInvested)
+                        .filter(Objects::nonNull)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+                BigDecimal totalValue = values.stream()
+                        .map(SchemeValueEntity::getValue)
+                        .filter(Objects::nonNull)
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+                userFolioValueRepository.upsertFolioValue(folioId, date, totalInvested, totalValue);
+            });
+        });
     }
 
     /**
@@ -523,7 +555,7 @@ class PortfolioValueUpdateService {
 
         // Calculate and save XIRRs
         calculateAndSaveSchemeXirrs(transactionList, dataContainer, endDate);
-        calculateAndSavePortfolioXirr(portfolioValueEntityList, dataContainer.allCashFlows());
+        calculateAndSavePortfolioXirr(portfolioValueEntityList, dataContainer);
 
         // Save portfolio values
         // Avoid duplicate key errors by reusing existing rows (update instead of insert)
@@ -831,6 +863,12 @@ class PortfolioValueUpdateService {
             }
             processedSchemeIds.add(schemeDetailId);
 
+            // Filter to schemes with current value > 0 (Live XIRR Phase D)
+            Double finalUnits = dataContainer.cumulativeUnitsByScheme().getOrDefault(schemeCode, 0.0);
+            if (finalUnits <= 0) {
+                continue;
+            }
+
             // Calculate and save XIRR for this scheme
             calculateAndSaveSchemeXirr(
                     schemeCode,
@@ -873,22 +911,40 @@ class PortfolioValueUpdateService {
     }
 
     private void calculateAndSavePortfolioXirr(
-            List<UserPortfolioValueEntity> portfolioValueEntityList, Map<LocalDate, BigDecimal> allCashFlows) {
+            List<UserPortfolioValueEntity> portfolioValueEntityList, PortfolioDataContainer dataContainer) {
 
         try {
+            Map<LocalDate, BigDecimal> allCashFlows = dataContainer.allCashFlows();
+            BigDecimal overallXirr = null;
             if (allCashFlows.size() >= 2) { // Need at least 2 cash flows for meaningful XIRR
-                // Use the new XirrCalculator.xirr method with Map parameter
-                BigDecimal overallXirr = XirrCalculator.xirr(allCashFlows);
+                overallXirr = XirrCalculator.xirr(allCashFlows);
+            }
 
-                // Set XIRR on the most recent portfolio value entity
-                if (!portfolioValueEntityList.isEmpty()) {
-                    UserPortfolioValueEntity mostRecent = portfolioValueEntityList.getLast();
-                    mostRecent.setXirr(overallXirr);
-                    LOGGER.debug("Overall portfolio XIRR calculated: {}", overallXirr);
+            // Build live cash flows ONLY from schemes that have current active balance
+            Map<LocalDate, BigDecimal> liveCashFlows = new HashMap<>();
+            dataContainer.cumulativeUnitsByScheme().forEach((schemeCode, units) -> {
+                if (units > 0 && dataContainer.cashFlowsByScheme().containsKey(schemeCode)) {
+                    dataContainer
+                            .cashFlowsByScheme()
+                            .get(schemeCode)
+                            .forEach((date, amount) -> liveCashFlows.merge(date, amount, BigDecimal::add));
                 }
+            });
+
+            BigDecimal liveXirr = null;
+            if (liveCashFlows.size() >= 2) {
+                liveXirr = XirrCalculator.xirr(liveCashFlows);
+            }
+
+            // Set XIRR on the most recent portfolio value entity
+            if (!portfolioValueEntityList.isEmpty()) {
+                UserPortfolioValueEntity mostRecent = portfolioValueEntityList.getLast();
+                mostRecent.setXirr(overallXirr);
+                mostRecent.setLiveXirr(liveXirr);
+                LOGGER.debug("Overall portfolio XIRR: {}, Live XIRR: {}", overallXirr, liveXirr);
             }
         } catch (Exception e) {
-            LOGGER.warn("Unable to calculate overall portfolio XIRR: {}", e.getMessage());
+            LOGGER.warn("Unable to calculate overall or live portfolio XIRR: {}", e.getMessage());
         }
     }
 
