@@ -298,7 +298,8 @@ class PortfolioValueUpdateService {
             Map<Long, Map<LocalDate, UserFolioValueEntity>> existingByFolioAndDate = existingFolioValues.stream()
                     .collect(Collectors.groupingBy(
                             ufv -> ufv.getUserFolioDetailsEntity().getId(),
-                            Collectors.toMap(UserFolioValueEntity::getDate, ufv -> ufv)));
+                            Collectors.toMap(
+                                    UserFolioValueEntity::getDate, ufv -> ufv, (existing, replacement) -> existing)));
 
             // Sum and upsert
             groupedByFolioAndDate.forEach((folioId, dateMap) -> {

@@ -1,14 +1,11 @@
 import { LoginOverlay } from '@vaadin/react-components/LoginOverlay.js';
 import { useState } from 'react';
-import { useAuth } from 'Frontend/auth';
-import { useNavigate } from 'react-router-dom';
+import { LoginOverlayLoginEvent } from '@vaadin/react-components';
 
 export default function LoginView() {
   const [error, setError] = useState(false);
-  const { login } = useAuth();
-  const navigate = useNavigate();
 
-  const handleLogin = async (e: any) => {
+  const handleLogin = async (e: LoginOverlayLoginEvent) => {
     const username = e.detail.username;
     const password = e.detail.password;
 
@@ -40,7 +37,7 @@ export default function LoginView() {
       opened
       error={error}
       onLogin={handleLogin}
-      title="FolioMan"
+      title="Hilla-FolioMan"
       description="Manage your mutual fund portfolios"
     />
   );
