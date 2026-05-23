@@ -62,7 +62,7 @@ export function isTokenExpired(token: string): boolean {
     );
     const payload = JSON.parse(jsonPayload);
     if (!payload.exp) return false;
-    return payload.exp < Date.now() / 1000;
+    return payload.exp < (Date.now() / 1000) + 30; // consider token expired if it's within 30 seconds of expiring
   } catch {
     return true;
   }
