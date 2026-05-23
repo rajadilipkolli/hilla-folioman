@@ -27,6 +27,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.CookieValue;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -97,7 +98,7 @@ public class AuthController {
 
             ResponseCookie cookie = ResponseCookie.from("refreshToken", refreshToken)
                     .httpOnly(true)
-                    .secure(true)
+                    .secure(request.isSecure() || jwtProperties.isSecureCookies())
                     .path("/api/auth")
                     .maxAge(jwtProperties.getRefreshTokenExpiry() / 1000)
                     .sameSite("Strict")
@@ -123,13 +124,17 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
+    @Transactional
     public ResponseEntity<?> refreshToken(
-            @CookieValue(name = "refreshToken", required = false) String cookieToken, HttpServletResponse response) {
-        String refreshToken = cookieToken;
+            @CookieValue(required = false) String refreshToken, HttpServletRequest request) {
         if (refreshToken == null) {
             ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Refresh token is required");
             pd.setType(URI.create("urn:folioman:auth:missing-refresh-token"));
-            return ResponseEntity.badRequest().body(pd);
+            return ResponseEntity.badRequest()
+                    .header(
+                            HttpHeaders.SET_COOKIE,
+                            expiredRefreshCookie(request).toString())
+                    .body(pd);
         }
 
         return refreshTokenService
@@ -138,18 +143,26 @@ public class AuthController {
                     if (refreshTokenService.isTokenValid(token)) {
                         Optional<UserEntity> userOpt = userRepository.findById(token.getUserId());
                         if (userOpt.isPresent()) {
-                            UserDetails userDetails = userDetailsService.loadUserByUsername(
-                                    userOpt.get().getUsername());
+                            UserEntity user = userOpt.get();
+                            if (!user.isEnabled() || loginAttemptService.isAccountLocked(user.getUsername())) {
+                                refreshTokenService.revokeToken(refreshToken);
+                                ProblemDetail pd = ProblemDetail.forStatusAndDetail(
+                                        HttpStatus.FORBIDDEN, "User account is locked or disabled");
+                                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                                        .body(pd);
+                            }
+
+                            UserDetails userDetails = userDetailsService.loadUserByUsername(user.getUsername());
                             String newAccessToken = jwtService.generateAccessToken(userDetails);
 
                             // Optionally rotate refresh token
                             refreshTokenService.revokeToken(refreshToken);
                             String newRefreshToken = jwtService.generateRefreshToken(userDetails);
-                            refreshTokenService.createRefreshToken(userOpt.get().getId(), newRefreshToken);
+                            refreshTokenService.createRefreshToken(user.getId(), newRefreshToken);
 
                             ResponseCookie newCookie = ResponseCookie.from("refreshToken", newRefreshToken)
                                     .httpOnly(true)
-                                    .secure(true)
+                                    .secure(request.isSecure() || jwtProperties.isSecureCookies())
                                     .path("/api/auth")
                                     .maxAge(jwtProperties.getRefreshTokenExpiry() / 1000)
                                     .sameSite("Strict")
@@ -171,15 +184,26 @@ public class AuthController {
                 });
     }
 
+    private ResponseCookie expiredRefreshCookie(HttpServletRequest request) {
+        return ResponseCookie.from("refreshToken", "")
+                .httpOnly(true)
+                .secure(request.isSecure() || jwtProperties.isSecureCookies())
+                .path("/api/auth")
+                .maxAge(0)
+                .sameSite("Strict")
+                .build();
+    }
+
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(@CookieValue(name = "refreshToken", required = false) String cookieToken) {
+    public ResponseEntity<?> logout(
+            @CookieValue(name = "refreshToken", required = false) String cookieToken, HttpServletRequest request) {
         if (cookieToken != null) {
             refreshTokenService.revokeToken(cookieToken);
         }
 
         ResponseCookie deleteCookie = ResponseCookie.from("refreshToken", "")
                 .httpOnly(true)
-                .secure(true)
+                .secure(request.isSecure() || jwtProperties.isSecureCookies())
                 .path("/api/auth")
                 .maxAge(0)
                 .sameSite("Strict")

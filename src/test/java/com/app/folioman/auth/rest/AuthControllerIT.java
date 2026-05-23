@@ -8,6 +8,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.app.folioman.auth.domain.RefreshTokenRepository;
+import com.app.folioman.auth.domain.RoleEntity;
+import com.app.folioman.auth.domain.RoleRepository;
 import com.app.folioman.auth.domain.UserEntity;
 import com.app.folioman.auth.domain.UserRepository;
 import com.app.folioman.auth.rest.dto.LoginRequest;
@@ -30,6 +32,9 @@ class AuthControllerIT extends AbstractIntegrationTest {
     private RefreshTokenRepository refreshTokenRepository;
 
     @Autowired
+    private RoleRepository roleRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @BeforeEach
@@ -44,6 +49,11 @@ class AuthControllerIT extends AbstractIntegrationTest {
         user.setEnabled(true);
         user.setAccountLocked(false);
         user.setFailedLoginAttempts(0);
+
+        RoleEntity userRole = roleRepository
+                .findByName("USER")
+                .orElseThrow(() -> new IllegalStateException("Required role USER not found in DB"));
+        user.getRoles().add(userRole);
 
         userRepository.save(user);
     }

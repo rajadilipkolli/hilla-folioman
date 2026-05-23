@@ -2,6 +2,7 @@ import FundDetailProjection from 'Frontend/generated/com/app/folioman/mfschemes/
 import MFSchemeDTO from 'Frontend/generated/com/app/folioman/mfschemes/rest/dtos/MFSchemeDTO';
 import React, { useEffect, useState } from 'react';
 import { SchemeController } from 'Frontend/generated/endpoints';
+import { authenticatedFetch } from 'Frontend/auth';
 import {
   Grid,
   GridColumn,
@@ -65,13 +66,7 @@ export default function MfSchemesView() {
       ? `/api/nav/${amfiCode}/${date}`
       : `/api/nav/${amfiCode}`;
 
-    const headers: Record<string, string> = {};
-    const token = localStorage.getItem('accessToken');
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    fetch(fetchUrl, { method: 'GET', headers })
+    authenticatedFetch(fetchUrl, { method: 'GET' })
       .then((response) => {
         if (response.ok) {
           return response.json();

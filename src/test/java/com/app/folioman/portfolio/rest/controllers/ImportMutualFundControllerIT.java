@@ -28,11 +28,9 @@ import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.security.test.context.support.WithMockUser;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @Execution(ExecutionMode.SAME_THREAD)
-@WithMockUser(roles = "USER")
 class ImportMutualFundControllerIT extends AbstractIntegrationTest {
 
     @Test
@@ -150,7 +148,10 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
                     fileInputStream);
 
             // Perform the file upload request
-            mockMvc.perform(multipart("/api/upload-handler").with(csrf()).file(multipartFile))
+            mockMvc.perform(multipart("/api/upload-handler")
+                            .with(testUser())
+                            .with(csrf())
+                            .file(multipartFile))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.newFolios", is(1)))
@@ -186,7 +187,10 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
                     fileInputStream);
 
             // Perform the file upload request
-            mockMvc.perform(multipart("/api/upload-handler").with(csrf()).file(multipartFile))
+            mockMvc.perform(multipart("/api/upload-handler")
+                            .with(testUser())
+                            .with(csrf())
+                            .file(multipartFile))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.newFolios", is(0)))
@@ -217,7 +221,10 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
                     fileInputStream);
 
             // Perform the file upload request
-            mockMvc.perform(multipart("/api/upload-handler").with(csrf()).file(multipartFile))
+            mockMvc.perform(multipart("/api/upload-handler")
+                            .with(testUser())
+                            .with(csrf())
+                            .file(multipartFile))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.newFolios", is(1)))
@@ -250,7 +257,10 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
                     fileInputStream);
 
             // Perform the file upload request
-            mockMvc.perform(multipart("/api/upload-handler").with(csrf()).file(multipartFile))
+            mockMvc.perform(multipart("/api/upload-handler")
+                            .with(testUser())
+                            .with(csrf())
+                            .file(multipartFile))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.newFolios", is(0)))
@@ -285,7 +295,10 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
                     fileInputStream);
 
             // Perform the file upload request
-            mockMvc.perform(multipart("/api/upload-handler").with(csrf()).file(multipartFile))
+            mockMvc.perform(multipart("/api/upload-handler")
+                            .with(testUser())
+                            .with(csrf())
+                            .file(multipartFile))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.newFolios", is(0)))
@@ -318,7 +331,10 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
                     fileInputStream);
 
             // Perform the file upload request
-            mockMvc.perform(multipart("/api/upload-handler").with(csrf()).file(multipartFile))
+            mockMvc.perform(multipart("/api/upload-handler")
+                            .with(testUser())
+                            .with(csrf())
+                            .file(multipartFile))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.newFolios", is(1)))
@@ -354,7 +370,10 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
                     fileInputStream);
 
             // Perform the file upload request
-            mockMvc.perform(multipart("/api/upload-handler").with(csrf()).file(multipartFile))
+            mockMvc.perform(multipart("/api/upload-handler")
+                            .with(testUser())
+                            .with(csrf())
+                            .file(multipartFile))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.newFolios", is(1)))
@@ -451,7 +470,10 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
             MockMultipartFile multipartFile = new MockMultipartFile(
                     "file", "initial-file.json", MediaType.APPLICATION_JSON_VALUE, fileInputStream);
 
-            mockMvc.perform(multipart("/api/upload-handler").with(csrf()).file(multipartFile))
+            mockMvc.perform(multipart("/api/upload-handler")
+                            .with(testUser())
+                            .with(csrf())
+                            .file(multipartFile))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.newFolios", is(1)))
@@ -548,7 +570,10 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
             MockMultipartFile multipartFile = new MockMultipartFile(
                     "file", "updated-file.json", MediaType.APPLICATION_JSON_VALUE, fileInputStream);
 
-            mockMvc.perform(multipart("/api/upload-handler").with(csrf()).file(multipartFile))
+            mockMvc.perform(multipart("/api/upload-handler")
+                            .with(testUser())
+                            .with(csrf())
+                            .file(multipartFile))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                     .andExpect(jsonPath("$.newFolios", is(0)))
@@ -571,6 +596,7 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
     void getPortfolio() throws Exception {
         this.mockMvc
                 .perform(get("/api/portfolio/{pan}", "ABCDE1234F")
+                        .with(testUser())
                         .param("asOfDate", LocalDate.now().minusDays(2).toString())
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -582,7 +608,9 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
     @Order(102)
     void getPortfolioWithOutDate() throws Exception {
         this.mockMvc
-                .perform(get("/api/portfolio/{pan}", "ABCDE1234F").accept(MediaType.APPLICATION_JSON))
+                .perform(get("/api/portfolio/{pan}", "ABCDE1234F")
+                        .with(testUser())
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, is(MediaType.APPLICATION_JSON_VALUE)))
                 .andExpect(jsonPath("$.portfolioDetailsDTOS.size()", is(5)));
