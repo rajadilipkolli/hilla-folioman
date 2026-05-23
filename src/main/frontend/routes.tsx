@@ -5,6 +5,7 @@ import UserPortfolioView from 'Frontend/views/userPortfolio/UserPortfolioView';
 import ReBalanceView from 'Frontend/views/rebalance/ReBalanceView';
 import MfSchemesView from 'Frontend/views/mfschemes/MfSchemesView';
 import LoginView from 'Frontend/views/login/LoginView';
+import UserProfileView from 'Frontend/views/userprofile/UserProfileView';
 import { protectRoutes } from '@vaadin/hilla-react-auth';
 
 const ImportMutualFundsView = lazy(
@@ -37,9 +38,14 @@ export const routes = [
         handle: { title: 'ReBalance Calculator', requiresLogin: true },
       },
       {
-        path: '/',
+        path: '/mfschemes',
         element: <MfSchemesView />,
         handle: { title: 'Mutual Fund Schemes', requiresLogin: true },
+      },
+      {
+        path: '/',
+        element: <UserProfileView />,
+        handle: { title: 'User Profile', requiresLogin: true },
       },
     ],
   },

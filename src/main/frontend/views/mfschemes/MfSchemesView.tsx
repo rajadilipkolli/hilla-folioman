@@ -197,32 +197,31 @@ export default function MfSchemesView() {
 
       <Dialog
         opened={dialogOpened}
-        onOpenedChanged={(e) => setDialogOpened(e.detail.value)}
-        headerTitle={schemeDetails?.schemeName || 'Fund Scheme Details'}
-        className="w-full max-w-screen-md">
-        <Button
-          theme="error"
-          className="absolute top-s right-s rounded-full p-xs"
-          style={{
-            minWidth: '2.5rem',
-            height: '2.5rem',
-            zIndex: 100,
-            position: 'absolute',
-            right: 'var(--lumo-space-s)',
-            top: 'var(--lumo-space-s)',
-          }}
-          onClick={() => setDialogOpened(false)}
-          aria-label="Close dialog">
-          <Icon icon="vaadin:close" />
-        </Button>
-        <div>
+        onOpenedChanged={(e) => setDialogOpened(e.detail.value)}>
+        <div
+          slot="header"
+          className="w-full flex justify-between items-center pr-m">
+          <h2 className="m-0 text-l flex-1">
+            {schemeDetails?.schemeName || 'Fund Scheme Details'}
+          </h2>
+          <Button
+            theme="tertiary-inline"
+            onClick={() => setDialogOpened(false)}
+            aria-label="Close"
+            className="m-0 p-0">
+            <Icon icon="vaadin:close" />
+          </Button>
+        </div>
+        <div
+          className="flex flex-col gap-m mt-s"
+          style={{ maxWidth: '800px', width: '100%' }}>
           {isLoading ? (
             <div className="flex items-center justify-center p-m">
               <span className="text-secondary">Loading scheme details...</span>
             </div>
           ) : schemeDetails ? (
-            <Card className="p-0 border-0 shadow-none">
-              <div className="flex justify-between items-center mb-m p-m">
+            <div className="flex flex-col gap-m">
+              <div className="flex justify-between items-center mb-s">
                 <DatePicker
                   label="Select Date for NAV"
                   value={selectedDate || ''}
@@ -234,7 +233,7 @@ export default function MfSchemesView() {
               </div>
 
               {/* NAV Value and Date displayed prominently */}
-              <div className="bg-success-10 p-m rounded mb-m flex flex-col md:flex-row justify-between items-center">
+              <div className="bg-success-10 p-m rounded flex flex-col md:flex-row justify-between items-center box-border">
                 <div className="text-center md:text-left mb-s md:mb-0">
                   <div className="text-secondary text-sm">NAV Value</div>
                   <div className="text-xl font-bold text-success">
@@ -248,44 +247,39 @@ export default function MfSchemesView() {
               </div>
 
               {/* Fixed grid layout for consistent sizing across all rows */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-m p-m">
-                <div className="bg-contrast-5 p-m rounded h-full">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-m">
+                <div className="bg-contrast-5 p-m rounded">
                   <div className="text-secondary text-sm mb-xs">
                     AMFI Scheme Code
                   </div>
                   <div>{schemeDetails.schemeCode || 'N/A'}</div>
                 </div>
 
-                <div className="bg-contrast-5 p-m rounded h-full">
+                <div className="bg-contrast-5 p-m rounded">
                   <div className="text-secondary text-sm mb-xs">ISIN</div>
                   <div>{schemeDetails.isin || 'N/A'}</div>
                 </div>
 
-                <div className="bg-contrast-5 p-m rounded h-full">
+                <div className="bg-contrast-5 p-m rounded">
                   <div className="text-secondary text-sm mb-xs">
                     Asset Management Company
                   </div>
                   <div>{schemeDetails.amc || 'N/A'}</div>
                 </div>
 
-                <div className="bg-contrast-5 p-m rounded h-full">
+                <div className="bg-contrast-5 p-m rounded">
                   <div className="text-secondary text-sm mb-xs">
                     Scheme Type
                   </div>
                   <div>{schemeDetails.schemeType || 'N/A'}</div>
                 </div>
               </div>
-            </Card>
+            </div>
           ) : (
             <div className="p-m text-center text-error">
               No details available for this scheme.
             </div>
           )}
-        </div>
-        <div slot="footer" className="flex justify-end">
-          <Button theme="primary" onClick={() => setDialogOpened(false)}>
-            Close
-          </Button>
         </div>
       </Dialog>
     </div>
