@@ -1,6 +1,7 @@
 package com.app.folioman.shared;
 
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 
 import com.app.folioman.Application;
 import com.app.folioman.config.NoSQLContainersConfig;
@@ -19,6 +20,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
@@ -65,4 +67,8 @@ public abstract class AbstractIntegrationTest {
 
     @LocalServerPort
     protected int port;
+
+    protected RequestPostProcessor testUser() {
+        return user("user").roles("USER");
+    }
 }

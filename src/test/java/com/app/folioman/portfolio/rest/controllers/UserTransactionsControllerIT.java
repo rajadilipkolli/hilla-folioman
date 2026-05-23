@@ -31,10 +31,8 @@ import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MvcResult;
 
-@WithMockUser(roles = "USER")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @Execution(ExecutionMode.SAME_THREAD)
 class UserTransactionsControllerIT extends AbstractIntegrationTest {
@@ -45,7 +43,9 @@ class UserTransactionsControllerIT extends AbstractIntegrationTest {
     @Order(1)
     void getTotalInvestmentsByPanPerMonth() throws Exception {
         this.mockMvc
-                .perform(get("/api/portfolio/investments/{pan}", TEST_PAN).accept(MediaType.APPLICATION_JSON))
+                .perform(get("/api/portfolio/investments/{pan}", TEST_PAN)
+                        .with(testUser())
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$").isArray());
@@ -55,7 +55,9 @@ class UserTransactionsControllerIT extends AbstractIntegrationTest {
     @Order(2)
     void getTotalInvestmentsByPanPerMonth_WithInvalidPan_ShouldReturnBadRequest() throws Exception {
         this.mockMvc
-                .perform(get("/api/portfolio/investments/{pan}", "INVALID-PAN").accept(MediaType.APPLICATION_JSON))
+                .perform(get("/api/portfolio/investments/{pan}", "INVALID-PAN")
+                        .with(testUser())
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
     }
 
@@ -63,8 +65,9 @@ class UserTransactionsControllerIT extends AbstractIntegrationTest {
     @Order(3)
     void getTotalInvestmentsByPanPerYear() throws Exception {
         this.mockMvc
-                .perform(
-                        get("/api/portfolio/investments/yearly/{pan}", TEST_PAN).accept(MediaType.APPLICATION_JSON))
+                .perform(get("/api/portfolio/investments/yearly/{pan}", TEST_PAN)
+                        .with(testUser())
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$").isArray());
@@ -75,6 +78,7 @@ class UserTransactionsControllerIT extends AbstractIntegrationTest {
     void getTotalInvestmentsByPanPerYear_WithInvalidPan_ShouldReturnBadRequest() throws Exception {
         this.mockMvc
                 .perform(get("/api/portfolio/investments/yearly/{pan}", "INVALID-PAN")
+                        .with(testUser())
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
     }
@@ -88,13 +92,16 @@ class UserTransactionsControllerIT extends AbstractIntegrationTest {
 
         // 2. First request should hit the database and populate the cache
         MvcResult firstMonthlyResult = this.mockMvc
-                .perform(get("/api/portfolio/investments/{pan}", TEST_PAN).accept(MediaType.APPLICATION_JSON))
+                .perform(get("/api/portfolio/investments/{pan}", TEST_PAN)
+                        .with(testUser())
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
 
         MvcResult firstYearlyResult = this.mockMvc
-                .perform(
-                        get("/api/portfolio/investments/yearly/{pan}", TEST_PAN).accept(MediaType.APPLICATION_JSON))
+                .perform(get("/api/portfolio/investments/yearly/{pan}", TEST_PAN)
+                        .with(testUser())
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -109,13 +116,16 @@ class UserTransactionsControllerIT extends AbstractIntegrationTest {
 
         // 4. Second request should use cached data
         MvcResult secondMonthlyResult = this.mockMvc
-                .perform(get("/api/portfolio/investments/{pan}", TEST_PAN).accept(MediaType.APPLICATION_JSON))
+                .perform(get("/api/portfolio/investments/{pan}", TEST_PAN)
+                        .with(testUser())
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
 
         MvcResult secondYearlyResult = this.mockMvc
-                .perform(
-                        get("/api/portfolio/investments/yearly/{pan}", TEST_PAN).accept(MediaType.APPLICATION_JSON))
+                .perform(get("/api/portfolio/investments/yearly/{pan}", TEST_PAN)
+                        .with(testUser())
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -143,7 +153,9 @@ class UserTransactionsControllerIT extends AbstractIntegrationTest {
 
         // 2. Get data before eviction
         MvcResult beforeEvictionMonthly = this.mockMvc
-                .perform(get("/api/portfolio/investments/{pan}", TEST_PAN).accept(MediaType.APPLICATION_JSON))
+                .perform(get("/api/portfolio/investments/{pan}", TEST_PAN)
+                        .with(testUser())
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -164,7 +176,9 @@ class UserTransactionsControllerIT extends AbstractIntegrationTest {
 
         // 5. Call endpoint again - should repopulate cache
         MvcResult afterEvictionMonthly = this.mockMvc
-                .perform(get("/api/portfolio/investments/{pan}", TEST_PAN).accept(MediaType.APPLICATION_JSON))
+                .perform(get("/api/portfolio/investments/{pan}", TEST_PAN)
+                        .with(testUser())
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -195,7 +209,9 @@ class UserTransactionsControllerIT extends AbstractIntegrationTest {
 
         // Fetch data for second PAN
         this.mockMvc
-                .perform(get("/api/portfolio/investments/{pan}", otherPan).accept(MediaType.APPLICATION_JSON))
+                .perform(get("/api/portfolio/investments/{pan}", otherPan)
+                        .with(testUser())
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk());
 
         // Verify both cache entries exist
@@ -343,7 +359,10 @@ class UserTransactionsControllerIT extends AbstractIntegrationTest {
             MockMultipartFile multipartFile = new MockMultipartFile(
                     "file", "test-cas-file.json", MediaType.APPLICATION_JSON_VALUE, fileInputStream);
 
-            mockMvc.perform(multipart("/api/upload-handler").with(csrf()).file(multipartFile))
+            mockMvc.perform(multipart("/api/upload-handler")
+                            .with(testUser())
+                            .with(csrf())
+                            .file(multipartFile))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.newFolios", is(1)))
                     .andExpect(jsonPath("$.newSchemes", is(1)))
@@ -353,13 +372,15 @@ class UserTransactionsControllerIT extends AbstractIntegrationTest {
         }
 
         // 3. First request should hit the database and populate the cache
-        MvcResult firstMonthlyResult = mockMvc.perform(
-                        get("/api/portfolio/investments/{pan}", testPan).accept(MediaType.APPLICATION_JSON))
+        MvcResult firstMonthlyResult = mockMvc.perform(get("/api/portfolio/investments/{pan}", testPan)
+                        .with(testUser())
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
 
-        MvcResult firstYearlyResult = mockMvc.perform(
-                        get("/api/portfolio/investments/yearly/{pan}", testPan).accept(MediaType.APPLICATION_JSON))
+        MvcResult firstYearlyResult = mockMvc.perform(get("/api/portfolio/investments/yearly/{pan}", testPan)
+                        .with(testUser())
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -376,13 +397,15 @@ class UserTransactionsControllerIT extends AbstractIntegrationTest {
         });
 
         // 7. Second calls - should use cached data
-        MvcResult secondMonthlyResult = mockMvc.perform(
-                        get("/api/portfolio/investments/{pan}", testPan).accept(MediaType.APPLICATION_JSON))
+        MvcResult secondMonthlyResult = mockMvc.perform(get("/api/portfolio/investments/{pan}", testPan)
+                        .with(testUser())
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
 
-        MvcResult secondYearlyResult = mockMvc.perform(
-                        get("/api/portfolio/investments/yearly/{pan}", testPan).accept(MediaType.APPLICATION_JSON))
+        MvcResult secondYearlyResult = mockMvc.perform(get("/api/portfolio/investments/yearly/{pan}", testPan)
+                        .with(testUser())
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
 
@@ -415,7 +438,9 @@ class UserTransactionsControllerIT extends AbstractIntegrationTest {
     @Order(51)
     void getInvestmentReturns_withInvalidPan() throws Exception {
         this.mockMvc
-                .perform(get("/api/portfolio/returns/{pan}", "INVALID123").accept(MediaType.APPLICATION_JSON))
+                .perform(get("/api/portfolio/returns/{pan}", "INVALID123")
+                        .with(testUser())
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest());
     }
 
@@ -424,7 +449,9 @@ class UserTransactionsControllerIT extends AbstractIntegrationTest {
     void getInvestmentReturns_withValidPan_NoData() throws Exception {
         // Assuming ABCDE1234F is a valid PAN but has no data in the test DB
         this.mockMvc
-                .perform(get("/api/portfolio/returns/{pan}", "ABCDE1234F").accept(MediaType.APPLICATION_JSON))
+                .perform(get("/api/portfolio/returns/{pan}", "ABCDE1234F")
+                        .with(testUser())
+                        .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk()); // Should return 200 with empty/null body based on orElse(null)
     }
 
