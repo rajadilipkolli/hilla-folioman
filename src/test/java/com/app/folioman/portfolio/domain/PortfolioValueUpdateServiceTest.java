@@ -85,6 +85,9 @@ class PortfolioValueUpdateServiceTest {
     @Captor
     private ArgumentCaptor<BigDecimal> valueCaptor;
 
+    @Captor
+    private ArgumentCaptor<List<UserFolioValueEntity>> saveAllCaptor;
+
     private UserCasDetailsEntity userCasDetailsEntity;
     private MFSchemeNavProjection mfSchemeNavProjection;
 
@@ -444,12 +447,12 @@ class PortfolioValueUpdateServiceTest {
         aggregateMethod.invoke(portfolioValueUpdateService, list);
 
         // Then
-        verify(userFolioValueRepository, Mockito.times(1))
-                .upsertFolioValue(
-                        folioIdCaptor.capture(), dateCaptor.capture(), investedCaptor.capture(), valueCaptor.capture());
+        verify(userFolioValueRepository, Mockito.times(1)).saveAll(saveAllCaptor.capture());
 
-        assertThat(folioIdCaptor.getValue()).isEqualTo(10L);
-        assertThat(dateCaptor.getValue()).isEqualTo(date);
+        List<UserFolioValueEntity> savedList = saveAllCaptor.getValue();
+        assertThat(savedList).hasSize(1);
+        assertThat(savedList.getFirst().getUserFolioDetailsEntity().getId()).isEqualTo(10L);
+        assertThat(savedList.getFirst().getDate()).isEqualTo(date);
     }
 
     @Test
@@ -484,12 +487,12 @@ class PortfolioValueUpdateServiceTest {
         aggregateMethod.invoke(portfolioValueUpdateService, List.of(sv1, sv2));
 
         // Then
-        verify(userFolioValueRepository, Mockito.times(1))
-                .upsertFolioValue(
-                        folioIdCaptor.capture(), dateCaptor.capture(), investedCaptor.capture(), valueCaptor.capture());
+        verify(userFolioValueRepository, Mockito.times(1)).saveAll(saveAllCaptor.capture());
 
-        assertThat(investedCaptor.getValue()).isEqualTo(new BigDecimal("300.75"));
-        assertThat(valueCaptor.getValue()).isEqualTo(new BigDecimal("500.75"));
+        List<UserFolioValueEntity> savedList = saveAllCaptor.getValue();
+        assertThat(savedList).hasSize(1);
+        assertThat(savedList.getFirst().getInvested()).isEqualTo(new BigDecimal("300.75"));
+        assertThat(savedList.getFirst().getValue()).isEqualTo(new BigDecimal("500.75"));
     }
 
     @Test
@@ -528,10 +531,13 @@ class PortfolioValueUpdateServiceTest {
         aggregateMethod.invoke(portfolioValueUpdateService, List.of(sv1, sv2));
 
         // Then
-        verify(userFolioValueRepository, Mockito.times(2))
-                .upsertFolioValue(
-                        folioIdCaptor.capture(), dateCaptor.capture(), investedCaptor.capture(), valueCaptor.capture());
+        verify(userFolioValueRepository, Mockito.times(1)).saveAll(saveAllCaptor.capture());
 
-        assertThat(folioIdCaptor.getAllValues()).containsExactlyInAnyOrder(1L, 2L);
+        List<UserFolioValueEntity> savedList = saveAllCaptor.getValue();
+        assertThat(savedList).hasSize(2);
+        List<Long> folioIds = savedList.stream()
+                .map(v -> v.getUserFolioDetailsEntity().getId())
+                .toList();
+        assertThat(folioIds).containsExactlyInAnyOrder(1L, 2L);
     }
 }

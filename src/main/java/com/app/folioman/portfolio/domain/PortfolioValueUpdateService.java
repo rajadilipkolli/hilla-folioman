@@ -259,6 +259,10 @@ class PortfolioValueUpdateService {
     }
 
     private void aggregateAndSaveFolioValues(List<SchemeValueEntity> schemeValues) {
+        if (schemeValues == null || schemeValues.isEmpty()) {
+            return;
+        }
+
         // Group by Folio ID and Date
         Map<Long, Map<LocalDate, List<SchemeValueEntity>>> groupedByFolioAndDate = schemeValues.stream()
                 .filter(sv -> sv.getUserSchemeDetails() != null
@@ -267,21 +271,71 @@ class PortfolioValueUpdateService {
                         sv -> sv.getUserSchemeDetails().getUserFolioDetails().getId(),
                         Collectors.groupingBy(SchemeValueEntity::getDate)));
 
-        // Sum and upsert
-        groupedByFolioAndDate.forEach((folioId, dateMap) -> {
-            dateMap.forEach((date, values) -> {
-                BigDecimal totalInvested = values.stream()
-                        .map(SchemeValueEntity::getInvested)
-                        .filter(Objects::nonNull)
-                        .reduce(BigDecimal.ZERO, BigDecimal::add);
-                BigDecimal totalValue = values.stream()
-                        .map(SchemeValueEntity::getValue)
-                        .filter(Objects::nonNull)
-                        .reduce(BigDecimal.ZERO, BigDecimal::add);
+        if (groupedByFolioAndDate.isEmpty()) {
+            return;
+        }
 
-                userFolioValueRepository.upsertFolioValue(folioId, date, totalInvested, totalValue);
+        List<UserFolioValueEntity> folioValuesToSave = new ArrayList<>();
+
+        // Find global date range and all folio IDs
+        LocalDate globalMinDate = schemeValues.stream()
+                .map(SchemeValueEntity::getDate)
+                .min(LocalDate::compareTo)
+                .orElse(null);
+        LocalDate globalMaxDate = schemeValues.stream()
+                .map(SchemeValueEntity::getDate)
+                .max(LocalDate::compareTo)
+                .orElse(null);
+        java.util.Set<Long> folioIds = groupedByFolioAndDate.keySet();
+
+        if (globalMinDate != null && globalMaxDate != null) {
+            // Fetch existing values for ALL folios in the date range with a SINGLE query
+            List<UserFolioValueEntity> existingFolioValues =
+                    userFolioValueRepository.findByUserFolioDetailsEntity_IdInAndDateBetween(
+                            folioIds, globalMinDate, globalMaxDate);
+
+            // Create a fast lookup map: Folio ID -> Date -> Entity
+            Map<Long, Map<LocalDate, UserFolioValueEntity>> existingByFolioAndDate = existingFolioValues.stream()
+                    .collect(Collectors.groupingBy(
+                            ufv -> ufv.getUserFolioDetailsEntity().getId(),
+                            Collectors.toMap(UserFolioValueEntity::getDate, ufv -> ufv)));
+
+            // Sum and upsert
+            groupedByFolioAndDate.forEach((folioId, dateMap) -> {
+                Map<LocalDate, UserFolioValueEntity> existingForFolio =
+                        existingByFolioAndDate.getOrDefault(folioId, Collections.emptyMap());
+
+                dateMap.forEach((date, values) -> {
+                    BigDecimal totalInvested = values.stream()
+                            .map(SchemeValueEntity::getInvested)
+                            .filter(Objects::nonNull)
+                            .reduce(BigDecimal.ZERO, BigDecimal::add);
+                    BigDecimal totalValue = values.stream()
+                            .map(SchemeValueEntity::getValue)
+                            .filter(Objects::nonNull)
+                            .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+                    UserFolioValueEntity existing = existingForFolio.get(date);
+                    if (existing != null) {
+                        existing.setInvested(totalInvested);
+                        existing.setValue(totalValue);
+                        folioValuesToSave.add(existing);
+                    } else {
+                        UserFolioValueEntity newFolioValue = new UserFolioValueEntity();
+                        newFolioValue.setUserFolioDetailsEntity(
+                                values.getFirst().getUserSchemeDetails().getUserFolioDetails());
+                        newFolioValue.setDate(date);
+                        newFolioValue.setInvested(totalInvested);
+                        newFolioValue.setValue(totalValue);
+                        folioValuesToSave.add(newFolioValue);
+                    }
+                });
             });
-        });
+        }
+
+        if (!folioValuesToSave.isEmpty()) {
+            userFolioValueRepository.saveAll(folioValuesToSave);
+        }
     }
 
     /**
