@@ -52,7 +52,7 @@
     "transform-ast": "2.4.4",
     "typescript": "5.9.3",
     "vite": "8.0.14",
-    "vite-plugin-checker": "0.13.0"
+    "vite-plugin-checker": "0.14.1"
   },
   "vaadin": {
     "dependencies": {
