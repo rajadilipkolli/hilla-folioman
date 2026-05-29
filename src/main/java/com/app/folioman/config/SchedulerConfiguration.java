@@ -2,7 +2,6 @@ package com.app.folioman.config;
 
 import com.app.folioman.config.redis.AdaptiveStrategyScheduler;
 import com.app.folioman.mfschemes.MFNavService;
-import com.app.folioman.mfschemes.domain.MfSchemeSyncService;
 import com.app.folioman.portfolio.UserSchemeDetailService;
 import org.jobrunr.scheduling.BackgroundJob;
 import org.slf4j.Logger;
@@ -25,19 +24,16 @@ public class SchedulerConfiguration {
     private final MFNavService mfNavService;
     private final AdaptiveStrategyScheduler adaptiveStrategyScheduler;
     private final SchedulerProperties schedulerProperties;
-    private final MfSchemeSyncService mfSchemeSyncService;
 
     public SchedulerConfiguration(
             UserSchemeDetailService userSchemeDetailsService,
             MFNavService mfNavService,
             AdaptiveStrategyScheduler adaptiveStrategyScheduler,
-            SchedulerProperties schedulerProperties,
-            MfSchemeSyncService mfSchemeSyncService) {
+            SchedulerProperties schedulerProperties) {
         this.userSchemeDetailService = userSchemeDetailsService;
         this.mfNavService = mfNavService;
         this.adaptiveStrategyScheduler = adaptiveStrategyScheduler;
         this.schedulerProperties = schedulerProperties;
-        this.mfSchemeSyncService = mfSchemeSyncService;
     }
 
     @Bean
@@ -50,15 +46,7 @@ public class SchedulerConfiguration {
         scheduleSetAMFIIfNullJob();
         scheduleNavDataJobs();
         scheduleAdaptiveStrategyJob();
-        scheduleSchemeSyncJob();
         // Portfolio cache eviction job is scheduled separately in the portfolio module
-    }
-
-    private void scheduleSchemeSyncJob() {
-        LOGGER.info("Scheduling scheme sync job with cron: {}", schedulerProperties.getSchemeSyncJobCron());
-        BackgroundJob.scheduleRecurrently(
-                "update-mf-schemes", schedulerProperties.getSchemeSyncJobCron(), mfSchemeSyncService::syncAllSchemes);
-        LOGGER.info("scheme sync job scheduled successfully");
     }
 
     private void scheduleSetAMFIIfNullJob() {
