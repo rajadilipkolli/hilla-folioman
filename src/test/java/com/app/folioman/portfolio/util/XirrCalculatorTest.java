@@ -52,10 +52,8 @@ class XirrCalculatorTest {
         // Act
         BigDecimal result = XirrCalculator.xirr(valuesPerDate);
 
-        // Assert - Accept the actual value with a reasonable tolerance
-        assertThat(result)
-                .isGreaterThan(new BigDecimal("0.19"))
-                .isLessThan(new BigDecimal("0.35")); // Relaxed upper bound
+        // Assert - Expect the exact value within tight tolerance
+        assertThat(result).isCloseTo(new BigDecimal("0.3333"), within(TOLERANCE));
     }
 
     @Test
@@ -73,7 +71,7 @@ class XirrCalculatorTest {
         BigDecimal result = XirrCalculator.xirr(valuesPerDate);
 
         // Assert
-        assertThat(result).isCloseTo(new BigDecimal("0.083"), within(WIDE_TOLERANCE));
+        assertThat(result).isCloseTo(new BigDecimal("0.0833"), within(TOLERANCE));
     }
 
     @Test
@@ -104,8 +102,8 @@ class XirrCalculatorTest {
         // Act
         BigDecimal result = XirrCalculator.xirr(valuesPerDate);
 
-        // Assert - Accept the actual value which is reasonable
-        assertThat(result).isGreaterThanOrEqualTo(new BigDecimal("0.11"));
+        // Assert - Expect the exact value
+        assertThat(result).isCloseTo(new BigDecimal("0.1180"), within(TOLERANCE));
     }
 
     @Test
@@ -124,7 +122,7 @@ class XirrCalculatorTest {
         BigDecimal result = XirrCalculator.xirr(valuesPerDate);
 
         // Assert
-        assertThat(result).isGreaterThan(new BigDecimal("0.09")); // Expected return > 9%
+        assertThat(result).isCloseTo(new BigDecimal("0.1000"), within(TOLERANCE));
     }
 
     @Test
@@ -145,7 +143,7 @@ class XirrCalculatorTest {
         BigDecimal result = XirrCalculator.xirr(valuesPerDate);
 
         // Assert
-        assertThat(result).isGreaterThan(new BigDecimal("0.05"));
+        assertThat(result).isCloseTo(new BigDecimal("0.1000"), within(TOLERANCE));
     }
 
     @Test
@@ -162,8 +160,8 @@ class XirrCalculatorTest {
         // Act
         BigDecimal result = XirrCalculator.xirr(valuesPerDate);
 
-        // Assert - Accept the actual value which is reasonable
-        assertThat(result).isCloseTo(new BigDecimal("0.21"), within(RELAXED_TOLERANCE));
+        // Assert - Exact value
+        assertThat(result).isCloseTo(new BigDecimal("0.2142"), within(TOLERANCE));
     }
 
     @Test
@@ -181,8 +179,7 @@ class XirrCalculatorTest {
         BigDecimal result = XirrCalculator.xirr(valuesPerDate);
 
         // Assert
-        // Accept the actual calculated value
-        assertThat(result).isCloseTo(new BigDecimal("0.19"), within(RELAXED_TOLERANCE));
+        assertThat(result).isCloseTo(new BigDecimal("0.1941"), within(TOLERANCE));
     }
 
     @Test
@@ -202,8 +199,7 @@ class XirrCalculatorTest {
         BigDecimal result = XirrCalculator.xirr(valuesPerDate);
 
         // Assert
-        // Accept a range of reasonable values
-        assertThat(result).isBetween(new BigDecimal("0"), new BigDecimal("0.15"));
+        assertThat(result).isCloseTo(new BigDecimal("0.0000"), within(TOLERANCE));
     }
 
     @Test
@@ -228,8 +224,8 @@ class XirrCalculatorTest {
         // Act
         BigDecimal result = XirrCalculator.xirr(valuesPerDate);
 
-        // Assert - Accept the actual value which is reasonable for this scenario
-        assertThat(result).isGreaterThan(new BigDecimal("0.05")); // Adjusted expected rate
+        // Assert
+        assertThat(result).isCloseTo(new BigDecimal("0.0555"), within(TOLERANCE));
     }
 
     @Test
@@ -247,7 +243,7 @@ class XirrCalculatorTest {
         BigDecimal result = XirrCalculator.xirr(valuesPerDate);
 
         // Assert
-        assertThat(result).isGreaterThan(new BigDecimal("0.05")); // Expected return > 5%
+        assertThat(result).isCloseTo(new BigDecimal("0.1000"), within(TOLERANCE));
     }
 
     @Test
@@ -322,7 +318,7 @@ class XirrCalculatorTest {
         // Act & Assert - For extremely short periods, we'll accept any value that indicates high returns
         // (since the annual rate will be enormous)
         BigDecimal result = XirrCalculator.xirr(valuesPerDate);
-        assertThat(result).isGreaterThan(new BigDecimal("10")); // Very high annualized return expected
+        assertThat(result).isCloseTo(new BigDecimal("20.0"), within(new BigDecimal("2.0")));
     }
 
     @Test
@@ -399,8 +395,7 @@ class XirrCalculatorTest {
         // Act
         try {
             BigDecimal result = XirrCalculator.xirr(valuesPerDate);
-            // Assert - if it doesn't throw, the result should be a reasonable value
-            assertThat(result).isBetween(new BigDecimal("0.1"), new BigDecimal("0.3"));
+            assertThat(result).isCloseTo(new BigDecimal("0.1000"), within(TOLERANCE));
         } catch (ArithmeticException e) {
             // If convergence fails, that's acceptable for this test
             assertThat(e.getMessage()).contains("did not converge");
@@ -421,9 +416,8 @@ class XirrCalculatorTest {
         // Act
         BigDecimal result = XirrCalculator.xirr(valuesPerDate);
 
-        // Assert - For this case, the actual result or a default value would be reasonable
-        // as most solvers will have trouble with the short time period and cash flow pattern
-        assertThat(result).isBetween(new BigDecimal("-1.0"), new BigDecimal("0.2"));
+        // Assert
+        assertThat(result).isCloseTo(new BigDecimal("-0.9999"), within(TOLERANCE));
     }
 
     @Test
@@ -441,8 +435,7 @@ class XirrCalculatorTest {
         // Act
         try {
             BigDecimal result = XirrCalculator.xirr(valuesPerDate);
-            // Assert - if it doesn't throw, the result should be a reasonable value
-            assertThat(result).isBetween(new BigDecimal("0.1"), new BigDecimal("0.3"));
+            assertThat(result).isCloseTo(new BigDecimal("0.1000"), within(TOLERANCE));
         } catch (ArithmeticException e) {
             // If convergence fails, that's acceptable for this test
             assertThat(e.getMessage()).contains("did not converge");
@@ -457,8 +450,7 @@ class XirrCalculatorTest {
         // Act
         try {
             BigDecimal result = XirrCalculator.xirr(valuesPerDate);
-            // Assert - Use a wider tolerance for comparing with expected rates
-            assertThat(result).isCloseTo(expectedRate, within(WIDE_TOLERANCE));
+            assertThat(result).isCloseTo(expectedRate, within(TOLERANCE));
         } catch (ArithmeticException e) {
             // If convergence fails, that's acceptable for some complex scenarios
             assertThat(e.getMessage()).contains("did not converge");
@@ -522,12 +514,7 @@ class XirrCalculatorTest {
         // Act
         try {
             BigDecimal result = XirrCalculator.xirr(valuesPerDate);
-            // Assert - Use the provided tolerance for comparing with expected rates
-            // But also accept if the result is close to our actual implementation's result
-            assertThat(result)
-                    .isBetween(
-                            expectedRate.subtract(tolerance.multiply(new BigDecimal("2"))),
-                            expectedRate.add(tolerance.multiply(new BigDecimal("5"))));
+            assertThat(result).isCloseTo(expectedRate, within(tolerance));
         } catch (ArithmeticException e) {
             // If convergence fails, that's acceptable for some complex scenarios
             assertThat(e.getMessage()).contains("did not converge");
@@ -544,9 +531,8 @@ class XirrCalculatorTest {
                                 LocalDate.of(2020, 4, 1), new BigDecimal("-500"),
                                 LocalDate.of(2020, 10, 1), new BigDecimal("750"),
                                 LocalDate.of(2021, 1, 1), new BigDecimal("1000")),
-                        new BigDecimal("0.20"), // ~20% return
-                        new BigDecimal("0.15") // Wider tolerance
-                        ),
+                        new BigDecimal("0.3333"),
+                        TOLERANCE),
                 // Partial redemptions pattern
                 Arguments.of(
                         "Partial redemptions pattern",
@@ -556,8 +542,8 @@ class XirrCalculatorTest {
                                 LocalDate.of(2022, 7, 1), new BigDecimal("1000"),
                                 LocalDate.of(2022, 10, 1), new BigDecimal("1000"),
                                 LocalDate.of(2023, 1, 1), new BigDecimal("8500")),
-                        new BigDecimal("0.21"), // Adjusted from 0.1289 to match actual
-                        new BigDecimal("0.05")),
+                        new BigDecimal("0.2142"),
+                        TOLERANCE),
                 // Market crash and recovery
                 Arguments.of(
                         "Market crash and recovery",
@@ -566,9 +552,8 @@ class XirrCalculatorTest {
                                 LocalDate.of(2020, 3, 15), new BigDecimal("-5000"),
                                 LocalDate.of(2020, 5, 10), new BigDecimal("-5000"),
                                 LocalDate.of(2022, 1, 1), new BigDecimal("25000")),
-                        new BigDecimal("0.12"), // Adjusted from 0.15 to match actual
-                        new BigDecimal("0.05") // Wider tolerance
-                        ),
+                        new BigDecimal("0.1180"),
+                        TOLERANCE),
                 // Withdrawal strategy (retirement scenario)
                 Arguments.of(
                         "Withdrawal strategy (retirement)",
@@ -577,9 +562,8 @@ class XirrCalculatorTest {
                                 Map.entry(LocalDate.of(2023, 2, 1), new BigDecimal("20000")),
                                 Map.entry(LocalDate.of(2023, 3, 1), new BigDecimal("20000")),
                                 Map.entry(LocalDate.of(2023, 4, 1), new BigDecimal("420000"))),
-                        new BigDecimal("0"), // Accept any reasonable return for this difficult case
-                        new BigDecimal("1.0") // Very wide tolerance
-                        ));
+                        new BigDecimal("-0.9999"),
+                        TOLERANCE));
     }
 
     @ParameterizedTest(name = "{0}")
@@ -591,11 +575,8 @@ class XirrCalculatorTest {
             // Act
             BigDecimal result = XirrCalculator.xirr(valuesPerDate);
 
-            // Assert - for SIPs we'll accept a wider range of returns as reasonable
-            assertThat(result)
-                    .isBetween(
-                            expectedMinimumRate.subtract(new BigDecimal("0.1")),
-                            expectedMinimumRate.add(new BigDecimal("0.2")));
+            // Assert
+            assertThat(result).isCloseTo(expectedMinimumRate, within(TOLERANCE));
         } catch (ArithmeticException e) {
             // If convergence fails for some complex scenarios, that's acceptable
             assertThat(e.getMessage()).contains("did not converge");
@@ -608,8 +589,7 @@ class XirrCalculatorTest {
                 Arguments.of(
                         "Regular monthly SIP with positive return",
                         generateMonthlySipCashFlows(12, new BigDecimal("1000"), new BigDecimal("13000")),
-                        new BigDecimal("0.08") // At least 8% return
-                        ),
+                        new BigDecimal("0.0833")),
                 // Regular quarterly SIP
                 Arguments.of(
                         "Quarterly SIP with positive return",
@@ -619,8 +599,7 @@ class XirrCalculatorTest {
                                 LocalDate.of(2022, 7, 15), new BigDecimal("-1000"),
                                 LocalDate.of(2022, 10, 15), new BigDecimal("-1000"),
                                 LocalDate.of(2023, 1, 15), new BigDecimal("4500")),
-                        new BigDecimal("0.10") // At least 10% return
-                        ),
+                        new BigDecimal("0.1249")),
                 // SIP with varying amounts
                 Arguments.of(
                         "SIP with varying amounts",
@@ -632,8 +611,7 @@ class XirrCalculatorTest {
                                 LocalDate.of(2022, 5, 5), new BigDecimal("-10000"),
                                 LocalDate.of(2022, 6, 5), new BigDecimal("-5000"),
                                 LocalDate.of(2022, 7, 5), new BigDecimal("45000")),
-                        new BigDecimal("0.05") // Adjusted minimum return expectation
-                        ),
+                        new BigDecimal("0.1000")),
                 // SIP with lump sum
                 Arguments.of(
                         "SIP with mid-term lump sum addition",
@@ -644,8 +622,7 @@ class XirrCalculatorTest {
                                 LocalDate.of(2022, 3, 10), new BigDecimal("-1000"),
                                 LocalDate.of(2022, 4, 10), new BigDecimal("-1000"),
                                 LocalDate.of(2022, 7, 10), new BigDecimal("15000")),
-                        new BigDecimal("0.05") // At least 5% return
-                        ));
+                        new BigDecimal("0.1000")));
     }
 
     // Helper method to generate monthly SIP cash flows
@@ -681,7 +658,7 @@ class XirrCalculatorTest {
         BigDecimal result = XirrCalculator.xirr(valuesPerDate);
 
         // Test expectation adjusted to match actual behavior
-        assertThat(result).isCloseTo(new BigDecimal("0.09"), within(RELAXED_TOLERANCE));
+        assertThat(result).isCloseTo(new BigDecimal("0.0911"), within(TOLERANCE));
     }
 
     @Test
