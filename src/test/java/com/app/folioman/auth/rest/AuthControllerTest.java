@@ -21,6 +21,8 @@ import jakarta.servlet.http.Cookie;
 import java.util.Date;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.security.autoconfigure.SecurityAutoConfiguration;
 import org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration;
@@ -41,6 +43,7 @@ import tools.jackson.databind.json.JsonMapper;
         value = AuthController.class,
         excludeAutoConfiguration = {SecurityAutoConfiguration.class, UserDetailsServiceAutoConfiguration.class})
 @AutoConfigureMockMvc(addFilters = false)
+@Execution(ExecutionMode.SAME_THREAD)
 class AuthControllerTest {
 
     @MockitoBean

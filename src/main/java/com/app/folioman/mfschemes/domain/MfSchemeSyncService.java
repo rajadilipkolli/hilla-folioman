@@ -1,13 +1,13 @@
 package com.app.folioman.mfschemes.domain;
 
 import com.app.folioman.mfschemes.config.MfSchemesProperties;
+import com.app.folioman.mfschemes.exception.MutualFundDataException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import org.jobrunr.jobs.annotations.Job;
@@ -26,7 +26,6 @@ public class MfSchemeSyncService {
     private final MfFundSchemeService mfFundSchemeService;
     private final MfFundSchemeRepository mfFundSchemeRepository;
     private final MfSchemesProperties properties;
-    private final Map<String, String> amfiCodeIsinMap = new ConcurrentHashMap<>();
 
     MfSchemeSyncService(
             BSEStarMasterDataService bseStarMasterDataService,
@@ -92,7 +91,7 @@ public class MfSchemeSyncService {
 
         } catch (IOException | com.opencsv.exceptions.CsvException e) {
             LOGGER.error("Failed to download or parse BSE Master Data", e);
-            throw new RuntimeException("Failed to download or parse BSE Master Data", e);
+            throw new MutualFundDataException("Failed to download or parse BSE Master Data", e);
         }
     }
 
@@ -150,6 +149,11 @@ public class MfSchemeSyncService {
         if (!Objects.equals(existing.getIsin(), incoming.getIsin())) return true;
         if (!Objects.equals(existing.getStartDate(), incoming.getStartDate())) return true;
         if (!Objects.equals(existing.getEndDate(), incoming.getEndDate())) return true;
+        if (!Objects.equals(existing.getSid(), incoming.getSid())) return true;
+        if (!Objects.equals(existing.getRta(), incoming.getRta())) return true;
+        if (!Objects.equals(existing.getPlan(), incoming.getPlan())) return true;
+        if (!Objects.equals(existing.getRtaCode(), incoming.getRtaCode())) return true;
+        if (!Objects.equals(existing.getAmcCode(), incoming.getAmcCode())) return true;
 
         Integer existingAmcId = existing.getAmc() != null ? existing.getAmc().getId() : null;
         Integer incomingAmcId = incoming.getAmc() != null ? incoming.getAmc().getId() : null;
@@ -165,16 +169,15 @@ public class MfSchemeSyncService {
     }
 
     private Map<String, String> getAmfiCodeISINMapping(Map<String, Map<String, String>> amfiDataMap) {
-        if (amfiCodeIsinMap.isEmpty()) {
-            for (Map.Entry<String, Map<String, String>> outerEntry : amfiDataMap.entrySet()) {
-                String amfiCode = outerEntry.getKey();
-                String isin = outerEntry.getValue().get(ISIN_KEY);
-                if (isin != null) {
-                    String processedIsin = (isin.length() > 12) ? isin.substring(0, 12) : isin;
-                    amfiCodeIsinMap.putIfAbsent(processedIsin, amfiCode);
-                }
+        Map<String, String> localAmfiCodeIsinMap = new java.util.HashMap<>();
+        for (Map.Entry<String, Map<String, String>> outerEntry : amfiDataMap.entrySet()) {
+            String amfiCode = outerEntry.getKey();
+            String isin = outerEntry.getValue().get(ISIN_KEY);
+            if (isin != null) {
+                String processedIsin = (isin.length() > 12) ? isin.substring(0, 12) : isin;
+                localAmfiCodeIsinMap.putIfAbsent(amfiCode, processedIsin);
             }
         }
-        return amfiCodeIsinMap;
+        return localAmfiCodeIsinMap;
     }
 }

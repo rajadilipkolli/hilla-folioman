@@ -18,7 +18,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -50,9 +49,6 @@ class MfSchemeSyncServiceTest {
 
     @Captor
     private ArgumentCaptor<List<MfFundSchemeEntity>> savedSchemesCaptor;
-
-    @BeforeEach
-    void setUp() {}
 
     @Test
     @SuppressWarnings("unchecked")
