@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 
 import com.app.folioman.config.redis.AdaptiveStrategyScheduler;
 import com.app.folioman.mfschemes.MFNavService;
+import com.app.folioman.mfschemes.domain.MfSchemeSyncService;
 import com.app.folioman.portfolio.UserSchemeDetailService;
 import org.jobrunr.scheduling.BackgroundJob;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,6 +38,9 @@ class SchedulerConfigurationTest {
     private SchedulerProperties schedulerProperties;
 
     @Mock
+    private MfSchemeSyncService mfSchemeSyncService;
+
+    @Mock
     private ApplicationStartedEvent applicationStartedEvent;
 
     private SchedulerConfiguration schedulerConfiguration;
@@ -44,17 +48,30 @@ class SchedulerConfigurationTest {
     @BeforeEach
     void setUp() {
         schedulerConfiguration = new SchedulerConfiguration(
-                userSchemeDetailService, mfNavService, adaptiveStrategyScheduler, schedulerProperties);
+                userSchemeDetailService,
+                mfNavService,
+                adaptiveStrategyScheduler,
+                schedulerProperties,
+                mfSchemeSyncService);
     }
 
     @Test
     void constructor_ShouldInitializeAllDependencies() {
         SchedulerConfiguration config = new SchedulerConfiguration(
-                userSchemeDetailService, mfNavService, adaptiveStrategyScheduler, schedulerProperties);
+                userSchemeDetailService,
+                mfNavService,
+                adaptiveStrategyScheduler,
+                schedulerProperties,
+                mfSchemeSyncService);
 
         // Verify that the configuration is created without throwing exceptions
         // Dependencies are stored and can be used
-        verifyNoInteractions(userSchemeDetailService, mfNavService, adaptiveStrategyScheduler, schedulerProperties);
+        verifyNoInteractions(
+                userSchemeDetailService,
+                mfNavService,
+                adaptiveStrategyScheduler,
+                schedulerProperties,
+                mfSchemeSyncService);
     }
 
     @Test
@@ -63,11 +80,13 @@ class SchedulerConfigurationTest {
         String historicalNavCron = "0 0 2 * * ?";
         String dailyDataCron = "0 0 3 * * ?";
         String adaptiveStrategyCron = "0 0 4 * * ?";
+        String schemeSyncCron = "0 0 5 * * ?";
 
         when(schedulerProperties.getAmfiJobCron()).thenReturn(amfiCron);
         when(schedulerProperties.getHistoricalNavJobCron()).thenReturn(historicalNavCron);
         when(schedulerProperties.getDailyDataJobCron()).thenReturn(dailyDataCron);
         when(schedulerProperties.getAdaptiveStrategyJobCron()).thenReturn(adaptiveStrategyCron);
+        when(schedulerProperties.getSchemeSyncJobCron()).thenReturn(schemeSyncCron);
 
         try (MockedStatic<BackgroundJob> backgroundJobMock = mockStatic(BackgroundJob.class)) {
             schedulerConfiguration.scheduleAllJobs(applicationStartedEvent);
@@ -85,6 +104,9 @@ class SchedulerConfigurationTest {
                     eq("adaptive-cache-strategy"),
                     eq(adaptiveStrategyCron),
                     any(org.jobrunr.jobs.lambdas.JobLambda.class)));
+
+            backgroundJobMock.verify(() -> BackgroundJob.scheduleRecurrently(
+                    eq("update-mf-schemes"), eq(schemeSyncCron), any(org.jobrunr.jobs.lambdas.JobLambda.class)));
         }
 
         // Each getter is invoked once for logging and once when passed to BackgroundJob.scheduleRecurrently
@@ -92,6 +114,7 @@ class SchedulerConfigurationTest {
         verify(schedulerProperties, times(2)).getHistoricalNavJobCron();
         verify(schedulerProperties, times(2)).getDailyDataJobCron();
         verify(schedulerProperties, times(2)).getAdaptiveStrategyJobCron();
+        verify(schedulerProperties, times(2)).getSchemeSyncJobCron();
     }
 
     @Test
@@ -100,6 +123,7 @@ class SchedulerConfigurationTest {
         when(schedulerProperties.getHistoricalNavJobCron()).thenReturn("0 0 2 * * ?");
         when(schedulerProperties.getDailyDataJobCron()).thenReturn("0 0 3 * * ?");
         when(schedulerProperties.getAdaptiveStrategyJobCron()).thenReturn("0 0 4 * * ?");
+        when(schedulerProperties.getSchemeSyncJobCron()).thenReturn("0 0 5 * * ?");
 
         try (MockedStatic<BackgroundJob> backgroundJobMock = mockStatic(BackgroundJob.class)) {
             schedulerConfiguration.scheduleAllJobs(applicationStartedEvent);
@@ -107,7 +131,7 @@ class SchedulerConfigurationTest {
             backgroundJobMock.verify(
                     () -> BackgroundJob.scheduleRecurrently(
                             anyString(), anyString(), any(org.jobrunr.jobs.lambdas.JobLambda.class)),
-                    times(4));
+                    times(5));
         }
     }
 
@@ -117,6 +141,7 @@ class SchedulerConfigurationTest {
         when(schedulerProperties.getHistoricalNavJobCron()).thenReturn("0 0 2 * * ?");
         when(schedulerProperties.getDailyDataJobCron()).thenReturn("0 0 3 * * ?");
         when(schedulerProperties.getAdaptiveStrategyJobCron()).thenReturn("0 0 4 * * ?");
+        when(schedulerProperties.getSchemeSyncJobCron()).thenReturn("0 0 5 * * ?");
 
         try (MockedStatic<BackgroundJob> backgroundJobMock = mockStatic(BackgroundJob.class)) {
             schedulerConfiguration.scheduleAllJobs(applicationStartedEvent);
@@ -132,6 +157,9 @@ class SchedulerConfigurationTest {
 
             backgroundJobMock.verify(() -> BackgroundJob.scheduleRecurrently(
                     eq("adaptive-cache-strategy"), anyString(), any(org.jobrunr.jobs.lambdas.JobLambda.class)));
+
+            backgroundJobMock.verify(() -> BackgroundJob.scheduleRecurrently(
+                    eq("update-mf-schemes"), anyString(), any(org.jobrunr.jobs.lambdas.JobLambda.class)));
         }
     }
 }

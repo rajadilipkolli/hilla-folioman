@@ -20,12 +20,12 @@ import com.app.folioman.auth.rest.dto.LoginRequest;
 import jakarta.servlet.http.Cookie;
 import java.util.Date;
 import java.util.Optional;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.security.autoconfigure.SecurityAutoConfiguration;
+import org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -33,53 +33,48 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import tools.jackson.databind.json.JsonMapper;
 
-@ExtendWith(MockitoExtension.class)
+@WebMvcTest(
+        value = AuthController.class,
+        excludeAutoConfiguration = {SecurityAutoConfiguration.class, UserDetailsServiceAutoConfiguration.class})
+@AutoConfigureMockMvc(addFilters = false)
 class AuthControllerTest {
 
-    @Mock
+    @MockitoBean
     private AuthenticationManager authenticationManager;
 
-    @Mock
+    @MockitoBean
     private JwtService jwtService;
 
-    @Mock
+    @MockitoBean
     private RefreshTokenService refreshTokenService;
 
-    @Mock
+    @MockitoBean
     private CustomUserDetailsService userDetailsService;
 
-    @Mock
+    @MockitoBean
     private LoginAttemptService loginAttemptService;
 
-    @Mock
+    @MockitoBean
     private UserRepository userRepository;
 
-    @Mock
+    @MockitoBean
     private JwtProperties jwtProperties;
 
-    @Mock
+    @MockitoBean
     private TokenBlacklistService tokenBlacklistService;
 
-    @InjectMocks
-    private AuthController authController;
-
+    @Autowired
     private MockMvcTester mockMvcTester;
+
+    @Autowired
     private JsonMapper objectMapper;
 
-    @BeforeEach
-    void setUp() {
-        MockMvc mockMvc = MockMvcBuilders.standaloneSetup(authController).build();
-        mockMvcTester = MockMvcTester.create(mockMvc);
-        objectMapper = JsonMapper.builder().build();
-    }
-
     @Test
-    void login_whenAccountLocked_returns401() throws Exception {
+    void login_whenAccountLocked_returns401() {
         LoginRequest req = new LoginRequest();
         req.setUsername("testuser");
         req.setPassword("pass");

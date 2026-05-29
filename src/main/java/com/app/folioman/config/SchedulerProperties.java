@@ -40,6 +40,12 @@ public class SchedulerProperties {
      */
     private String transactionCacheEvictionCron = "0 45 18 * * *";
 
+    /**
+     * Cron expression for MF scheme synchronization job
+     * Default: 20:00 UTC on Sunday (01:30 AM IST on Monday)
+     */
+    private String schemeSyncJobCron = "0 0 20 * * SUN";
+
     // Getters and setters
     public String getAmfiJobCron() {
         return amfiJobCron;
@@ -79,5 +85,13 @@ public class SchedulerProperties {
 
     public void setTransactionCacheEvictionCron(String transactionCacheEvictionCron) {
         this.transactionCacheEvictionCron = transactionCacheEvictionCron;
+    }
+
+    public String getSchemeSyncJobCron() {
+        return schemeSyncJobCron;
+    }
+
+    public void setSchemeSyncJobCron(String schemeSyncJobCron) {
+        this.schemeSyncJobCron = schemeSyncJobCron;
     }
 }

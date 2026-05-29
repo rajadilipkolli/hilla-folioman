@@ -3,6 +3,7 @@ package com.app.folioman.mfschemes.domain;
 import com.app.folioman.mfschemes.rest.dtos.FundDetailProjection;
 import com.app.folioman.mfschemes.rest.dtos.MFSchemeProjection;
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -61,6 +62,9 @@ interface MfFundSchemeRepository extends JpaRepository<MfFundSchemeEntity, Long>
 
     @EntityGraph(attributePaths = {"amc", "mfSchemeTypeEntity", "mfSchemeNavs"})
     Optional<MfFundSchemeEntity> findByAmfiCode(@Param("amfiCode") Long amfiCode);
+
+    @EntityGraph(attributePaths = {"amc", "mfSchemeTypeEntity"})
+    List<MfFundSchemeEntity> findByAmfiCodeIn(Collection<Long> amfiCodes);
 
     boolean existsByAmfiCode(Long amfiCode);
 
