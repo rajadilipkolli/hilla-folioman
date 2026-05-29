@@ -41,7 +41,7 @@ public class SchedulerConfiguration {
     }
 
     @Bean
-    public SchemeSyncRetryFilter schemeSyncRetryFilter() {
+    SchemeSyncRetryFilter schemeSyncRetryFilter() {
         return new SchemeSyncRetryFilter();
     }
 
