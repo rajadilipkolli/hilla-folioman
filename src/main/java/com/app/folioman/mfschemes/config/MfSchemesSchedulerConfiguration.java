@@ -6,6 +6,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.EventListener;
 
@@ -22,6 +23,11 @@ class MfSchemesSchedulerConfiguration {
             MfSchemeSyncService mfSchemeSyncService) {
         this.schemeSyncJobCron = schemeSyncJobCron;
         this.mfSchemeSyncService = mfSchemeSyncService;
+    }
+
+    @Bean
+    SchemeSyncRetryFilter schemeSyncRetryFilter() {
+        return new SchemeSyncRetryFilter();
     }
 
     @EventListener(ApplicationStartedEvent.class)

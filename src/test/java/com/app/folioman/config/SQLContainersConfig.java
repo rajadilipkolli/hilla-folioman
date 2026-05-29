@@ -15,7 +15,7 @@ public class SQLContainersConfig {
     @ServiceConnection
     PostgreSQLContainer postgreSQLContainer() {
         return new PostgreSQLContainer(DockerImageName.parse("postgres").withTag("18.4-alpine"))
-                .withCommand("postgres", "-c", "max_connections=500")
+                .withCommand("postgres", "-c", "max_connections=200")
                 .withReuse(true);
     }
 }
