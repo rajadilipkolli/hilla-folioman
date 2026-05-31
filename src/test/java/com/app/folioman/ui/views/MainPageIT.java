@@ -45,20 +45,22 @@ class MainPageIT extends AbstractIntegrationTest {
     @Test
     void mainPageLoads() {
         // Create test user if it doesn't exist
-        Integer userCount = jdbcTemplate.queryForObject(
-                "SELECT count(*) FROM portfolio.users WHERE username = 'testuser'", Integer.class);
-        if (userCount == null || userCount == 0) {
-            String passwordHash = passwordEncoder.encode("password123");
+        jdbcTemplate.update(
+                "DELETE FROM portfolio.refresh_tokens WHERE user_id IN (SELECT id FROM portfolio.users WHERE username = 'testuser')");
+        jdbcTemplate.update(
+                "DELETE FROM portfolio.user_roles WHERE user_id IN (SELECT id FROM portfolio.users WHERE username = 'testuser')");
+        jdbcTemplate.update("DELETE FROM portfolio.users WHERE username = 'testuser'");
 
-            jdbcTemplate.update(
-                    "INSERT INTO portfolio.users (id, username, email, password_hash, enabled, account_locked, failed_login_attempts, created_at, updated_at, version) "
-                            + "VALUES (nextval('portfolio.users_seq'), 'testuser', 'test@test.com', ?, true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0)",
-                    passwordHash);
+        String passwordHash = passwordEncoder.encode("password123");
 
-            jdbcTemplate.update("INSERT INTO portfolio.user_roles (user_id, role_id) "
-                    + "SELECT u.id, r.id FROM portfolio.users u, portfolio.roles r "
-                    + "WHERE u.username = 'testuser' AND r.name = 'USER'");
-        }
+        jdbcTemplate.update(
+                "INSERT INTO portfolio.users (id, username, email, password_hash, enabled, account_locked, failed_login_attempts, created_at, updated_at, version) "
+                        + "VALUES (nextval('portfolio.users_seq'), 'testuser', 'test@test.com', ?, true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0)",
+                passwordHash);
+
+        jdbcTemplate.update("INSERT INTO portfolio.user_roles (user_id, role_id) "
+                + "SELECT u.id, r.id FROM portfolio.users u, portfolio.roles r "
+                + "WHERE u.username = 'testuser' AND r.name = 'USER'");
 
         driver = new RemoteWebDriver(container.getSeleniumAddress(), new EdgeOptions());
         String baseUrl = "http://host.testcontainers.internal:" + port;
