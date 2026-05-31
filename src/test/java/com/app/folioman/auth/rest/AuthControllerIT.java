@@ -29,12 +29,6 @@ class AuthControllerIT extends AbstractIntegrationTest {
                 "DELETE FROM portfolio.refresh_tokens WHERE user_id IN (SELECT id FROM portfolio.users WHERE username = 'testuser')");
         jdbcTemplate.update("DELETE FROM portfolio.users WHERE username = 'testuser'");
 
-        String passwordHash = passwordEncoder.encode("password123");
-        jdbcTemplate.update(
-                "INSERT INTO portfolio.users (id, username, email, password_hash, enabled, account_locked, failed_login_attempts, created_at, updated_at, version) "
-                        + "VALUES (nextval('portfolio.users_seq'), 'testuser', 'test@test.com', ?, true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0)",
-                passwordHash);
-
         Long roleId;
         try {
             roleId = jdbcTemplate.queryForObject("SELECT id FROM portfolio.roles WHERE name = 'USER'", Long.class);
@@ -45,9 +39,17 @@ class AuthControllerIT extends AbstractIntegrationTest {
                     roleId);
         }
 
-        Long userId =
-                jdbcTemplate.queryForObject("SELECT id FROM portfolio.users WHERE username = 'testuser'", Long.class);
-        jdbcTemplate.update("INSERT INTO portfolio.user_roles (user_id, role_id) VALUES (?, ?)", userId, roleId);
+        String passwordHash = passwordEncoder.encode("password123");
+        jdbcTemplate.update(
+                "INSERT INTO portfolio.users (id, username, email, password_hash, enabled, account_locked, failed_login_attempts, created_at, updated_at, version) "
+                        + "VALUES (nextval('portfolio.users_seq'), 'testuser', 'test@test.com', ?, true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0)",
+                passwordHash);
+
+        jdbcTemplate.update(
+                "INSERT INTO portfolio.user_roles (user_id, role_id) "
+                        + "SELECT u.id, ? FROM portfolio.users u "
+                        + "WHERE u.username = 'testuser'",
+                roleId);
     }
 
     @Test

@@ -51,23 +51,27 @@ class MainPageIT extends AbstractIntegrationTest {
                 "DELETE FROM portfolio.refresh_tokens WHERE user_id IN (SELECT id FROM portfolio.users WHERE username = 'testuser')");
         jdbcTemplate.update("DELETE FROM portfolio.users WHERE username = 'testuser'");
 
-        String passwordHash = passwordEncoder.encode("password123");
-        Long userId = jdbcTemplate.queryForObject(
-                "INSERT INTO portfolio.users (id, username, email, password_hash, enabled, account_locked, failed_login_attempts, created_at, updated_at, version) "
-                        + "VALUES (nextval('portfolio.users_seq'), 'testuser', 'test@test.com', ?, true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0) RETURNING id",
-                Long.class,
-                passwordHash);
-
         Long roleId;
         try {
             roleId = jdbcTemplate.queryForObject("SELECT id FROM portfolio.roles WHERE name = 'USER'", Long.class);
         } catch (org.springframework.dao.EmptyResultDataAccessException e) {
-            roleId = jdbcTemplate.queryForObject(
-                    "INSERT INTO portfolio.roles (id, name, created_at, version) VALUES (nextval('portfolio.roles_seq'), 'USER', CURRENT_TIMESTAMP, 0) RETURNING id",
-                    Long.class);
+            roleId = jdbcTemplate.queryForObject("SELECT nextval('portfolio.roles_seq')", Long.class);
+            jdbcTemplate.update(
+                    "INSERT INTO portfolio.roles (id, name, created_at, version) VALUES (?, 'USER', CURRENT_TIMESTAMP, 0)",
+                    roleId);
         }
 
-        jdbcTemplate.update("INSERT INTO portfolio.user_roles (user_id, role_id) VALUES (?, ?)", userId, roleId);
+        String passwordHash = passwordEncoder.encode("password123");
+        jdbcTemplate.update(
+                "INSERT INTO portfolio.users (id, username, email, password_hash, enabled, account_locked, failed_login_attempts, created_at, updated_at, version) "
+                        + "VALUES (nextval('portfolio.users_seq'), 'testuser', 'test@test.com', ?, true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0)",
+                passwordHash);
+
+        jdbcTemplate.update(
+                "INSERT INTO portfolio.user_roles (user_id, role_id) "
+                        + "SELECT u.id, ? FROM portfolio.users u "
+                        + "WHERE u.username = 'testuser'",
+                roleId);
 
         driver = new RemoteWebDriver(container.getSeleniumAddress(), new EdgeOptions());
         String baseUrl = "http://host.testcontainers.internal:" + port;
