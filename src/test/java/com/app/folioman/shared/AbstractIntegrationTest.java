@@ -17,6 +17,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
@@ -64,6 +65,9 @@ public abstract class AbstractIntegrationTest {
 
     @Autowired
     protected MfSchemeSyncService mfSchemeSyncService;
+
+    @Autowired
+    protected PasswordEncoder passwordEncoder;
 
     @LocalServerPort
     protected int port;

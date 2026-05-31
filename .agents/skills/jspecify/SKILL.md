@@ -99,7 +99,7 @@ For each source package directory that contains at least one `.java` file under 
 
 ```java
 @org.jspecify.annotations.NullMarked
-package com.mycompnay.myproject;
+package com.mycompany.myproject;
 ```
 
 If `package-info.java` already exists, insert `@org.jspecify.annotations.NullMarked` immediately above the `package` declaration as the first non-comment, non-blank line. Preserve all other existing imports, comments, annotations, and package declaration lines without removing or reordering them.
