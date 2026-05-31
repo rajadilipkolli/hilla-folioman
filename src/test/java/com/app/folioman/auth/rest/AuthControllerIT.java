@@ -23,21 +23,31 @@ class AuthControllerIT extends AbstractIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        jdbcTemplate.update("DELETE FROM portfolio.refresh_tokens");
         jdbcTemplate.update(
                 "DELETE FROM portfolio.user_roles WHERE user_id IN (SELECT id FROM portfolio.users WHERE username = 'testuser')");
+        jdbcTemplate.update(
+                "DELETE FROM portfolio.refresh_tokens WHERE user_id IN (SELECT id FROM portfolio.users WHERE username = 'testuser')");
         jdbcTemplate.update("DELETE FROM portfolio.users WHERE username = 'testuser'");
 
         String passwordHash = passwordEncoder.encode("password123");
-
         jdbcTemplate.update(
                 "INSERT INTO portfolio.users (id, username, email, password_hash, enabled, account_locked, failed_login_attempts, created_at, updated_at, version) "
                         + "VALUES (nextval('portfolio.users_seq'), 'testuser', 'test@test.com', ?, true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0)",
                 passwordHash);
 
-        jdbcTemplate.update("INSERT INTO portfolio.user_roles (user_id, role_id) "
-                + "SELECT u.id, r.id FROM portfolio.users u, portfolio.roles r "
-                + "WHERE u.username = 'testuser' AND r.name = 'USER'");
+        Long roleId;
+        try {
+            roleId = jdbcTemplate.queryForObject("SELECT id FROM portfolio.roles WHERE name = 'USER'", Long.class);
+        } catch (org.springframework.dao.EmptyResultDataAccessException e) {
+            roleId = jdbcTemplate.queryForObject("SELECT nextval('portfolio.roles_seq')", Long.class);
+            jdbcTemplate.update(
+                    "INSERT INTO portfolio.roles (id, name, created_at, version) VALUES (?, 'USER', CURRENT_TIMESTAMP, 0)",
+                    roleId);
+        }
+
+        Long userId =
+                jdbcTemplate.queryForObject("SELECT id FROM portfolio.users WHERE username = 'testuser'", Long.class);
+        jdbcTemplate.update("INSERT INTO portfolio.user_roles (user_id, role_id) VALUES (?, ?)", userId, roleId);
     }
 
     @Test

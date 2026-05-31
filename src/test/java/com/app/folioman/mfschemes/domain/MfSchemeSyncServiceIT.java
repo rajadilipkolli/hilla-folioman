@@ -10,11 +10,9 @@ import static org.mockito.Mockito.doAnswer;
 import com.app.folioman.shared.AbstractIntegrationTest;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.web.client.RestClient;
 
@@ -29,27 +27,22 @@ class MfSchemeSyncServiceIT extends AbstractIntegrationTest {
     @MockitoBean
     private RestClient restClient; // prevent external network calls
 
-    @Autowired
-    private MfFundSchemeRepository mfFundSchemeRepository;
-
     @BeforeEach
     void setUp() {
         jdbcTemplate.update("DELETE FROM mfschemes.mf_fund_scheme");
+        jdbcTemplate.update("DELETE FROM mfschemes.mf_amc");
     }
 
     @Test
     @SuppressWarnings("unchecked")
     void syncAllSchemes_integrationTest() throws Exception {
         // Pre-populate DB with an existing scheme
-        MfFundSchemeEntity existing = new MfFundSchemeEntity();
-        existing.setAmfiCode(201L);
-        existing.setName("Existing Scheme Old Name");
-        mfFundSchemeRepository.save(existing);
-
-        MfFundSchemeEntity unchanged = new MfFundSchemeEntity();
-        unchanged.setAmfiCode(202L);
-        unchanged.setName("Unchanged Scheme");
-        mfFundSchemeRepository.save(unchanged);
+        jdbcTemplate.update(
+                "INSERT INTO mfschemes.mf_amc (id, name, code, created_at, updated_at, version) VALUES (1, 'Test AMC', 'TESTAMC', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0)");
+        jdbcTemplate.update(
+                "INSERT INTO mfschemes.mf_fund_scheme (id, amfi_code, name, sid, mf_amc_id, created_at, updated_at, version) VALUES (nextval('mfschemes.mf_fund_scheme_seq'), 201, 'Existing Scheme Old Name', 1, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0)");
+        jdbcTemplate.update(
+                "INSERT INTO mfschemes.mf_fund_scheme (id, amfi_code, name, sid, mf_amc_id, created_at, updated_at, version) VALUES (nextval('mfschemes.mf_fund_scheme_seq'), 202, 'Unchanged Scheme', 2, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0)");
 
         // Setup mock inputs
         given(bseStarMasterDataService.downloadBseMasterData()).willReturn("mock-bse-data");
@@ -90,16 +83,16 @@ class MfSchemeSyncServiceIT extends AbstractIntegrationTest {
         mfSchemeSyncService.syncAllSchemes();
 
         // Verify Database
-        Optional<MfFundSchemeEntity> updatedScheme = mfFundSchemeRepository.findByAmfiCode(201L);
-        assertThat(updatedScheme).isPresent();
-        assertThat(updatedScheme.get().getName()).isEqualTo("Existing Scheme New Name");
+        String name201 = jdbcTemplate.queryForObject(
+                "SELECT name FROM mfschemes.mf_fund_scheme WHERE amfi_code = 201", String.class);
+        assertThat(name201).isEqualTo("Existing Scheme New Name");
 
-        Optional<MfFundSchemeEntity> brandNewScheme = mfFundSchemeRepository.findByAmfiCode(203L);
-        assertThat(brandNewScheme).isPresent();
-        assertThat(brandNewScheme.get().getName()).isEqualTo("Brand New Scheme");
+        String name203 = jdbcTemplate.queryForObject(
+                "SELECT name FROM mfschemes.mf_fund_scheme WHERE amfi_code = 203", String.class);
+        assertThat(name203).isEqualTo("Brand New Scheme");
 
-        Optional<MfFundSchemeEntity> keptScheme = mfFundSchemeRepository.findByAmfiCode(202L);
-        assertThat(keptScheme).isPresent();
-        assertThat(keptScheme.get().getName()).isEqualTo("Unchanged Scheme");
+        String name202 = jdbcTemplate.queryForObject(
+                "SELECT name FROM mfschemes.mf_fund_scheme WHERE amfi_code = 202", String.class);
+        assertThat(name202).isEqualTo("Unchanged Scheme");
     }
 }
