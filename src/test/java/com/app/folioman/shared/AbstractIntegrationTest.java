@@ -8,15 +8,15 @@ import com.app.folioman.config.NoSQLContainersConfig;
 import com.app.folioman.config.SQLContainersConfig;
 import com.app.folioman.mfschemes.config.ApplicationProperties;
 import com.app.folioman.mfschemes.domain.MfSchemeDtoToEntityMapper;
-import com.app.folioman.mfschemes.domain.MfSchemeNavRepository;
+import com.app.folioman.mfschemes.domain.MfSchemeSyncService;
 import com.app.folioman.portfolio.config.PortfolioCacheProperties;
-import com.app.folioman.portfolio.domain.UserPortfolioValueRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
@@ -60,10 +60,10 @@ public abstract class AbstractIntegrationTest {
     protected PortfolioCacheProperties portfolioCacheProperties;
 
     @Autowired
-    protected UserPortfolioValueRepository userPortfolioValueRepository;
+    protected JdbcTemplate jdbcTemplate;
 
     @Autowired
-    protected MfSchemeNavRepository mfSchemeNavRepository;
+    protected MfSchemeSyncService mfSchemeSyncService;
 
     @LocalServerPort
     protected int port;

@@ -11,7 +11,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface UserCASDetailsRepository extends JpaRepository<UserCasDetailsEntity, Long> {
+interface UserCASDetailsRepository extends JpaRepository<UserCasDetailsEntity, Long> {
 
     @Query("""
             select u from UserCasDetailsEntity u join fetch u.folios join fetch u.investorInfoEntity as i

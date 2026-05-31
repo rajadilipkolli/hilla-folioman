@@ -2,10 +2,6 @@ package com.app.folioman.ui.views;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.app.folioman.auth.domain.RoleEntity;
-import com.app.folioman.auth.domain.RoleRepository;
-import com.app.folioman.auth.domain.UserEntity;
-import com.app.folioman.auth.domain.UserRepository;
 import com.app.folioman.shared.AbstractIntegrationTest;
 import java.time.Duration;
 import java.util.List;
@@ -22,6 +18,7 @@ import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.testcontainers.Testcontainers;
 import org.testcontainers.selenium.BrowserWebDriverContainer;
@@ -49,10 +46,7 @@ class MainPageIT extends AbstractIntegrationTest {
     }
 
     @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private RoleRepository roleRepository;
+    private JdbcTemplate jdbcTemplate;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -60,19 +54,19 @@ class MainPageIT extends AbstractIntegrationTest {
     @Test
     void mainPageLoads() {
         // Create test user if it doesn't exist
-        if (userRepository.findByUsername("testuser").isEmpty()) {
-            UserEntity user = new UserEntity();
-            user.setUsername("testuser");
-            user.setEmail("test@test.com");
-            user.setPasswordHash(passwordEncoder.encode("password123"));
-            user.setEnabled(true);
-            user.setAccountLocked(false);
-            user.setFailedLoginAttempts(0);
-            RoleEntity userRole = roleRepository
-                    .findByName("USER")
-                    .orElseThrow(() -> new IllegalStateException("Required role USER not found"));
-            user.getRoles().add(userRole);
-            userRepository.save(user);
+        Integer userCount = jdbcTemplate.queryForObject(
+                "SELECT count(*) FROM portfolio.users WHERE username = 'testuser'", Integer.class);
+        if (userCount == null || userCount == 0) {
+            String passwordHash = passwordEncoder.encode("password123");
+
+            jdbcTemplate.update(
+                    "INSERT INTO portfolio.users (id, username, email, password_hash, enabled, account_locked, failed_login_attempts) "
+                            + "VALUES (nextval('portfolio.users_seq'), 'testuser', 'test@test.com', ?, true, false, 0)",
+                    passwordHash);
+
+            jdbcTemplate.update("INSERT INTO portfolio.user_roles (user_id, role_id) "
+                    + "SELECT u.id, r.id FROM portfolio.users u, portfolio.roles r "
+                    + "WHERE u.username = 'testuser' AND r.name = 'USER'");
         }
 
         driver = new RemoteWebDriver(container.getSeleniumAddress(), new EdgeOptions());
@@ -89,6 +83,7 @@ class MainPageIT extends AbstractIntegrationTest {
                 js.executeAsyncScript("const callback = arguments[arguments.length - 1];" + "fetch('/api/auth/login', {"
                         + "  method: 'POST',"
                         + "  headers: {'Content-Type': 'application/json'},"
+                        + "  credentials: 'include',"
                         + "  body: JSON.stringify({username: 'testuser', password: 'password123'})"
                         + "})"
                         + ".then(res => { if (!res.ok) throw new Error('not ok'); return res.json(); })"

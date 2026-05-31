@@ -7,11 +7,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.app.folioman.auth.domain.RefreshTokenRepository;
-import com.app.folioman.auth.domain.RoleEntity;
-import com.app.folioman.auth.domain.RoleRepository;
-import com.app.folioman.auth.domain.UserEntity;
-import com.app.folioman.auth.domain.UserRepository;
 import com.app.folioman.auth.rest.dto.LoginRequest;
 import com.app.folioman.shared.AbstractIntegrationTest;
 import jakarta.servlet.http.Cookie;
@@ -22,6 +17,7 @@ import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MvcResult;
 
@@ -29,36 +25,27 @@ import org.springframework.test.web.servlet.MvcResult;
 class AuthControllerIT extends AbstractIntegrationTest {
 
     @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private RefreshTokenRepository refreshTokenRepository;
-
-    @Autowired
-    private RoleRepository roleRepository;
+    private JdbcTemplate jdbcTemplate;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
 
     @BeforeEach
     void setUp() {
-        refreshTokenRepository.deleteAllInBatch();
-        userRepository.deleteAllInBatch();
+        jdbcTemplate.update("DELETE FROM portfolio.refresh_tokens");
+        jdbcTemplate.update("DELETE FROM portfolio.user_roles");
+        jdbcTemplate.update("DELETE FROM portfolio.users");
 
-        UserEntity user = new UserEntity();
-        user.setUsername("testuser");
-        user.setEmail("test@test.com");
-        user.setPasswordHash(passwordEncoder.encode("password123"));
-        user.setEnabled(true);
-        user.setAccountLocked(false);
-        user.setFailedLoginAttempts(0);
+        String passwordHash = passwordEncoder.encode("password123");
 
-        RoleEntity userRole = roleRepository
-                .findByName("USER")
-                .orElseThrow(() -> new IllegalStateException("Required role USER not found in DB"));
-        user.getRoles().add(userRole);
+        jdbcTemplate.update(
+                "INSERT INTO portfolio.users (id, username, email, password_hash, enabled, account_locked, failed_login_attempts) "
+                        + "VALUES (nextval('portfolio.users_seq'), 'testuser', 'test@test.com', ?, true, false, 0)",
+                passwordHash);
 
-        userRepository.save(user);
+        jdbcTemplate.update("INSERT INTO portfolio.user_roles (user_id, role_id) "
+                + "SELECT u.id, r.id FROM portfolio.users u, portfolio.roles r "
+                + "WHERE u.username = 'testuser' AND r.name = 'USER'");
     }
 
     @Test

@@ -15,7 +15,7 @@ import com.app.folioman.auth.domain.RefreshTokenEntity;
 import com.app.folioman.auth.domain.RefreshTokenService;
 import com.app.folioman.auth.domain.TokenBlacklistService;
 import com.app.folioman.auth.domain.UserEntity;
-import com.app.folioman.auth.domain.UserRepository;
+import com.app.folioman.auth.domain.UserManagementService;
 import com.app.folioman.auth.rest.dto.LoginRequest;
 import jakarta.servlet.http.Cookie;
 import java.util.Date;
@@ -62,7 +62,7 @@ class AuthControllerTest {
     private LoginAttemptService loginAttemptService;
 
     @MockitoBean
-    private UserRepository userRepository;
+    private UserManagementService userManagementService;
 
     @MockitoBean
     private JwtProperties jwtProperties;
@@ -164,7 +164,7 @@ class AuthControllerTest {
         UserEntity ue = new UserEntity();
         ue.setId(1L);
         ue.setUsername("testuser");
-        when(userRepository.findByUsername("testuser")).thenReturn(Optional.of(ue));
+        when(userManagementService.findByUsername("testuser")).thenReturn(Optional.of(ue));
         when(jwtProperties.getRefreshTokenExpiry()).thenReturn(3600000L);
         when(jwtProperties.getAccessTokenExpiry()).thenReturn(1800000L);
 
@@ -237,7 +237,7 @@ class AuthControllerTest {
         rfe.setUserId(1L);
         when(refreshTokenService.findByToken("token")).thenReturn(Optional.of(rfe));
         when(refreshTokenService.isTokenValid(rfe)).thenReturn(true);
-        when(userRepository.findById(1L)).thenReturn(Optional.empty());
+        when(userManagementService.findById(1L)).thenReturn(Optional.empty());
 
         var result = mockMvcTester
                 .post()
@@ -258,7 +258,7 @@ class AuthControllerTest {
         UserEntity ue = new UserEntity();
         ue.setUsername("user");
         ue.setEnabled(true);
-        when(userRepository.findById(1L)).thenReturn(Optional.of(ue));
+        when(userManagementService.findById(1L)).thenReturn(Optional.of(ue));
         when(loginAttemptService.isAccountLocked("user")).thenReturn(true);
 
         var result = mockMvcTester
@@ -283,7 +283,7 @@ class AuthControllerTest {
         ue.setId(1L);
         ue.setUsername("user");
         ue.setEnabled(true);
-        when(userRepository.findById(1L)).thenReturn(Optional.of(ue));
+        when(userManagementService.findById(1L)).thenReturn(Optional.of(ue));
         when(loginAttemptService.isAccountLocked("user")).thenReturn(false);
 
         UserDetails userDetails =

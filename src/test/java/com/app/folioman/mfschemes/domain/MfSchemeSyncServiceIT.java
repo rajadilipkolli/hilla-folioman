@@ -20,12 +20,6 @@ import org.springframework.web.client.RestClient;
 
 class MfSchemeSyncServiceIT extends AbstractIntegrationTest {
 
-    @Autowired
-    private MfSchemeSyncService mfSchemeSyncService;
-
-    @Autowired
-    private MfFundSchemeRepository mfFundSchemeRepository;
-
     @MockitoBean
     private BSEStarMasterDataService bseStarMasterDataService;
 
@@ -35,9 +29,12 @@ class MfSchemeSyncServiceIT extends AbstractIntegrationTest {
     @MockitoBean
     private RestClient restClient; // prevent external network calls
 
+    @Autowired
+    private MfFundSchemeRepository mfFundSchemeRepository;
+
     @BeforeEach
     void setUp() {
-        mfFundSchemeRepository.deleteAllInBatch();
+        jdbcTemplate.update("DELETE FROM mfschemes.mf_fund_scheme");
     }
 
     @Test
