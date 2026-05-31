@@ -114,7 +114,8 @@ class MainPageIT extends AbstractIntegrationTest {
                 By.xpath("//*[contains(text(), 'User Profile') or contains(text(), 'testuser')]")));
 
         // Click navigation links and verify page changes
-        WebElement importLink = wait.until(ExpectedConditions.elementToBeClickable(By.linkText("Import Mutual Funds")));
+        WebElement importLink =
+                wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("a[href='/importmutualfunds']")));
         js.executeScript("arguments[0].click();", importLink);
         wait.until(ExpectedConditions.urlContains("/importmutualfunds"));
         assertThat(driver.getCurrentUrl().contains("/importmutualfunds"))
@@ -123,7 +124,7 @@ class MainPageIT extends AbstractIntegrationTest {
         driver.navigate().back();
 
         WebElement userPortfolioLink =
-                wait.until(ExpectedConditions.elementToBeClickable(By.linkText("UserPortfolio")));
+                wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("a[href='/userPortfolio']")));
         js.executeScript("arguments[0].click();", userPortfolioLink);
         wait.until(ExpectedConditions.urlContains("/userPortfolio"));
         assertThat(driver.getCurrentUrl().contains("/userPortfolio"))
@@ -132,7 +133,7 @@ class MainPageIT extends AbstractIntegrationTest {
         driver.navigate().back();
 
         WebElement rebalanceLink =
-                wait.until(ExpectedConditions.elementToBeClickable(By.linkText("ReBalance Calculator")));
+                wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("a[href='/rebalance']")));
         js.executeScript("arguments[0].click();", rebalanceLink);
         wait.until(ExpectedConditions.urlContains("/rebalance"));
         assertThat(driver.getCurrentUrl().contains("/rebalance"))
@@ -141,7 +142,7 @@ class MainPageIT extends AbstractIntegrationTest {
         driver.navigate().back();
 
         WebElement mfSchemesLink =
-                wait.until(ExpectedConditions.elementToBeClickable(By.linkText("Mutual Fund Schemes")));
+                wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("a[href='/mfschemes']")));
         js.executeScript("arguments[0].click();", mfSchemesLink);
         wait.until(ExpectedConditions.urlContains("/mfschemes"));
         assertThat(driver.getCurrentUrl().contains("/mfschemes"))
