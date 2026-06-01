@@ -22,6 +22,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.assertj.MockMvcTester;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
+import org.springframework.transaction.support.TransactionTemplate;
 import tools.jackson.databind.json.JsonMapper;
 
 /**
@@ -68,6 +69,9 @@ public abstract class AbstractIntegrationTest {
 
     @Autowired
     protected PasswordEncoder passwordEncoder;
+
+    @Autowired
+    protected TransactionTemplate transactionTemplate;
 
     @LocalServerPort
     protected int port;

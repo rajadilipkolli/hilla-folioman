@@ -23,33 +23,36 @@ class AuthControllerIT extends AbstractIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        jdbcTemplate.update(
-                "DELETE FROM portfolio.user_roles WHERE user_id IN (SELECT id FROM portfolio.users WHERE username = 'testuser')");
-        jdbcTemplate.update(
-                "DELETE FROM portfolio.refresh_tokens WHERE user_id IN (SELECT id FROM portfolio.users WHERE username = 'testuser')");
-        jdbcTemplate.update("DELETE FROM portfolio.users WHERE username = 'testuser'");
-
-        Long roleId;
-        try {
-            roleId = jdbcTemplate.queryForObject("SELECT id FROM portfolio.roles WHERE name = 'USER'", Long.class);
-        } catch (org.springframework.dao.EmptyResultDataAccessException e) {
-            roleId = jdbcTemplate.queryForObject("SELECT nextval('portfolio.roles_seq')", Long.class);
+        transactionTemplate.execute(status -> {
             jdbcTemplate.update(
-                    "INSERT INTO portfolio.roles (id, name, created_at, version) VALUES (?, 'USER', CURRENT_TIMESTAMP, 0)",
+                    "DELETE FROM portfolio.user_roles WHERE user_id IN (SELECT id FROM portfolio.users WHERE username = 'testuser')");
+            jdbcTemplate.update(
+                    "DELETE FROM portfolio.refresh_tokens WHERE user_id IN (SELECT id FROM portfolio.users WHERE username = 'testuser')");
+            jdbcTemplate.update("DELETE FROM portfolio.users WHERE username = 'testuser'");
+
+            Long roleId;
+            try {
+                roleId = jdbcTemplate.queryForObject("SELECT id FROM portfolio.roles WHERE name = 'USER'", Long.class);
+            } catch (org.springframework.dao.EmptyResultDataAccessException e) {
+                roleId = jdbcTemplate.queryForObject("SELECT nextval('portfolio.roles_seq')", Long.class);
+                jdbcTemplate.update(
+                        "INSERT INTO portfolio.roles (id, name, created_at, version) VALUES (?, 'USER', CURRENT_TIMESTAMP, 0)",
+                        roleId);
+            }
+
+            String passwordHash = passwordEncoder.encode("password123");
+            jdbcTemplate.update(
+                    "INSERT INTO portfolio.users (id, username, email, password_hash, enabled, account_locked, failed_login_attempts, created_at, updated_at, version) "
+                            + "VALUES (nextval('portfolio.users_seq'), 'testuser', 'test@test.com', ?, true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0)",
+                    passwordHash);
+
+            jdbcTemplate.update(
+                    "INSERT INTO portfolio.user_roles (user_id, role_id) "
+                            + "SELECT u.id, ? FROM portfolio.users u "
+                            + "WHERE u.username = 'testuser'",
                     roleId);
-        }
-
-        String passwordHash = passwordEncoder.encode("password123");
-        jdbcTemplate.update(
-                "INSERT INTO portfolio.users (id, username, email, password_hash, enabled, account_locked, failed_login_attempts, created_at, updated_at, version) "
-                        + "VALUES (nextval('portfolio.users_seq'), 'testuser', 'test@test.com', ?, true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0)",
-                passwordHash);
-
-        jdbcTemplate.update(
-                "INSERT INTO portfolio.user_roles (user_id, role_id) "
-                        + "SELECT u.id, ? FROM portfolio.users u "
-                        + "WHERE u.username = 'testuser'",
-                roleId);
+            return null;
+        });
     }
 
     @Test
