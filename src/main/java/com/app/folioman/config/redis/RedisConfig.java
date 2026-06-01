@@ -85,6 +85,8 @@ class RedisConfig implements CachingConfigurer {
         Map<String, RedisCacheConfiguration> initialCacheConfigurations = new HashMap<>();
         initialCacheConfigurations.put(
                 CacheNames.USER_PROFILE_CACHE, cacheConfiguration.entryTtl(Duration.ofMinutes(5)));
+        initialCacheConfigurations.put(
+                CacheNames.PORTFOLIO_HISTORY_CACHE, cacheConfiguration.entryTtl(Duration.ofHours(1)));
 
         // Create the custom cache manager with our circuit breaker and default TTL
         return new CustomRedisCacheManager(

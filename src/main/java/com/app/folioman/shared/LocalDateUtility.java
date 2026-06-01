@@ -6,6 +6,7 @@ import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.TemporalAdjusters;
 import org.jspecify.annotations.Nullable;
@@ -44,5 +45,9 @@ public class LocalDateUtility {
 
     public static LocalDate getYesterday() {
         return LocalDate.now().minusDays(1);
+    }
+
+    public static long toEpochMillis(LocalDate date) {
+        return date.atStartOfDay(ZoneOffset.UTC).toInstant().toEpochMilli();
     }
 }

@@ -3,6 +3,7 @@ package com.app.folioman.portfolio;
 import com.app.folioman.portfolio.rest.dtos.CasDTO;
 import com.app.folioman.portfolio.rest.dtos.InvestmentReturnsDTO;
 import com.app.folioman.portfolio.rest.dtos.MonthlyInvestmentResponseDTO;
+import com.app.folioman.portfolio.rest.dtos.PortfolioHistoryDTO;
 import com.app.folioman.portfolio.rest.dtos.PortfolioResponse;
 import com.app.folioman.portfolio.rest.dtos.UploadFileResponse;
 import com.app.folioman.portfolio.rest.dtos.YearlyInvestmentResponseDTO;
@@ -25,6 +26,8 @@ public interface PortfolioAPI {
     UploadFileResponse uploadFromDto(CasDTO casDTO);
 
     PortfolioResponse getPortfolioByPAN(String panNumber, LocalDate asOfDate);
+
+    Optional<PortfolioHistoryDTO> getPortfolioHistory(Long casId, String userEmail, LocalDate from, LocalDate to);
 
     CasDTO convertPdfCasToJson(MultipartFile pdfFile, String password) throws IOException;
 
