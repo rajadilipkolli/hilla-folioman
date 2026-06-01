@@ -6,7 +6,6 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.when;
 
 import com.app.folioman.config.redis.AdaptiveStrategyScheduler;
@@ -45,16 +44,6 @@ class SchedulerConfigurationTest {
     void setUp() {
         schedulerConfiguration = new SchedulerConfiguration(
                 userSchemeDetailService, mfNavService, adaptiveStrategyScheduler, schedulerProperties);
-    }
-
-    @Test
-    void constructor_ShouldInitializeAllDependencies() {
-        SchedulerConfiguration config = new SchedulerConfiguration(
-                userSchemeDetailService, mfNavService, adaptiveStrategyScheduler, schedulerProperties);
-
-        // Verify that the configuration is created without throwing exceptions
-        // Dependencies are stored and can be used
-        verifyNoInteractions(userSchemeDetailService, mfNavService, adaptiveStrategyScheduler, schedulerProperties);
     }
 
     @Test

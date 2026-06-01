@@ -11,7 +11,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface UserPortfolioValueRepository extends JpaRepository<UserPortfolioValueEntity, Long> {
+interface UserPortfolioValueRepository extends JpaRepository<UserPortfolioValueEntity, Long> {
 
     List<UserPortfolioValueEntity> findByUserCasDetailsEntity_IdAndDateBetween(
             Long id, LocalDate firstDate, LocalDate lastDate);

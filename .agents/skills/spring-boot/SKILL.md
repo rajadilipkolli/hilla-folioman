@@ -1,5 +1,5 @@
 ---
-name: spring-boot-skill
+name: spring-boot
 description: >
   Build Spring Boot 4.x applications following the best practices. 
   Use this skill:
@@ -62,3 +62,11 @@ To use Docker Compose support for local development, refer [references/spring-bo
 ## Taskfile
 
 Use [references/taskfile.md](references/taskfile.md) for easier commands execution.
+
+## Troubleshooting
+
+If you are unable to connect to the docker container during tests application, append the following environment variable to your command:
+
+```bash
+export DOCKER_HOST='npipe:////./pipe/docker_engine'
+```

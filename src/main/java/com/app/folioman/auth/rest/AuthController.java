@@ -7,7 +7,7 @@ import com.app.folioman.auth.domain.LoginAttemptService;
 import com.app.folioman.auth.domain.RefreshTokenService;
 import com.app.folioman.auth.domain.TokenBlacklistService;
 import com.app.folioman.auth.domain.UserEntity;
-import com.app.folioman.auth.domain.UserRepository;
+import com.app.folioman.auth.domain.UserManagementService;
 import com.app.folioman.auth.rest.dto.AuthResponse;
 import com.app.folioman.auth.rest.dto.LoginRequest;
 import jakarta.servlet.http.HttpServletRequest;
@@ -49,7 +49,7 @@ public class AuthController {
     private final RefreshTokenService refreshTokenService;
     private final CustomUserDetailsService userDetailsService;
     private final LoginAttemptService loginAttemptService;
-    private final UserRepository userRepository;
+    private final UserManagementService userManagementService;
     private final JwtProperties jwtProperties;
     private final TokenBlacklistService tokenBlacklistService;
 
@@ -59,7 +59,7 @@ public class AuthController {
             RefreshTokenService refreshTokenService,
             CustomUserDetailsService userDetailsService,
             LoginAttemptService loginAttemptService,
-            UserRepository userRepository,
+            UserManagementService userManagementService,
             JwtProperties jwtProperties,
             TokenBlacklistService tokenBlacklistService) {
         this.authenticationManager = authenticationManager;
@@ -67,7 +67,7 @@ public class AuthController {
         this.refreshTokenService = refreshTokenService;
         this.userDetailsService = userDetailsService;
         this.loginAttemptService = loginAttemptService;
-        this.userRepository = userRepository;
+        this.userManagementService = userManagementService;
         this.jwtProperties = jwtProperties;
         this.tokenBlacklistService = tokenBlacklistService;
     }
@@ -96,7 +96,7 @@ public class AuthController {
             String accessToken = jwtService.generateAccessToken(userDetails);
             String refreshToken = jwtService.generateRefreshToken(userDetails);
 
-            Optional<UserEntity> userEntityOptional = userRepository.findByUsername(userDetails.getUsername());
+            Optional<UserEntity> userEntityOptional = userManagementService.findByUsername(userDetails.getUsername());
             userEntityOptional.ifPresent(
                     userEntity -> refreshTokenService.createRefreshToken(userEntity.getId(), refreshToken));
 
@@ -147,7 +147,7 @@ public class AuthController {
                 .findByToken(refreshToken)
                 .map(token -> {
                     if (refreshTokenService.isTokenValid(token)) {
-                        Optional<UserEntity> userOpt = userRepository.findById(token.getUserId());
+                        Optional<UserEntity> userOpt = userManagementService.findById(token.getUserId());
                         if (userOpt.isPresent()) {
                             UserEntity user = userOpt.get();
                             if (!user.isEnabled() || loginAttemptService.isAccountLocked(user.getUsername())) {

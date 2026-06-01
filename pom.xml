@@ -667,6 +667,9 @@
                     <jvmPath>${java.home}/bin/java</jvmPath>
                     <!-- Enable verbose logging inside PIT (produces more minion output). -->
                     <verbose>false</verbose>
+                    <excludedTestClasses>
+                        <param>none</param>
+                    </excludedTestClasses>
                 </configuration>
             </plugin>
         </plugins>

@@ -3,13 +3,11 @@ package com.app.folioman.mfschemes.domain;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 
-import com.app.folioman.mfschemes.rest.dtos.MFSchemeNavProjection;
 import com.app.folioman.shared.AbstractIntegrationTest;
 import com.app.folioman.shared.UploadedSchemesList;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 class NewlyInsertedSchemesListenerIT extends AbstractIntegrationTest {
@@ -31,13 +29,16 @@ class NewlyInsertedSchemesListenerIT extends AbstractIntegrationTest {
         // Then: Awaitility waits for async processing and checks repository state
         await().atMost(Duration.ofSeconds(30)).untilAsserted(() -> {
             // Verify NAVs were created for all scheme codes with recent dates
-            List<MFSchemeNavProjection> navs =
-                    mfSchemeNavRepository.findByMfScheme_AmfiCodeInAndNavDateGreaterThanEqualAndNavDateLessThanEqual(
-                            Set.copyOf(schemeCodes), testStartDate, LocalDate.now());
+            String sql = "SELECT s.amfi_code FROM mfschemes.mf_scheme_nav n "
+                    + "JOIN mfschemes.mf_fund_scheme s ON n.mf_scheme_id = s.id "
+                    + "WHERE s.amfi_code IN (?, ?) "
+                    + "AND n.nav_date >= ? AND n.nav_date <= ?";
 
-            assertThat(navs).isNotEmpty().hasSizeGreaterThan(3);
-            assertThat(navs.stream().map(MFSchemeNavProjection::amfiCode).distinct())
-                    .containsExactlyInAnyOrderElementsOf(schemeCodes);
+            List<Long> amfiCodes = jdbcTemplate.query(
+                    sql, (rs, rowNum) -> rs.getLong("amfi_code"), 118272L, 120503L, testStartDate, LocalDate.now());
+
+            assertThat(amfiCodes).isNotEmpty().hasSizeGreaterThan(3);
+            assertThat(amfiCodes.stream().distinct()).containsExactlyInAnyOrderElementsOf(schemeCodes);
         });
     }
 }

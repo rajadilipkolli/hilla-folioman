@@ -14,6 +14,8 @@ public class SQLContainersConfig {
     @Bean
     @ServiceConnection
     PostgreSQLContainer postgreSQLContainer() {
-        return new PostgreSQLContainer(DockerImageName.parse("postgres").withTag("18.4-alpine")).withReuse(true);
+        return new PostgreSQLContainer(DockerImageName.parse("postgres").withTag("18.4-alpine"))
+                .withCommand("postgres", "-c", "max_connections=200")
+                .withReuse(true);
     }
 }
