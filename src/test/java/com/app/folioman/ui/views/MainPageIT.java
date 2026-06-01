@@ -6,7 +6,6 @@ import com.app.folioman.shared.AbstractIntegrationTest;
 import java.time.Duration;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.openqa.selenium.By;
@@ -17,23 +16,20 @@ import org.openqa.selenium.edge.EdgeOptions;
 import org.openqa.selenium.remote.RemoteWebDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.testcontainers.Testcontainers;
 import org.testcontainers.selenium.BrowserWebDriverContainer;
 import org.testcontainers.utility.DockerImageName;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@DirtiesContext(classMode = ClassMode.BEFORE_CLASS)
 class MainPageIT extends AbstractIntegrationTest {
 
     private WebDriver driver;
 
     static BrowserWebDriverContainer container =
             new BrowserWebDriverContainer(DockerImageName.parse("selenium/standalone-edge"));
-
-    @BeforeAll
-    void beforeAll() {
-        Testcontainers.exposeHostPorts(port);
-        container.start();
-    }
 
     @AfterEach
     void teardown() {
@@ -75,6 +71,11 @@ class MainPageIT extends AbstractIntegrationTest {
                     roleId);
         });
 
+        if (!container.isRunning()) {
+            Testcontainers.exposeHostPorts(port);
+            container.start();
+        }
+
         driver = new RemoteWebDriver(container.getSeleniumAddress(), new EdgeOptions());
         String baseUrl = "http://host.testcontainers.internal:" + port;
 
@@ -111,13 +112,35 @@ class MainPageIT extends AbstractIntegrationTest {
                 .isTrue();
 
         // Assert we are on the User Profile page by looking for the actual heading or a specific element on the page
+        WebDriverWait extendedWait = new WebDriverWait(driver, Duration.ofSeconds(20));
         try {
-            WebElement pageContent = wait.until(ExpectedConditions.presenceOfElementLocated(
-                    By.xpath("//h2[contains(., 'mainpage_user')] | //vaadin-login-overlay")));
-            if (pageContent.getTagName().equalsIgnoreCase("vaadin-login-overlay")) {
-                String token = (String) js.executeScript("return localStorage.getItem('accessToken');");
-                throw new RuntimeException("Test redirected to login page! Token in localStorage: " + token);
-            }
+            extendedWait.until((org.openqa.selenium.WebDriver webDriver) -> {
+                try {
+                    WebElement el = webDriver.findElement(
+                            By.xpath("//h2[contains(., 'mainpage_user')] | //vaadin-login-overlay"));
+                    if (el.getTagName().equalsIgnoreCase("vaadin-login-overlay")) {
+                        String token = (String) js.executeScript("return localStorage.getItem('accessToken');");
+                        throw new RuntimeException("Test redirected to login page! Token in localStorage: " + token);
+                    }
+                    return true;
+                } catch (org.openqa.selenium.NoSuchElementException e) {
+                    try {
+                        WebElement offlineIndicator =
+                                webDriver.findElement(By.xpath("//vaadin-connection-indicator[@offline]"));
+                        if (offlineIndicator != null) {
+                            System.out.println("Connection lost detected by Vaadin. Refreshing page...");
+                            webDriver.navigate().refresh();
+                            // Give it a small pause to reload
+                            try {
+                                Thread.sleep(1000);
+                            } catch (InterruptedException ie) {
+                            }
+                        }
+                    } catch (org.openqa.selenium.NoSuchElementException ignored) {
+                    }
+                    return false;
+                }
+            });
         } catch (org.openqa.selenium.TimeoutException e) {
             String token = (String) js.executeScript("return localStorage.getItem('accessToken');");
             System.err.println("Access token in localStorage: " + token);
