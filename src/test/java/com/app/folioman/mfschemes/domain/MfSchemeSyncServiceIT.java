@@ -31,8 +31,9 @@ class MfSchemeSyncServiceIT extends AbstractIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        jdbcTemplate.update("DELETE FROM mfschemes.mf_fund_scheme");
-        jdbcTemplate.update("DELETE FROM mfschemes.mf_amc");
+        jdbcTemplate.update(
+                "DELETE FROM mfschemes.mf_fund_scheme where amfi_code =201 or amfi_code =202 or amfi_code =203");
+        jdbcTemplate.update("DELETE FROM mfschemes.mf_amc where code='TESTAMC'");
     }
 
     @Test

@@ -45,33 +45,35 @@ class MainPageIT extends AbstractIntegrationTest {
     @Test
     void mainPageLoads() {
         // Create test user if it doesn't exist
-        jdbcTemplate.update(
-                "DELETE FROM portfolio.user_roles WHERE user_id IN (SELECT id FROM portfolio.users WHERE username = 'testuser')");
-        jdbcTemplate.update(
-                "DELETE FROM portfolio.refresh_tokens WHERE user_id IN (SELECT id FROM portfolio.users WHERE username = 'testuser')");
-        jdbcTemplate.update("DELETE FROM portfolio.users WHERE username = 'testuser'");
-
-        Long roleId;
-        try {
-            roleId = jdbcTemplate.queryForObject("SELECT id FROM portfolio.roles WHERE name = 'USER'", Long.class);
-        } catch (org.springframework.dao.EmptyResultDataAccessException e) {
-            roleId = jdbcTemplate.queryForObject("SELECT nextval('portfolio.roles_seq')", Long.class);
+        transactionTemplate.executeWithoutResult(status -> {
             jdbcTemplate.update(
-                    "INSERT INTO portfolio.roles (id, name, created_at, version) VALUES (?, 'USER', CURRENT_TIMESTAMP, 0)",
+                    "DELETE FROM portfolio.user_roles WHERE user_id IN (SELECT id FROM portfolio.users WHERE username = 'mainpage_user')");
+            jdbcTemplate.update(
+                    "DELETE FROM portfolio.refresh_tokens WHERE user_id IN (SELECT id FROM portfolio.users WHERE username = 'mainpage_user')");
+            jdbcTemplate.update("DELETE FROM portfolio.users WHERE username = 'mainpage_user'");
+
+            Long roleId;
+            try {
+                roleId = jdbcTemplate.queryForObject("SELECT id FROM portfolio.roles WHERE name = 'USER'", Long.class);
+            } catch (org.springframework.dao.EmptyResultDataAccessException e) {
+                roleId = jdbcTemplate.queryForObject("SELECT nextval('portfolio.roles_seq')", Long.class);
+                jdbcTemplate.update(
+                        "INSERT INTO portfolio.roles (id, name, created_at, version) VALUES (?, 'USER', CURRENT_TIMESTAMP, 0)",
+                        roleId);
+            }
+
+            String passwordHash = passwordEncoder.encode("password123");
+            jdbcTemplate.update(
+                    "INSERT INTO portfolio.users (id, username, email, password_hash, enabled, account_locked, failed_login_attempts, created_at, updated_at, version) "
+                            + "VALUES (nextval('portfolio.users_seq'), 'mainpage_user', 'mainpage_user@test.com', ?, true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0)",
+                    passwordHash);
+
+            jdbcTemplate.update(
+                    "INSERT INTO portfolio.user_roles (user_id, role_id) "
+                            + "SELECT u.id, ? FROM portfolio.users u "
+                            + "WHERE u.username = 'mainpage_user'",
                     roleId);
-        }
-
-        String passwordHash = passwordEncoder.encode("password123");
-        jdbcTemplate.update(
-                "INSERT INTO portfolio.users (id, username, email, password_hash, enabled, account_locked, failed_login_attempts, created_at, updated_at, version) "
-                        + "VALUES (nextval('portfolio.users_seq'), 'testuser', 'test@test.com', ?, true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0)",
-                passwordHash);
-
-        jdbcTemplate.update(
-                "INSERT INTO portfolio.user_roles (user_id, role_id) "
-                        + "SELECT u.id, ? FROM portfolio.users u "
-                        + "WHERE u.username = 'testuser'",
-                roleId);
+        });
 
         driver = new RemoteWebDriver(container.getSeleniumAddress(), new EdgeOptions());
         String baseUrl = "http://host.testcontainers.internal:" + port;
@@ -88,7 +90,7 @@ class MainPageIT extends AbstractIntegrationTest {
                         + "  method: 'POST',"
                         + "  headers: {'Content-Type': 'application/json'},"
                         + "  credentials: 'include',"
-                        + "  body: JSON.stringify({username: 'testuser', password: 'password123'})"
+                        + "  body: JSON.stringify({username: 'mainpage_user', password: 'password123'})"
                         + "})"
                         + ".then(res => { if (!res.ok) throw new Error('not ok'); return res.json(); })"
                         + ".then(data => {"
@@ -108,13 +110,30 @@ class MainPageIT extends AbstractIntegrationTest {
                 .as("Main page should load and have a title")
                 .isTrue();
 
-        // Assert we are on the User Profile page
-        wait.until(ExpectedConditions.presenceOfElementLocated(
-                By.xpath("//*[contains(text(), 'User Profile') or contains(text(), 'testuser')]")));
+        // Assert we are on the User Profile page by looking for the actual heading or a specific element on the page
+        try {
+            WebElement pageContent = wait.until(ExpectedConditions.presenceOfElementLocated(
+                    By.xpath("//h2[contains(., 'mainpage_user')] | //vaadin-login-overlay")));
+            if (pageContent.getTagName().equalsIgnoreCase("vaadin-login-overlay")) {
+                String token = (String) js.executeScript("return localStorage.getItem('accessToken');");
+                throw new RuntimeException("Test redirected to login page! Token in localStorage: " + token);
+            }
+        } catch (org.openqa.selenium.TimeoutException e) {
+            String token = (String) js.executeScript("return localStorage.getItem('accessToken');");
+            System.err.println("Access token in localStorage: " + token);
+            org.openqa.selenium.logging.LogEntries logEntries =
+                    driver.manage().logs().get(org.openqa.selenium.logging.LogType.BROWSER);
+            for (org.openqa.selenium.logging.LogEntry entry : logEntries) {
+                System.err.println(
+                        new java.util.Date(entry.getTimestamp()) + " " + entry.getLevel() + " " + entry.getMessage());
+            }
+            System.err.println("Page Source on Timeout: " + driver.getPageSource());
+            throw e;
+        }
 
         // Click navigation links and verify page changes
-        WebElement importLink =
-                wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("a[href='/importmutualfunds']")));
+        WebElement importLink = wait.until(
+                ExpectedConditions.presenceOfElementLocated(By.xpath("//a[contains(., 'Import Mutual Funds')]")));
         js.executeScript("arguments[0].click();", importLink);
         wait.until(ExpectedConditions.urlContains("/importmutualfunds"));
         assertThat(driver.getCurrentUrl().contains("/importmutualfunds"))
@@ -123,7 +142,7 @@ class MainPageIT extends AbstractIntegrationTest {
         driver.navigate().back();
 
         WebElement userPortfolioLink =
-                wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("a[href='/userPortfolio']")));
+                wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//a[contains(., 'UserPortfolio')]")));
         js.executeScript("arguments[0].click();", userPortfolioLink);
         wait.until(ExpectedConditions.urlContains("/userPortfolio"));
         assertThat(driver.getCurrentUrl().contains("/userPortfolio"))
@@ -132,7 +151,7 @@ class MainPageIT extends AbstractIntegrationTest {
         driver.navigate().back();
 
         WebElement rebalanceLink =
-                wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("a[href='/rebalance']")));
+                wait.until(ExpectedConditions.presenceOfElementLocated(By.xpath("//a[contains(., 'ReBalance')]")));
         js.executeScript("arguments[0].click();", rebalanceLink);
         wait.until(ExpectedConditions.urlContains("/rebalance"));
         assertThat(driver.getCurrentUrl().contains("/rebalance"))
@@ -140,8 +159,8 @@ class MainPageIT extends AbstractIntegrationTest {
                 .isTrue();
         driver.navigate().back();
 
-        WebElement mfSchemesLink =
-                wait.until(ExpectedConditions.presenceOfElementLocated(By.cssSelector("a[href='/mfschemes']")));
+        WebElement mfSchemesLink = wait.until(
+                ExpectedConditions.presenceOfElementLocated(By.xpath("//a[contains(., 'Mutual Fund Schemes')]")));
         js.executeScript("arguments[0].click();", mfSchemesLink);
         wait.until(ExpectedConditions.urlContains("/mfschemes"));
         assertThat(driver.getCurrentUrl().contains("/mfschemes"))
