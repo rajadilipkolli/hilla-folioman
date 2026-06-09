@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import {
   Button,
+  Dialog,
   FormLayout,
   FormLayoutResponsiveStep,
   Notification,
@@ -8,6 +9,7 @@ import {
 } from '@vaadin/react-components';
 import {
   Upload,
+  UploadElement,
   UploadMaxFilesReachedChangedEvent,
   UploadBeforeEvent,
 } from '@vaadin/react-components/Upload';
@@ -34,8 +36,8 @@ interface UploadResponse {
 export default function ImportMutualFundsView() {
   const maxFilesReached = useRef(false);
   // Fix the ref types to use element references instead of component references
-  const pdfUploadRef = useRef<any>(null);
-  const jsonUploadRef = useRef<any>(null);
+  const pdfUploadRef = useRef<UploadElement>(null);
+  const jsonUploadRef = useRef<UploadElement>(null);
   const [activeView, setActiveView] = useState<'json' | 'pdf'>('pdf');
   const [password, setPassword] = useState<string>('');
   const [isUploading, setIsUploading] = useState<boolean>(false);
@@ -103,20 +105,27 @@ export default function ImportMutualFundsView() {
   const handleFileSelection = (
     event: UploadBeforeEvent,
     setFile: (file: File | null) => void,
+    uploadRef: React.RefObject<UploadElement | null>,
   ) => {
     event.preventDefault();
     const file = event.detail.file;
     if (file) {
       setFile(file);
+      // Clear the files array in the Upload component so it doesn't display "Queued"
+      setTimeout(() => {
+        if (uploadRef.current) {
+          uploadRef.current.files = [];
+        }
+      }, 0);
     }
   };
 
   const handleBeforeUpload = (event: UploadBeforeEvent) => {
-    handleFileSelection(event, setPdfFile);
+    handleFileSelection(event, setPdfFile, pdfUploadRef);
   };
 
   const handleJsonBeforeUpload = (event: UploadBeforeEvent) => {
-    handleFileSelection(event, setJsonFile);
+    handleFileSelection(event, setJsonFile, jsonUploadRef);
   };
 
   // Common function to handle upload success
@@ -133,13 +142,13 @@ export default function ImportMutualFundsView() {
       setPdfFile(null);
       // Immediately clear password after successful upload for security
       setPassword('');
-      if (pdfUploadRef.current?.clear) {
-        pdfUploadRef.current.clear();
+      if (pdfUploadRef.current) {
+        pdfUploadRef.current.files = [];
       }
     } else {
       setJsonFile(null);
-      if (jsonUploadRef.current?.clear) {
-        jsonUploadRef.current.clear();
+      if (jsonUploadRef.current) {
+        jsonUploadRef.current.files = [];
       }
     }
   };
@@ -254,8 +263,8 @@ export default function ImportMutualFundsView() {
     setPassword('');
 
     // Clear the files in both upload components
-    pdfUploadRef.current?.clear();
-    jsonUploadRef.current?.clear();
+    if (pdfUploadRef.current) pdfUploadRef.current.files = [];
+    if (jsonUploadRef.current) jsonUploadRef.current.files = [];
     maxFilesReached.current = false;
   };
 
@@ -376,15 +385,40 @@ export default function ImportMutualFundsView() {
         </FormLayout>
       )}
 
-      {/* Displaying response data */}
-      {newFolios !== null && (
-        <div className="response-data p-m">
-          <h3>Summary of upload</h3>
-          <p>Number of New Folios: {newFolios}</p>
-          <p>Number of New Schemes: {newSchemes}</p>
-          <p>Number of New Transactions: {newTransactions}</p>
+      {/* Displaying response data in a Dialog for better visibility */}
+      <Dialog
+        headerTitle="Summary of upload"
+        opened={newFolios !== null}
+        onOpenedChanged={(event) => {
+          if (!event.detail.value) {
+            setNewFolios(null);
+            setNewSchemes(null);
+            setNewTransactions(null);
+          }
+        }}
+        footer={
+          <Button
+            onClick={() => {
+              setNewFolios(null);
+              setNewSchemes(null);
+              setNewTransactions(null);
+            }}
+            theme="primary">
+            Close
+          </Button>
+        }>
+        <div style={{ padding: '0 16px 16px 16px' }}>
+          <p style={{ margin: '8px 0' }}>
+            <strong>Number of New Folios:</strong> {newFolios}
+          </p>
+          <p style={{ margin: '8px 0' }}>
+            <strong>Number of New Schemes:</strong> {newSchemes}
+          </p>
+          <p style={{ margin: '8px 0' }}>
+            <strong>Number of New Transactions:</strong> {newTransactions}
+          </p>
         </div>
-      )}
+      </Dialog>
     </div>
   );
 }
