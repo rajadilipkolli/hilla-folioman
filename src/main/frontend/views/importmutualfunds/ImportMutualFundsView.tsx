@@ -104,7 +104,7 @@ export default function ImportMutualFundsView() {
   const handleFileSelection = (
     event: UploadBeforeEvent,
     setFile: (file: File | null) => void,
-    uploadRef: any
+    uploadRef: React.RefObject<Upload>,
   ) => {
     event.preventDefault();
     const file = event.detail.file;
@@ -396,15 +396,26 @@ export default function ImportMutualFundsView() {
           }
         }}
         footer={
-          <Button onClick={() => setNewFolios(null)} theme="primary">
+          <Button
+            onClick={() => {
+              setNewFolios(null);
+              setNewSchemes(null);
+              setNewTransactions(null);
+            }}
+            theme="primary">
             Close
           </Button>
-        }
-      >
+        }>
         <div style={{ padding: '0 16px 16px 16px' }}>
-          <p style={{ margin: '8px 0' }}><strong>Number of New Folios:</strong> {newFolios}</p>
-          <p style={{ margin: '8px 0' }}><strong>Number of New Schemes:</strong> {newSchemes}</p>
-          <p style={{ margin: '8px 0' }}><strong>Number of New Transactions:</strong> {newTransactions}</p>
+          <p style={{ margin: '8px 0' }}>
+            <strong>Number of New Folios:</strong> {newFolios}
+          </p>
+          <p style={{ margin: '8px 0' }}>
+            <strong>Number of New Schemes:</strong> {newSchemes}
+          </p>
+          <p style={{ margin: '8px 0' }}>
+            <strong>Number of New Transactions:</strong> {newTransactions}
+          </p>
         </div>
       </Dialog>
     </div>
