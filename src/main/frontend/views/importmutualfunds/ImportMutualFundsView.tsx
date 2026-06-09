@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
 import {
   Button,
+  Dialog,
   FormLayout,
   FormLayoutResponsiveStep,
   Notification,
@@ -103,20 +104,27 @@ export default function ImportMutualFundsView() {
   const handleFileSelection = (
     event: UploadBeforeEvent,
     setFile: (file: File | null) => void,
+    uploadRef: any
   ) => {
     event.preventDefault();
     const file = event.detail.file;
     if (file) {
       setFile(file);
+      // Clear the files array in the Upload component so it doesn't display "Queued"
+      setTimeout(() => {
+        if (uploadRef.current) {
+          uploadRef.current.files = [];
+        }
+      }, 0);
     }
   };
 
   const handleBeforeUpload = (event: UploadBeforeEvent) => {
-    handleFileSelection(event, setPdfFile);
+    handleFileSelection(event, setPdfFile, pdfUploadRef);
   };
 
   const handleJsonBeforeUpload = (event: UploadBeforeEvent) => {
-    handleFileSelection(event, setJsonFile);
+    handleFileSelection(event, setJsonFile, jsonUploadRef);
   };
 
   // Common function to handle upload success
@@ -376,15 +384,29 @@ export default function ImportMutualFundsView() {
         </FormLayout>
       )}
 
-      {/* Displaying response data */}
-      {newFolios !== null && (
-        <div className="response-data p-m">
-          <h3>Summary of upload</h3>
-          <p>Number of New Folios: {newFolios}</p>
-          <p>Number of New Schemes: {newSchemes}</p>
-          <p>Number of New Transactions: {newTransactions}</p>
+      {/* Displaying response data in a Dialog for better visibility */}
+      <Dialog
+        headerTitle="Summary of upload"
+        opened={newFolios !== null}
+        onOpenedChanged={(event) => {
+          if (!event.detail.value) {
+            setNewFolios(null);
+            setNewSchemes(null);
+            setNewTransactions(null);
+          }
+        }}
+        footer={
+          <Button onClick={() => setNewFolios(null)} theme="primary">
+            Close
+          </Button>
+        }
+      >
+        <div style={{ padding: '0 16px 16px 16px' }}>
+          <p style={{ margin: '8px 0' }}><strong>Number of New Folios:</strong> {newFolios}</p>
+          <p style={{ margin: '8px 0' }}><strong>Number of New Schemes:</strong> {newSchemes}</p>
+          <p style={{ margin: '8px 0' }}><strong>Number of New Transactions:</strong> {newTransactions}</p>
         </div>
-      )}
+      </Dialog>
     </div>
   );
 }
