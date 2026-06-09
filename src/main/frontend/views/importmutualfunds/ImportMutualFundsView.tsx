@@ -9,6 +9,7 @@ import {
 } from '@vaadin/react-components';
 import {
   Upload,
+  UploadElement,
   UploadMaxFilesReachedChangedEvent,
   UploadBeforeEvent,
 } from '@vaadin/react-components/Upload';
@@ -35,8 +36,8 @@ interface UploadResponse {
 export default function ImportMutualFundsView() {
   const maxFilesReached = useRef(false);
   // Fix the ref types to use element references instead of component references
-  const pdfUploadRef = useRef<any>(null);
-  const jsonUploadRef = useRef<any>(null);
+  const pdfUploadRef = useRef<UploadElement>(null);
+  const jsonUploadRef = useRef<UploadElement>(null);
   const [activeView, setActiveView] = useState<'json' | 'pdf'>('pdf');
   const [password, setPassword] = useState<string>('');
   const [isUploading, setIsUploading] = useState<boolean>(false);
@@ -104,7 +105,7 @@ export default function ImportMutualFundsView() {
   const handleFileSelection = (
     event: UploadBeforeEvent,
     setFile: (file: File | null) => void,
-    uploadRef: any,
+    uploadRef: React.RefObject<UploadElement | null>,
   ) => {
     event.preventDefault();
     const file = event.detail.file;
@@ -141,13 +142,13 @@ export default function ImportMutualFundsView() {
       setPdfFile(null);
       // Immediately clear password after successful upload for security
       setPassword('');
-      if (pdfUploadRef.current?.clear) {
-        pdfUploadRef.current.clear();
+      if (pdfUploadRef.current) {
+        pdfUploadRef.current.files = [];
       }
     } else {
       setJsonFile(null);
-      if (jsonUploadRef.current?.clear) {
-        jsonUploadRef.current.clear();
+      if (jsonUploadRef.current) {
+        jsonUploadRef.current.files = [];
       }
     }
   };
@@ -262,8 +263,8 @@ export default function ImportMutualFundsView() {
     setPassword('');
 
     // Clear the files in both upload components
-    pdfUploadRef.current?.clear();
-    jsonUploadRef.current?.clear();
+    if (pdfUploadRef.current) pdfUploadRef.current.files = [];
+    if (jsonUploadRef.current) jsonUploadRef.current.files = [];
     maxFilesReached.current = false;
   };
 
