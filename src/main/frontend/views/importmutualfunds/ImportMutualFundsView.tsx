@@ -104,7 +104,7 @@ export default function ImportMutualFundsView() {
   const handleFileSelection = (
     event: UploadBeforeEvent,
     setFile: (file: File | null) => void,
-    uploadRef: React.RefObject<Upload>,
+    uploadRef: any,
   ) => {
     event.preventDefault();
     const file = event.detail.file;
