@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.edge.EdgeOptions;
@@ -141,16 +142,7 @@ class MainPageIT extends AbstractIntegrationTest {
                     return false;
                 }
             });
-        } catch (org.openqa.selenium.TimeoutException e) {
-            String token = (String) js.executeScript("return localStorage.getItem('accessToken');");
-            System.err.println("Access token in localStorage: " + token);
-            org.openqa.selenium.logging.LogEntries logEntries =
-                    driver.manage().logs().get(org.openqa.selenium.logging.LogType.BROWSER);
-            for (org.openqa.selenium.logging.LogEntry entry : logEntries) {
-                System.err.println(
-                        new java.util.Date(entry.getTimestamp()) + " " + entry.getLevel() + " " + entry.getMessage());
-            }
-            System.err.println("Page Source on Timeout: " + driver.getPageSource());
+        } catch (TimeoutException e) {
             throw e;
         }
 
