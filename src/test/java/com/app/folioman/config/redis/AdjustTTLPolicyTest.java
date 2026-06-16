@@ -159,7 +159,8 @@ class AdjustTTLPolicyTest {
 
         adjustTTLPolicy.apply(redisTemplate, meterRegistry);
 
-        verify(redisTemplate).expire(eq("exactFiftyKey"), argThat(duration -> !duration.equals(Duration.ofHours(2))));
+        verify(redisTemplate)
+                .expire(eq("exactFiftyKey"), argThat((Duration duration) -> !duration.equals(Duration.ofHours(2))));
     }
 
     @Test
