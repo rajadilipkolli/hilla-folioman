@@ -86,4 +86,10 @@ class JwtServiceTest {
         String token = jwtService.generateAccessToken(userDetails);
         assertEquals("testuser", jwtService.extractUsername(token));
     }
+
+    @Test
+    void extractEmailCorrectlyParsesEmailClaim() {
+        String token = jwtService.generateAccessToken(userDetails);
+        assertEquals("testuser", jwtService.extractEmail(token));
+    }
 }

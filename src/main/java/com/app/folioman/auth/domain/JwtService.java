@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 public class JwtService {
 
     private static final String TOKEN_TYPE_CLAIM = "token_type";
+    private static final String EMAIL_CLAIM = "email";
     private static final String ACCESS_TOKEN_TYPE = "access";
     private static final String REFRESH_TOKEN_TYPE = "refresh";
 
@@ -63,6 +64,7 @@ public class JwtService {
                 .subject(userDetails.getUsername())
                 .id(UUID.randomUUID().toString())
                 .claim(TOKEN_TYPE_CLAIM, tokenType)
+                .claim(EMAIL_CLAIM, userDetails.getUsername())
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + expirationMs))
                 .signWith(getSignInKey())
@@ -80,6 +82,10 @@ public class JwtService {
         } catch (Exception e) {
             return false;
         }
+    }
+
+    public String extractEmail(String token) {
+        return extractClaim(token, claims -> claims.get(EMAIL_CLAIM, String.class));
     }
 
     private boolean isAccessToken(String token) {
