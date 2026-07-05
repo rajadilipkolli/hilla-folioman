@@ -144,13 +144,13 @@ public class UserDetailService {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
-                    CompletableFuture.runAsync(userSchemeDetailService::setUserSchemeAMFIIfNull);
-                    portfolioValueUpdateService.updatePortfolioValue(userCasDetailsEntity);
+                    CompletableFuture.runAsync(userSchemeDetailService::setUserSchemeAMFIIfNull)
+                            .thenRun(() -> portfolioValueUpdateService.updatePortfolioValue(userCasDetailsEntity));
                 }
             });
         } else {
-            CompletableFuture.runAsync(userSchemeDetailService::setUserSchemeAMFIIfNull);
-            portfolioValueUpdateService.updatePortfolioValue(userCasDetailsEntity);
+            CompletableFuture.runAsync(userSchemeDetailService::setUserSchemeAMFIIfNull)
+                    .thenRun(() -> portfolioValueUpdateService.updatePortfolioValue(userCasDetailsEntity));
         }
 
         if (!schemesList.isEmpty()) {
