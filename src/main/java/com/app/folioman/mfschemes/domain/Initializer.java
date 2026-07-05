@@ -14,6 +14,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,7 @@ import org.springframework.util.StopWatch;
 import org.springframework.web.client.HttpClientErrorException;
 
 @Service
+@ConditionalOnProperty(name = "application.initializer.enabled", havingValue = "true", matchIfMissing = true)
 class Initializer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(Initializer.class);

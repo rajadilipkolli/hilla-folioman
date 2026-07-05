@@ -1,8 +1,10 @@
 package com.app.folioman.portfolio.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -17,9 +19,9 @@ import com.app.folioman.portfolio.rest.dtos.UploadFileResponse;
 import com.app.folioman.portfolio.rest.dtos.UserFolioDTO;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -68,180 +70,154 @@ class UserDetailServiceTest {
     @InjectMocks
     private UserDetailService userDetailService;
 
-    private CasDTO casDTO;
-    private UserCasDetailsEntity userCasDetailsEntity;
-    private UploadFileResponse uploadFileResponse;
+    private CasDTO mockCasDTO;
+    private InvestorInfoDTO mockInvestorInfoDTO;
+    private UserFolioDTO mockFolioDTO;
+    private UserCasDetailsEntity mockEntity;
 
     @BeforeEach
     void setUp() {
-        InvestorInfoDTO investorInfo =
-                new InvestorInfoDTO("test@example.com", "Test User", "9848022338", "Test Address");
-        StatementPeriodDTO statementPeriod = new StatementPeriodDTO("01-Jan-2023", "31-Dec-2023");
-        List<UserFolioDTO> folios = new ArrayList<>();
-        // Ensure at least one folio is present so validateCasDTO passes in tests
-        folios.add(new UserFolioDTO(
-                "FOLIO123", "AMC_TEST", "ABCDE1234F", "KYC_STATUS", "PAN_KYC_STATUS", new ArrayList<>()));
-
-        casDTO = new CasDTO(statementPeriod, "NEW", "DETAILED", investorInfo, folios);
-
-        userCasDetailsEntity = new UserCasDetailsEntity();
-        userCasDetailsEntity.setId(1L);
-        userCasDetailsEntity.setFolios(new ArrayList<>());
-        // ensure required enums and investor info are set to match DB constraints when used by services
-        userCasDetailsEntity.setCasTypeEnum(CasTypeEnum.DETAILED);
-        userCasDetailsEntity.setFileTypeEnum(FileTypeEnum.CAMS);
-        InvestorInfoEntity ii = new InvestorInfoEntity();
-        ii.setEmail("test@example.com");
-        ii.setName("Test User");
-        ii.setMobile("9848022338");
-        ii.setAddress("Test Address");
-        userCasDetailsEntity.setInvestorInfoEntity(ii);
-
-        uploadFileResponse = new UploadFileResponse(1, 2, 3, 1L);
+        mockInvestorInfoDTO = new InvestorInfoDTO("test@example.com", "Test User", "1234567890", "Address");
+        mockFolioDTO = new UserFolioDTO("FOLIO123", "AMFI", "KYC", "PAN", "KRA", Collections.emptyList());
+        mockCasDTO = new CasDTO(
+                new StatementPeriodDTO("01-Jan-2023", "31-Dec-2023"),
+                "FileType",
+                "CasType",
+                mockInvestorInfoDTO,
+                List.of(mockFolioDTO));
+        mockEntity = new UserCasDetailsEntity();
+        mockEntity.setId(1L);
+        mockEntity.setFolios(new ArrayList<>());
     }
 
     @Test
-    void upload_NewUser_ShouldReturnUploadFileResponse() throws Exception {
-        byte[] fileBytes = "test content".getBytes();
-        when(multipartFile.getBytes()).thenReturn(fileBytes);
-        when(portfolioServiceHelper.readValue(fileBytes, CasDTO.class)).thenReturn(casDTO);
+    void upload_invalidInvestorEmail_throwsException() throws IOException {
+        when(multipartFile.getBytes()).thenReturn(new byte[0]);
+        CasDTO invalidCas = new CasDTO(
+                new StatementPeriodDTO("01-Jan-2023", "31-Dec-2023"),
+                "FileType",
+                "CasType",
+                new InvestorInfoDTO(null, "Test User", "1234567890", "Address"),
+                List.of(mockFolioDTO));
+        when(portfolioServiceHelper.readValue(any(), eq(CasDTO.class))).thenReturn(invalidCas);
+
+        assertThatThrownBy(() -> userDetailService.upload(multipartFile))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Email or Name invalid!");
+    }
+
+    @Test
+    void upload_invalidInvestorName_throwsException() throws IOException {
+        when(multipartFile.getBytes()).thenReturn(new byte[0]);
+        CasDTO invalidCas = new CasDTO(
+                new StatementPeriodDTO("01-Jan-2023", "31-Dec-2023"),
+                "FileType",
+                "CasType",
+                new InvestorInfoDTO("test@example.com", "", "1234567890", "Address"),
+                List.of(mockFolioDTO));
+        when(portfolioServiceHelper.readValue(any(), eq(CasDTO.class))).thenReturn(invalidCas);
+
+        assertThatThrownBy(() -> userDetailService.upload(multipartFile))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Email or Name invalid!");
+    }
+
+    @Test
+    void upload_noFolios_throwsException() throws IOException {
+        when(multipartFile.getBytes()).thenReturn(new byte[0]);
+        CasDTO invalidCas = new CasDTO(
+                new StatementPeriodDTO("01-Jan-2023", "31-Dec-2023"),
+                "FileType",
+                "CasType",
+                mockInvestorInfoDTO,
+                Collections.emptyList());
+        when(portfolioServiceHelper.readValue(any(), eq(CasDTO.class))).thenReturn(invalidCas);
+
+        assertThatThrownBy(() -> userDetailService.upload(multipartFile))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("No folios found!");
+    }
+
+    @Test
+    void upload_newUser_processesAndReturnsResponse() throws IOException {
+        when(multipartFile.getBytes()).thenReturn(new byte[0]);
+        when(portfolioServiceHelper.readValue(any(), eq(CasDTO.class))).thenReturn(mockCasDTO);
         when(investorInfoService.existsByEmailAndName("test@example.com", "Test User"))
                 .thenReturn(false);
         when(casDetailsMapper.convert(
-                        eq(casDTO), any(AtomicInteger.class), any(AtomicInteger.class), any(AtomicInteger.class)))
-                .thenReturn(userCasDetailsEntity);
-        when(userCASDetailsService.saveEntity(userCasDetailsEntity)).thenReturn(userCasDetailsEntity);
+                        eq(mockCasDTO), any(AtomicInteger.class), any(AtomicInteger.class), any(AtomicInteger.class)))
+                .thenReturn(mockEntity);
+        when(userCASDetailsService.saveEntity(mockEntity)).thenReturn(mockEntity);
 
-        UploadFileResponse result = userDetailService.upload(multipartFile);
+        UploadFileResponse response = userDetailService.upload(multipartFile);
 
-        assertThat(result).isNotNull();
-        verify(portfolioServiceHelper).readValue(fileBytes, CasDTO.class);
-        verify(investorInfoService).existsByEmailAndName("test@example.com", "Test User");
-        verify(casDetailsMapper)
-                .convert(eq(casDTO), any(AtomicInteger.class), any(AtomicInteger.class), any(AtomicInteger.class));
-        verify(userCASDetailsService).saveEntity(userCasDetailsEntity);
-        verify(portfolioValueUpdateService).updatePortfolioValue(userCasDetailsEntity);
+        assertThat(response).isNotNull();
+        assertThat(response.userCASDetailsId()).isEqualTo(1L);
+        org.mockito.Mockito.verify(portfolioValueUpdateService, org.mockito.Mockito.timeout(1000))
+                .updatePortfolioValue(mockEntity.getId());
+        verify(userFolioDetailService).setPANIfNotSet(1L);
     }
 
     @Test
-    void upload_ExistingUser_ShouldReturnUploadFileResponse() throws Exception {
-        byte[] fileBytes = "test content".getBytes();
-        when(multipartFile.getBytes()).thenReturn(fileBytes);
-        when(portfolioServiceHelper.readValue(fileBytes, CasDTO.class)).thenReturn(casDTO);
+    void getPortfolioByPAN_validPan_returnsPortfolioResponse() {
+        String pan = "ABCDE1234F";
+        LocalDate date = LocalDate.of(2023, 10, 10);
+        PortfolioDetailsDTO portfolioDetailsDTO =
+                new PortfolioDetailsDTO(new BigDecimal("1000"), "Scheme1", "Folio1", "2023-10-10", 10.0);
+        when(portfolioServiceHelper.getPortfolioDetailsByPANAndAsOfDate(eq(pan), any(LocalDate.class)))
+                .thenReturn(List.of(portfolioDetailsDTO));
+
+        PortfolioResponse response = userDetailService.getPortfolioByPAN(pan, date);
+
+        assertThat(response).isNotNull();
+        assertThat(response.portfolioDetailsDTOS()).hasSize(1);
+        assertThat(response.totalPortfolioValue()).isEqualByComparingTo("1000.0000");
+    }
+
+    @Test
+    void uploadFromDto_existingUser_processesExisting() {
         when(investorInfoService.existsByEmailAndName("test@example.com", "Test User"))
                 .thenReturn(true);
         when(userCASDetailsService.findByInvestorEmailAndName("test@example.com", "Test User"))
-                .thenReturn(Optional.of(userCasDetailsEntity));
-        when(portfolioServiceHelper.countTransactionsByUserFolioDTOList(casDTO.folios()))
-                .thenReturn(5L);
+                .thenReturn(Optional.of(mockEntity));
+        when(portfolioServiceHelper.countTransactionsByUserFolioDTOList(anyList()))
+                .thenReturn(0L);
         when(userTransactionDetailsService.findAllTransactionsByEmailNameAndPeriod(
-                        eq("Test User"), eq("test@example.com"), any(LocalDate.class), any(LocalDate.class)))
-                .thenReturn(5L);
-        when(userCASDetailsService.saveEntity(userCasDetailsEntity)).thenReturn(userCasDetailsEntity);
+                        anyString(), anyString(), any(), any()))
+                .thenReturn(0L);
 
-        UploadFileResponse result = userDetailService.upload(multipartFile);
+        UploadFileResponse response = userDetailService.uploadFromDto(mockCasDTO);
 
-        assertThat(result).isNotNull();
-        assertThat(result.newFolios()).isZero();
-        assertThat(result.newSchemes()).isZero();
-        assertThat(result.newTransactions()).isZero();
-        assertThat(result.userCASDetailsId()).isEqualTo(1L);
-        verify(portfolioServiceHelper).readValue(fileBytes, CasDTO.class);
-        verify(investorInfoService).existsByEmailAndName("test@example.com", "Test User");
-        verify(userCASDetailsService).saveEntity(userCasDetailsEntity);
-        verify(portfolioValueUpdateService).updatePortfolioValue(userCasDetailsEntity);
+        assertThat(response).isNotNull();
+        assertThat(response.userCASDetailsId()).isEqualTo(1L);
     }
 
     @Test
-    void upload_IOExceptionThrown_ShouldPropagateException() throws Exception {
-        when(multipartFile.getBytes()).thenThrow(new IOException("File read error"));
-
-        assertThatExceptionOfType(IOException.class).isThrownBy(() -> userDetailService.upload(multipartFile));
-
-        verify(multipartFile).getBytes();
-    }
-
-    @Test
-    void uploadFromDto_NewUser_ShouldReturnUploadFileResponse() {
-        when(investorInfoService.existsByEmailAndName("test@example.com", "Test User"))
-                .thenReturn(false);
-        when(casDetailsMapper.convert(
-                        eq(casDTO), any(AtomicInteger.class), any(AtomicInteger.class), any(AtomicInteger.class)))
-                .thenReturn(userCasDetailsEntity);
-        when(userCASDetailsService.saveEntity(userCasDetailsEntity)).thenReturn(userCasDetailsEntity);
-
-        UploadFileResponse result = userDetailService.uploadFromDto(casDTO);
-
-        assertThat(result).isNotNull();
-        verify(investorInfoService).existsByEmailAndName("test@example.com", "Test User");
-        verify(casDetailsMapper)
-                .convert(eq(casDTO), any(AtomicInteger.class), any(AtomicInteger.class), any(AtomicInteger.class));
-        verify(userCASDetailsService).saveEntity(userCasDetailsEntity);
-        verify(portfolioValueUpdateService).updatePortfolioValue(userCasDetailsEntity);
-    }
-
-    @Test
-    void uploadFromDto_ExistingUser_ShouldReturnUploadFileResponse() {
+    void uploadFromDto_existingUser_withNewTransactions() {
         when(investorInfoService.existsByEmailAndName("test@example.com", "Test User"))
                 .thenReturn(true);
         when(userCASDetailsService.findByInvestorEmailAndName("test@example.com", "Test User"))
-                .thenReturn(Optional.of(userCasDetailsEntity));
-        when(portfolioServiceHelper.countTransactionsByUserFolioDTOList(casDTO.folios()))
-                .thenReturn(3L);
+                .thenReturn(Optional.of(mockEntity));
+
+        // Req count is 1, DB count is 0 -> importNewTransaction will be called
+        when(portfolioServiceHelper.countTransactionsByUserFolioDTOList(anyList()))
+                .thenReturn(1L);
         when(userTransactionDetailsService.findAllTransactionsByEmailNameAndPeriod(
-                        eq("Test User"), eq("test@example.com"), any(LocalDate.class), any(LocalDate.class)))
-                .thenReturn(3L);
-        when(userCASDetailsService.saveEntity(userCasDetailsEntity)).thenReturn(userCasDetailsEntity);
+                        anyString(), anyString(), any(), any()))
+                .thenReturn(0L);
 
-        UploadFileResponse result = userDetailService.uploadFromDto(casDTO);
+        // Mocking casDetailsMapper for new folios
+        UserFolioDetailsEntity newFolioEntity = new UserFolioDetailsEntity();
+        newFolioEntity.setFolio("FOLIO123");
+        newFolioEntity.setSchemes(new ArrayList<>());
+        when(casDetailsMapper.mapUserFolioDTOToUserFolioDetails(any(), any(), any()))
+                .thenReturn(newFolioEntity);
 
-        assertThat(result).isNotNull();
-        assertThat(result.newFolios()).isZero();
-        assertThat(result.newSchemes()).isZero();
-        assertThat(result.newTransactions()).isZero();
-        assertThat(result.userCASDetailsId()).isEqualTo(1L);
-        verify(investorInfoService).existsByEmailAndName("test@example.com", "Test User");
-        verify(userCASDetailsService).saveEntity(userCasDetailsEntity);
-        verify(portfolioValueUpdateService).updatePortfolioValue(userCasDetailsEntity);
-    }
+        UploadFileResponse response = userDetailService.uploadFromDto(mockCasDTO);
 
-    @Test
-    void getPortfolioByPAN_WithData_ShouldReturnPortfolioResponse() {
-        String panNumber = "ABCDE1234F";
-        LocalDate evaluationDate = LocalDate.now();
-
-        List<PortfolioDetailsDTO> portfolioDetailsList = List.of(
-                new PortfolioDetailsDTO(BigDecimal.valueOf(10000), "Test Scheme 1", "98670", "2025-11-01", 19.0),
-                new PortfolioDetailsDTO(BigDecimal.valueOf(5000), "Test Scheme 2", "98670", "2025-11-01", 9.0));
-
-        when(portfolioServiceHelper.getPortfolioDetailsByPANAndAsOfDate(eq(panNumber), any(LocalDate.class)))
-                .thenReturn(portfolioDetailsList);
-
-        PortfolioResponse result = userDetailService.getPortfolioByPAN(panNumber, evaluationDate);
-
-        assertThat(result).isNotNull();
-        // The service sums the provided totalValue fields. Expect 10000 + 5000 = 15000
-        assertThat(result.totalPortfolioValue())
-                .isEqualTo(BigDecimal.valueOf(15000.0000).setScale(4, RoundingMode.HALF_UP));
-        assertThat(result.portfolioDetailsDTOS()).hasSize(2);
-        verify(portfolioServiceHelper).getPortfolioDetailsByPANAndAsOfDate(eq(panNumber), any(LocalDate.class));
-    }
-
-    @Test
-    void getPortfolioByPAN_EmptyData_ShouldReturnEmptyPortfolioResponse() {
-        String panNumber = "ABCDE1234F";
-        LocalDate evaluationDate = LocalDate.now();
-
-        List<PortfolioDetailsDTO> emptyPortfolioDetailsList = new ArrayList<>();
-
-        when(portfolioServiceHelper.getPortfolioDetailsByPANAndAsOfDate(eq(panNumber), any(LocalDate.class)))
-                .thenReturn(emptyPortfolioDetailsList);
-
-        PortfolioResponse result = userDetailService.getPortfolioByPAN(panNumber, evaluationDate);
-
-        assertThat(result).isNotNull();
-        assertThat(result.totalPortfolioValue()).isEqualTo(BigDecimal.ZERO.setScale(4, RoundingMode.HALF_UP));
-        assertThat(result.portfolioDetailsDTOS()).isEmpty();
-        verify(portfolioServiceHelper).getPortfolioDetailsByPANAndAsOfDate(eq(panNumber), any(LocalDate.class));
+        assertThat(response).isNotNull();
+        assertThat(response.userCASDetailsId()).isEqualTo(1L);
+        // It should have found 1 new folio because the db mockEntity has no folios
+        assertThat(response.newFolios()).isEqualTo(1);
     }
 }

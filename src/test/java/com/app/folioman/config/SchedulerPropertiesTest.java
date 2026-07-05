@@ -133,4 +133,28 @@ class SchedulerPropertiesTest {
         schedulerProperties.setTransactionCacheEvictionCron("");
         assertThat(schedulerProperties.getTransactionCacheEvictionCron()).isEmpty();
     }
+
+    @Test
+    void defaultSchemeSyncJobCron() {
+        assertThat(schedulerProperties.getSchemeSyncJobCron()).isEqualTo("0 0 20 * * SUN");
+    }
+
+    @Test
+    void setAndGetSchemeSyncJobCron() {
+        String cronExpression = "0 0 12 * * *";
+        schedulerProperties.setSchemeSyncJobCron(cronExpression);
+        assertThat(schedulerProperties.getSchemeSyncJobCron()).isEqualTo(cronExpression);
+    }
+
+    @Test
+    void setSchemeSyncJobCronWithNull() {
+        schedulerProperties.setSchemeSyncJobCron(null);
+        assertThat(schedulerProperties.getSchemeSyncJobCron()).isNull();
+    }
+
+    @Test
+    void setSchemeSyncJobCronWithEmptyString() {
+        schedulerProperties.setSchemeSyncJobCron("");
+        assertThat(schedulerProperties.getSchemeSyncJobCron()).isEmpty();
+    }
 }

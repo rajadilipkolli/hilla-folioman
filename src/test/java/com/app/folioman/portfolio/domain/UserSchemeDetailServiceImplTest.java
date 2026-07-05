@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 import com.app.folioman.mfschemes.MfSchemeService;
 import com.app.folioman.mfschemes.rest.dtos.FundDetailProjection;
 import com.app.folioman.mfschemes.rest.dtos.MFSchemeProjection;
+import com.app.folioman.mfschemes.rest.dtos.MFSchemeTypeProjection;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -54,6 +55,11 @@ class UserSchemeDetailServiceImplTest {
             @Override
             public String getIsin() {
                 return "INE123456789";
+            }
+
+            @Override
+            public MFSchemeTypeProjection getMfSchemeTypeEntity() {
+                return null;
             }
         };
 

@@ -37,7 +37,8 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
     @Order(1)
     void uploadFile() throws Exception {
 
-        long countBeforeInsert = userPortfolioValueRepository.count();
+        long countBeforeInsert =
+                jdbcTemplate.queryForObject("select count(1) from portfolio.user_portfolio_value", Long.class);
         File tempFile = File.createTempFile("file", ".json");
         try (FileWriter fileWriter = new FileWriter(tempFile)) {
             fileWriter.write("""
@@ -163,7 +164,8 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
         }
 
         await().atMost(Duration.ofSeconds(45)).pollDelay(Duration.ofSeconds(1)).untilAsserted(() -> {
-            long countAfterInsert = userPortfolioValueRepository.count();
+            long countAfterInsert =
+                    jdbcTemplate.queryForObject("select count(1) from portfolio.user_portfolio_value", Long.class);
             assertThat(countAfterInsert).isGreaterThan(countBeforeInsert);
         });
     }
@@ -240,7 +242,8 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
     @Order(4)
     void uploadFileWithNewScheme() throws Exception {
 
-        long countBeforeProcessing = mfSchemeNavRepository.count();
+        long countBeforeProcessing =
+                jdbcTemplate.queryForObject("select count(1) from mfschemes.mf_scheme_nav", Long.class);
 
         File tempFile = File.createTempFile("file", ".json");
         try (FileWriter fileWriter = new FileWriter(tempFile)) {
@@ -272,7 +275,8 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
         }
 
         await().atMost(Duration.ofSeconds(45)).pollDelay(Duration.ofSeconds(1)).untilAsserted(() -> {
-            long countAfterInsert = mfSchemeNavRepository.count();
+            long countAfterInsert =
+                    jdbcTemplate.queryForObject("select count(1) from mfschemes.mf_scheme_nav", Long.class);
             assertThat(countAfterInsert).isGreaterThan(countBeforeProcessing);
         });
     }
@@ -314,7 +318,8 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
     @Order(6)
     void uploadFileWithNewFolioAndSchemeAndTransaction() throws Exception {
 
-        long countBeforeProcessing = mfSchemeNavRepository.count();
+        long countBeforeProcessing =
+                jdbcTemplate.queryForObject("select count(1) from mfschemes.mf_scheme_nav", Long.class);
 
         File tempFile = File.createTempFile("file", ".json");
         try (FileWriter fileWriter = new FileWriter(tempFile)) {
@@ -346,7 +351,8 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
         }
 
         await().atMost(Duration.ofSeconds(45)).pollDelay(Duration.ofSeconds(1)).untilAsserted(() -> {
-            long countAfterInsert = mfSchemeNavRepository.count();
+            long countAfterInsert =
+                    jdbcTemplate.queryForObject("select count(1) from mfschemes.mf_scheme_nav", Long.class);
             assertThat(countAfterInsert).isGreaterThan(countBeforeProcessing);
         });
     }
@@ -354,7 +360,8 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
     @Test
     @Order(7)
     void addMultipleSchemesAndTransactions() throws Exception {
-        long countBeforeProcessing = mfSchemeNavRepository.count();
+        long countBeforeProcessing =
+                jdbcTemplate.queryForObject("select count(1) from mfschemes.mf_scheme_nav", Long.class);
         File tempFile = File.createTempFile("file", ".json");
         try (FileWriter fileWriter = new FileWriter(tempFile)) {
             fileWriter.write(getUploadJson());
@@ -385,7 +392,8 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
         }
 
         await().atMost(Duration.ofSeconds(45)).pollDelay(Duration.ofSeconds(1)).untilAsserted(() -> {
-            long countAfterInsert = mfSchemeNavRepository.count();
+            long countAfterInsert =
+                    jdbcTemplate.queryForObject("select count(1) from mfschemes.mf_scheme_nav", Long.class);
             assertThat(countAfterInsert).isGreaterThan(countBeforeProcessing);
         });
     }

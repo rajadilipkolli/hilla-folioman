@@ -42,6 +42,8 @@ public class ImportMutualFundController {
     @PostMapping(value = "/api/upload-handler", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @CacheEvict(
             cacheNames = CacheNames.USER_PROFILE_CACHE,
+            condition =
+                    "T(org.springframework.security.core.context.SecurityContextHolder).getContext().getAuthentication() != null",
             key =
                     "T(org.springframework.security.core.context.SecurityContextHolder).getContext().getAuthentication().getName()")
     public UploadFileResponse upload(@RequestPart("file") MultipartFile multipartFile) throws IOException {
@@ -52,6 +54,8 @@ public class ImportMutualFundController {
     @PostMapping(value = "/api/upload-pdf-cas", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @CacheEvict(
             cacheNames = CacheNames.USER_PROFILE_CACHE,
+            condition =
+                    "T(org.springframework.security.core.context.SecurityContextHolder).getContext().getAuthentication() != null",
             key =
                     "T(org.springframework.security.core.context.SecurityContextHolder).getContext().getAuthentication().getName()")
     public UploadFileResponse uploadPasswordProtectedCasPdf(

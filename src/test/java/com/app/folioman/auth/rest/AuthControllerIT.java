@@ -7,11 +7,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.app.folioman.auth.domain.RefreshTokenRepository;
-import com.app.folioman.auth.domain.RoleEntity;
-import com.app.folioman.auth.domain.RoleRepository;
-import com.app.folioman.auth.domain.UserEntity;
-import com.app.folioman.auth.domain.UserRepository;
 import com.app.folioman.auth.rest.dto.LoginRequest;
 import com.app.folioman.shared.AbstractIntegrationTest;
 import jakarta.servlet.http.Cookie;
@@ -20,45 +15,45 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.http.MediaType;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MvcResult;
 
 @Execution(ExecutionMode.SAME_THREAD)
 class AuthControllerIT extends AbstractIntegrationTest {
 
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private RefreshTokenRepository refreshTokenRepository;
-
-    @Autowired
-    private RoleRepository roleRepository;
-
-    @Autowired
-    private PasswordEncoder passwordEncoder;
-
     @BeforeEach
     void setUp() {
-        refreshTokenRepository.deleteAllInBatch();
-        userRepository.deleteAllInBatch();
+        transactionTemplate.execute(status -> {
+            jdbcTemplate.update(
+                    "DELETE FROM portfolio.user_roles WHERE user_id IN (SELECT id FROM portfolio.users WHERE username = 'testuser')");
+            jdbcTemplate.update(
+                    "DELETE FROM portfolio.refresh_tokens WHERE user_id IN (SELECT id FROM portfolio.users WHERE username = 'testuser')");
+            jdbcTemplate.update("DELETE FROM portfolio.users WHERE username = 'testuser'");
 
-        UserEntity user = new UserEntity();
-        user.setUsername("testuser");
-        user.setEmail("test@test.com");
-        user.setPasswordHash(passwordEncoder.encode("password123"));
-        user.setEnabled(true);
-        user.setAccountLocked(false);
-        user.setFailedLoginAttempts(0);
+            Long roleId;
+            try {
+                roleId = jdbcTemplate.queryForObject("SELECT id FROM portfolio.roles WHERE name = 'USER'", Long.class);
+            } catch (EmptyResultDataAccessException e) {
+                roleId = jdbcTemplate.queryForObject("SELECT nextval('portfolio.roles_seq')", Long.class);
+                jdbcTemplate.update(
+                        "INSERT INTO portfolio.roles (id, name, created_at, version) VALUES (?, 'USER', CURRENT_TIMESTAMP, 0)",
+                        roleId);
+            }
 
-        RoleEntity userRole = roleRepository
-                .findByName("USER")
-                .orElseThrow(() -> new IllegalStateException("Required role USER not found in DB"));
-        user.getRoles().add(userRole);
+            String passwordHash = passwordEncoder.encode("password123");
+            jdbcTemplate.update(
+                    "INSERT INTO portfolio.users (id, username, email, password_hash, enabled, account_locked, failed_login_attempts, created_at, updated_at, version) "
+                            + "VALUES (nextval('portfolio.users_seq'), 'testuser', 'test@test.com', ?, true, false, 0, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, 0)",
+                    passwordHash);
 
-        userRepository.save(user);
+            jdbcTemplate.update(
+                    "INSERT INTO portfolio.user_roles (user_id, role_id) "
+                            + "SELECT u.id, ? FROM portfolio.users u "
+                            + "WHERE u.username = 'testuser'",
+                    roleId);
+            return null;
+        });
     }
 
     @Test

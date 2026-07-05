@@ -9,6 +9,10 @@ public interface MfSchemeService {
 
     Optional<MFSchemeProjection> findByPayOut(String isin);
 
+    Optional<MFSchemeProjection> findByAmfiCode(Long amfiCode);
+
+    List<MFSchemeProjection> findByAmfiCodeIn(List<Long> amfiCodes);
+
     List<FundDetailProjection> fetchSchemes(String scheme);
 
     void fetchSchemeDetails(Long schemeId);

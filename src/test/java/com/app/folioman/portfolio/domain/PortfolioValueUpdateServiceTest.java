@@ -15,6 +15,7 @@ import com.app.folioman.mfschemes.MFNavService;
 import com.app.folioman.mfschemes.rest.dtos.MFSchemeNavProjection;
 import com.app.folioman.portfolio.TestData;
 import com.app.folioman.portfolio.rest.dtos.CasDTO;
+import com.app.folioman.portfolio.rest.dtos.TransactionType;
 import com.app.folioman.portfolio.util.XirrCalculator;
 import com.app.folioman.shared.LocalDateUtility;
 import java.lang.reflect.Method;
@@ -57,6 +58,9 @@ class PortfolioValueUpdateServiceTest {
 
     @Mock
     private SchemeValueRepository schemeValueRepository;
+
+    @Mock
+    private UserCASDetailsRepository userCASDetailsRepository;
 
     @Mock
     private UserTransactionDetailsRepository userTransactionDetailsRepository;
@@ -114,21 +118,24 @@ class PortfolioValueUpdateServiceTest {
         existingFolioScheme.setId(10L);
         existingFolioScheme.setUserSchemeDetailsEntity(
                 userCasDetailsEntity.getFolios().getFirst().getSchemes().getFirst());
-        when(folioSchemeRepository.findByUserSchemeDetails_Id(anyLong())).thenReturn(Optional.of(existingFolioScheme));
+        Mockito.lenient()
+                .when(folioSchemeRepository.findByUserSchemeDetails_Id(anyLong()))
+                .thenReturn(Optional.of(existingFolioScheme));
+        when(folioSchemeRepository.findByUserFolioDetails_Id(anyLong())).thenReturn(List.of(existingFolioScheme));
         when(folioSchemeRepository.save(any(FolioSchemeEntity.class))).thenReturn(existingFolioScheme);
-        when(folioSchemeRepository.findByUserFolioDetails_Id(anyLong()))
-                .thenReturn(Collections.singletonList(existingFolioScheme));
 
         SchemeValueEntity sv = new SchemeValueEntity();
         sv.setDate(LocalDate.now().minusDays(10));
         when(schemeValueRepository.findFirstByUserSchemeDetailsEntity_UserFolioDetails_IdOrderByDateDesc(anyLong()))
                 .thenReturn(Optional.of(sv));
         // Provide some historical transactions so cashflow calculation runs
-        when(userTransactionDetailsRepository.findByUserSchemeDetails_IdAndTransactionDateBefore(
-                        anyLong(), any(LocalDate.class)))
+        when(userTransactionDetailsRepository
+                        .findByUserSchemeDetails_IdAndTransactionDateBeforeOrderByTransactionDateAscIdAsc(
+                                anyLong(), any()))
                 .thenReturn(Collections.emptyList());
-        when(userTransactionDetailsRepository.findByUserSchemeDetails_IdAndTransactionDateGreaterThanEqual(
-                        anyLong(), any(LocalDate.class)))
+        when(userTransactionDetailsRepository
+                        .findByUserSchemeDetails_IdAndTransactionDateGreaterThanEqualOrderByTransactionDateAscIdAsc(
+                                anyLong(), any()))
                 .thenReturn(userCasDetailsEntity
                         .getFolios()
                         .getFirst()
@@ -148,7 +155,11 @@ class PortfolioValueUpdateServiceTest {
                         .thenAnswer(invocation -> invocation.getArgument(0));
 
                 // When
-                portfolioValueUpdateService.updatePortfolioValue(userCasDetailsEntity);
+                Mockito.lenient()
+                        .when(userCASDetailsRepository.findById(anyLong()))
+                        .thenReturn(Optional.of(userCasDetailsEntity));
+
+                portfolioValueUpdateService.updatePortfolioValue(userCasDetailsEntity.getId());
 
                 // Then
                 verify(userPortfolioValueRepository).saveAll(portfolioValueCaptor.capture());
@@ -347,14 +358,10 @@ class PortfolioValueUpdateServiceTest {
                 List<UserTransactionDetailsEntity> transactions = new ArrayList<>();
                 schemeDTO.transactions().forEach(transactionDTO -> {
                     if (transactionDTO.type() != null
-                            && !com.app.folioman.portfolio.rest.dtos.TransactionType.STAMP_DUTY_TAX.equals(
-                                    transactionDTO.type())
-                            && !com.app.folioman.portfolio.rest.dtos.TransactionType.TDS_TAX.equals(
-                                    transactionDTO.type())
-                            && !com.app.folioman.portfolio.rest.dtos.TransactionType.STT_TAX.equals(
-                                    transactionDTO.type())
-                            && !com.app.folioman.portfolio.rest.dtos.TransactionType.MISC.equals(
-                                    transactionDTO.type())) {
+                            && !TransactionType.STAMP_DUTY_TAX.equals(transactionDTO.type())
+                            && !TransactionType.TDS_TAX.equals(transactionDTO.type())
+                            && !TransactionType.STT_TAX.equals(transactionDTO.type())
+                            && !TransactionType.MISC.equals(transactionDTO.type())) {
                         UserTransactionDetailsEntity transaction = new UserTransactionDetailsEntity();
                         transaction.setTransactionDate(transactionDTO.date());
                         transaction.setDescription(transactionDTO.description());
@@ -364,8 +371,8 @@ class PortfolioValueUpdateServiceTest {
                         transaction.setUnits(transactionDTO.units());
                         transaction.setNav(transactionDTO.nav());
                         transaction.setBalance(transactionDTO.balance());
-                        transaction.setType(
-                                TransactionType.valueOf(transactionDTO.type().name()));
+                        transaction.setType(com.app.folioman.portfolio.domain.TransactionType.valueOf(
+                                transactionDTO.type().name()));
                         transaction.setDividendRate(transactionDTO.dividendRate());
                         transaction.setUserSchemeDetails(scheme);
                         transactions.add(transaction);
