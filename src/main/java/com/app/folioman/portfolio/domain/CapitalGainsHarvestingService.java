@@ -181,7 +181,14 @@ public class CapitalGainsHarvestingService {
         }
 
         MFSchemeDTO navDto = navService.getNav(holding.getSchemeId());
-        BigDecimal currentNav = navDto != null && navDto.nav() != null ? new BigDecimal(navDto.nav()) : BigDecimal.ZERO;
+        BigDecimal currentNav = BigDecimal.ZERO;
+        if (navDto != null && navDto.nav() != null) {
+            try {
+                currentNav = new BigDecimal(navDto.nav());
+            } catch (NumberFormatException e) {
+                LOGGER.warn("Invalid NAV format '{}' for scheme {}", navDto.nav(), holding.getSchemeId());
+            }
+        }
         if (currentNav.compareTo(BigDecimal.ZERO) <= 0) {
             return null; // Cannot evaluate without valid NAV
         }
