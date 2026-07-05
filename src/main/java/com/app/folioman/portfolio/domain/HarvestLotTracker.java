@@ -23,6 +23,9 @@ public class HarvestLotTracker {
         }
 
         BigDecimal quantity = txn.getUnits() != null ? BigDecimal.valueOf(txn.getUnits()) : BigDecimal.ZERO;
+        if (quantity.compareTo(BigDecimal.ZERO) == 0) {
+            return;
+        }
         BigDecimal nav = txn.getNav() != null ? BigDecimal.valueOf(txn.getNav()) : BigDecimal.ZERO;
 
         if (txn.getAmount().compareTo(BigDecimal.ZERO) > 0) {
