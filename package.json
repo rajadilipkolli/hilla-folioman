@@ -108,7 +108,7 @@
       "vite": "7.3.5",
       "vite-plugin-checker": "0.12.0"
     },
-    "hash": "ab2c9e64282cd7569fd725c67ddc85d503ff9e40991c9adf9d1bfff1c836d6a1",
+    "hash": "601274f9432f4701b6c6a26a2e40e815040ba2126e0a8f4a41f464050e75d9e6",
     "overrides": {
       "@vaadin/a11y-base": "25.1.4",
       "@vaadin/accordion": "25.1.4",
