@@ -18,7 +18,6 @@ import com.app.folioman.portfolio.domain.models.projection.PortfolioDetailsProje
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Optional;
 import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -98,6 +97,11 @@ class CapitalGainsHarvestingServiceTest {
         txn.setNav(nav);
         txn.setTransactionDate(date);
         txn.setType(TransactionType.PURCHASE_SIP);
+
+        UserSchemeDetailsEntity details = new UserSchemeDetailsEntity();
+        details.setId(1L);
+        txn.setUserSchemeDetails(details);
+
         return txn;
     }
 
@@ -124,7 +128,7 @@ class CapitalGainsHarvestingServiceTest {
                 return typeProj;
             }
         };
-        when(mfSchemeService.findByAmfiCode(amfiCode)).thenReturn(Optional.of(schemeProj));
+        when(mfSchemeService.findByAmfiCodeIn(List.of(amfiCode))).thenReturn(List.of(schemeProj));
     }
 
     @Test
@@ -149,7 +153,7 @@ class CapitalGainsHarvestingServiceTest {
         UserTransactionDetailsEntity buy = createTxn(new BigDecimal("10000"), 1000.0, 10.0, buyDate);
 
         when(userCASDetailsRepository.getPortfolioDetails(eq(pan), any())).thenReturn(List.of(holding));
-        when(userTransactionDetailsRepository.findByUserSchemeDetails_IdOrderByTransactionDateAsc(eq(1L)))
+        when(userTransactionDetailsRepository.findByUserSchemeDetails_IdInOrderByTransactionDateAscIdAsc(List.of(1L)))
                 .thenReturn(List.of(buy));
 
         mockSchemeAsEquity(123456L);
@@ -175,5 +179,88 @@ class CapitalGainsHarvestingServiceTest {
         var rec = response.recommendations().get(0);
         // Exemption covers 1L, since profit is 40k, estimated tax is 0.
         assertThat(rec.estimatedTax()).isEqualByComparingTo(BigDecimal.ZERO);
+    }
+
+    @Test
+    void shouldCalculateStcgAndExitLoad() {
+        String pan = "ABCDE1234F";
+        PortfolioDetailsProjection holding = createHolding("Equity Fund", "FOLIO1", 123456L, 1L);
+
+        // 3 months ago (STCG and within exit load window)
+        LocalDate buyDate = LocalDate.now().minusMonths(3);
+        UserTransactionDetailsEntity buy = createTxn(new BigDecimal("10000"), 1000.0, 10.0, buyDate);
+
+        when(userCASDetailsRepository.getPortfolioDetails(eq(pan), any())).thenReturn(List.of(holding));
+        when(userTransactionDetailsRepository.findByUserSchemeDetails_IdInOrderByTransactionDateAscIdAsc(List.of(1L)))
+                .thenReturn(List.of(buy));
+
+        mockSchemeAsEquity(123456L);
+
+        when(mfNavService.getNav(123456L))
+                .thenReturn(new MFSchemeDTO(
+                        "AMC", 123456L, "INE123", "Equity Fund", "50.0", "2023-10-10", "Equity Scheme"));
+
+        org.mockito.Mockito.lenient()
+                .when(exitLoadProperties.getApplicabilityWindowDays())
+                .thenReturn(365);
+        org.mockito.Mockito.lenient()
+                .when(exitLoadProperties.getDefaultPercentage())
+                .thenReturn(new BigDecimal("1.0"));
+
+        CapitalGainsHarvestingRequest request = new CapitalGainsHarvestingRequest(
+                pan, null, null, null, null, true, true, true, null, null, null, null, null);
+
+        CapitalGainsHarvestingResponse response = service.generateHarvestingPlan(request);
+
+        assertThat(response.recommendations()).hasSize(1);
+        var rec = response.recommendations().get(0);
+
+        // 40k profit STCG -> 15% tax = 6k
+        assertThat(rec.stcg()).isEqualByComparingTo(new BigDecimal("40000"));
+        assertThat(rec.estimatedTax()).isEqualByComparingTo(new BigDecimal("6000.00"));
+        // Exit load = 1% of current value (50000) = 500
+        assertThat(rec.exitLoad()).isEqualByComparingTo(new BigDecimal("500.00"));
+    }
+
+    @Test
+    void shouldHarvestAvailableWhenTargetAmountExceedsAvailable() {
+        String pan = "ABCDE1234F";
+        PortfolioDetailsProjection holding = createHolding("Equity Fund", "FOLIO1", 123456L, 1L);
+
+        // 14 months ago
+        LocalDate buyDate = LocalDate.now().minusMonths(14);
+        UserTransactionDetailsEntity buy = createTxn(new BigDecimal("10000"), 1000.0, 10.0, buyDate);
+
+        when(userCASDetailsRepository.getPortfolioDetails(eq(pan), any())).thenReturn(List.of(holding));
+        when(userTransactionDetailsRepository.findByUserSchemeDetails_IdInOrderByTransactionDateAscIdAsc(List.of(1L)))
+                .thenReturn(List.of(buy));
+
+        mockSchemeAsEquity(123456L);
+
+        org.mockito.Mockito.lenient()
+                .when(mfNavService.getNav(123456L))
+                .thenReturn(new MFSchemeDTO(
+                        "AMC", 123456L, "INE123", "Equity Fund", "50.0", "2023-10-10", "Equity Scheme"));
+
+        CapitalGainsHarvestingRequest request = new CapitalGainsHarvestingRequest(
+                pan,
+                null,
+                null,
+                null,
+                null,
+                true,
+                true,
+                false,
+                null,
+                new BigDecimal("100000"),
+                null,
+                null,
+                null); // target amount 100k, available is 50k
+
+        CapitalGainsHarvestingResponse response = service.generateHarvestingPlan(request);
+
+        assertThat(response.recommendations()).hasSize(1);
+        var rec = response.recommendations().get(0);
+        assertThat(rec.redemptionAmount()).isEqualByComparingTo(new BigDecimal("50000.00"));
     }
 }

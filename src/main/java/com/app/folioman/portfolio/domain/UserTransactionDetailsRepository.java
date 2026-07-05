@@ -30,17 +30,20 @@ interface UserTransactionDetailsRepository extends JpaRepository<UserTransaction
             @Param("fromTransactionDate") LocalDate fromTransactionDate,
             @Param("toTransactionDate") LocalDate toTransactionDate);
 
-    List<UserTransactionDetailsEntity> findByUserSchemeDetails_IdAndTransactionDateBefore(
+    List<UserTransactionDetailsEntity> findByUserSchemeDetails_IdAndTransactionDateBeforeOrderByTransactionDateAscIdAsc(
             Long id, LocalDate schemeFromDate);
 
-    List<UserTransactionDetailsEntity> findByUserSchemeDetails_IdOrderByTransactionDateAsc(Long id);
+    List<UserTransactionDetailsEntity> findByUserSchemeDetails_IdOrderByTransactionDateAscIdAsc(Long id);
 
-    List<UserTransactionDetailsEntity> findByUserSchemeDetails_IdAndTransactionDateGreaterThanEqual(
-            Long id, LocalDate schemeFromDate);
+    List<UserTransactionDetailsEntity> findByUserSchemeDetails_IdInOrderByTransactionDateAscIdAsc(List<Long> ids);
+
+    List<UserTransactionDetailsEntity>
+            findByUserSchemeDetails_IdAndTransactionDateGreaterThanEqualOrderByTransactionDateAscIdAsc(
+                    Long id, LocalDate schemeFromDate);
 
     @Query(
-            "select u from UserTransactionDetailsEntity u where u.userSchemeDetails.userFolioDetails.userCasDetailsEntity.id = :casId order by u.transactionDate asc")
-    List<UserTransactionDetailsEntity> findByCasIdOrderByTransactionDateAsc(@Param("casId") Long casId);
+            "select u from UserTransactionDetailsEntity u where u.userSchemeDetails.userFolioDetails.userCasDetailsEntity.id = :casId order by u.transactionDate asc, u.id asc")
+    List<UserTransactionDetailsEntity> findByCasIdOrderByTransactionDateAscIdAsc(@Param("casId") Long casId);
 
     @NativeQuery("""
                     WITH monthly_totals AS (

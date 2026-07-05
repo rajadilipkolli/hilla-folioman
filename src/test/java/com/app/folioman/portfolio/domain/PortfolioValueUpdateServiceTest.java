@@ -117,6 +117,7 @@ class PortfolioValueUpdateServiceTest {
         Mockito.lenient()
                 .when(folioSchemeRepository.findByUserSchemeDetails_Id(anyLong()))
                 .thenReturn(Optional.of(existingFolioScheme));
+        when(folioSchemeRepository.findByUserFolioDetails_Id(anyLong())).thenReturn(List.of(existingFolioScheme));
         when(folioSchemeRepository.save(any(FolioSchemeEntity.class))).thenReturn(existingFolioScheme);
 
         SchemeValueEntity sv = new SchemeValueEntity();
@@ -124,12 +125,21 @@ class PortfolioValueUpdateServiceTest {
         when(schemeValueRepository.findFirstByUserSchemeDetailsEntity_UserFolioDetails_IdOrderByDateDesc(anyLong()))
                 .thenReturn(Optional.of(sv));
         // Provide some historical transactions so cashflow calculation runs
-        Mockito.lenient()
-                .when(userTransactionDetailsRepository.findByUserSchemeDetails_IdAndTransactionDateBefore(
-                        anyLong(), any(LocalDate.class)))
+        when(userTransactionDetailsRepository
+                        .findByUserSchemeDetails_IdAndTransactionDateBeforeOrderByTransactionDateAscIdAsc(
+                                anyLong(), any()))
                 .thenReturn(Collections.emptyList());
+        when(userTransactionDetailsRepository
+                        .findByUserSchemeDetails_IdAndTransactionDateGreaterThanEqualOrderByTransactionDateAscIdAsc(
+                                anyLong(), any()))
+                .thenReturn(userCasDetailsEntity
+                        .getFolios()
+                        .getFirst()
+                        .getSchemes()
+                        .getFirst()
+                        .getTransactions());
         Mockito.lenient()
-                .when(userTransactionDetailsRepository.findByCasIdOrderByTransactionDateAsc(anyLong()))
+                .when(userTransactionDetailsRepository.findByCasIdOrderByTransactionDateAscIdAsc(anyLong()))
                 .thenReturn(userCasDetailsEntity
                         .getFolios()
                         .getFirst()

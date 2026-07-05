@@ -139,11 +139,15 @@ class PortfolioValueUpdateService {
                             schemeValueRepository.findFirstByUserSchemeDetailsEntity_IdAndDateBeforeOrderByDateDesc(
                                     folioSchemeEntity.getUserSchemeDetails().getId(), schemeFromDate);
                     List<UserTransactionDetailsEntity> oldTransactions =
-                            userTransactionDetailsRepository.findByUserSchemeDetails_IdAndTransactionDateBefore(
-                                    folioSchemeEntity.getUserSchemeDetails().getId(), schemeFromDate);
+                            userTransactionDetailsRepository
+                                    .findByUserSchemeDetails_IdAndTransactionDateBeforeOrderByTransactionDateAscIdAsc(
+                                            folioSchemeEntity
+                                                    .getUserSchemeDetails()
+                                                    .getId(),
+                                            schemeFromDate);
                     List<UserTransactionDetailsEntity> newTransactions =
                             userTransactionDetailsRepository
-                                    .findByUserSchemeDetails_IdAndTransactionDateGreaterThanEqual(
+                                    .findByUserSchemeDetails_IdAndTransactionDateGreaterThanEqualOrderByTransactionDateAscIdAsc(
                                             folioSchemeEntity
                                                     .getUserSchemeDetails()
                                                     .getId(),
@@ -444,13 +448,6 @@ class PortfolioValueUpdateService {
             List<ProcessedTransaction> transactionsProcessed,
             LocalDate today) {
 
-        if (transactionsProcessed.isEmpty() && schemeValueOpt.isEmpty()) {
-            LOGGER.info(
-                    "Skipping scheme {} - no processed transactions and no previous values",
-                    userSchemeDetailsEntity.getId());
-            return null;
-        }
-
         if (transactionsProcessed.isEmpty()) {
             LOGGER.info("Skipping scheme {} - no processed transactions", userSchemeDetailsEntity.getId());
             return null;
@@ -502,30 +499,30 @@ class PortfolioValueUpdateService {
     }
 
     private @Nullable LocalDate calculateToDate(
-            FIFOUnits fifo, List<ProcessedTransaction> transactionsProcessed, Long schemeId, LocalDate today) {
+            FIFOUnits fifo, List<ProcessedTransaction> transactionsProcessed, Long amfiCode, LocalDate today) {
         if (fifo.getBalance().compareTo(BigDecimal.valueOf(1e-3)) > 0) {
             try {
                 return mfNavService
-                        .findTopBySchemeIdOrderByDateDesc(schemeId)
+                        .findTopBySchemeIdOrderByDateDesc(amfiCode)
                         .map(mfSchemeDTO -> LocalDate.parse(mfSchemeDTO.date()))
                         .orElse(today.minusDays(1));
             } catch (NavNotFoundException nne) {
                 LOGGER.warn(
                         "NavNotFoundException while calculating toDate for scheme {}: {} - using fallback date",
-                        schemeId,
+                        amfiCode,
                         nne.getMessage());
                 return today.minusDays(1);
             } catch (Exception e) {
                 LOGGER.error(
                         "Unexpected error while fetching latest NAV for scheme {}: {} - using fallback date",
-                        schemeId,
+                        amfiCode,
                         e.getMessage());
                 return today.minusDays(1);
             }
         } else if (!transactionsProcessed.isEmpty()) {
             return transactionsProcessed.getLast().date();
         } else {
-            LOGGER.info("Skipping scheme :: {}", schemeId);
+            LOGGER.info("Skipping scheme :: {}", amfiCode);
             return null;
         }
     }
@@ -566,10 +563,12 @@ class PortfolioValueUpdateService {
 
     private List<UserTransactionDetailsEntity> collectRelevantTransactions(UserCasDetailsEntity userCasDetails) {
         LOGGER.debug("Collecting and filtering transactions for CAS ID: {}", userCasDetails.getId());
-        List<UserTransactionDetailsEntity> transactionList =
-                userTransactionDetailsRepository.findByCasIdOrderByTransactionDateAsc(userCasDetails.getId()).stream()
-                        .filter(transaction -> !TAX_TRANSACTION_TYPES.contains(transaction.getType()))
-                        .toList();
+        List<UserTransactionDetailsEntity> transactionList = userCasDetails.getFolios().stream()
+                .flatMap(folio -> folio.getSchemes().stream())
+                .flatMap(scheme -> scheme.getTransactions().stream())
+                .filter(transaction -> !TAX_TRANSACTION_TYPES.contains(transaction.getType()))
+                .sorted(java.util.Comparator.comparing(UserTransactionDetailsEntity::getTransactionDate))
+                .toList();
 
         LOGGER.info("Found {} relevant transactions for CAS ID: {}", transactionList.size(), userCasDetails.getId());
         return transactionList;

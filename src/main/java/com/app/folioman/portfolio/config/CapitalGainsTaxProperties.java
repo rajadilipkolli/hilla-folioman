@@ -1,10 +1,13 @@
 package com.app.folioman.portfolio.config;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import java.math.BigDecimal;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.validation.annotation.Validated;
 
@@ -19,10 +22,12 @@ public class CapitalGainsTaxProperties {
 
     @Valid
     @NotNull
+    @NestedConfigurationProperty
     private TaxRuleSet equity = new TaxRuleSet();
 
     @Valid
     @NotNull
+    @NestedConfigurationProperty
     private TaxRuleSet nonEquity = new TaxRuleSet();
 
     public TaxRuleSet getEquity() {
@@ -43,15 +48,17 @@ public class CapitalGainsTaxProperties {
 
     public static class TaxRuleSet {
 
-        @PositiveOrZero
+        @Min(1)
         private int longTermThresholdMonths;
 
         @NotNull
         @PositiveOrZero
+        @Max(100)
         private BigDecimal stcgTaxRate;
 
         @NotNull
         @PositiveOrZero
+        @Max(100)
         private BigDecimal ltcgTaxRate;
 
         @NotNull

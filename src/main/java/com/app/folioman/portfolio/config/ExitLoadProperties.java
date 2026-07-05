@@ -1,5 +1,6 @@
 package com.app.folioman.portfolio.config;
 
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
 import java.math.BigDecimal;
@@ -18,6 +19,7 @@ public class ExitLoadProperties {
 
     @NotNull
     @PositiveOrZero
+    @Max(100)
     private BigDecimal defaultPercentage;
 
     @PositiveOrZero

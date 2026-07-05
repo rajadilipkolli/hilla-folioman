@@ -99,6 +99,7 @@ class PortfolioValueUpdateServiceIntTest extends AbstractIntegrationTest {
                 .withFolio("91095687154 / 0", "AXIS Mutual Fund", "PANSIP")
                 .withScheme("Axis ELSS Tax Saver Fund - Direct Growth - ISIN: INF846K01EW2", "INF846K01EW2", amfiCode);
 
+        Double runningBalance = 0.0;
         List<Map<String, Object>> transactions = (List<Map<String, Object>>) fixture.get("transactions");
         for (Map<String, Object> t : transactions) {
             LocalDate date = LocalDate.parse((String) t.get("date"));
@@ -106,7 +107,8 @@ class PortfolioValueUpdateServiceIntTest extends AbstractIntegrationTest {
             Double nav = (Double) t.get("nav");
             Double units = (Double) t.get("units");
             TransactionType type = TransactionType.valueOf((String) t.get("type"));
-            builder.addTransaction(date, type, amount, units, nav, units);
+            runningBalance += units;
+            builder.addTransaction(date, type, amount, units, nav, runningBalance);
         }
 
         UserCasDetailsEntity casDetails = testEntityManager.persistFlushFind(builder.build());
@@ -120,7 +122,10 @@ class PortfolioValueUpdateServiceIntTest extends AbstractIntegrationTest {
         var userPortfolio = portfolios.stream()
                 .max(java.util.Comparator.comparing(UserPortfolioValueEntity::getDate))
                 .orElseThrow();
-        assertThat(userPortfolio.getXirr()).isNotNull();
+        Double expectedXirr = (Double) fixture.get("expectedXirr");
+        assertThat(userPortfolio.getXirr())
+                .isCloseTo(
+                        BigDecimal.valueOf(expectedXirr), org.assertj.core.data.Offset.offset(new BigDecimal("1.0")));
     }
 
     @Test

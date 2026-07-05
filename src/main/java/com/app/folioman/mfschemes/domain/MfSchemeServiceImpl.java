@@ -135,6 +135,32 @@ class MfSchemeServiceImpl implements MfSchemeService {
     }
 
     @Override
+    public List<MFSchemeProjection> findByAmfiCodeIn(List<Long> amfiCodes) {
+        return mFSchemeRepository.findByAmfiCodeIn(amfiCodes).stream()
+                .map(entity -> new MFSchemeProjection() {
+                    @Override
+                    public Long getAmfiCode() {
+                        return entity.getAmfiCode();
+                    }
+
+                    @Override
+                    public @org.jspecify.annotations.Nullable String getIsin() {
+                        return entity.getIsin();
+                    }
+
+                    @Override
+                    public com.app.folioman.mfschemes.rest.dtos.@org.jspecify.annotations.Nullable
+                            MFSchemeTypeProjection getMfSchemeTypeEntity() {
+                        if (entity.getMfSchemeTypeEntity() != null) {
+                            return () -> entity.getMfSchemeTypeEntity().getCategory();
+                        }
+                        return null;
+                    }
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public List<FundDetailProjection> fetchSchemes(String query) {
         query = query.strip();
 

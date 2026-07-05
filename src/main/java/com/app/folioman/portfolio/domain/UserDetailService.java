@@ -145,17 +145,17 @@ public class UserDetailService {
                 @Override
                 public void afterCommit() {
                     CompletableFuture.runAsync(userSchemeDetailService::setUserSchemeAMFIIfNull);
+                    portfolioValueUpdateService.updatePortfolioValue(userCasDetailsEntity);
                 }
             });
         } else {
             CompletableFuture.runAsync(userSchemeDetailService::setUserSchemeAMFIIfNull);
+            portfolioValueUpdateService.updatePortfolioValue(userCasDetailsEntity);
         }
 
         if (!schemesList.isEmpty()) {
             applicationEventPublisher.publishEvent(new UploadedSchemesList(schemesList));
         }
-
-        portfolioValueUpdateService.updatePortfolioValue(userCasDetailsEntity);
 
         return new UploadFileResponse(
                 newFolios.get(), newSchemes.get(), newTransactions.get(), userCasDetailsEntity.getId());
@@ -280,7 +280,16 @@ public class UserDetailService {
             // Save all new transactions in a single batch operation
             if (!allNewTransactions.isEmpty()) {
                 LOGGER.info("Batch saving {} new transactions", allNewTransactions.size());
-                userTransactionDetailsService.saveTransactions(allNewTransactions);
+                List<UserTransactionDetailsEntity> savedTransactions =
+                        userTransactionDetailsService.saveTransactions(allNewTransactions);
+
+                // Add newly saved transactions back to their in-memory scheme collections
+                for (UserTransactionDetailsEntity savedTxn : savedTransactions) {
+                    UserSchemeDetailsEntity scheme = savedTxn.getUserSchemeDetails();
+                    if (scheme != null && scheme.getTransactions() != null) {
+                        scheme.getTransactions().add(savedTxn);
+                    }
+                }
             }
         }
     }
@@ -459,19 +468,18 @@ public class UserDetailService {
                 @Override
                 public void afterCommit() {
                     CompletableFuture.runAsync(userSchemeDetailService::setUserSchemeAMFIIfNull);
+                    portfolioValueUpdateService.updatePortfolioValue(savedCasDetailsEntity);
                 }
             });
         } else {
             CompletableFuture.runAsync(userSchemeDetailService::setUserSchemeAMFIIfNull);
+            portfolioValueUpdateService.updatePortfolioValue(savedCasDetailsEntity);
         }
 
         // Publish event with pre-collected schemes list
         if (!schemesList.isEmpty()) {
             applicationEventPublisher.publishEvent(new UploadedSchemesList(schemesList));
         }
-
-        // Start portfolio value update asynchronously
-        portfolioValueUpdateService.updatePortfolioValue(savedCasDetailsEntity);
 
         return savedCasDetailsEntity;
     }
@@ -483,7 +491,7 @@ public class UserDetailService {
     private boolean validateCasDTO(CasDTO casDTO) {
         String email = casDTO.investorInfo().email();
         String name = casDTO.investorInfo().name();
-        if (email == null || email.isEmpty() || name.isEmpty()) {
+        if (email == null || email.isEmpty() || name == null || name.isEmpty()) {
             throw new IllegalArgumentException("Email or Name invalid!");
         }
         if (CollectionUtils.isEmpty(casDTO.folios())) {

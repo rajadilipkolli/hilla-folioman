@@ -2,6 +2,7 @@ package com.app.folioman.portfolio.domain;
 
 import com.app.folioman.portfolio.domain.models.HarvestLot;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Deque;
 import java.util.LinkedList;
@@ -14,9 +15,10 @@ public class HarvestLotTracker {
     HarvestLotTracker() {}
 
     public void addTransaction(UserTransactionDetailsEntity txn) {
-        if (txn.getAmount() == null
-                || txn.getTransactionDate() == null
-                || "STT_TAX".equals(txn.getType().name())) {
+        if (txn.getAmount() == null || txn.getTransactionDate() == null) {
+            return;
+        }
+        if (txn.getType() != null && "STT_TAX".equals(txn.getType().name())) {
             return;
         }
 
@@ -30,7 +32,7 @@ public class HarvestLotTracker {
         }
     }
 
-    private void buy(java.time.LocalDate date, BigDecimal quantity, BigDecimal nav) {
+    private void buy(LocalDate date, BigDecimal quantity, BigDecimal nav) {
         lots.addLast(new HarvestLot(date, nav, quantity, quantity));
     }
 

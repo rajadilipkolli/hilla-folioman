@@ -17,9 +17,13 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
+import java.util.Objects;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -69,6 +73,35 @@ public class CapitalGainsHarvestingService {
                 request.existingRealizedGains() != null ? request.existingRealizedGains() : BigDecimal.ZERO;
         BigDecimal totalNonEquityLtcgRealized = BigDecimal.ZERO;
 
+        // Bulk load data
+        List<Long> schemeDetailIds = holdings.stream()
+                .map(PortfolioDetailsProjection::getSchemeDetailId)
+                .filter(Objects::nonNull)
+                .toList();
+
+        List<Long> amfiCodes = holdings.stream()
+                .map(PortfolioDetailsProjection::getSchemeId)
+                .filter(Objects::nonNull)
+                .toList();
+
+        // 1. Load all transactions
+        Map<Long, List<UserTransactionDetailsEntity>> transactionsByDetailId =
+                userTransactionDetailsRepository
+                        .findByUserSchemeDetails_IdInOrderByTransactionDateAscIdAsc(schemeDetailIds)
+                        .stream()
+                        .filter(txn -> txn.getUserSchemeDetails() != null)
+                        .collect(Collectors.groupingBy(
+                                txn -> txn.getUserSchemeDetails().getId()));
+
+        // 2. Load all scheme metadata
+        Map<Long, MFSchemeProjection> schemeMetadataByAmfi = mfSchemeService.findByAmfiCodeIn(amfiCodes).stream()
+                .collect(Collectors.toMap(MFSchemeProjection::getAmfiCode, Function.identity(), (a, b) -> a));
+
+        // 3. NAV data is fetched on demand per-holding inside evaluateScheme, but we can also pre-fetch if needed.
+        // For now, since navService fetches the latest NAV which isn't date-ranged in the same way, we can fetch all.
+        // Actually, navService.getNav(amfiCode) is already fast or cached, but let's leave it as is, or use the cached
+        // map.
+
         for (PortfolioDetailsProjection holding : holdings) {
             if (holding.getSchemeId() == null) continue;
 
@@ -80,10 +113,10 @@ public class CapitalGainsHarvestingService {
             }
 
             try {
-                Optional<MFSchemeProjection> schemeOpt = mfSchemeService.findByAmfiCode(holding.getSchemeId());
+                MFSchemeProjection schemeProjection = schemeMetadataByAmfi.get(holding.getSchemeId());
                 boolean isEquity = true;
-                if (schemeOpt.isPresent() && schemeOpt.get().getMfSchemeTypeEntity() != null) {
-                    String category = schemeOpt.get().getMfSchemeTypeEntity().getCategory();
+                if (schemeProjection != null && schemeProjection.getMfSchemeTypeEntity() != null) {
+                    String category = schemeProjection.getMfSchemeTypeEntity().getCategory();
                     isEquity = category != null && category.toLowerCase().contains("equity");
                 }
 
@@ -94,8 +127,19 @@ public class CapitalGainsHarvestingService {
                         : rules.getAnnualLtcgExemptionLimit();
                 BigDecimal currentTotalLtcg = isEquity ? totalEquityLtcgRealized : totalNonEquityLtcgRealized;
 
+                List<UserTransactionDetailsEntity> transactions =
+                        transactionsByDetailId.getOrDefault(holding.getSchemeDetailId(), Collections.emptyList());
+
                 HarvestRecommendation rec = evaluateScheme(
-                        holding, request, rules, exemptionLimit, currentTotalLtcg, isEquity, evaluationDate);
+                        holding,
+                        request,
+                        rules,
+                        exemptionLimit,
+                        currentTotalLtcg,
+                        isEquity,
+                        evaluationDate,
+                        transactions);
+
                 if (rec != null && rec.unitsToRedeem().compareTo(BigDecimal.ZERO) > 0) {
                     allRecommendations.add(rec);
                     if (isEquity) {
@@ -123,11 +167,8 @@ public class CapitalGainsHarvestingService {
             BigDecimal exemptionLimit,
             BigDecimal totalLtcgRealized,
             boolean isEquity,
-            LocalDate evaluationDate) {
-
-        List<UserTransactionDetailsEntity> transactions =
-                userTransactionDetailsRepository.findByUserSchemeDetails_IdOrderByTransactionDateAsc(
-                        holding.getSchemeDetailId());
+            LocalDate evaluationDate,
+            List<UserTransactionDetailsEntity> transactions) {
 
         HarvestLotTracker tracker = new HarvestLotTracker();
         for (UserTransactionDetailsEntity txn : transactions) {
@@ -155,9 +196,7 @@ public class CapitalGainsHarvestingService {
 
         for (HarvestLot lot : openLots) {
             long holdingDays = ChronoUnit.DAYS.between(lot.acquisitionDate(), evaluationDate);
-            boolean isLtcg = isEquity
-                    ? (holdingDays > rules.getLongTermThresholdMonths() * 30L)
-                    : (holdingDays > rules.getLongTermThresholdMonths() * 30L);
+            boolean isLtcg = holdingDays > rules.getLongTermThresholdMonths() * 30L;
 
             if (isLtcg && !request.includeLtcg()) break; // FIFO blocked
             if (!isLtcg && !request.includeStcg()) break; // FIFO blocked
