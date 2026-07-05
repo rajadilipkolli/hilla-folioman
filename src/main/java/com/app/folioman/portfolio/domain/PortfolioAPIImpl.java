@@ -108,13 +108,16 @@ public class PortfolioAPIImpl implements PortfolioAPI {
             String pan, CapitalGainsHarvestingRequestDTO request) {
         CapitalGainsHarvestingRequest domainRequest = new CapitalGainsHarvestingRequest(
                 pan,
+                request.asOfDate(),
+                request.financialYear(),
                 request.targetAmount(),
+                request.taxRegime(),
                 request.includeStcg(),
                 request.includeLtcg(),
                 request.includeExitLoad(),
+                request.existingRealizedGains(),
                 request.exemptionOverride(),
-                request.targetAmount(), // Not using minRedemptionAmount from DTO, map it or just pass null if
-                // not needed
+                request.minRedemptionAmount(),
                 request.schemeFilters(),
                 request.amcFilters());
 

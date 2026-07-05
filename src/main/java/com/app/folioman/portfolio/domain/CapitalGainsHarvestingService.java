@@ -38,7 +38,7 @@ public class CapitalGainsHarvestingService {
     private final CapitalGainsTaxProperties taxProperties;
     private final ExitLoadProperties exitLoadProperties;
 
-    public CapitalGainsHarvestingService(
+    CapitalGainsHarvestingService(
             UserCASDetailsRepository userCASDetailsRepository,
             UserTransactionDetailsRepository userTransactionDetailsRepository,
             MfSchemeService mfSchemeService,
@@ -56,18 +56,18 @@ public class CapitalGainsHarvestingService {
     public CapitalGainsHarvestingResponse generateHarvestingPlan(CapitalGainsHarvestingRequest request) {
         LOGGER.info("Generating capital gains harvesting plan for PAN: {}", request.pan());
 
+        LocalDate evaluationDate = request.asOfDate() != null ? request.asOfDate() : LocalDate.now();
         List<PortfolioDetailsProjection> holdings =
-                userCASDetailsRepository.getPortfolioDetails(request.pan(), LocalDate.now());
+                userCASDetailsRepository.getPortfolioDetails(request.pan(), evaluationDate);
         if (holdings == null || holdings.isEmpty()) {
             LOGGER.warn("No portfolio holdings found for PAN: {}", request.pan());
             return emptyResponse("No active portfolio holdings found for the given PAN.");
         }
 
         List<HarvestRecommendation> allRecommendations = new ArrayList<>();
-        BigDecimal totalLtcgRealized = BigDecimal.ZERO;
-        BigDecimal exemptionLimit = request.exemptionOverride() != null
-                ? request.exemptionOverride()
-                : taxProperties.getEquity().getAnnualLtcgExemptionLimit();
+        BigDecimal totalEquityLtcgRealized =
+                request.existingRealizedGains() != null ? request.existingRealizedGains() : BigDecimal.ZERO;
+        BigDecimal totalNonEquityLtcgRealized = BigDecimal.ZERO;
 
         for (PortfolioDetailsProjection holding : holdings) {
             if (holding.getSchemeId() == null) continue;
@@ -80,10 +80,29 @@ public class CapitalGainsHarvestingService {
             }
 
             try {
-                HarvestRecommendation rec = evaluateScheme(holding, request, exemptionLimit, totalLtcgRealized);
+                Optional<MFSchemeProjection> schemeOpt = mfSchemeService.findByAmfiCode(holding.getSchemeId());
+                boolean isEquity = true;
+                if (schemeOpt.isPresent() && schemeOpt.get().getMfSchemeTypeEntity() != null) {
+                    String category = schemeOpt.get().getMfSchemeTypeEntity().getCategory();
+                    isEquity = category != null && category.toLowerCase().contains("equity");
+                }
+
+                CapitalGainsTaxProperties.TaxRuleSet rules =
+                        isEquity ? taxProperties.getEquity() : taxProperties.getNonEquity();
+                BigDecimal exemptionLimit = request.exemptionOverride() != null
+                        ? request.exemptionOverride()
+                        : rules.getAnnualLtcgExemptionLimit();
+                BigDecimal currentTotalLtcg = isEquity ? totalEquityLtcgRealized : totalNonEquityLtcgRealized;
+
+                HarvestRecommendation rec = evaluateScheme(
+                        holding, request, rules, exemptionLimit, currentTotalLtcg, isEquity, evaluationDate);
                 if (rec != null && rec.unitsToRedeem().compareTo(BigDecimal.ZERO) > 0) {
                     allRecommendations.add(rec);
-                    totalLtcgRealized = totalLtcgRealized.add(rec.ltcg());
+                    if (isEquity) {
+                        totalEquityLtcgRealized = totalEquityLtcgRealized.add(rec.ltcg());
+                    } else {
+                        totalNonEquityLtcgRealized = totalNonEquityLtcgRealized.add(rec.ltcg());
+                    }
                 }
             } catch (Exception e) {
                 LOGGER.error("Error evaluating scheme {} for harvesting", holding.getSchemeName(), e);
@@ -100,8 +119,11 @@ public class CapitalGainsHarvestingService {
     private @org.jspecify.annotations.Nullable HarvestRecommendation evaluateScheme(
             PortfolioDetailsProjection holding,
             CapitalGainsHarvestingRequest request,
+            CapitalGainsTaxProperties.TaxRuleSet rules,
             BigDecimal exemptionLimit,
-            BigDecimal totalLtcgRealized) {
+            BigDecimal totalLtcgRealized,
+            boolean isEquity,
+            LocalDate evaluationDate) {
 
         List<UserTransactionDetailsEntity> transactions =
                 userTransactionDetailsRepository.findByUserSchemeDetails_IdOrderByTransactionDateAsc(
@@ -116,16 +138,6 @@ public class CapitalGainsHarvestingService {
         if (openLots.isEmpty()) {
             return null;
         }
-
-        Optional<MFSchemeProjection> schemeOpt = mfSchemeService.findByAmfiCode(holding.getSchemeId());
-        boolean isEquity = true;
-        if (schemeOpt.isPresent() && schemeOpt.get().getMfSchemeTypeEntity() != null) {
-            String category = schemeOpt.get().getMfSchemeTypeEntity().getCategory();
-            isEquity = category != null && category.toLowerCase().contains("equity");
-        }
-
-        CapitalGainsTaxProperties.TaxRuleSet rules =
-                isEquity ? taxProperties.getEquity() : taxProperties.getNonEquity();
 
         MFSchemeDTO navDto = navService.getNav(holding.getSchemeId());
         BigDecimal currentNav = navDto != null && navDto.nav() != null ? new BigDecimal(navDto.nav()) : BigDecimal.ZERO;
@@ -142,7 +154,7 @@ public class CapitalGainsHarvestingService {
         List<HarvestLot> consumedLots = new ArrayList<>();
 
         for (HarvestLot lot : openLots) {
-            long holdingDays = ChronoUnit.DAYS.between(lot.acquisitionDate(), LocalDate.now());
+            long holdingDays = ChronoUnit.DAYS.between(lot.acquisitionDate(), evaluationDate);
             boolean isLtcg = isEquity
                     ? (holdingDays > rules.getLongTermThresholdMonths() * 30L)
                     : (holdingDays > rules.getLongTermThresholdMonths() * 30L);

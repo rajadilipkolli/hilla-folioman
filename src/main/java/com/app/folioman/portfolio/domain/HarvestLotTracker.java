@@ -11,6 +11,8 @@ public class HarvestLotTracker {
 
     private final Deque<HarvestLot> lots = new LinkedList<>();
 
+    HarvestLotTracker() {}
+
     public void addTransaction(UserTransactionDetailsEntity txn) {
         if (txn.getAmount() == null
                 || txn.getTransactionDate() == null

@@ -71,7 +71,8 @@ public class UserTransactionDetailsService {
                 .collect(Collectors.toList());
     }
 
-    @Transactional
+    @org.springframework.transaction.annotation.Transactional(
+            propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
     List<UserTransactionDetailsEntity> saveTransactions(List<UserTransactionDetailsEntity> transactions) {
         return userTransactionDetailsRepository.saveAll(transactions);
     }

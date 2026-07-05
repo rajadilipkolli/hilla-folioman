@@ -38,6 +38,10 @@ interface UserTransactionDetailsRepository extends JpaRepository<UserTransaction
     List<UserTransactionDetailsEntity> findByUserSchemeDetails_IdAndTransactionDateGreaterThanEqual(
             Long id, LocalDate schemeFromDate);
 
+    @Query(
+            "select u from UserTransactionDetailsEntity u where u.userSchemeDetails.userFolioDetails.userCasDetailsEntity.id = :casId order by u.transactionDate asc")
+    List<UserTransactionDetailsEntity> findByCasIdOrderByTransactionDateAsc(@Param("casId") Long casId);
+
     @NativeQuery("""
                     WITH monthly_totals AS (
                         SELECT DATE_TRUNC('month', transaction_date) AS month,

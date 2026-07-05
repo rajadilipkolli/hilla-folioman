@@ -129,8 +129,8 @@ class CapitalGainsHarvestingServiceTest {
 
     @Test
     void shouldReturnEmptyWhenNoEligibleHoldings() {
-        CapitalGainsHarvestingRequest request =
-                new CapitalGainsHarvestingRequest("ABCDE1234F", null, true, true, false, null, null, null, null);
+        CapitalGainsHarvestingRequest request = new CapitalGainsHarvestingRequest(
+                "ABCDE1234F", null, null, null, null, true, true, false, null, null, null, null, null);
 
         when(userCASDetailsRepository.getPortfolioDetails(eq("ABCDE1234F"), any()))
                 .thenReturn(List.of());
@@ -166,8 +166,8 @@ class CapitalGainsHarvestingServiceTest {
                 .when(exitLoadProperties.getDefaultPercentage())
                 .thenReturn(new BigDecimal("1.0"));
 
-        CapitalGainsHarvestingRequest request =
-                new CapitalGainsHarvestingRequest(pan, null, true, true, false, null, null, null, null);
+        CapitalGainsHarvestingRequest request = new CapitalGainsHarvestingRequest(
+                pan, null, null, null, null, true, true, false, null, null, null, null, null);
 
         CapitalGainsHarvestingResponse response = service.generateHarvestingPlan(request);
 

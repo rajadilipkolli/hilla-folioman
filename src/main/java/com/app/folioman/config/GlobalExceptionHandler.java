@@ -69,7 +69,7 @@ class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     ProblemDetail handleCapitalGainsHarvestingException(
             CapitalGainsHarvestingException capitalGainsHarvestingException) {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
-                HttpStatus.UNPROCESSABLE_ENTITY,
+                HttpStatus.valueOf(422),
                 Objects.requireNonNullElse(capitalGainsHarvestingException.getMessage(), "Unknown error"));
         problemDetail.setTitle("Capital Gains Harvesting Error");
         problemDetail.setType(URI.create("https://api.hilla-folioman.com/errors/capital-gains-harvesting"));

@@ -129,8 +129,7 @@ class PortfolioValueUpdateServiceTest {
                         anyLong(), any(LocalDate.class)))
                 .thenReturn(Collections.emptyList());
         Mockito.lenient()
-                .when(userTransactionDetailsRepository.findByUserSchemeDetails_IdAndTransactionDateGreaterThanEqual(
-                        anyLong(), any(LocalDate.class)))
+                .when(userTransactionDetailsRepository.findByCasIdOrderByTransactionDateAsc(anyLong()))
                 .thenReturn(userCasDetailsEntity
                         .getFolios()
                         .getFirst()

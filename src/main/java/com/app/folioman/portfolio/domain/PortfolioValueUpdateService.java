@@ -566,12 +566,10 @@ class PortfolioValueUpdateService {
 
     private List<UserTransactionDetailsEntity> collectRelevantTransactions(UserCasDetailsEntity userCasDetails) {
         LOGGER.debug("Collecting and filtering transactions for CAS ID: {}", userCasDetails.getId());
-        List<UserTransactionDetailsEntity> transactionList = userCasDetails.getFolios().stream()
-                .flatMap(folio -> folio.getSchemes().stream())
-                .flatMap(scheme -> scheme.getTransactions().stream())
-                .filter(transaction -> !TAX_TRANSACTION_TYPES.contains(transaction.getType()))
-                .sorted(Comparator.comparing(UserTransactionDetailsEntity::getTransactionDate))
-                .toList();
+        List<UserTransactionDetailsEntity> transactionList =
+                userTransactionDetailsRepository.findByCasIdOrderByTransactionDateAsc(userCasDetails.getId()).stream()
+                        .filter(transaction -> !TAX_TRANSACTION_TYPES.contains(transaction.getType()))
+                        .toList();
 
         LOGGER.info("Found {} relevant transactions for CAS ID: {}", transactionList.size(), userCasDetails.getId());
         return transactionList;

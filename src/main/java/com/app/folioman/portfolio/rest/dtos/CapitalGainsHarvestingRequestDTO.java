@@ -17,6 +17,10 @@ public record CapitalGainsHarvestingRequestDTO(
         BigDecimal targetAmount,
 
         @Nullable String taxRegime,
+
+        @Nullable @PositiveOrZero(message = "Minimum redemption amount cannot be negative")
+        BigDecimal minRedemptionAmount,
+
         boolean includeExitLoad,
         boolean includeStcg,
         boolean includeLtcg,

@@ -184,7 +184,6 @@ class UserDetailServiceTest {
         when(userTransactionDetailsService.findAllTransactionsByEmailNameAndPeriod(
                         anyString(), anyString(), any(), any()))
                 .thenReturn(0L);
-        when(userCASDetailsService.saveEntity(mockEntity)).thenReturn(mockEntity);
 
         UploadFileResponse response = userDetailService.uploadFromDto(mockCasDTO);
 
@@ -212,8 +211,6 @@ class UserDetailServiceTest {
         newFolioEntity.setSchemes(new ArrayList<>());
         when(casDetailsMapper.mapUserFolioDTOToUserFolioDetails(any(), any(), any()))
                 .thenReturn(newFolioEntity);
-
-        when(userCASDetailsService.saveEntity(mockEntity)).thenReturn(mockEntity);
 
         UploadFileResponse response = userDetailService.uploadFromDto(mockCasDTO);
 

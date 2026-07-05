@@ -30,6 +30,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -138,7 +140,16 @@ public class UserDetailService {
                 .collect(Collectors.toList());
 
         userFolioDetailService.setPANIfNotSet(userCasDetailsEntity.getId());
-        CompletableFuture.runAsync(userSchemeDetailService::setUserSchemeAMFIIfNull);
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    CompletableFuture.runAsync(userSchemeDetailService::setUserSchemeAMFIIfNull);
+                }
+            });
+        } else {
+            CompletableFuture.runAsync(userSchemeDetailService::setUserSchemeAMFIIfNull);
+        }
 
         if (!schemesList.isEmpty()) {
             applicationEventPublisher.publishEvent(new UploadedSchemesList(schemesList));
@@ -264,11 +275,7 @@ public class UserDetailService {
         // Process all transactions in a single batch where possible
         if (!transactionsByScheme.isEmpty()) {
             List<UserTransactionDetailsEntity> allNewTransactions = new ArrayList<>();
-
-            // Update in-memory relationships for new transactions (omitted from scheme to avoid merge overhead)
-            transactionsByScheme.forEach((scheme, transactions) -> {
-                allNewTransactions.addAll(transactions);
-            });
+            transactionsByScheme.forEach((scheme, transactions) -> allNewTransactions.addAll(transactions));
 
             // Save all new transactions in a single batch operation
             if (!allNewTransactions.isEmpty()) {
@@ -447,7 +454,16 @@ public class UserDetailService {
         userFolioDetailService.setPANIfNotSet(savedCasDetailsEntity.getId());
 
         // Run non-critical post-processing tasks asynchronously
-        CompletableFuture.runAsync(userSchemeDetailService::setUserSchemeAMFIIfNull);
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    CompletableFuture.runAsync(userSchemeDetailService::setUserSchemeAMFIIfNull);
+                }
+            });
+        } else {
+            CompletableFuture.runAsync(userSchemeDetailService::setUserSchemeAMFIIfNull);
+        }
 
         // Publish event with pre-collected schemes list
         if (!schemesList.isEmpty()) {
