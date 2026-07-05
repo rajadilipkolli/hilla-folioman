@@ -196,7 +196,7 @@ public class CapitalGainsHarvestingService {
 
         for (HarvestLot lot : openLots) {
             long holdingDays = ChronoUnit.DAYS.between(lot.acquisitionDate(), evaluationDate);
-            boolean isLtcg = holdingDays > rules.getLongTermThresholdMonths() * 30L;
+            boolean isLtcg = !evaluationDate.isBefore(lot.acquisitionDate().plusMonths(rules.getLongTermThresholdMonths()));
 
             if (isLtcg && !request.includeLtcg()) break; // FIFO blocked
             if (!isLtcg && !request.includeStcg()) break; // FIFO blocked
