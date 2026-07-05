@@ -467,13 +467,13 @@ public class UserDetailService {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
                 @Override
                 public void afterCommit() {
-                    CompletableFuture.runAsync(userSchemeDetailService::setUserSchemeAMFIIfNull);
-                    portfolioValueUpdateService.updatePortfolioValue(savedCasDetailsEntity);
+                    CompletableFuture.runAsync(userSchemeDetailService::setUserSchemeAMFIIfNull)
+                            .thenRun(() -> portfolioValueUpdateService.updatePortfolioValue(savedCasDetailsEntity));
                 }
             });
         } else {
-            CompletableFuture.runAsync(userSchemeDetailService::setUserSchemeAMFIIfNull);
-            portfolioValueUpdateService.updatePortfolioValue(savedCasDetailsEntity);
+            CompletableFuture.runAsync(userSchemeDetailService::setUserSchemeAMFIIfNull)
+                    .thenRun(() -> portfolioValueUpdateService.updatePortfolioValue(savedCasDetailsEntity));
         }
 
         // Publish event with pre-collected schemes list
