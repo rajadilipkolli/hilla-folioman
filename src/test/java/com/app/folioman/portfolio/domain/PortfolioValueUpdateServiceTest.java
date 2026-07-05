@@ -114,20 +114,22 @@ class PortfolioValueUpdateServiceTest {
         existingFolioScheme.setId(10L);
         existingFolioScheme.setUserSchemeDetailsEntity(
                 userCasDetailsEntity.getFolios().getFirst().getSchemes().getFirst());
-        when(folioSchemeRepository.findByUserSchemeDetails_Id(anyLong())).thenReturn(Optional.of(existingFolioScheme));
+        Mockito.lenient()
+                .when(folioSchemeRepository.findByUserSchemeDetails_Id(anyLong()))
+                .thenReturn(Optional.of(existingFolioScheme));
         when(folioSchemeRepository.save(any(FolioSchemeEntity.class))).thenReturn(existingFolioScheme);
-        when(folioSchemeRepository.findByUserFolioDetails_Id(anyLong()))
-                .thenReturn(Collections.singletonList(existingFolioScheme));
 
         SchemeValueEntity sv = new SchemeValueEntity();
         sv.setDate(LocalDate.now().minusDays(10));
         when(schemeValueRepository.findFirstByUserSchemeDetailsEntity_UserFolioDetails_IdOrderByDateDesc(anyLong()))
                 .thenReturn(Optional.of(sv));
         // Provide some historical transactions so cashflow calculation runs
-        when(userTransactionDetailsRepository.findByUserSchemeDetails_IdAndTransactionDateBefore(
+        Mockito.lenient()
+                .when(userTransactionDetailsRepository.findByUserSchemeDetails_IdAndTransactionDateBefore(
                         anyLong(), any(LocalDate.class)))
                 .thenReturn(Collections.emptyList());
-        when(userTransactionDetailsRepository.findByUserSchemeDetails_IdAndTransactionDateGreaterThanEqual(
+        Mockito.lenient()
+                .when(userTransactionDetailsRepository.findByUserSchemeDetails_IdAndTransactionDateGreaterThanEqual(
                         anyLong(), any(LocalDate.class)))
                 .thenReturn(userCasDetailsEntity
                         .getFolios()

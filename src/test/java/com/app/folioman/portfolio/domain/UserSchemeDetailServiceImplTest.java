@@ -55,6 +55,11 @@ class UserSchemeDetailServiceImplTest {
             public String getIsin() {
                 return "INE123456789";
             }
+
+            @Override
+            public com.app.folioman.mfschemes.rest.dtos.MFSchemeTypeProjection getMfSchemeTypeEntity() {
+                return null;
+            }
         };
 
         fundDetailProjection = new FundDetailProjection() {

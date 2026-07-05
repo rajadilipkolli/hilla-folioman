@@ -148,18 +148,18 @@ class PortfolioValueUpdateService {
                                                     .getUserSchemeDetails()
                                                     .getId(),
                                             schemeFromDate);
-
                     FIFOUnits fifo = new FIFOUnits();
-
-                    for (UserTransactionDetailsEntity txn : oldTransactions) {
-                        fifo.addTransaction(txn);
-                    }
 
                     List<ProcessedTransaction> transactionsProcessed;
                     if (schemeValueOpt.isPresent()) {
+                        for (UserTransactionDetailsEntity txn : oldTransactions) {
+                            fifo.addTransaction(txn);
+                        }
                         transactionsProcessed = processTransactions(fifo, newTransactions);
                     } else {
-                        transactionsProcessed = processTransactions(fifo, oldTransactions);
+                        List<UserTransactionDetailsEntity> allTxns = new ArrayList<>(oldTransactions);
+                        allTxns.addAll(newTransactions);
+                        transactionsProcessed = processTransactions(fifo, allTxns);
                     }
                     Map<String, Object> schemeData = calculateSchemeData(
                             fifo,
@@ -444,8 +444,10 @@ class PortfolioValueUpdateService {
             List<ProcessedTransaction> transactionsProcessed,
             LocalDate today) {
 
-        if (fifo.getBalance().compareTo(BigDecimal.valueOf(1e-3)) <= 0 && schemeValueOpt.isEmpty()) {
-            LOGGER.info("Skipping scheme {} - no balance and no previous values", userSchemeDetailsEntity.getId());
+        if (transactionsProcessed.isEmpty() && schemeValueOpt.isEmpty()) {
+            LOGGER.info(
+                    "Skipping scheme {} - no processed transactions and no previous values",
+                    userSchemeDetailsEntity.getId());
             return null;
         }
 
@@ -454,16 +456,16 @@ class PortfolioValueUpdateService {
             return null;
         }
 
-        LocalDate fromDate = transactionsProcessed.getFirst().date();
-        LocalDate toDate = calculateToDate(fifo, transactionsProcessed, userSchemeDetailsEntity.getId(), today);
-
-        if (toDate == null) {
-            return null;
-        }
-
         Long amfiCode = userSchemeDetailsEntity.getAmfi();
         if (amfiCode == null) {
             LOGGER.warn("AMFI code not found for scheme {}, cannot fetch NAVs", userSchemeDetailsEntity.getId());
+            return null;
+        }
+
+        LocalDate fromDate = transactionsProcessed.getFirst().date();
+        LocalDate toDate = calculateToDate(fifo, transactionsProcessed, amfiCode, today);
+
+        if (toDate == null) {
             return null;
         }
 

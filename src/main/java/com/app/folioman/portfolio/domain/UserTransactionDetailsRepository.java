@@ -33,6 +33,8 @@ interface UserTransactionDetailsRepository extends JpaRepository<UserTransaction
     List<UserTransactionDetailsEntity> findByUserSchemeDetails_IdAndTransactionDateBefore(
             Long id, LocalDate schemeFromDate);
 
+    List<UserTransactionDetailsEntity> findByUserSchemeDetails_IdOrderByTransactionDateAsc(Long id);
+
     List<UserTransactionDetailsEntity> findByUserSchemeDetails_IdAndTransactionDateGreaterThanEqual(
             Long id, LocalDate schemeFromDate);
 

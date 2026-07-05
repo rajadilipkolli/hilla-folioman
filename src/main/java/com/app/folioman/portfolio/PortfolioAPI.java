@@ -1,5 +1,7 @@
 package com.app.folioman.portfolio;
 
+import com.app.folioman.portfolio.rest.dtos.CapitalGainsHarvestingRequestDTO;
+import com.app.folioman.portfolio.rest.dtos.CapitalGainsHarvestingResponseDTO;
 import com.app.folioman.portfolio.rest.dtos.CasDTO;
 import com.app.folioman.portfolio.rest.dtos.InvestmentReturnsDTO;
 import com.app.folioman.portfolio.rest.dtos.MonthlyInvestmentResponseDTO;
@@ -29,4 +31,6 @@ public interface PortfolioAPI {
     CasDTO convertPdfCasToJson(MultipartFile pdfFile, String password) throws IOException;
 
     List<PortfolioSummaryProjection> getPortfolioSummariesByEmail(String email);
+
+    CapitalGainsHarvestingResponseDTO getCapitalGainsHarvesting(String pan, CapitalGainsHarvestingRequestDTO request);
 }

@@ -2,6 +2,7 @@ package com.app.folioman.config;
 
 import com.app.folioman.mfschemes.NavNotFoundException;
 import com.app.folioman.mfschemes.SchemeNotFoundException;
+import com.app.folioman.portfolio.exception.CapitalGainsHarvestingException;
 import jakarta.validation.ConstraintViolationException;
 import java.net.URI;
 import java.time.Instant;
@@ -61,6 +62,17 @@ class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 HttpStatus.NOT_FOUND, Objects.requireNonNullElse(navNotFoundException.getMessage(), "Unknown error"));
         problemDetail.setTitle("NAV Not Found");
         problemDetail.setType(URI.create("https://api.hilla-folioman.com/errors/nav-not-found"));
+        return problemDetail;
+    }
+
+    @ExceptionHandler(CapitalGainsHarvestingException.class)
+    ProblemDetail handleCapitalGainsHarvestingException(
+            CapitalGainsHarvestingException capitalGainsHarvestingException) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.UNPROCESSABLE_ENTITY,
+                Objects.requireNonNullElse(capitalGainsHarvestingException.getMessage(), "Unknown error"));
+        problemDetail.setTitle("Capital Gains Harvesting Error");
+        problemDetail.setType(URI.create("https://api.hilla-folioman.com/errors/capital-gains-harvesting"));
         return problemDetail;
     }
 

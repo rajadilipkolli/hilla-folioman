@@ -70,6 +70,7 @@ public class UserDetailService {
         this.portfolioValueUpdateService = portfolioValueUpdateService;
     }
 
+    @Transactional
     public UploadFileResponse upload(MultipartFile multipartFile) throws IOException {
         CasDTO casDTO = parseCasDTO(multipartFile);
         boolean existingUser = validateCasDTO(casDTO);
@@ -83,6 +84,7 @@ public class UserDetailService {
      * @param casDTO The CasDTO object to process
      * @return UploadFileResponse with processing statistics
      */
+    @Transactional
     public UploadFileResponse uploadFromDto(CasDTO casDTO) {
         LOGGER.info("Processing CasDTO from converted source");
         boolean existingUser = validateCasDTO(casDTO);
@@ -122,9 +124,30 @@ public class UserDetailService {
                     userTransactionFromDBCount);
         }
 
-        UserCasDetailsEntity savedCasDetailsEntity = getUserCASDetails(userCasDetailsEntity);
+        // For existing users, new folios and schemes are cascaded automatically on flush.
+        // New transactions were explicitly saved in processNewTransactions.
+        // We do not call getUserCASDetails to avoid a massive merge on the entire tree.
+
+        // Extract AMFI codes for event publishing
+        List<Long> schemesList = userCasDetailsEntity.getFolios().stream()
+                .map(UserFolioDetailsEntity::getSchemes)
+                .flatMap(List::stream)
+                .map(UserSchemeDetailsEntity::getAmfi)
+                .filter(Objects::nonNull)
+                .distinct()
+                .collect(Collectors.toList());
+
+        userFolioDetailService.setPANIfNotSet(userCasDetailsEntity.getId());
+        CompletableFuture.runAsync(userSchemeDetailService::setUserSchemeAMFIIfNull);
+
+        if (!schemesList.isEmpty()) {
+            applicationEventPublisher.publishEvent(new UploadedSchemesList(schemesList));
+        }
+
+        portfolioValueUpdateService.updatePortfolioValue(userCasDetailsEntity);
+
         return new UploadFileResponse(
-                newFolios.get(), newSchemes.get(), newTransactions.get(), savedCasDetailsEntity.getId());
+                newFolios.get(), newSchemes.get(), newTransactions.get(), userCasDetailsEntity.getId());
     }
 
     private void importNewTransaction(
@@ -242,9 +265,8 @@ public class UserDetailService {
         if (!transactionsByScheme.isEmpty()) {
             List<UserTransactionDetailsEntity> allNewTransactions = new ArrayList<>();
 
-            // Update in-memory relationships
+            // Update in-memory relationships for new transactions (omitted from scheme to avoid merge overhead)
             transactionsByScheme.forEach((scheme, transactions) -> {
-                scheme.getTransactions().addAll(transactions);
                 allNewTransactions.addAll(transactions);
             });
 
@@ -445,7 +467,7 @@ public class UserDetailService {
     private boolean validateCasDTO(CasDTO casDTO) {
         String email = casDTO.investorInfo().email();
         String name = casDTO.investorInfo().name();
-        if (email == null || name == null || email.isEmpty() || name.isEmpty()) {
+        if (email == null || email.isEmpty() || name.isEmpty()) {
             throw new IllegalArgumentException("Email or Name invalid!");
         }
         if (CollectionUtils.isEmpty(casDTO.folios())) {
