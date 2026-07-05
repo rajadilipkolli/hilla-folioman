@@ -31,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StopWatch;
 
@@ -53,6 +54,7 @@ class PortfolioValueUpdateService {
     private final SchemeValueRepository schemeValueRepository;
     private final UserTransactionDetailsRepository userTransactionDetailsRepository;
     private final UserFolioValueRepository userFolioValueRepository;
+    private final UserCASDetailsRepository userCASDetailsRepository;
 
     PortfolioValueUpdateService(
             UserPortfolioValueRepository userPortfolioValueRepository,
@@ -60,13 +62,15 @@ class PortfolioValueUpdateService {
             FolioSchemeRepository folioSchemeRepository,
             SchemeValueRepository schemeValueRepository,
             UserTransactionDetailsRepository userTransactionDetailsRepository,
-            UserFolioValueRepository userFolioValueRepository) {
+            UserFolioValueRepository userFolioValueRepository,
+            UserCASDetailsRepository userCASDetailsRepository) {
         this.userPortfolioValueRepository = userPortfolioValueRepository;
         this.mfNavService = mfNavService;
         this.folioSchemeRepository = folioSchemeRepository;
         this.schemeValueRepository = schemeValueRepository;
         this.userTransactionDetailsRepository = userTransactionDetailsRepository;
         this.userFolioValueRepository = userFolioValueRepository;
+        this.userCASDetailsRepository = userCASDetailsRepository;
     }
 
     private @Nullable Long getAmfiCodeSafe(UserTransactionDetailsEntity transaction) {
@@ -82,8 +86,12 @@ class PortfolioValueUpdateService {
     }
 
     @Async
-    public void updatePortfolioValue(UserCasDetailsEntity userCasDetailsEntity) {
-        LOGGER.info("updatePortfolioValue called for CAS ID: {}", userCasDetailsEntity.getId());
+    @Transactional
+    public void updatePortfolioValue(Long userCasDetailsId) {
+        LOGGER.info("updatePortfolioValue called for CAS ID: {}", userCasDetailsId);
+        UserCasDetailsEntity userCasDetailsEntity =
+                userCASDetailsRepository.findById(userCasDetailsId).orElse(null);
+        if (userCasDetailsEntity == null) return;
         handleDailyPortFolioValueUpdate(userCasDetailsEntity);
         userCasDetailsEntity.getFolios().forEach(userFolioDetailsEntity -> {
             Long portfolioId = userFolioDetailsEntity.getId();
@@ -567,7 +575,9 @@ class PortfolioValueUpdateService {
                 .flatMap(folio -> folio.getSchemes().stream())
                 .flatMap(scheme -> scheme.getTransactions().stream())
                 .filter(transaction -> !TAX_TRANSACTION_TYPES.contains(transaction.getType()))
-                .sorted(java.util.Comparator.comparing(UserTransactionDetailsEntity::getTransactionDate))
+                .sorted(Comparator.comparing(UserTransactionDetailsEntity::getTransactionDate)
+                        .thenComparing(
+                                UserTransactionDetailsEntity::getId, Comparator.nullsLast(Comparator.naturalOrder())))
                 .toList();
 
         LOGGER.info("Found {} relevant transactions for CAS ID: {}", transactionList.size(), userCasDetails.getId());
@@ -954,7 +964,7 @@ class PortfolioValueUpdateService {
             // Use the new XirrCalculator.xirr method with Map parameter
             BigDecimal xirrValue = XirrCalculator.xirr(
                             dataContainer.cashFlowsByScheme().get(schemeCode))
-                    .setScale(2, RoundingMode.HALF_UP);
+                    .setScale(4, RoundingMode.HALF_UP);
 
             // Create or update FolioSchemeEntity with XIRR
             FolioSchemeEntity FolioSchemeEntity = findOrCreateFolioScheme(schemeDetailId, userSchemeDetailsEntity);

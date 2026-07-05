@@ -2,6 +2,7 @@ package com.app.folioman.portfolio.rest.dtos;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.contains;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 
@@ -91,7 +92,7 @@ class SumOfRatiosValidatorTest {
         // Then the validation should fail
         assertThat(result).isFalse();
         verify(context).disableDefaultConstraintViolation();
-        verify(context).buildConstraintViolationWithTemplate(org.mockito.ArgumentMatchers.contains("0.90"));
+        verify(context).buildConstraintViolationWithTemplate(contains("0.90"));
         verify(builder).addConstraintViolation();
     }
 
@@ -107,7 +108,7 @@ class SumOfRatiosValidatorTest {
         // Then the validation should fail
         assertThat(result).isFalse();
         verify(context).disableDefaultConstraintViolation();
-        verify(context).buildConstraintViolationWithTemplate(org.mockito.ArgumentMatchers.contains("1.20"));
+        verify(context).buildConstraintViolationWithTemplate(contains("1.20"));
         verify(builder).addConstraintViolation();
     }
 

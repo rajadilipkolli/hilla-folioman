@@ -19,7 +19,9 @@ import static org.mockito.Mockito.when;
 
 import com.app.folioman.mfschemes.MfSchemeService;
 import com.app.folioman.mfschemes.NavNotFoundException;
+import com.app.folioman.mfschemes.config.AmfiProperties;
 import com.app.folioman.mfschemes.config.ApplicationProperties;
+import com.app.folioman.mfschemes.config.NavProperties;
 import com.app.folioman.mfschemes.rest.dtos.MFSchemeDTO;
 import com.app.folioman.mfschemes.rest.dtos.MFSchemeNavProjection;
 import com.app.folioman.shared.LocalDateUtility;
@@ -82,10 +84,10 @@ class MFNavServiceImplTest {
     private ApplicationProperties applicationProperties;
 
     @Mock
-    private com.app.folioman.mfschemes.config.NavProperties nav;
+    private NavProperties nav;
 
     @Mock
-    private com.app.folioman.mfschemes.config.AmfiProperties amfi;
+    private AmfiProperties amfi;
 
     private MFNavServiceImpl mfNavService;
 

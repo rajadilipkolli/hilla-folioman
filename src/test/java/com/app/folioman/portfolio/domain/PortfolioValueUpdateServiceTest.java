@@ -15,6 +15,7 @@ import com.app.folioman.mfschemes.MFNavService;
 import com.app.folioman.mfschemes.rest.dtos.MFSchemeNavProjection;
 import com.app.folioman.portfolio.TestData;
 import com.app.folioman.portfolio.rest.dtos.CasDTO;
+import com.app.folioman.portfolio.rest.dtos.TransactionType;
 import com.app.folioman.portfolio.util.XirrCalculator;
 import com.app.folioman.shared.LocalDateUtility;
 import java.lang.reflect.Method;
@@ -57,6 +58,9 @@ class PortfolioValueUpdateServiceTest {
 
     @Mock
     private SchemeValueRepository schemeValueRepository;
+
+    @Mock
+    private UserCASDetailsRepository userCASDetailsRepository;
 
     @Mock
     private UserTransactionDetailsRepository userTransactionDetailsRepository;
@@ -138,14 +142,6 @@ class PortfolioValueUpdateServiceTest {
                         .getSchemes()
                         .getFirst()
                         .getTransactions());
-        Mockito.lenient()
-                .when(userTransactionDetailsRepository.findByCasIdOrderByTransactionDateAscIdAsc(anyLong()))
-                .thenReturn(userCasDetailsEntity
-                        .getFolios()
-                        .getFirst()
-                        .getSchemes()
-                        .getFirst()
-                        .getTransactions());
 
         try (MockedStatic<XirrCalculator> xirrCalculator = Mockito.mockStatic(XirrCalculator.class)) {
             xirrCalculator.when(() -> XirrCalculator.xirr(anyMap())).thenReturn(BigDecimal.valueOf(15.5));
@@ -159,7 +155,11 @@ class PortfolioValueUpdateServiceTest {
                         .thenAnswer(invocation -> invocation.getArgument(0));
 
                 // When
-                portfolioValueUpdateService.updatePortfolioValue(userCasDetailsEntity);
+                Mockito.lenient()
+                        .when(userCASDetailsRepository.findById(anyLong()))
+                        .thenReturn(Optional.of(userCasDetailsEntity));
+
+                portfolioValueUpdateService.updatePortfolioValue(userCasDetailsEntity.getId());
 
                 // Then
                 verify(userPortfolioValueRepository).saveAll(portfolioValueCaptor.capture());
@@ -358,14 +358,10 @@ class PortfolioValueUpdateServiceTest {
                 List<UserTransactionDetailsEntity> transactions = new ArrayList<>();
                 schemeDTO.transactions().forEach(transactionDTO -> {
                     if (transactionDTO.type() != null
-                            && !com.app.folioman.portfolio.rest.dtos.TransactionType.STAMP_DUTY_TAX.equals(
-                                    transactionDTO.type())
-                            && !com.app.folioman.portfolio.rest.dtos.TransactionType.TDS_TAX.equals(
-                                    transactionDTO.type())
-                            && !com.app.folioman.portfolio.rest.dtos.TransactionType.STT_TAX.equals(
-                                    transactionDTO.type())
-                            && !com.app.folioman.portfolio.rest.dtos.TransactionType.MISC.equals(
-                                    transactionDTO.type())) {
+                            && !TransactionType.STAMP_DUTY_TAX.equals(transactionDTO.type())
+                            && !TransactionType.TDS_TAX.equals(transactionDTO.type())
+                            && !TransactionType.STT_TAX.equals(transactionDTO.type())
+                            && !TransactionType.MISC.equals(transactionDTO.type())) {
                         UserTransactionDetailsEntity transaction = new UserTransactionDetailsEntity();
                         transaction.setTransactionDate(transactionDTO.date());
                         transaction.setDescription(transactionDTO.description());
@@ -375,8 +371,8 @@ class PortfolioValueUpdateServiceTest {
                         transaction.setUnits(transactionDTO.units());
                         transaction.setNav(transactionDTO.nav());
                         transaction.setBalance(transactionDTO.balance());
-                        transaction.setType(
-                                TransactionType.valueOf(transactionDTO.type().name()));
+                        transaction.setType(com.app.folioman.portfolio.domain.TransactionType.valueOf(
+                                transactionDTO.type().name()));
                         transaction.setDividendRate(transactionDTO.dividendRate());
                         transaction.setUserSchemeDetails(scheme);
                         transactions.add(transaction);

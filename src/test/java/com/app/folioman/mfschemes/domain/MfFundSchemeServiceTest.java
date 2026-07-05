@@ -3,7 +3,9 @@ package com.app.folioman.mfschemes.domain;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -39,9 +41,7 @@ class MfFundSchemeServiceTest {
     @BeforeEach
     void setUp() {
         // Use lenient stubbing for transaction manager to avoid unnecessary stubbing failures
-        org.mockito.Mockito.lenient()
-                .when(transactionManager.getTransaction(any()))
-                .thenReturn(transactionStatus);
+        lenient().when(transactionManager.getTransaction(any())).thenReturn(transactionStatus);
         mfFundSchemeService = new MfFundSchemeService(mfFundSchemeRepository, transactionManager);
     }
 
@@ -91,7 +91,7 @@ class MfFundSchemeServiceTest {
 
         // Simulate first individual save throwing, second succeeding by using an invocation counter
         final java.util.concurrent.atomic.AtomicInteger saveCounter = new java.util.concurrent.atomic.AtomicInteger(0);
-        org.mockito.Mockito.doAnswer(invocation -> {
+        doAnswer(invocation -> {
                     int count = saveCounter.getAndIncrement();
                     if (count == 0) {
                         // throw only on the first invocation

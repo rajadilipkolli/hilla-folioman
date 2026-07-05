@@ -3,6 +3,7 @@ package com.app.folioman.portfolio.domain;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 import com.app.folioman.mfschemes.MFNavService;
@@ -58,7 +59,7 @@ class CapitalGainsHarvestingServiceTest {
         equityRule.setLtcgTaxRate(new BigDecimal("0.10"));
         equityRule.setAnnualLtcgExemptionLimit(new BigDecimal("100000"));
 
-        org.mockito.Mockito.lenient().when(taxProperties.getEquity()).thenReturn(equityRule);
+        lenient().when(taxProperties.getEquity()).thenReturn(equityRule);
     }
 
     private PortfolioDetailsProjection createHolding(String schemeName, String folio, Long schemeId, Long detailId) {
@@ -163,12 +164,8 @@ class CapitalGainsHarvestingServiceTest {
                 .thenReturn(new MFSchemeDTO(
                         "AMC", 123456L, "INE123", "Equity Fund", "50.0", "2023-10-10", "Equity Scheme"));
 
-        org.mockito.Mockito.lenient()
-                .when(exitLoadProperties.getApplicabilityWindowDays())
-                .thenReturn(365);
-        org.mockito.Mockito.lenient()
-                .when(exitLoadProperties.getDefaultPercentage())
-                .thenReturn(new BigDecimal("1.0"));
+        lenient().when(exitLoadProperties.getApplicabilityWindowDays()).thenReturn(365);
+        lenient().when(exitLoadProperties.getDefaultPercentage()).thenReturn(new BigDecimal("1.0"));
 
         CapitalGainsHarvestingRequest request = new CapitalGainsHarvestingRequest(
                 pan, null, null, null, null, true, true, false, null, null, null, null, null);
@@ -200,12 +197,8 @@ class CapitalGainsHarvestingServiceTest {
                 .thenReturn(new MFSchemeDTO(
                         "AMC", 123456L, "INE123", "Equity Fund", "50.0", "2023-10-10", "Equity Scheme"));
 
-        org.mockito.Mockito.lenient()
-                .when(exitLoadProperties.getApplicabilityWindowDays())
-                .thenReturn(365);
-        org.mockito.Mockito.lenient()
-                .when(exitLoadProperties.getDefaultPercentage())
-                .thenReturn(new BigDecimal("1.0"));
+        lenient().when(exitLoadProperties.getApplicabilityWindowDays()).thenReturn(365);
+        lenient().when(exitLoadProperties.getDefaultPercentage()).thenReturn(new BigDecimal("1.0"));
 
         CapitalGainsHarvestingRequest request = new CapitalGainsHarvestingRequest(
                 pan, null, null, null, null, true, true, true, null, null, null, null, null);
@@ -237,7 +230,7 @@ class CapitalGainsHarvestingServiceTest {
 
         mockSchemeAsEquity(123456L);
 
-        org.mockito.Mockito.lenient()
+        lenient()
                 .when(mfNavService.getNav(123456L))
                 .thenReturn(new MFSchemeDTO(
                         "AMC", 123456L, "INE123", "Equity Fund", "50.0", "2023-10-10", "Equity Scheme"));

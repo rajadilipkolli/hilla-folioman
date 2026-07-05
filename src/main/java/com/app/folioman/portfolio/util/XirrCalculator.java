@@ -32,10 +32,10 @@ public class XirrCalculator {
             return valuesPerDate.entrySet().stream()
                     .map(entry -> {
                         BigDecimal vi = entry.getValue().abs().negate();
-                        BigDecimal denominator = BigDecimal.ONE
-                                .add(rate.negate())
-                                .pow((int) ChronoUnit.DAYS.between(t0, entry.getKey()) / DAYS_PER_YEAR.intValue(), MC);
-                        return vi.divide(denominator, MC);
+                        double days = ChronoUnit.DAYS.between(t0, entry.getKey());
+                        double denomDouble =
+                                Math.pow(1.0 + rate.negate().doubleValue(), days / DAYS_PER_YEAR.doubleValue());
+                        return vi.divide(BigDecimal.valueOf(denomDouble), MC);
                     })
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
         }
@@ -43,10 +43,9 @@ public class XirrCalculator {
         return valuesPerDate.entrySet().stream()
                 .map(entry -> {
                     BigDecimal vi = entry.getValue();
-                    BigDecimal denominator = BigDecimal.ONE
-                            .add(rate)
-                            .pow((int) ChronoUnit.DAYS.between(t0, entry.getKey()) / DAYS_PER_YEAR.intValue(), MC);
-                    return vi.divide(denominator, MC);
+                    double days = ChronoUnit.DAYS.between(t0, entry.getKey());
+                    double denomDouble = Math.pow(1.0 + rate.doubleValue(), days / DAYS_PER_YEAR.doubleValue());
+                    return vi.divide(BigDecimal.valueOf(denomDouble), MC);
                 })
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }

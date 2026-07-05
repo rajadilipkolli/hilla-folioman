@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.mockConstruction;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -44,7 +45,7 @@ class ReduceCacheSizePolicyTest {
     @BeforeEach
     void setUp() {
         // Make this lenient because some tests don't access the meterRegistry counter
-        org.mockito.Mockito.lenient()
+        lenient()
                 .when(meterRegistry.counter(anyString(), anyString(), anyString()))
                 .thenReturn(counter);
     }

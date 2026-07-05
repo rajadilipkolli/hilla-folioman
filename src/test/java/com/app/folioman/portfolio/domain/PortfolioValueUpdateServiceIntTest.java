@@ -1,6 +1,7 @@
 package com.app.folioman.portfolio.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.data.Offset.offset;
 
 import com.app.folioman.mfschemes.MFNavService;
 import com.app.folioman.shared.AbstractIntegrationTest;
@@ -8,6 +9,7 @@ import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
@@ -38,7 +40,7 @@ class PortfolioValueUpdateServiceIntTest extends AbstractIntegrationTest {
     @Autowired
     private TestEntityManager testEntityManager;
 
-    @Autowired
+    @org.springframework.test.context.bean.override.mockito.MockitoSpyBean
     private MFNavService mfNavService;
 
     @Test
@@ -69,13 +71,13 @@ class PortfolioValueUpdateServiceIntTest extends AbstractIntegrationTest {
         persistFolioSchemes(casDetails);
 
         ((PortfolioValueUpdateService) AopTestUtils.getTargetObject(portfolioValueUpdateService))
-                .updatePortfolioValue(casDetails);
+                .updatePortfolioValue(casDetails.getId());
 
         var schemeValues = schemeValueRepository.findAll();
         assertThat(schemeValues).isNotEmpty();
         // Get the latest value by date
         var value = schemeValues.stream()
-                .max(java.util.Comparator.comparing(SchemeValueEntity::getDate))
+                .max(Comparator.comparing(SchemeValueEntity::getDate))
                 .orElseThrow();
         assertThat(value.getBalance()).isEqualByComparingTo(new BigDecimal("145.0"));
 
@@ -83,8 +85,7 @@ class PortfolioValueUpdateServiceIntTest extends AbstractIntegrationTest {
                 mfNavService.getNavOnDate(amfiCode, value.getDate()).nav());
         BigDecimal expectedValue = value.getBalance().multiply(realNav);
 
-        assertThat(value.getValue())
-                .isCloseTo(expectedValue, org.assertj.core.data.Offset.offset(new BigDecimal("0.5")));
+        assertThat(value.getValue()).isCloseTo(expectedValue, offset(new BigDecimal("0.5")));
     }
 
     @Test
@@ -114,18 +115,40 @@ class PortfolioValueUpdateServiceIntTest extends AbstractIntegrationTest {
         UserCasDetailsEntity casDetails = testEntityManager.persistFlushFind(builder.build());
         persistFolioSchemes(casDetails);
 
-        ((PortfolioValueUpdateService) AopTestUtils.getTargetObject(portfolioValueUpdateService))
-                .updatePortfolioValue(casDetails);
+        Map<String, Object> navsJson = (Map<String, Object>) fixture.get("navs");
+        Map<LocalDate, com.app.folioman.mfschemes.rest.dtos.MFSchemeNavProjection> mockNavMap =
+                new java.util.HashMap<>();
+        for (Map.Entry<String, Object> entry : navsJson.entrySet()) {
+            LocalDate d = LocalDate.parse(entry.getKey());
+            Double v = ((Number) entry.getValue()).doubleValue();
+            mockNavMap.put(
+                    d,
+                    new com.app.folioman.mfschemes.rest.dtos.MFSchemeNavProjection(BigDecimal.valueOf(v), d, amfiCode));
+        }
+
+        try (org.mockito.MockedStatic<com.app.folioman.shared.LocalDateUtility> mockedStatic =
+                org.mockito.Mockito.mockStatic(
+                        com.app.folioman.shared.LocalDateUtility.class, org.mockito.Mockito.CALLS_REAL_METHODS)) {
+            mockedStatic
+                    .when(com.app.folioman.shared.LocalDateUtility::getYesterday)
+                    .thenReturn(LocalDate.of(2023, 12, 29));
+            org.mockito.Mockito.doReturn(Map.of(amfiCode, mockNavMap))
+                    .when(mfNavService)
+                    .getNavsForSchemesAndDates(
+                            org.mockito.Mockito.anySet(), org.mockito.Mockito.any(), org.mockito.Mockito.any());
+
+            ((PortfolioValueUpdateService) AopTestUtils.getTargetObject(portfolioValueUpdateService))
+                    .updatePortfolioValue(casDetails.getId());
+        }
 
         var portfolios = userPortfolioValueRepository.findAll();
         assertThat(portfolios).isNotEmpty();
         var userPortfolio = portfolios.stream()
-                .max(java.util.Comparator.comparing(UserPortfolioValueEntity::getDate))
+                .max(Comparator.comparing(UserPortfolioValueEntity::getDate))
                 .orElseThrow();
-        Double expectedXirr = (Double) fixture.get("expectedXirr");
-        assertThat(userPortfolio.getXirr())
-                .isCloseTo(
-                        BigDecimal.valueOf(expectedXirr), org.assertj.core.data.Offset.offset(new BigDecimal("1.0")));
+        Double expectedXirr = ((Number) fixture.get("expectedXirr")).doubleValue();
+        BigDecimal actualXirrPercent = userPortfolio.getXirr().multiply(new BigDecimal("100"));
+        assertThat(actualXirrPercent).isCloseTo(BigDecimal.valueOf(expectedXirr), offset(new BigDecimal("0.5")));
     }
 
     @Test
@@ -145,14 +168,14 @@ class PortfolioValueUpdateServiceIntTest extends AbstractIntegrationTest {
         persistFolioSchemes(casDetails);
 
         ((PortfolioValueUpdateService) AopTestUtils.getTargetObject(portfolioValueUpdateService))
-                .updatePortfolioValue(casDetails);
+                .updatePortfolioValue(casDetails.getId());
         assertThat(userPortfolioValueRepository.count()).isGreaterThanOrEqualTo(1);
 
         long portfoliosBefore = userPortfolioValueRepository.count();
         long schemeValuesBefore = schemeValueRepository.count();
 
         ((PortfolioValueUpdateService) AopTestUtils.getTargetObject(portfolioValueUpdateService))
-                .updatePortfolioValue(casDetails);
+                .updatePortfolioValue(casDetails.getId());
         // Processing should finish quickly
         assertThat(userPortfolioValueRepository.count()).isEqualTo(portfoliosBefore);
         assertThat(schemeValueRepository.count()).isEqualTo(schemeValuesBefore);
@@ -177,13 +200,13 @@ class PortfolioValueUpdateServiceIntTest extends AbstractIntegrationTest {
         persistFolioSchemes(casDetails);
 
         ((PortfolioValueUpdateService) AopTestUtils.getTargetObject(portfolioValueUpdateService))
-                .updatePortfolioValue(casDetails);
+                .updatePortfolioValue(casDetails.getId());
 
         var schemeValues = schemeValueRepository.findAll();
         // find the latest scheme value for our specific scheme
         var value = schemeValues.stream()
                 .filter(sv -> sv.getUserSchemeDetails().getAmfi().equals(amfiCode))
-                .max(java.util.Comparator.comparing(SchemeValueEntity::getDate))
+                .max(Comparator.comparing(SchemeValueEntity::getDate))
                 .orElse(null);
         assertThat(value).isNotNull();
         assertThat(value.getBalance()).isEqualByComparingTo(new BigDecimal("0.0"));

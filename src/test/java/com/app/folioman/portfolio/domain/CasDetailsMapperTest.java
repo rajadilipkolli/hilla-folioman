@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 
 import com.app.folioman.portfolio.rest.dtos.CasDTO;
+import com.app.folioman.portfolio.rest.dtos.TransactionType;
 import com.app.folioman.portfolio.rest.dtos.UserFolioDTO;
 import com.app.folioman.portfolio.rest.dtos.UserSchemeDTO;
 import com.app.folioman.portfolio.rest.dtos.UserTransactionDTO;
@@ -101,18 +102,11 @@ class CasDetailsMapperTest {
     void transactionDTOToTransactionEntity() {
 
         UserTransactionDTO localTxn = new UserTransactionDTO(
-                LocalDate.parse("2020-01-01"),
-                "BUY",
-                100.0d,
-                1.0d,
-                100.0d,
-                100.0d,
-                com.app.folioman.portfolio.rest.dtos.TransactionType.PURCHASE,
-                null);
+                LocalDate.parse("2020-01-01"), "BUY", 100.0d, 1.0d, 100.0d, 100.0d, TransactionType.PURCHASE, null);
         UserTransactionDetailsEntity result = mapper.transactionDTOToTransactionEntity(localTxn);
 
         assertThat(result).isNotNull();
-        assertThat(result.getType()).isEqualTo(TransactionType.PURCHASE);
+        assertThat(result.getType()).isEqualTo(com.app.folioman.portfolio.domain.TransactionType.PURCHASE);
     }
 
     @Test
@@ -128,8 +122,7 @@ class CasDetailsMapperTest {
         UserFolioDTO folioDTO = new UserFolioDTO("F1", "AMC", "PAN", "KYC", "PANKYC", new ArrayList<>());
         CasDTO localCas =
                 new CasDTO(null, FileTypeEnum.CAMS.name(), CasTypeEnum.DETAILED.name(), null, List.of(folioDTO));
-        com.app.folioman.portfolio.domain.UserCasDetailsEntity userCAS =
-                mapper.convert(localCas, newFolios, newSchemes, newTransactions);
+        UserCasDetailsEntity userCAS = mapper.convert(localCas, newFolios, newSchemes, newTransactions);
 
         assertThat(userCAS).isNotNull();
         assertThat(newFolios.get()).isOne();
@@ -139,8 +132,7 @@ class CasDetailsMapperTest {
     @Test
     void addFolioEntityToCaseDetailsWithEmptyFolios() {
         CasDTO emptyCas = new CasDTO(null, FileTypeEnum.CAMS.name(), CasTypeEnum.DETAILED.name(), null, List.of());
-        com.app.folioman.portfolio.domain.UserCasDetailsEntity userCAS =
-                mapper.convert(emptyCas, newFolios, newSchemes, newTransactions);
+        UserCasDetailsEntity userCAS = mapper.convert(emptyCas, newFolios, newSchemes, newTransactions);
 
         assertThat(userCAS).isNotNull();
         assertThat(newFolios.get()).isZero();
@@ -152,8 +144,7 @@ class CasDetailsMapperTest {
         UserFolioDTO f2 = new UserFolioDTO("F2", "AMC", "PAN", "KYC", "PANKYC", new ArrayList<>());
         CasDTO localCas2 =
                 new CasDTO(null, FileTypeEnum.CAMS.name(), CasTypeEnum.DETAILED.name(), null, List.of(f1, f2));
-        com.app.folioman.portfolio.domain.UserCasDetailsEntity userCAS2 =
-                mapper.convert(localCas2, newFolios, newSchemes, newTransactions);
+        UserCasDetailsEntity userCAS2 = mapper.convert(localCas2, newFolios, newSchemes, newTransactions);
 
         assertThat(userCAS2).isNotNull();
         assertThat(newFolios.get()).isEqualTo(2);
@@ -176,7 +167,7 @@ class CasDetailsMapperTest {
                 null,
                 new ArrayList<>());
         UserFolioDTO folioWithScheme = new UserFolioDTO("F1", "AMC", "PAN", "KYC", "PANKYC", List.of(s1));
-        com.app.folioman.portfolio.domain.UserFolioDetailsEntity folioEntity =
+        UserFolioDetailsEntity folioEntity =
                 mapper.mapUserFolioDTOToUserFolioDetails(folioWithScheme, newSchemes, newTransactions);
 
         assertThat(folioEntity).isNotNull();
@@ -187,7 +178,7 @@ class CasDetailsMapperTest {
     @Test
     void addSchemaEntityToFolioEntityWithEmptySchemes() {
         UserFolioDTO folioWithoutSchemes = new UserFolioDTO("F1", "AMC", "PAN", "KYC", "PANKYC", List.of());
-        com.app.folioman.portfolio.domain.UserFolioDetailsEntity folioEntity2 =
+        UserFolioDetailsEntity folioEntity2 =
                 mapper.mapUserFolioDTOToUserFolioDetails(folioWithoutSchemes, newSchemes, newTransactions);
 
         assertThat(folioEntity2).isNotNull();
@@ -223,7 +214,7 @@ class CasDetailsMapperTest {
                 null,
                 new ArrayList<>());
         UserFolioDTO folioWithTwo = new UserFolioDTO("F1", "AMC", "PAN", "KYC", "PANKYC", List.of(s1, s2));
-        com.app.folioman.portfolio.domain.UserFolioDetailsEntity folioEntity3 =
+        UserFolioDetailsEntity folioEntity3 =
                 mapper.mapUserFolioDTOToUserFolioDetails(folioWithTwo, newSchemes, newTransactions);
 
         assertThat(folioEntity3).isNotNull();
@@ -234,14 +225,7 @@ class CasDetailsMapperTest {
     @Test
     void addTransactionEntityToSchemeEntity() {
         UserTransactionDTO t1 = new UserTransactionDTO(
-                java.time.LocalDate.parse("2020-01-01"),
-                "BUY",
-                100.0d,
-                1.0d,
-                100.0d,
-                100.0d,
-                com.app.folioman.portfolio.rest.dtos.TransactionType.PURCHASE,
-                null);
+                LocalDate.parse("2020-01-01"), "BUY", 100.0d, 1.0d, 100.0d, 100.0d, TransactionType.PURCHASE, null);
         UserSchemeDTO schemeWithTxn = new UserSchemeDTO(
                 "S1",
                 "ISIN",
@@ -255,8 +239,7 @@ class CasDetailsMapperTest {
                 "closeCalculated",
                 null,
                 List.of(t1));
-        com.app.folioman.portfolio.domain.UserSchemeDetailsEntity schemeEntity =
-                mapper.schemeDTOToSchemeEntity(schemeWithTxn, newTransactions);
+        UserSchemeDetailsEntity schemeEntity = mapper.schemeDTOToSchemeEntity(schemeWithTxn, newTransactions);
 
         assertThat(schemeEntity).isNotNull();
         assertThat(newTransactions.get()).isOne();
@@ -278,8 +261,7 @@ class CasDetailsMapperTest {
                 "closeCalculated",
                 null,
                 List.of());
-        com.app.folioman.portfolio.domain.UserSchemeDetailsEntity schemeEntity2 =
-                mapper.schemeDTOToSchemeEntity(schemeWithoutTx, newTransactions);
+        UserSchemeDetailsEntity schemeEntity2 = mapper.schemeDTOToSchemeEntity(schemeWithoutTx, newTransactions);
 
         assertThat(schemeEntity2).isNotNull();
         assertThat(newTransactions.get()).isZero();
@@ -288,23 +270,9 @@ class CasDetailsMapperTest {
     @Test
     void addTransactionEntityToSchemeEntityWithMultipleTransactions() {
         UserTransactionDTO t1 = new UserTransactionDTO(
-                java.time.LocalDate.parse("2020-01-01"),
-                "BUY",
-                100.0d,
-                1.0d,
-                100.0d,
-                100.0d,
-                com.app.folioman.portfolio.rest.dtos.TransactionType.PURCHASE,
-                null);
+                LocalDate.parse("2020-01-01"), "BUY", 100.0d, 1.0d, 100.0d, 100.0d, TransactionType.PURCHASE, null);
         UserTransactionDTO t2 = new UserTransactionDTO(
-                java.time.LocalDate.parse("2020-01-02"),
-                "SELL",
-                50.0d,
-                0.5d,
-                100.0d,
-                50.0d,
-                com.app.folioman.portfolio.rest.dtos.TransactionType.REDEMPTION,
-                null);
+                LocalDate.parse("2020-01-02"), "SELL", 50.0d, 0.5d, 100.0d, 50.0d, TransactionType.REDEMPTION, null);
         UserSchemeDTO schemeWithTwo = new UserSchemeDTO(
                 "S1",
                 "ISIN",
@@ -318,8 +286,7 @@ class CasDetailsMapperTest {
                 "closeCalculated",
                 null,
                 List.of(t1, t2));
-        com.app.folioman.portfolio.domain.UserSchemeDetailsEntity schemeEntity3 =
-                mapper.schemeDTOToSchemeEntity(schemeWithTwo, newTransactions);
+        UserSchemeDetailsEntity schemeEntity3 = mapper.schemeDTOToSchemeEntity(schemeWithTwo, newTransactions);
 
         assertThat(schemeEntity3).isNotNull();
         assertThat(newTransactions.get()).isEqualTo(2);

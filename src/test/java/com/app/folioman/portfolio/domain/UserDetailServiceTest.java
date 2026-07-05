@@ -153,7 +153,8 @@ class UserDetailServiceTest {
 
         assertThat(response).isNotNull();
         assertThat(response.userCASDetailsId()).isEqualTo(1L);
-        verify(portfolioValueUpdateService).updatePortfolioValue(mockEntity);
+        org.mockito.Mockito.verify(portfolioValueUpdateService, org.mockito.Mockito.timeout(1000))
+                .updatePortfolioValue(mockEntity.getId());
         verify(userFolioDetailService).setPANIfNotSet(1L);
     }
 
@@ -178,7 +179,7 @@ class UserDetailServiceTest {
         when(investorInfoService.existsByEmailAndName("test@example.com", "Test User"))
                 .thenReturn(true);
         when(userCASDetailsService.findByInvestorEmailAndName("test@example.com", "Test User"))
-                .thenReturn(java.util.Optional.of(mockEntity));
+                .thenReturn(Optional.of(mockEntity));
         when(portfolioServiceHelper.countTransactionsByUserFolioDTOList(anyList()))
                 .thenReturn(0L);
         when(userTransactionDetailsService.findAllTransactionsByEmailNameAndPeriod(

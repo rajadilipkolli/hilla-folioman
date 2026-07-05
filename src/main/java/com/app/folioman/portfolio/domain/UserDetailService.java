@@ -145,12 +145,13 @@ public class UserDetailService {
                 @Override
                 public void afterCommit() {
                     CompletableFuture.runAsync(userSchemeDetailService::setUserSchemeAMFIIfNull)
-                            .thenRun(() -> portfolioValueUpdateService.updatePortfolioValue(userCasDetailsEntity));
+                            .thenRun(() ->
+                                    portfolioValueUpdateService.updatePortfolioValue(userCasDetailsEntity.getId()));
                 }
             });
         } else {
             CompletableFuture.runAsync(userSchemeDetailService::setUserSchemeAMFIIfNull)
-                    .thenRun(() -> portfolioValueUpdateService.updatePortfolioValue(userCasDetailsEntity));
+                    .thenRun(() -> portfolioValueUpdateService.updatePortfolioValue(userCasDetailsEntity.getId()));
         }
 
         if (!schemesList.isEmpty()) {
@@ -468,12 +469,13 @@ public class UserDetailService {
                 @Override
                 public void afterCommit() {
                     CompletableFuture.runAsync(userSchemeDetailService::setUserSchemeAMFIIfNull)
-                            .thenRun(() -> portfolioValueUpdateService.updatePortfolioValue(savedCasDetailsEntity));
+                            .thenRun(() ->
+                                    portfolioValueUpdateService.updatePortfolioValue(savedCasDetailsEntity.getId()));
                 }
             });
         } else {
             CompletableFuture.runAsync(userSchemeDetailService::setUserSchemeAMFIIfNull)
-                    .thenRun(() -> portfolioValueUpdateService.updatePortfolioValue(savedCasDetailsEntity));
+                    .thenRun(() -> portfolioValueUpdateService.updatePortfolioValue(savedCasDetailsEntity.getId()));
         }
 
         // Publish event with pre-collected schemes list

@@ -64,7 +64,7 @@ class PortfolioCacheConfigTest {
                     any(org.jobrunr.jobs.lambdas.JobLambda.class)));
         }
 
-        org.mockito.Mockito.verify(eviction, org.mockito.Mockito.atLeastOnce()).getTransactionCron();
+        verify(eviction, atLeastOnce()).getTransactionCron();
     }
 
     @Test

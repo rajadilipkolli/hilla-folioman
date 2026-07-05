@@ -111,8 +111,18 @@ class MfSchemeServiceImpl implements MfSchemeService {
 
     @Override
     public Optional<MFSchemeProjection> findByAmfiCode(Long amfiCode) {
-        Optional<MfFundSchemeEntity> byAmfiCode = mFSchemeRepository.findByAmfiCode(amfiCode);
-        return byAmfiCode.map(entity -> new MFSchemeProjection() {
+        return mFSchemeRepository.findByAmfiCode(amfiCode).map(this::mapToProjection);
+    }
+
+    @Override
+    public List<MFSchemeProjection> findByAmfiCodeIn(List<Long> amfiCodes) {
+        return mFSchemeRepository.findByAmfiCodeIn(amfiCodes).stream()
+                .map(this::mapToProjection)
+                .collect(Collectors.toList());
+    }
+
+    private MFSchemeProjection mapToProjection(MfFundSchemeEntity entity) {
+        return new MFSchemeProjection() {
             @Override
             public Long getAmfiCode() {
                 return entity.getAmfiCode();
@@ -131,33 +141,7 @@ class MfSchemeServiceImpl implements MfSchemeService {
                 }
                 return null;
             }
-        });
-    }
-
-    @Override
-    public List<MFSchemeProjection> findByAmfiCodeIn(List<Long> amfiCodes) {
-        return mFSchemeRepository.findByAmfiCodeIn(amfiCodes).stream()
-                .map(entity -> new MFSchemeProjection() {
-                    @Override
-                    public Long getAmfiCode() {
-                        return entity.getAmfiCode();
-                    }
-
-                    @Override
-                    public @org.jspecify.annotations.Nullable String getIsin() {
-                        return entity.getIsin();
-                    }
-
-                    @Override
-                    public com.app.folioman.mfschemes.rest.dtos.@org.jspecify.annotations.Nullable
-                            MFSchemeTypeProjection getMfSchemeTypeEntity() {
-                        if (entity.getMfSchemeTypeEntity() != null) {
-                            return () -> entity.getMfSchemeTypeEntity().getCategory();
-                        }
-                        return null;
-                    }
-                })
-                .collect(Collectors.toList());
+        };
     }
 
     @Override
