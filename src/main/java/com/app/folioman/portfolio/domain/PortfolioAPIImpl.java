@@ -2,6 +2,8 @@ package com.app.folioman.portfolio.domain;
 
 import com.app.folioman.portfolio.PortfolioAPI;
 import com.app.folioman.portfolio.PortfolioSummaryProjection;
+import com.app.folioman.portfolio.domain.models.CapitalGainsHarvestingRequest;
+import com.app.folioman.portfolio.domain.models.CapitalGainsHarvestingResponse;
 import com.app.folioman.portfolio.domain.models.projection.PortfolioValueDateProjection;
 import com.app.folioman.portfolio.rest.dtos.*;
 import java.io.IOException;
@@ -21,18 +23,21 @@ public class PortfolioAPIImpl implements PortfolioAPI {
     private final PdfProcessingService pdfProcessingService;
     private final UserCASDetailsRepository userCASDetailsRepository;
     private final UserPortfolioValueRepository userPortfolioValueRepository;
+    private final CapitalGainsHarvestingService capitalGainsHarvestingService;
 
     PortfolioAPIImpl(
             UserTransactionDetailsService userTransactionDetailsService,
             UserDetailService userDetailService,
             PdfProcessingService pdfProcessingService,
             UserCASDetailsRepository userCASDetailsRepository,
-            UserPortfolioValueRepository userPortfolioValueRepository) {
+            UserPortfolioValueRepository userPortfolioValueRepository,
+            CapitalGainsHarvestingService capitalGainsHarvestingService) {
         this.userTransactionDetailsService = userTransactionDetailsService;
         this.userDetailService = userDetailService;
         this.pdfProcessingService = pdfProcessingService;
         this.userCASDetailsRepository = userCASDetailsRepository;
         this.userPortfolioValueRepository = userPortfolioValueRepository;
+        this.capitalGainsHarvestingService = capitalGainsHarvestingService;
     }
 
     public Optional<InvestmentReturnsDTO> getInvestmentReturnsByPan(String pan) {
@@ -97,5 +102,50 @@ public class PortfolioAPIImpl implements PortfolioAPI {
                     };
                 })
                 .toList();
+    }
+
+    public CapitalGainsHarvestingResponseDTO getCapitalGainsHarvesting(
+            String pan, CapitalGainsHarvestingRequestDTO request) {
+        CapitalGainsHarvestingRequest domainRequest = new CapitalGainsHarvestingRequest(
+                pan,
+                request.asOfDate(),
+                request.financialYear(),
+                request.targetAmount(),
+                request.taxRegime(),
+                request.includeStcg(),
+                request.includeLtcg(),
+                request.includeExitLoad(),
+                request.existingRealizedGains(),
+                request.exemptionOverride(),
+                request.minRedemptionAmount(),
+                request.schemeFilters(),
+                request.amcFilters());
+
+        CapitalGainsHarvestingResponse response = capitalGainsHarvestingService.generateHarvestingPlan(domainRequest);
+
+        List<HarvestRecommendationDTO> recommendationDTOs = response.recommendations().stream()
+                .map(r -> new HarvestRecommendationDTO(
+                        r.schemeName(),
+                        r.folioNumber(),
+                        r.unitsToRedeem(),
+                        r.redemptionAmount(),
+                        r.stcg(),
+                        r.ltcg(),
+                        r.estimatedTax(),
+                        r.exitLoad(),
+                        r.remainingUnits(),
+                        r.recommendationScore(),
+                        r.reason()))
+                .toList();
+
+        HarvestSummaryDTO summaryDTO = new HarvestSummaryDTO(
+                response.summary().totalStcg(),
+                response.summary().totalLtcg(),
+                response.summary().totalEstimatedTax(),
+                response.summary().totalExitLoad(),
+                response.summary().totalRedemptionValue(),
+                response.summary().remainingPortfolioValue());
+
+        return new CapitalGainsHarvestingResponseDTO(recommendationDTOs, summaryDTO);
     }
 }

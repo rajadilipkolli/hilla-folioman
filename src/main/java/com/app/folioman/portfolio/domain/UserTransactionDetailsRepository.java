@@ -30,11 +30,16 @@ interface UserTransactionDetailsRepository extends JpaRepository<UserTransaction
             @Param("fromTransactionDate") LocalDate fromTransactionDate,
             @Param("toTransactionDate") LocalDate toTransactionDate);
 
-    List<UserTransactionDetailsEntity> findByUserSchemeDetails_IdAndTransactionDateBefore(
+    List<UserTransactionDetailsEntity> findByUserSchemeDetails_IdAndTransactionDateBeforeOrderByTransactionDateAscIdAsc(
             Long id, LocalDate schemeFromDate);
 
-    List<UserTransactionDetailsEntity> findByUserSchemeDetails_IdAndTransactionDateGreaterThanEqual(
-            Long id, LocalDate schemeFromDate);
+    List<UserTransactionDetailsEntity> findByUserSchemeDetails_IdOrderByTransactionDateAscIdAsc(Long id);
+
+    List<UserTransactionDetailsEntity> findByUserSchemeDetails_IdInOrderByTransactionDateAscIdAsc(List<Long> ids);
+
+    List<UserTransactionDetailsEntity>
+            findByUserSchemeDetails_IdAndTransactionDateGreaterThanEqualOrderByTransactionDateAscIdAsc(
+                    Long id, LocalDate schemeFromDate);
 
     @NativeQuery("""
                     WITH monthly_totals AS (

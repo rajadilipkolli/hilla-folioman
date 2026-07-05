@@ -31,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StopWatch;
 
@@ -53,6 +54,7 @@ class PortfolioValueUpdateService {
     private final SchemeValueRepository schemeValueRepository;
     private final UserTransactionDetailsRepository userTransactionDetailsRepository;
     private final UserFolioValueRepository userFolioValueRepository;
+    private final UserCASDetailsRepository userCASDetailsRepository;
 
     PortfolioValueUpdateService(
             UserPortfolioValueRepository userPortfolioValueRepository,
@@ -60,13 +62,15 @@ class PortfolioValueUpdateService {
             FolioSchemeRepository folioSchemeRepository,
             SchemeValueRepository schemeValueRepository,
             UserTransactionDetailsRepository userTransactionDetailsRepository,
-            UserFolioValueRepository userFolioValueRepository) {
+            UserFolioValueRepository userFolioValueRepository,
+            UserCASDetailsRepository userCASDetailsRepository) {
         this.userPortfolioValueRepository = userPortfolioValueRepository;
         this.mfNavService = mfNavService;
         this.folioSchemeRepository = folioSchemeRepository;
         this.schemeValueRepository = schemeValueRepository;
         this.userTransactionDetailsRepository = userTransactionDetailsRepository;
         this.userFolioValueRepository = userFolioValueRepository;
+        this.userCASDetailsRepository = userCASDetailsRepository;
     }
 
     private @Nullable Long getAmfiCodeSafe(UserTransactionDetailsEntity transaction) {
@@ -82,8 +86,12 @@ class PortfolioValueUpdateService {
     }
 
     @Async
-    public void updatePortfolioValue(UserCasDetailsEntity userCasDetailsEntity) {
-        LOGGER.info("updatePortfolioValue called for CAS ID: {}", userCasDetailsEntity.getId());
+    @Transactional
+    public void updatePortfolioValue(Long userCasDetailsId) {
+        LOGGER.info("updatePortfolioValue called for CAS ID: {}", userCasDetailsId);
+        UserCasDetailsEntity userCasDetailsEntity =
+                userCASDetailsRepository.findById(userCasDetailsId).orElse(null);
+        if (userCasDetailsEntity == null) return;
         handleDailyPortFolioValueUpdate(userCasDetailsEntity);
         userCasDetailsEntity.getFolios().forEach(userFolioDetailsEntity -> {
             Long portfolioId = userFolioDetailsEntity.getId();
@@ -139,27 +147,31 @@ class PortfolioValueUpdateService {
                             schemeValueRepository.findFirstByUserSchemeDetailsEntity_IdAndDateBeforeOrderByDateDesc(
                                     folioSchemeEntity.getUserSchemeDetails().getId(), schemeFromDate);
                     List<UserTransactionDetailsEntity> oldTransactions =
-                            userTransactionDetailsRepository.findByUserSchemeDetails_IdAndTransactionDateBefore(
-                                    folioSchemeEntity.getUserSchemeDetails().getId(), schemeFromDate);
-                    List<UserTransactionDetailsEntity> newTransactions =
                             userTransactionDetailsRepository
-                                    .findByUserSchemeDetails_IdAndTransactionDateGreaterThanEqual(
+                                    .findByUserSchemeDetails_IdAndTransactionDateBeforeOrderByTransactionDateAscIdAsc(
                                             folioSchemeEntity
                                                     .getUserSchemeDetails()
                                                     .getId(),
                                             schemeFromDate);
-
+                    List<UserTransactionDetailsEntity> newTransactions =
+                            userTransactionDetailsRepository
+                                    .findByUserSchemeDetails_IdAndTransactionDateGreaterThanEqualOrderByTransactionDateAscIdAsc(
+                                            folioSchemeEntity
+                                                    .getUserSchemeDetails()
+                                                    .getId(),
+                                            schemeFromDate);
                     FIFOUnits fifo = new FIFOUnits();
-
-                    for (UserTransactionDetailsEntity txn : oldTransactions) {
-                        fifo.addTransaction(txn);
-                    }
 
                     List<ProcessedTransaction> transactionsProcessed;
                     if (schemeValueOpt.isPresent()) {
+                        for (UserTransactionDetailsEntity txn : oldTransactions) {
+                            fifo.addTransaction(txn);
+                        }
                         transactionsProcessed = processTransactions(fifo, newTransactions);
                     } else {
-                        transactionsProcessed = processTransactions(fifo, oldTransactions);
+                        List<UserTransactionDetailsEntity> allTxns = new ArrayList<>(oldTransactions);
+                        allTxns.addAll(newTransactions);
+                        transactionsProcessed = processTransactions(fifo, allTxns);
                     }
                     Map<String, Object> schemeData = calculateSchemeData(
                             fifo,
@@ -444,26 +456,21 @@ class PortfolioValueUpdateService {
             List<ProcessedTransaction> transactionsProcessed,
             LocalDate today) {
 
-        if (fifo.getBalance().compareTo(BigDecimal.valueOf(1e-3)) <= 0 && schemeValueOpt.isEmpty()) {
-            LOGGER.info("Skipping scheme {} - no balance and no previous values", userSchemeDetailsEntity.getId());
-            return null;
-        }
-
         if (transactionsProcessed.isEmpty()) {
             LOGGER.info("Skipping scheme {} - no processed transactions", userSchemeDetailsEntity.getId());
-            return null;
-        }
-
-        LocalDate fromDate = transactionsProcessed.getFirst().date();
-        LocalDate toDate = calculateToDate(fifo, transactionsProcessed, userSchemeDetailsEntity.getId(), today);
-
-        if (toDate == null) {
             return null;
         }
 
         Long amfiCode = userSchemeDetailsEntity.getAmfi();
         if (amfiCode == null) {
             LOGGER.warn("AMFI code not found for scheme {}, cannot fetch NAVs", userSchemeDetailsEntity.getId());
+            return null;
+        }
+
+        LocalDate fromDate = transactionsProcessed.getFirst().date();
+        LocalDate toDate = calculateToDate(fifo, transactionsProcessed, amfiCode, today);
+
+        if (toDate == null) {
             return null;
         }
 
@@ -500,30 +507,30 @@ class PortfolioValueUpdateService {
     }
 
     private @Nullable LocalDate calculateToDate(
-            FIFOUnits fifo, List<ProcessedTransaction> transactionsProcessed, Long schemeId, LocalDate today) {
+            FIFOUnits fifo, List<ProcessedTransaction> transactionsProcessed, Long amfiCode, LocalDate today) {
         if (fifo.getBalance().compareTo(BigDecimal.valueOf(1e-3)) > 0) {
             try {
                 return mfNavService
-                        .findTopBySchemeIdOrderByDateDesc(schemeId)
+                        .findTopBySchemeIdOrderByDateDesc(amfiCode)
                         .map(mfSchemeDTO -> LocalDate.parse(mfSchemeDTO.date()))
                         .orElse(today.minusDays(1));
             } catch (NavNotFoundException nne) {
                 LOGGER.warn(
                         "NavNotFoundException while calculating toDate for scheme {}: {} - using fallback date",
-                        schemeId,
+                        amfiCode,
                         nne.getMessage());
                 return today.minusDays(1);
             } catch (Exception e) {
                 LOGGER.error(
                         "Unexpected error while fetching latest NAV for scheme {}: {} - using fallback date",
-                        schemeId,
+                        amfiCode,
                         e.getMessage());
                 return today.minusDays(1);
             }
         } else if (!transactionsProcessed.isEmpty()) {
             return transactionsProcessed.getLast().date();
         } else {
-            LOGGER.info("Skipping scheme :: {}", schemeId);
+            LOGGER.info("Skipping scheme :: {}", amfiCode);
             return null;
         }
     }
@@ -568,7 +575,9 @@ class PortfolioValueUpdateService {
                 .flatMap(folio -> folio.getSchemes().stream())
                 .flatMap(scheme -> scheme.getTransactions().stream())
                 .filter(transaction -> !TAX_TRANSACTION_TYPES.contains(transaction.getType()))
-                .sorted(Comparator.comparing(UserTransactionDetailsEntity::getTransactionDate))
+                .sorted(Comparator.comparing(UserTransactionDetailsEntity::getTransactionDate)
+                        .thenComparing(
+                                UserTransactionDetailsEntity::getId, Comparator.nullsLast(Comparator.naturalOrder())))
                 .toList();
 
         LOGGER.info("Found {} relevant transactions for CAS ID: {}", transactionList.size(), userCasDetails.getId());
@@ -955,7 +964,7 @@ class PortfolioValueUpdateService {
             // Use the new XirrCalculator.xirr method with Map parameter
             BigDecimal xirrValue = XirrCalculator.xirr(
                             dataContainer.cashFlowsByScheme().get(schemeCode))
-                    .setScale(2, RoundingMode.HALF_UP);
+                    .setScale(4, RoundingMode.HALF_UP);
 
             // Create or update FolioSchemeEntity with XIRR
             FolioSchemeEntity FolioSchemeEntity = findOrCreateFolioScheme(schemeDetailId, userSchemeDetailsEntity);

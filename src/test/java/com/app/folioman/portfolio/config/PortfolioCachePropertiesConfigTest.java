@@ -2,6 +2,7 @@ package com.app.folioman.portfolio.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.util.Arrays;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
@@ -30,7 +31,7 @@ class PortfolioCachePropertiesConfigTest {
         assertThat(annotation).isNotNull();
         Class<?>[] value = annotation.value();
         assertThat(value.length).isGreaterThan(0);
-        assertThat(java.util.Arrays.asList(value)).contains(PortfolioCacheProperties.class);
+        assertThat(Arrays.asList(value)).contains(PortfolioCacheProperties.class);
     }
 
     @Test

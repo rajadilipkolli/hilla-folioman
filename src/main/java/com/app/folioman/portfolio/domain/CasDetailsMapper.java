@@ -2,6 +2,7 @@ package com.app.folioman.portfolio.domain;
 
 import com.app.folioman.portfolio.rest.dtos.CasDTO;
 import com.app.folioman.portfolio.rest.dtos.InvestorInfoDTO;
+import com.app.folioman.portfolio.rest.dtos.TransactionType;
 import com.app.folioman.portfolio.rest.dtos.UserFolioDTO;
 import com.app.folioman.portfolio.rest.dtos.UserSchemeDTO;
 import com.app.folioman.portfolio.rest.dtos.UserTransactionDTO;
@@ -100,7 +101,7 @@ interface CasDetailsMapper {
     @Mapping(target = "version", ignore = true)
     InvestorInfoEntity mapInvestorInfoDTOToInvestorInfoEntity(InvestorInfoDTO investorInfo);
 
-    default @Nullable TransactionType map(com.app.folioman.portfolio.rest.dtos.TransactionType type) {
+    default @Nullable TransactionType map(TransactionType type) {
         if (type == null) {
             return null;
         }

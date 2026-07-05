@@ -30,6 +30,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -70,6 +72,7 @@ public class UserDetailService {
         this.portfolioValueUpdateService = portfolioValueUpdateService;
     }
 
+    @Transactional
     public UploadFileResponse upload(MultipartFile multipartFile) throws IOException {
         CasDTO casDTO = parseCasDTO(multipartFile);
         boolean existingUser = validateCasDTO(casDTO);
@@ -83,6 +86,7 @@ public class UserDetailService {
      * @param casDTO The CasDTO object to process
      * @return UploadFileResponse with processing statistics
      */
+    @Transactional
     public UploadFileResponse uploadFromDto(CasDTO casDTO) {
         LOGGER.info("Processing CasDTO from converted source");
         boolean existingUser = validateCasDTO(casDTO);
@@ -122,9 +126,40 @@ public class UserDetailService {
                     userTransactionFromDBCount);
         }
 
-        UserCasDetailsEntity savedCasDetailsEntity = getUserCASDetails(userCasDetailsEntity);
+        // For existing users, new folios and schemes are cascaded automatically on flush.
+        // New transactions were explicitly saved in processNewTransactions.
+        // We do not call getUserCASDetails to avoid a massive merge on the entire tree.
+
+        // Extract AMFI codes for event publishing
+        List<Long> schemesList = userCasDetailsEntity.getFolios().stream()
+                .map(UserFolioDetailsEntity::getSchemes)
+                .flatMap(List::stream)
+                .map(UserSchemeDetailsEntity::getAmfi)
+                .filter(Objects::nonNull)
+                .distinct()
+                .collect(Collectors.toList());
+
+        userFolioDetailService.setPANIfNotSet(userCasDetailsEntity.getId());
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    CompletableFuture.runAsync(userSchemeDetailService::setUserSchemeAMFIIfNull)
+                            .thenRun(() ->
+                                    portfolioValueUpdateService.updatePortfolioValue(userCasDetailsEntity.getId()));
+                }
+            });
+        } else {
+            CompletableFuture.runAsync(userSchemeDetailService::setUserSchemeAMFIIfNull)
+                    .thenRun(() -> portfolioValueUpdateService.updatePortfolioValue(userCasDetailsEntity.getId()));
+        }
+
+        if (!schemesList.isEmpty()) {
+            applicationEventPublisher.publishEvent(new UploadedSchemesList(schemesList));
+        }
+
         return new UploadFileResponse(
-                newFolios.get(), newSchemes.get(), newTransactions.get(), savedCasDetailsEntity.getId());
+                newFolios.get(), newSchemes.get(), newTransactions.get(), userCasDetailsEntity.getId());
     }
 
     private void importNewTransaction(
@@ -241,17 +276,21 @@ public class UserDetailService {
         // Process all transactions in a single batch where possible
         if (!transactionsByScheme.isEmpty()) {
             List<UserTransactionDetailsEntity> allNewTransactions = new ArrayList<>();
-
-            // Update in-memory relationships
-            transactionsByScheme.forEach((scheme, transactions) -> {
-                scheme.getTransactions().addAll(transactions);
-                allNewTransactions.addAll(transactions);
-            });
+            transactionsByScheme.forEach((scheme, transactions) -> allNewTransactions.addAll(transactions));
 
             // Save all new transactions in a single batch operation
             if (!allNewTransactions.isEmpty()) {
                 LOGGER.info("Batch saving {} new transactions", allNewTransactions.size());
-                userTransactionDetailsService.saveTransactions(allNewTransactions);
+                List<UserTransactionDetailsEntity> savedTransactions =
+                        userTransactionDetailsService.saveTransactions(allNewTransactions);
+
+                // Add newly saved transactions back to their in-memory scheme collections
+                for (UserTransactionDetailsEntity savedTxn : savedTransactions) {
+                    UserSchemeDetailsEntity scheme = savedTxn.getUserSchemeDetails();
+                    if (scheme != null && scheme.getTransactions() != null) {
+                        scheme.getTransactions().add(savedTxn);
+                    }
+                }
             }
         }
     }
@@ -425,15 +464,24 @@ public class UserDetailService {
         userFolioDetailService.setPANIfNotSet(savedCasDetailsEntity.getId());
 
         // Run non-critical post-processing tasks asynchronously
-        CompletableFuture.runAsync(userSchemeDetailService::setUserSchemeAMFIIfNull);
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    CompletableFuture.runAsync(userSchemeDetailService::setUserSchemeAMFIIfNull)
+                            .thenRun(() ->
+                                    portfolioValueUpdateService.updatePortfolioValue(savedCasDetailsEntity.getId()));
+                }
+            });
+        } else {
+            CompletableFuture.runAsync(userSchemeDetailService::setUserSchemeAMFIIfNull)
+                    .thenRun(() -> portfolioValueUpdateService.updatePortfolioValue(savedCasDetailsEntity.getId()));
+        }
 
         // Publish event with pre-collected schemes list
         if (!schemesList.isEmpty()) {
             applicationEventPublisher.publishEvent(new UploadedSchemesList(schemesList));
         }
-
-        // Start portfolio value update asynchronously
-        portfolioValueUpdateService.updatePortfolioValue(savedCasDetailsEntity);
 
         return savedCasDetailsEntity;
     }
@@ -445,7 +493,7 @@ public class UserDetailService {
     private boolean validateCasDTO(CasDTO casDTO) {
         String email = casDTO.investorInfo().email();
         String name = casDTO.investorInfo().name();
-        if (email == null || name == null || email.isEmpty() || name.isEmpty()) {
+        if (email == null || email.isEmpty() || name == null || name.isEmpty()) {
             throw new IllegalArgumentException("Email or Name invalid!");
         }
         if (CollectionUtils.isEmpty(casDTO.folios())) {
