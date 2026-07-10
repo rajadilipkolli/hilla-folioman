@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -53,7 +54,7 @@ class PythonExecutorImpl implements PythonExecutor {
         }
     }
 
-    public boolean isAvailable(String executable) {
+    public boolean isAvailable(@Nullable String executable) {
         if (executable == null || executable.equals(properties.executable())) {
             return isAvailable();
         }

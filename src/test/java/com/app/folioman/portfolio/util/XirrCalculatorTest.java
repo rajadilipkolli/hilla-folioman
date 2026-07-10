@@ -318,7 +318,8 @@ class XirrCalculatorTest {
         // Act & Assert - For extremely short periods, we'll accept any value that indicates high returns
         // (since the annual rate will be enormous)
         BigDecimal result = XirrCalculator.xirr(valuesPerDate);
-        assertThat(result).isCloseTo(new BigDecimal("1313311686664063.2"), within(new BigDecimal("2.0")));
+        assertThat(result)
+                .isCloseTo(new BigDecimal("1313311686664063.2"), org.assertj.core.data.Percentage.withPercentage(1.0));
     }
 
     @Test

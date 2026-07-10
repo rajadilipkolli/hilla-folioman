@@ -29,8 +29,7 @@ public class PythonExecutionException extends RuntimeException {
         return exitCode;
     }
 
-    @Nullable
-    public String getStderr() {
+    public @Nullable String getStderr() {
         return stderr;
     }
 

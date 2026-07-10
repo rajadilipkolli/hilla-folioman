@@ -2,6 +2,7 @@ package com.app.folioman.portfolio.util;
 
 import java.time.LocalDate;
 import java.time.Month;
+import org.jspecify.annotations.NonNull;
 
 /**
  * Utility class for Financial Year calculations.
@@ -24,10 +25,7 @@ public final class FinancialYearUtility {
      * @param date the date for which to determine the financial year
      * @return the FinancialYear containing the start and end dates
      */
-    public static FinancialYear getFinancialYearForDate(LocalDate date) {
-        if (date == null) {
-            throw new IllegalArgumentException("Date cannot be null");
-        }
+    public static FinancialYear getFinancialYearForDate(@NonNull LocalDate date) {
 
         int year = date.getYear();
         if (date.getMonthValue() < Month.APRIL.getValue()) {

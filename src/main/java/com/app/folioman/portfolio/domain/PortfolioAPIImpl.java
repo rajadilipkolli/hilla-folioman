@@ -6,9 +6,11 @@ import com.app.folioman.portfolio.domain.models.CapitalGainsHarvestingRequest;
 import com.app.folioman.portfolio.domain.models.CapitalGainsHarvestingResponse;
 import com.app.folioman.portfolio.domain.models.projection.PortfolioValueDateProjection;
 import com.app.folioman.portfolio.rest.dtos.*;
+import com.app.folioman.shared.LocalDateUtility;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import org.jspecify.annotations.Nullable;
@@ -102,6 +104,38 @@ public class PortfolioAPIImpl implements PortfolioAPI {
                     };
                 })
                 .toList();
+    }
+
+    public Optional<PortfolioHistoryDTO> getPortfolioHistory(
+            Long casId, String userEmail, LocalDate from, LocalDate to) {
+        return userCASDetailsRepository
+                .findById(casId)
+                .filter(cas -> cas.getInvestorInfoEntity() != null)
+                .filter(cas -> userEmail.equals(cas.getInvestorInfoEntity().getEmail()))
+                .map(cas -> {
+                    List<UserPortfolioValueEntity> portfolioValues =
+                            userPortfolioValueRepository.findByUserCasDetailsEntity_IdAndDateBetween(casId, from, to);
+
+                    List<UserPortfolioValueEntity> sortedValues = portfolioValues.stream()
+                            .sorted(Comparator.comparing(UserPortfolioValueEntity::getDate))
+                            .toList();
+
+                    List<long[]> invested = sortedValues.stream()
+                            .map(entry -> new long[] {
+                                LocalDateUtility.toEpochMillis(entry.getDate()),
+                                entry.getInvested().longValue()
+                            })
+                            .toList();
+
+                    List<long[]> value = sortedValues.stream()
+                            .map(entry -> new long[] {
+                                LocalDateUtility.toEpochMillis(entry.getDate()),
+                                entry.getValue().longValue()
+                            })
+                            .toList();
+
+                    return new PortfolioHistoryDTO(invested, value);
+                });
     }
 
     public CapitalGainsHarvestingResponseDTO getCapitalGainsHarvesting(
