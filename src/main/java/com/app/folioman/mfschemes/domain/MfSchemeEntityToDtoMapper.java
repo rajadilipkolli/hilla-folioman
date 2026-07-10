@@ -22,13 +22,15 @@ public interface MfSchemeEntityToDtoMapper {
 
     @AfterMapping
     default MFSchemeDTO updateMFScheme(MfFundSchemeEntity mfFundSchemeEntity, @MappingTarget MFSchemeDTO mfSchemeDTO) {
-        String date = null;
-        String nav = null;
+        String date = "";
+        String nav = "";
         if (!mfFundSchemeEntity.getMfSchemeNavs().isEmpty()) {
-            LocalDate localDate =
-                    mfFundSchemeEntity.getMfSchemeNavs().getFirst().getNavDate();
-            nav = String.valueOf(mfFundSchemeEntity.getMfSchemeNavs().getFirst().getNav());
-            if (null != localDate) {
+            var latestNav = mfFundSchemeEntity.getMfSchemeNavs().getFirst();
+            LocalDate localDate = latestNav.getNavDate();
+            if (latestNav.getNav() != null) {
+                nav = String.valueOf(latestNav.getNav());
+            }
+            if (localDate != null) {
                 date = localDate.toString();
             }
         }

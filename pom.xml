@@ -367,7 +367,7 @@
                 <version>0.4.2</version>
                 <extensions>true</extensions>
                 <configuration>
-                    <checking>tests</checking>
+                    <checking>main</checking>
                     <outputDirectory>${project.basedir}/src/main/java</outputDirectory>
                     <testOutputDirectory>${project.basedir}/src/test/java</testOutputDirectory>
                 </configuration>

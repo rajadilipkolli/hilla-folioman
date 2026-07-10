@@ -90,7 +90,10 @@ public class AuthController {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(username, loginRequest.getPassword()));
 
-            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            Object principal = authentication.getPrincipal();
+            if (!(principal instanceof UserDetails userDetails)) {
+                throw new IllegalStateException("Authentication principal was not a UserDetails instance");
+            }
 
             loginAttemptService.recordSuccessfulLogin(username);
 
