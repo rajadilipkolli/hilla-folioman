@@ -12,5 +12,11 @@ public interface MFSchemeProjection {
     String getIsin();
 
     @Nullable
+    String getPlan();
+
+    @Nullable
+    String getRta();
+
+    @Nullable
     MFSchemeTypeProjection getMfSchemeTypeEntity();
 }

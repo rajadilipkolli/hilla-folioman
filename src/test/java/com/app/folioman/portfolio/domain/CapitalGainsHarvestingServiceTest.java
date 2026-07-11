@@ -112,6 +112,11 @@ class CapitalGainsHarvestingServiceTest {
             public String getCategory() {
                 return "Equity Scheme";
             }
+
+            @Override
+            public @Nullable String getSubCategory() {
+                return null;
+            }
         };
         MFSchemeProjection schemeProj = new MFSchemeProjection() {
             @Override
@@ -127,6 +132,16 @@ class CapitalGainsHarvestingServiceTest {
             @Override
             public @Nullable MFSchemeTypeProjection getMfSchemeTypeEntity() {
                 return typeProj;
+            }
+
+            @Override
+            public @Nullable String getRta() {
+                return null;
+            }
+
+            @Override
+            public @Nullable String getPlan() {
+                return null;
             }
         };
         when(mfSchemeService.findByAmfiCodeIn(List.of(amfiCode))).thenReturn(List.of(schemeProj));

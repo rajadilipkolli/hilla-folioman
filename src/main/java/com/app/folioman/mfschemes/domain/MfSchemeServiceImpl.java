@@ -134,10 +134,30 @@ class MfSchemeServiceImpl implements MfSchemeService {
             }
 
             @Override
+            public @org.jspecify.annotations.Nullable String getPlan() {
+                return entity.getPlan();
+            }
+
+            @Override
+            public @org.jspecify.annotations.Nullable String getRta() {
+                return entity.getRta();
+            }
+
+            @Override
             public com.app.folioman.mfschemes.rest.dtos.@org.jspecify.annotations.Nullable MFSchemeTypeProjection
                     getMfSchemeTypeEntity() {
                 if (entity.getMfSchemeTypeEntity() != null) {
-                    return () -> entity.getMfSchemeTypeEntity().getCategory();
+                    return new com.app.folioman.mfschemes.rest.dtos.MFSchemeTypeProjection() {
+                        @Override
+                        public @org.jspecify.annotations.Nullable String getCategory() {
+                            return entity.getMfSchemeTypeEntity().getCategory();
+                        }
+
+                        @Override
+                        public @org.jspecify.annotations.Nullable String getSubCategory() {
+                            return entity.getMfSchemeTypeEntity().getSubCategory();
+                        }
+                    };
                 }
                 return null;
             }

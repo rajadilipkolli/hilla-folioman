@@ -61,6 +61,16 @@ class UserSchemeDetailServiceImplTest {
             public MFSchemeTypeProjection getMfSchemeTypeEntity() {
                 return null;
             }
+
+            @Override
+            public String getRta() {
+                return null;
+            }
+
+            @Override
+            public String getPlan() {
+                return null;
+            }
         };
 
         fundDetailProjection = new FundDetailProjection() {

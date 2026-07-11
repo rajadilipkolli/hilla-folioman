@@ -16,6 +16,7 @@ public final class CacheNames {
     public static final String TRANSACTION_CACHE = "transactionCache";
     public static final String RETURNS_CACHE = "returnsCache";
     public static final String PORTFOLIO_HISTORY_CACHE = "portfolioHistoryCache";
+    public static final String SUMMARY_CACHE = "portfolioSummaryCache";
 
     // Prevent instantiation
     private CacheNames() {

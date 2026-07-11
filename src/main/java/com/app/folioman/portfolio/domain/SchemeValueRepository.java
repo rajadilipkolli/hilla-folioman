@@ -11,6 +11,8 @@ interface SchemeValueRepository extends JpaRepository<@NonNull SchemeValueEntity
 
     Optional<SchemeValueEntity> findFirstByUserSchemeDetailsEntity_UserFolioDetails_IdOrderByDateDesc(Long id);
 
+    Optional<SchemeValueEntity> findFirstByUserSchemeDetailsEntity_IdOrderByDateDesc(Long id);
+
     Optional<SchemeValueEntity> findFirstByUserSchemeDetailsEntity_IdAndDateBeforeOrderByDateDesc(
             Long id, LocalDate schemeFromDate);
 }

@@ -31,6 +31,9 @@ public interface PortfolioAPI {
 
     Optional<PortfolioHistoryDTO> getPortfolioHistory(Long casId, String userEmail, LocalDate from, LocalDate to);
 
+    Optional<com.app.folioman.portfolio.rest.dtos.PortfolioSummaryDTO> getPortfolioSummary(
+            Long casId, String userEmail);
+
     CasDTO convertPdfCasToJson(MultipartFile pdfFile, String password) throws IOException;
 
     List<PortfolioSummaryProjection> getPortfolioSummariesByEmail(String email);

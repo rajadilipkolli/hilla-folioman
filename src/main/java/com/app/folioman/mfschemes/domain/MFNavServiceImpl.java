@@ -235,6 +235,18 @@ class MFNavServiceImpl implements MFNavService {
                         Collectors.toMap(MFSchemeNavProjection::navDate, Function.identity())));
     }
 
+    @Override
+    public Map<Long, List<MFSchemeNavProjection>> getLastTwoNavsForSchemes(Set<Long> amfiCodes) {
+        if (amfiCodes == null || amfiCodes.isEmpty()) {
+            return Map.of();
+        }
+
+        LOGGER.info("Fetching last 2 NAVs for amfiCodes: {}", amfiCodes);
+        return mfSchemeNavRepository.findLatest2NavsByAmfiCodes(amfiCodes).stream()
+                .map(p -> new MFSchemeNavProjection(p.getNav(), p.getNavDate(), p.getAmfiCode()))
+                .collect(Collectors.groupingBy(MFSchemeNavProjection::amfiCode));
+    }
+
     private Map<String, String> getAmfiCodeIsinMap(String allNAVs) {
         Map<String, String> amfiCodeIsinMap = new HashMap<>();
         for (String row : allNAVs.split("\n")) {
