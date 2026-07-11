@@ -10,7 +10,7 @@ import org.mapstruct.MappingConstants;
         componentModel = MappingConstants.ComponentModel.SPRING,
         uses = MfSchemeDtoToEntityMapperHelper.class,
         injectionStrategy = InjectionStrategy.CONSTRUCTOR)
-public interface MfSchemeDtoToEntityMapper {
+interface MfSchemeDtoToEntityMapper {
 
     @Mapping(target = "startDate", ignore = true)
     @Mapping(target = "sid", ignore = true)

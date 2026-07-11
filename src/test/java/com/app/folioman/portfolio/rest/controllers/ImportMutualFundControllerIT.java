@@ -1,4 +1,4 @@
-package com.app.folioman.portfolio.rest.controllers;
+package com.app.folioman.portfolio.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
@@ -13,7 +13,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.app.folioman.portfolio.TestData;
-import com.app.folioman.portfolio.domain.PortfolioValueUpdateService;
 import com.app.folioman.shared.AbstractIntegrationTest;
 import java.io.File;
 import java.io.FileInputStream;

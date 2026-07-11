@@ -26,7 +26,7 @@ import org.jspecify.annotations.Nullable;
                     columnNames = {"date", "user_cas_details_id"})
         })
 @SuppressWarnings("NullAway.Init")
-public class UserPortfolioValueEntity extends BaseEntity {
+class UserPortfolioValueEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_portfolio_value_seq")

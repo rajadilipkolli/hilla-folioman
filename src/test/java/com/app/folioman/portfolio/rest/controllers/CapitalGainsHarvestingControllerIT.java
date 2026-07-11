@@ -57,7 +57,7 @@ class CapitalGainsHarvestingControllerIT extends AbstractIntegrationTest {
         CapitalGainsHarvestingRequestDTO request = new CapitalGainsHarvestingRequestDTO(
                 LocalDate.now(), null, new BigDecimal("10000"), null, null, true, true, true, null, null, null, null);
 
-        mockMvc.perform(post("/api/portfolio/ABCDE1234F/capital-gains-harvesting")
+        mockMvc.perform(post("/api/portfolio/EMPTY1234A/capital-gains-harvesting")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())

@@ -41,6 +41,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                 true,
                 !userEntity.isAccountLocked(),
                 authorityList,
-                userEntity.getEmail());
+                userEntity.getEmail(),
+                userEntity.getId());
     }
 }

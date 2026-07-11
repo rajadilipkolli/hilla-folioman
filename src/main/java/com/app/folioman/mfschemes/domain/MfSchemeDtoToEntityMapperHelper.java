@@ -5,7 +5,7 @@ import org.jspecify.annotations.Nullable;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.MappingTarget;
 
-public interface MfSchemeDtoToEntityMapperHelper {
+interface MfSchemeDtoToEntityMapperHelper {
 
     @AfterMapping
     default void updateMFScheme(MFSchemeDTO mfSchemeDTO, @MappingTarget MfFundSchemeEntity mfScheme) {}

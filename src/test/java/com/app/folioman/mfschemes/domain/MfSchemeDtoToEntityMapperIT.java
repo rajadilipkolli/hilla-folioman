@@ -5,8 +5,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.app.folioman.mfschemes.rest.dtos.MFSchemeDTO;
 import com.app.folioman.shared.AbstractIntegrationTest;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 
 class MfSchemeDtoToEntityMapperIT extends AbstractIntegrationTest {
+
+    @Autowired
+    private MfSchemeDtoToEntityMapper mfSchemeDtoToEntityMapper;
 
     @Test
     void mapMFSchemeDTOToMfFundScheme_WithValidDTO_MapsCorrectly() {

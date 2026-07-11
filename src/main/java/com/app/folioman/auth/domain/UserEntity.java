@@ -22,7 +22,7 @@ import org.jspecify.annotations.Nullable;
         name = "users",
         schema = "portfolio",
         uniqueConstraints = {@UniqueConstraint(columnNames = "username"), @UniqueConstraint(columnNames = "email")})
-public class UserEntity extends BaseEntity {
+class UserEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "users_seq_gen")

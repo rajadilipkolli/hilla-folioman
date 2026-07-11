@@ -16,7 +16,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.app.folioman.auth.domain.JwtService;
 import com.app.folioman.auth.domain.TokenBlacklistService;
-import com.app.folioman.portfolio.domain.PortfolioAPIImpl;
+import com.app.folioman.portfolio.PortfolioAPI;
 import com.app.folioman.portfolio.rest.dtos.CasDTO;
 import com.app.folioman.portfolio.rest.dtos.PortfolioResponse;
 import com.app.folioman.portfolio.rest.dtos.UploadFileResponse;
@@ -45,7 +45,7 @@ class ImportMutualFundControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private PortfolioAPIImpl portfolioAPI;
+    private PortfolioAPI portfolioAPI;
 
     @MockitoBean
     private JwtService jwtService;
