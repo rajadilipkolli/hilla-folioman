@@ -76,23 +76,35 @@ public class PortfolioSummaryService {
 
         Map<Long, List<MFSchemeNavProjection>> navMap = mfNavService.getLastTwoNavsForSchemes(amfiCodes);
 
+        List<Long> schemeDetailIds = cas.getFolios().stream()
+                .flatMap(f -> f.getSchemes().stream())
+                .map(UserSchemeDetailsEntity::getId)
+                .toList();
+
+        Map<Long, SchemeValueEntity> latestSchemeValues = schemeDetailIds.isEmpty()
+                ? Map.of()
+                : schemeValueRepository.findLatestValuesBySchemeDetailsIds(schemeDetailIds).stream()
+                        .collect(Collectors.toMap(
+                                sv -> sv.getUserSchemeDetails().getId(), Function.identity(), (a, b) -> a));
+
+        Map<Long, FolioSchemeEntity> folioSchemes = schemeDetailIds.isEmpty()
+                ? Map.of()
+                : folioSchemeRepository.findByUserSchemeDetails_IdIn(schemeDetailIds).stream()
+                        .collect(Collectors.toMap(
+                                fs -> fs.getUserSchemeDetails().getId(), Function.identity(), (a, b) -> a));
+
         for (UserFolioDetailsEntity folio : cas.getFolios()) {
             for (UserSchemeDetailsEntity schemeDetails : folio.getSchemes()) {
-                Optional<SchemeValueEntity> schemeValueOpt =
-                        schemeValueRepository.findFirstByUserSchemeDetailsEntity_IdOrderByDateDesc(
-                                schemeDetails.getId());
+                SchemeValueEntity schemeValue = latestSchemeValues.get(schemeDetails.getId());
 
-                if (schemeValueOpt.isEmpty()) continue;
+                if (schemeValue == null) continue;
 
-                SchemeValueEntity schemeValue = schemeValueOpt.get();
                 if (schemeValue.getBalance() == null || schemeValue.getBalance().compareTo(BigDecimal.ZERO) == 0) {
                     continue; // Skip zero balance
                 }
 
-                BigDecimal xirr = folioSchemeRepository
-                        .findByUserSchemeDetails_Id(schemeDetails.getId())
-                        .map(FolioSchemeEntity::getXirr)
-                        .orElse(null);
+                FolioSchemeEntity fs = folioSchemes.get(schemeDetails.getId());
+                BigDecimal xirr = fs != null ? fs.getXirr() : null;
 
                 allFolioData.add(new FolioData(folio.getFolio(), schemeDetails, schemeValue, xirr));
             }
@@ -212,19 +224,6 @@ public class PortfolioSummaryService {
             portTotalChangeD = portTotalChangeD.add(schemeChangeD);
         }
 
-        BigDecimal portChangePctA = BigDecimal.ZERO;
-        if (portTotalInvested.compareTo(BigDecimal.ZERO) > 0) {
-            portChangePctA =
-                    portTotalChangeA.multiply(new BigDecimal("100")).divide(portTotalInvested, 2, RoundingMode.HALF_UP);
-        }
-
-        BigDecimal portChangePctD = BigDecimal.ZERO;
-        BigDecimal portPrevValue = portTotalValue.subtract(portTotalChangeD);
-        if (portPrevValue.compareTo(BigDecimal.ZERO) > 0) {
-            portChangePctD =
-                    portTotalChangeD.multiply(new BigDecimal("100")).divide(portPrevValue, 2, RoundingMode.HALF_UP);
-        }
-
         Optional<PortfolioValueDateProjection> portValueOpt =
                 userPortfolioValueRepository.getLatestPortfolioValueByCasId(casId);
 
@@ -239,6 +238,21 @@ public class PortfolioSummaryService {
             if (p.getValue() != null) finalPortValue = p.getValue();
             if (p.getDate() != null) finalDate = p.getDate();
             if (p.getXirr() != null) overallXirr = p.getXirr();
+        }
+
+        portTotalChangeA = finalPortValue.subtract(finalPortInvested);
+
+        BigDecimal portChangePctA = BigDecimal.ZERO;
+        if (finalPortInvested.compareTo(BigDecimal.ZERO) > 0) {
+            portChangePctA =
+                    portTotalChangeA.multiply(new BigDecimal("100")).divide(finalPortInvested, 2, RoundingMode.HALF_UP);
+        }
+
+        BigDecimal portChangePctD = BigDecimal.ZERO;
+        BigDecimal portPrevValue = finalPortValue.subtract(portTotalChangeD);
+        if (portPrevValue.compareTo(BigDecimal.ZERO) > 0) {
+            portChangePctD =
+                    portTotalChangeD.multiply(new BigDecimal("100")).divide(portPrevValue, 2, RoundingMode.HALF_UP);
         }
 
         PortfolioSummaryDTO responseDTO = new PortfolioSummaryDTO(

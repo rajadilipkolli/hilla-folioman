@@ -60,6 +60,7 @@ interface MfSchemeNavRepository extends JpaRepository<MFSchemeNavEntity, Long> {
                 WHERE mfs.amfi_code IN :amfiCodes
             ) sub
             WHERE sub.rn <= 2
+            ORDER BY sub.amfi_code, sub.rn ASC
             """, nativeQuery = true)
     List<AmfiNavProjection> findLatest2NavsByAmfiCodes(@Param("amfiCodes") Set<Long> amfiCodes);
 

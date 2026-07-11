@@ -1,5 +1,6 @@
 package com.app.folioman.portfolio.domain;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -15,6 +16,8 @@ interface FolioSchemeRepository extends JpaRepository<FolioSchemeEntity, Long> {
      * @return the FolioSchemeEntity if found
      */
     Optional<FolioSchemeEntity> findByUserSchemeDetails_Id(Long userSchemeDetailId);
+
+    List<FolioSchemeEntity> findByUserSchemeDetails_IdIn(Collection<Long> schemeDetailIds);
 
     List<FolioSchemeEntity> findByUserFolioDetails_Id(Long id);
 }

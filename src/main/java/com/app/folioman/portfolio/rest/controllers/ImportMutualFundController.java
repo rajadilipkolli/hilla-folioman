@@ -49,7 +49,10 @@ public class ImportMutualFundController {
                                 "T(org.springframework.security.core.context.SecurityContextHolder).getContext().getAuthentication() != null",
                         key =
                                 "T(org.springframework.security.core.context.SecurityContextHolder).getContext().getAuthentication().getName()"),
-                @CacheEvict(cacheNames = CacheNames.SUMMARY_CACHE, allEntries = true)
+                @CacheEvict(
+                        cacheNames = CacheNames.SUMMARY_CACHE,
+                        key =
+                                "'summary_' + #result.userCASDetailsId + '_' + T(org.springframework.security.core.context.SecurityContextHolder).getContext().getAuthentication().getName()")
             })
     public UploadFileResponse upload(@RequestPart("file") MultipartFile multipartFile) throws IOException {
         LOGGER.info("Received file :{} for processing", multipartFile.getOriginalFilename());
@@ -65,7 +68,10 @@ public class ImportMutualFundController {
                                 "T(org.springframework.security.core.context.SecurityContextHolder).getContext().getAuthentication() != null",
                         key =
                                 "T(org.springframework.security.core.context.SecurityContextHolder).getContext().getAuthentication().getName()"),
-                @CacheEvict(cacheNames = CacheNames.SUMMARY_CACHE, allEntries = true)
+                @CacheEvict(
+                        cacheNames = CacheNames.SUMMARY_CACHE,
+                        key =
+                                "'summary_' + #result.userCASDetailsId + '_' + T(org.springframework.security.core.context.SecurityContextHolder).getContext().getAuthentication().getName()")
             })
     public UploadFileResponse uploadPasswordProtectedCasPdf(
             @RequestPart("file") MultipartFile pdfFile, @RequestPart("password") String password) throws IOException {
