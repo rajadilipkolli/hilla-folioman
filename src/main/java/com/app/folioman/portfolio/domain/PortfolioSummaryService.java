@@ -36,7 +36,7 @@ public class PortfolioSummaryService {
     private final MfSchemeService mfSchemeService;
     private final MFNavService mfNavService;
 
-    public PortfolioSummaryService(
+    PortfolioSummaryService(
             UserCASDetailsRepository userCASDetailsRepository,
             SchemeValueRepository schemeValueRepository,
             FolioSchemeRepository folioSchemeRepository,
