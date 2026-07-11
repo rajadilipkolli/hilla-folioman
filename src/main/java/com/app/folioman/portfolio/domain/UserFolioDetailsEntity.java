@@ -16,8 +16,6 @@ import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
 import org.hibernate.proxy.HibernateProxy;
 import org.jspecify.annotations.Nullable;
 
@@ -51,7 +49,7 @@ class UserFolioDetailsEntity extends BaseEntity {
     private @Nullable String panKyc;
 
     @OneToMany(mappedBy = "userFolioDetails", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Fetch(FetchMode.SUBSELECT)
+    @org.hibernate.annotations.BatchSize(size = 50)
     private List<UserSchemeDetailsEntity> schemes = new ArrayList<>();
 
     @ManyToOne

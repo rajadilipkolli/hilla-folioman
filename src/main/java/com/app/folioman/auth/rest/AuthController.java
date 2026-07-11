@@ -17,6 +17,7 @@ import java.net.URI;
 import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -89,14 +90,19 @@ public class AuthController {
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(username, loginRequest.getPassword()));
 
-            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            Object principal = authentication.getPrincipal();
+            if (!(principal instanceof UserDetails userDetails)) {
+                throw new IllegalStateException("Authentication principal was not a UserDetails instance");
+            }
 
             loginAttemptService.recordSuccessfulLogin(username);
 
-            String accessToken = jwtService.generateAccessToken(userDetails);
-            String refreshToken = jwtService.generateRefreshToken(userDetails);
-
             Optional<UserEntity> userEntityOptional = userManagementService.findByUsername(userDetails.getUsername());
+            String email = userEntityOptional.map(UserEntity::getEmail).orElse(userDetails.getUsername());
+
+            String accessToken = jwtService.generateAccessToken(userDetails, email);
+            String refreshToken = jwtService.generateRefreshToken(userDetails, email);
+
             userEntityOptional.ifPresent(
                     userEntity -> refreshTokenService.createRefreshToken(userEntity.getId(), refreshToken));
 
@@ -132,7 +138,7 @@ public class AuthController {
     @PostMapping("/refresh")
     @Transactional
     public ResponseEntity<?> refreshToken(
-            @CookieValue(required = false) String refreshToken, HttpServletRequest request) {
+            @CookieValue(required = false) @Nullable String refreshToken, HttpServletRequest request) {
         if (refreshToken == null) {
             ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Refresh token is required");
             pd.setType(URI.create("urn:folioman:auth:missing-refresh-token"));
@@ -159,11 +165,12 @@ public class AuthController {
                             }
 
                             UserDetails userDetails = userDetailsService.loadUserByUsername(user.getUsername());
-                            String newAccessToken = jwtService.generateAccessToken(userDetails);
+                            String email = user.getEmail();
+                            String newAccessToken = jwtService.generateAccessToken(userDetails, email);
 
                             // Optionally rotate refresh token
                             refreshTokenService.revokeToken(refreshToken);
-                            String newRefreshToken = jwtService.generateRefreshToken(userDetails);
+                            String newRefreshToken = jwtService.generateRefreshToken(userDetails, email);
                             refreshTokenService.createRefreshToken(user.getId(), newRefreshToken);
 
                             ResponseCookie newCookie = ResponseCookie.from("refreshToken", newRefreshToken)
@@ -202,8 +209,8 @@ public class AuthController {
 
     @PostMapping("/logout")
     public ResponseEntity<?> logout(
-            @CookieValue(name = "refreshToken", required = false) String cookieToken,
-            @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authHeader,
+            @CookieValue(name = "refreshToken", required = false) @Nullable String cookieToken,
+            @Nullable @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false) String authHeader,
             HttpServletRequest request) {
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {

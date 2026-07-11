@@ -13,6 +13,7 @@ class CacheNamesTest {
     void shouldHaveCorrectCacheNames() {
         assertThat(CacheNames.SCHEME_SEARCH_CACHE).isEqualTo("schemeSearchCache");
         assertThat(CacheNames.TRANSACTION_CACHE).isEqualTo("transactionCache");
+        assertThat(CacheNames.PORTFOLIO_HISTORY_CACHE).isEqualTo("portfolioHistoryCache");
     }
 
     @Test

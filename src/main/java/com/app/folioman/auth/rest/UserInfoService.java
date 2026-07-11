@@ -4,6 +4,7 @@ import com.app.folioman.auth.rest.dtos.UserInfo;
 import com.vaadin.hilla.BrowserCallable;
 import jakarta.annotation.security.PermitAll;
 import java.util.List;
+import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -12,7 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 @PermitAll
 public class UserInfoService {
 
-    public UserInfo getUserInfo() {
+    public @Nullable UserInfo getUserInfo() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
             return null;

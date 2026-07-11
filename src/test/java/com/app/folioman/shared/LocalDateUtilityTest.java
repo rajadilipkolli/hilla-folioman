@@ -160,4 +160,30 @@ class LocalDateUtilityTest {
         // Verify that yesterday is exactly 1 day before today
         assertThat(yesterday).isEqualTo(today.minusDays(1));
     }
+
+    @Test
+    void toEpochMillisShouldConvertUtcStartOfDay() {
+        LocalDate date = LocalDate.of(2024, 1, 1);
+        long epochMillis = LocalDateUtility.toEpochMillis(date);
+
+        assertThat(epochMillis)
+                .isEqualTo(java.time.Instant.parse("2024-01-01T00:00:00Z").toEpochMilli());
+    }
+
+    @Test
+    void toEpochMillisShouldHandleEpochOrigin() {
+        LocalDate date = LocalDate.of(1970, 1, 1);
+        long epochMillis = LocalDateUtility.toEpochMillis(date);
+
+        assertThat(epochMillis).isEqualTo(0L);
+    }
+
+    @Test
+    void toEpochMillisShouldHandleRecentDates() {
+        LocalDate date = LocalDate.of(2025, 12, 31);
+        long epochMillis = LocalDateUtility.toEpochMillis(date);
+
+        assertThat(epochMillis)
+                .isEqualTo(java.time.Instant.parse("2025-12-31T00:00:00Z").toEpochMilli());
+    }
 }

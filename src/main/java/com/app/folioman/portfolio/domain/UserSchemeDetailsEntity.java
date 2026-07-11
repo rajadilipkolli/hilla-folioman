@@ -17,8 +17,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import org.hibernate.Hibernate;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
 import org.jspecify.annotations.Nullable;
 
 @Entity
@@ -67,7 +65,7 @@ class UserSchemeDetailsEntity extends BaseEntity {
     private UserFolioDetailsEntity userFolioDetails;
 
     @OneToMany(mappedBy = "userSchemeDetails", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Fetch(FetchMode.SUBSELECT)
+    @org.hibernate.annotations.BatchSize(size = 50)
     private List<UserTransactionDetailsEntity> transactions = new ArrayList<>();
 
     public Long getId() {

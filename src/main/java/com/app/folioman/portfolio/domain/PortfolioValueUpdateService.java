@@ -31,12 +31,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StopWatch;
 
 @Service
-class PortfolioValueUpdateService {
+public class PortfolioValueUpdateService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PortfolioValueUpdateService.class);
 
@@ -55,6 +55,7 @@ class PortfolioValueUpdateService {
     private final UserTransactionDetailsRepository userTransactionDetailsRepository;
     private final UserFolioValueRepository userFolioValueRepository;
     private final UserCASDetailsRepository userCASDetailsRepository;
+    private final org.springframework.transaction.support.TransactionTemplate transactionTemplate;
 
     PortfolioValueUpdateService(
             UserPortfolioValueRepository userPortfolioValueRepository,
@@ -63,7 +64,8 @@ class PortfolioValueUpdateService {
             SchemeValueRepository schemeValueRepository,
             UserTransactionDetailsRepository userTransactionDetailsRepository,
             UserFolioValueRepository userFolioValueRepository,
-            UserCASDetailsRepository userCASDetailsRepository) {
+            UserCASDetailsRepository userCASDetailsRepository,
+            TransactionTemplate transactionTemplate) {
         this.userPortfolioValueRepository = userPortfolioValueRepository;
         this.mfNavService = mfNavService;
         this.folioSchemeRepository = folioSchemeRepository;
@@ -71,6 +73,7 @@ class PortfolioValueUpdateService {
         this.userTransactionDetailsRepository = userTransactionDetailsRepository;
         this.userFolioValueRepository = userFolioValueRepository;
         this.userCASDetailsRepository = userCASDetailsRepository;
+        this.transactionTemplate = transactionTemplate;
     }
 
     private @Nullable Long getAmfiCodeSafe(UserTransactionDetailsEntity transaction) {
@@ -86,11 +89,22 @@ class PortfolioValueUpdateService {
     }
 
     @Async
-    @Transactional
     public void updatePortfolioValue(Long userCasDetailsId) {
         LOGGER.info("updatePortfolioValue called for CAS ID: {}", userCasDetailsId);
-        UserCasDetailsEntity userCasDetailsEntity =
-                userCASDetailsRepository.findById(userCasDetailsId).orElse(null);
+        UserCasDetailsEntity userCasDetailsEntity = transactionTemplate.execute(status -> {
+            UserCasDetailsEntity entity = userCASDetailsRepository
+                    .findUserCasDetailsEntityById(userCasDetailsId)
+                    .orElse(null);
+            if (entity != null) {
+                // Eagerly initialize folios, schemes, and transactions before leaving the transaction
+                entity.getFolios().forEach(folio -> {
+                    folio.getSchemes()
+                            .forEach(scheme -> scheme.getTransactions().size());
+                });
+            }
+            return entity;
+        });
+
         if (userCasDetailsEntity == null) return;
         handleDailyPortFolioValueUpdate(userCasDetailsEntity);
         userCasDetailsEntity.getFolios().forEach(userFolioDetailsEntity -> {
@@ -519,13 +533,13 @@ class PortfolioValueUpdateService {
                         "NavNotFoundException while calculating toDate for scheme {}: {} - using fallback date",
                         amfiCode,
                         nne.getMessage());
-                return today.minusDays(1);
+                return transactionsProcessed.getLast().date();
             } catch (Exception e) {
                 LOGGER.error(
                         "Unexpected error while fetching latest NAV for scheme {}: {} - using fallback date",
                         amfiCode,
                         e.getMessage());
-                return today.minusDays(1);
+                return transactionsProcessed.getLast().date();
             }
         } else if (!transactionsProcessed.isEmpty()) {
             return transactionsProcessed.getLast().date();
@@ -557,7 +571,27 @@ class PortfolioValueUpdateService {
         try {
             List<UserTransactionDetailsEntity> transactionList = collectRelevantTransactions(userCasDetailsEntity);
 
-            calculateAndInsertDailyPortfolioValues(transactionList, userCasDetailsEntity);
+            if (transactionList.isEmpty()) {
+                LOGGER.info(
+                        "No transactions found for CAS ID: {}. Skipping portfolio value calculation.",
+                        userCasDetailsEntity.getId());
+                return;
+            }
+
+            LocalDate startDate =
+                    Objects.requireNonNull(transactionList.getFirst().getTransactionDate());
+            LocalDate endDate = LocalDateUtility.getYesterday();
+            Set<Long> schemeCodes = extractSchemeCodes(transactionList);
+
+            // Fetch NAVs outside the transaction
+            Map<Long, Map<LocalDate, MFSchemeNavProjection>> navsBySchemeAndDate =
+                    fetchNavData(schemeCodes, startDate, endDate, userCasDetailsEntity);
+
+            // Keep only persistence/update inside the transaction
+            transactionTemplate.executeWithoutResult(status -> {
+                calculateAndInsertDailyPortfolioValues(
+                        transactionList, userCasDetailsEntity, navsBySchemeAndDate, startDate, endDate);
+            });
 
             stopWatch.stop();
             LOGGER.info(
@@ -585,22 +619,14 @@ class PortfolioValueUpdateService {
     }
 
     private void calculateAndInsertDailyPortfolioValues(
-            List<UserTransactionDetailsEntity> transactionList, UserCasDetailsEntity userCasDetailsEntity) {
+            List<UserTransactionDetailsEntity> transactionList,
+            UserCasDetailsEntity userCasDetailsEntity,
+            Map<Long, Map<LocalDate, MFSchemeNavProjection>> navsBySchemeAndDate,
+            LocalDate startDate,
+            LocalDate endDate) {
 
         StopWatch methodStartTime = new StopWatch();
         methodStartTime.start();
-
-        // Handle empty transaction list
-        if (transactionList.isEmpty()) {
-            LOGGER.info(
-                    "No transactions found for CAS ID: {}. Skipping portfolio value calculation.",
-                    userCasDetailsEntity.getId());
-            return;
-        }
-
-        // Prepare data and date range
-        LocalDate startDate = Objects.requireNonNull(transactionList.getFirst().getTransactionDate());
-        LocalDate endDate = LocalDateUtility.getYesterday();
 
         LOGGER.debug(
                 "Calculating portfolio values for CAS ID: {} from {} to {}",
@@ -611,9 +637,6 @@ class PortfolioValueUpdateService {
         // Prepare data structures
         Map<LocalDate, List<UserTransactionDetailsEntity>> transactionsByDate =
                 groupTransactionsByDate(transactionList);
-        Set<Long> schemeCodes = extractSchemeCodes(transactionList);
-        Map<Long, Map<LocalDate, MFSchemeNavProjection>> navsBySchemeAndDate =
-                fetchNavData(schemeCodes, startDate, endDate, userCasDetailsEntity);
 
         // Process portfolio data
         PortfolioDataContainer dataContainer =

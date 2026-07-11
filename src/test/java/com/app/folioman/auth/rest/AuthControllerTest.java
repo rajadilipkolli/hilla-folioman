@@ -100,7 +100,7 @@ class AuthControllerTest {
     }
 
     @Test
-    void login_whenBadCredentials_returns401() throws Exception {
+    void login_whenBadCredentials_returns401() {
         LoginRequest req = new LoginRequest();
         req.setUsername("testuser");
         req.setPassword("pass");
@@ -126,7 +126,7 @@ class AuthControllerTest {
     }
 
     @Test
-    void login_whenException_returns500() throws Exception {
+    void login_whenException_returns500() {
         LoginRequest req = new LoginRequest();
         req.setUsername("testuser");
         req.setPassword("pass");
@@ -145,7 +145,7 @@ class AuthControllerTest {
     }
 
     @Test
-    void login_success_returnsTokens() throws Exception {
+    void login_success_returnsTokens() {
         LoginRequest req = new LoginRequest();
         req.setUsername("testuser");
         req.setPassword("pass");
@@ -158,12 +158,15 @@ class AuthControllerTest {
         when(loginAttemptService.isAccountLocked("testuser")).thenReturn(false);
         when(authenticationManager.authenticate(any())).thenReturn(auth);
 
-        when(jwtService.generateAccessToken(userDetails)).thenReturn("access-token-123");
-        when(jwtService.generateRefreshToken(userDetails)).thenReturn("refresh-token-123");
+        when(jwtService.generateAccessToken(eq(userDetails), eq("expected@email.com")))
+                .thenReturn("access-token-123");
+        when(jwtService.generateRefreshToken(eq(userDetails), eq("expected@email.com")))
+                .thenReturn("refresh-token-123");
 
         UserEntity ue = new UserEntity();
         ue.setId(1L);
         ue.setUsername("testuser");
+        ue.setEmail("expected@email.com");
         when(userManagementService.findByUsername("testuser")).thenReturn(Optional.of(ue));
         when(jwtProperties.getRefreshTokenExpiry()).thenReturn(3600000L);
         when(jwtProperties.getAccessTokenExpiry()).thenReturn(1800000L);
@@ -192,7 +195,7 @@ class AuthControllerTest {
     }
 
     @Test
-    void refresh_missingCookie_returns400() throws Exception {
+    void refresh_missingCookie_returns400() {
         var result = mockMvcTester.post().uri("/api/auth/refresh").exchange();
 
         assertThat(result)
@@ -204,7 +207,7 @@ class AuthControllerTest {
     }
 
     @Test
-    void refresh_tokenNotFound_returns401() throws Exception {
+    void refresh_tokenNotFound_returns401() {
         when(refreshTokenService.findByToken("token")).thenReturn(Optional.empty());
 
         var result = mockMvcTester
@@ -217,7 +220,7 @@ class AuthControllerTest {
     }
 
     @Test
-    void refresh_tokenInvalid_returns401() throws Exception {
+    void refresh_tokenInvalid_returns401() {
         RefreshTokenEntity rfe = new RefreshTokenEntity();
         when(refreshTokenService.findByToken("token")).thenReturn(Optional.of(rfe));
         when(refreshTokenService.isTokenValid(rfe)).thenReturn(false);
@@ -232,7 +235,7 @@ class AuthControllerTest {
     }
 
     @Test
-    void refresh_userNotFound_returns401() throws Exception {
+    void refresh_userNotFound_returns401() {
         RefreshTokenEntity rfe = new RefreshTokenEntity();
         rfe.setUserId(1L);
         when(refreshTokenService.findByToken("token")).thenReturn(Optional.of(rfe));
@@ -249,7 +252,7 @@ class AuthControllerTest {
     }
 
     @Test
-    void refresh_userLocked_returns403() throws Exception {
+    void refresh_userLocked_returns403() {
         RefreshTokenEntity rfe = new RefreshTokenEntity();
         rfe.setUserId(1L);
         when(refreshTokenService.findByToken("token")).thenReturn(Optional.of(rfe));
@@ -273,7 +276,7 @@ class AuthControllerTest {
     }
 
     @Test
-    void refresh_success_returnsNewTokens() throws Exception {
+    void refresh_success_returnsNewTokens() {
         RefreshTokenEntity rfe = new RefreshTokenEntity();
         rfe.setUserId(1L);
         when(refreshTokenService.findByToken("token")).thenReturn(Optional.of(rfe));
@@ -283,6 +286,7 @@ class AuthControllerTest {
         ue.setId(1L);
         ue.setUsername("user");
         ue.setEnabled(true);
+        ue.setEmail("expected@email.com");
         when(userManagementService.findById(1L)).thenReturn(Optional.of(ue));
         when(loginAttemptService.isAccountLocked("user")).thenReturn(false);
 
@@ -290,8 +294,10 @@ class AuthControllerTest {
                 User.withUsername("user").password("pass").roles("USER").build();
         when(userDetailsService.loadUserByUsername("user")).thenReturn(userDetails);
 
-        when(jwtService.generateAccessToken(userDetails)).thenReturn("new-access");
-        when(jwtService.generateRefreshToken(userDetails)).thenReturn("new-refresh");
+        when(jwtService.generateAccessToken(eq(userDetails), eq("expected@email.com")))
+                .thenReturn("new-access");
+        when(jwtService.generateRefreshToken(eq(userDetails), eq("expected@email.com")))
+                .thenReturn("new-refresh");
         when(jwtProperties.getRefreshTokenExpiry()).thenReturn(3600000L);
         when(jwtProperties.getAccessTokenExpiry()).thenReturn(1800000L);
 

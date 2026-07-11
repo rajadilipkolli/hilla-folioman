@@ -18,6 +18,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 @Table(name = "mf_fund_scheme", schema = "mfschemes")
@@ -183,10 +184,7 @@ class MfFundSchemeEntity extends BaseEntity {
         return this;
     }
 
-    public MfFundSchemeEntity addSchemeNav(MFSchemeNavEntity mfSchemeNav) {
-        if (mfSchemeNav == null) {
-            throw new IllegalArgumentException("mfSchemeNav cannot be null");
-        }
+    public MfFundSchemeEntity addSchemeNav(@NonNull MFSchemeNavEntity mfSchemeNav) {
         mfSchemeNavs.add(mfSchemeNav);
         mfSchemeNav.setMfFundSchemeEntity(this);
         return this;

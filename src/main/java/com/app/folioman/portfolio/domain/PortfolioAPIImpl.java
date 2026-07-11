@@ -1,17 +1,31 @@
 package com.app.folioman.portfolio.domain;
 
+import com.app.folioman.config.redis.CacheNames;
 import com.app.folioman.portfolio.PortfolioAPI;
 import com.app.folioman.portfolio.PortfolioSummaryProjection;
 import com.app.folioman.portfolio.domain.models.CapitalGainsHarvestingRequest;
 import com.app.folioman.portfolio.domain.models.CapitalGainsHarvestingResponse;
 import com.app.folioman.portfolio.domain.models.projection.PortfolioValueDateProjection;
-import com.app.folioman.portfolio.rest.dtos.*;
+import com.app.folioman.portfolio.rest.dtos.CapitalGainsHarvestingRequestDTO;
+import com.app.folioman.portfolio.rest.dtos.CapitalGainsHarvestingResponseDTO;
+import com.app.folioman.portfolio.rest.dtos.CasDTO;
+import com.app.folioman.portfolio.rest.dtos.HarvestRecommendationDTO;
+import com.app.folioman.portfolio.rest.dtos.HarvestSummaryDTO;
+import com.app.folioman.portfolio.rest.dtos.InvestmentReturnsDTO;
+import com.app.folioman.portfolio.rest.dtos.MonthlyInvestmentResponseDTO;
+import com.app.folioman.portfolio.rest.dtos.PortfolioHistoryDTO;
+import com.app.folioman.portfolio.rest.dtos.PortfolioResponse;
+import com.app.folioman.portfolio.rest.dtos.UploadFileResponse;
+import com.app.folioman.portfolio.rest.dtos.YearlyInvestmentResponseDTO;
+import com.app.folioman.shared.LocalDateUtility;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import org.jspecify.annotations.Nullable;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -102,6 +116,46 @@ public class PortfolioAPIImpl implements PortfolioAPI {
                     };
                 })
                 .toList();
+    }
+
+    @Override
+    @Cacheable(
+            cacheNames = CacheNames.PORTFOLIO_HISTORY_CACHE,
+            key = "'history_' + #casId + '_' + #userEmail + '_' + #from + '_' + #to")
+    public Optional<PortfolioHistoryDTO> getPortfolioHistory(
+            Long casId, String userEmail, LocalDate from, LocalDate to) {
+        return userCASDetailsRepository
+                .findById(casId)
+                .filter(cas -> cas.getInvestorInfoEntity() != null)
+                .filter(cas -> userEmail.equals(cas.getInvestorInfoEntity().getEmail()))
+                .map(cas -> {
+                    List<UserPortfolioValueEntity> portfolioValues =
+                            userPortfolioValueRepository.findByUserCasDetailsEntity_IdAndDateBetween(casId, from, to);
+
+                    List<UserPortfolioValueEntity> sortedValues = portfolioValues.stream()
+                            .sorted(Comparator.comparing(UserPortfolioValueEntity::getDate))
+                            .toList();
+
+                    List<long[]> invested = sortedValues.stream()
+                            .map(entry -> new long[] {
+                                LocalDateUtility.toEpochMillis(entry.getDate()),
+                                entry.getInvested()
+                                        .setScale(0, java.math.RoundingMode.HALF_UP)
+                                        .longValue()
+                            })
+                            .toList();
+
+                    List<long[]> value = sortedValues.stream()
+                            .map(entry -> new long[] {
+                                LocalDateUtility.toEpochMillis(entry.getDate()),
+                                entry.getValue()
+                                        .setScale(0, java.math.RoundingMode.HALF_UP)
+                                        .longValue()
+                            })
+                            .toList();
+
+                    return new PortfolioHistoryDTO(invested, value);
+                });
     }
 
     public CapitalGainsHarvestingResponseDTO getCapitalGainsHarvesting(

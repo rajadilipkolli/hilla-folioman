@@ -2,19 +2,25 @@ package com.app.folioman.portfolio.rest.dtos;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import org.jspecify.annotations.NonNull;
 
 public record PortfolioDetailsDTO(
         BigDecimal totalValue, String schemeName, String folioNumber, String date, double xirr)
         implements Serializable {
 
-    public PortfolioDetailsDTO(BigDecimal totalValue, String schemeName, String folioNumber, String date, double xirr) {
-        if (schemeName == null || schemeName.trim().isEmpty()) {
+    public PortfolioDetailsDTO(
+            BigDecimal totalValue,
+            @NonNull String schemeName,
+            @NonNull String folioNumber,
+            @NonNull String date,
+            double xirr) {
+        if (schemeName.trim().isEmpty()) {
             throw new IllegalArgumentException("Scheme name cannot be null or empty");
         }
-        if (folioNumber == null || folioNumber.trim().isEmpty()) {
+        if (folioNumber.trim().isEmpty()) {
             throw new IllegalArgumentException("Folio number cannot be null or empty");
         }
-        if (date == null || date.trim().isEmpty()) {
+        if (date.trim().isEmpty()) {
             throw new IllegalArgumentException("Date cannot be null or empty");
         }
 

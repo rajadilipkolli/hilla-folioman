@@ -160,12 +160,12 @@ class CacheCircuitBreakerTest {
     void executeWithFallback_WithNullSupplier_ShouldThrowException() {
         Supplier<String> fallback = () -> "fallback";
 
-        assertThatExceptionOfType(NullPointerException.class)
+        assertThatExceptionOfType(IllegalArgumentException.class)
                 .isThrownBy(() -> cacheCircuitBreaker.executeWithFallback(null, fallback));
     }
 
     @Test
     void execute_WithNullSupplier_ShouldThrowException() {
-        assertThatExceptionOfType(NullPointerException.class).isThrownBy(() -> cacheCircuitBreaker.execute(null));
+        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> cacheCircuitBreaker.execute(null));
     }
 }

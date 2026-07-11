@@ -51,8 +51,8 @@ class MfSchemeEntityToDtoMapperTest {
 
         assertThat(result).isNotNull();
         assertThat(result.schemeType()).isEqualTo("Equity(Large Cap - Growth)");
-        assertThat(result.nav()).isNull();
-        assertThat(result.date()).isNull();
+        assertThat(result.nav()).isEqualTo("");
+        assertThat(result.date()).isEqualTo("");
     }
 
     @Test
@@ -102,7 +102,7 @@ class MfSchemeEntityToDtoMapperTest {
         assertThat(result).isNotNull();
         assertThat(result.schemeType()).isEqualTo("Hybrid(Balanced - Conservative)");
         assertThat(result.nav()).isEqualTo("75.25");
-        assertThat(result.date()).isNull();
+        assertThat(result.date()).isEqualTo("");
     }
 
     @Test
