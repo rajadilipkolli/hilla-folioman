@@ -19,6 +19,7 @@ import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jpa.test.autoconfigure.AutoConfigureTestEntityManager;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
+import org.springframework.test.context.bean.override.mockito.MockitoSpyBean;
 import org.springframework.test.util.AopTestUtils;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.core.type.TypeReference;
@@ -40,7 +41,7 @@ class PortfolioValueUpdateServiceIntTest extends AbstractIntegrationTest {
     @Autowired
     private TestEntityManager testEntityManager;
 
-    @org.springframework.test.context.bean.override.mockito.MockitoSpyBean
+    @MockitoSpyBean
     private MFNavService mfNavService;
 
     @Test
@@ -73,10 +74,16 @@ class PortfolioValueUpdateServiceIntTest extends AbstractIntegrationTest {
         ((PortfolioValueUpdateService) AopTestUtils.getTargetObject(portfolioValueUpdateService))
                 .updatePortfolioValue(casDetails.getId());
 
+        final Long casId = casDetails.getId();
         var schemeValues = schemeValueRepository.findAll();
         assertThat(schemeValues).isNotEmpty();
         // Get the latest value by date
         var value = schemeValues.stream()
+                .filter(sv -> sv.getUserSchemeDetails()
+                        .getUserFolioDetails()
+                        .getUserCasDetailsEntity()
+                        .getId()
+                        .equals(casId))
                 .max(Comparator.comparing(SchemeValueEntity::getDate))
                 .orElseThrow();
         assertThat(value.getBalance()).isEqualByComparingTo(new BigDecimal("145.0"));
@@ -141,9 +148,11 @@ class PortfolioValueUpdateServiceIntTest extends AbstractIntegrationTest {
                     .updatePortfolioValue(casDetails.getId());
         }
 
+        final Long casId = casDetails.getId();
         var portfolios = userPortfolioValueRepository.findAll();
         assertThat(portfolios).isNotEmpty();
         var userPortfolio = portfolios.stream()
+                .filter(upv -> upv.getUserCasDetails().getId().equals(casId))
                 .max(Comparator.comparing(UserPortfolioValueEntity::getDate))
                 .orElseThrow();
         Double expectedXirr = ((Number) fixture.get("expectedXirr")).doubleValue();
@@ -202,10 +211,15 @@ class PortfolioValueUpdateServiceIntTest extends AbstractIntegrationTest {
         ((PortfolioValueUpdateService) AopTestUtils.getTargetObject(portfolioValueUpdateService))
                 .updatePortfolioValue(casDetails.getId());
 
+        final Long casId = casDetails.getId();
         var schemeValues = schemeValueRepository.findAll();
         // find the latest scheme value for our specific scheme
         var value = schemeValues.stream()
-                .filter(sv -> sv.getUserSchemeDetails().getAmfi().equals(amfiCode))
+                .filter(sv -> sv.getUserSchemeDetails()
+                        .getUserFolioDetails()
+                        .getUserCasDetailsEntity()
+                        .getId()
+                        .equals(casId))
                 .max(Comparator.comparing(SchemeValueEntity::getDate))
                 .orElse(null);
         assertThat(value).isNotNull();
