@@ -14,6 +14,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import org.jspecify.annotations.Nullable;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -106,6 +107,10 @@ public class PortfolioAPIImpl implements PortfolioAPI {
                 .toList();
     }
 
+    @Override
+    @Cacheable(
+            cacheNames = com.app.folioman.config.redis.CacheNames.PORTFOLIO_HISTORY_CACHE,
+            key = "'history_' + #casId + '_' + #userEmail + '_' + #from + '_' + #to")
     public Optional<PortfolioHistoryDTO> getPortfolioHistory(
             Long casId, String userEmail, LocalDate from, LocalDate to) {
         return userCASDetailsRepository
@@ -123,14 +128,18 @@ public class PortfolioAPIImpl implements PortfolioAPI {
                     List<long[]> invested = sortedValues.stream()
                             .map(entry -> new long[] {
                                 LocalDateUtility.toEpochMillis(entry.getDate()),
-                                entry.getInvested().longValue()
+                                entry.getInvested()
+                                        .setScale(0, java.math.RoundingMode.HALF_UP)
+                                        .longValue()
                             })
                             .toList();
 
                     List<long[]> value = sortedValues.stream()
                             .map(entry -> new long[] {
                                 LocalDateUtility.toEpochMillis(entry.getDate()),
-                                entry.getValue().longValue()
+                                entry.getValue()
+                                        .setScale(0, java.math.RoundingMode.HALF_UP)
+                                        .longValue()
                             })
                             .toList();
 

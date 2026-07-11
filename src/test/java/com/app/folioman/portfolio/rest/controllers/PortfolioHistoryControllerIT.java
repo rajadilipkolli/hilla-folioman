@@ -9,7 +9,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.app.folioman.config.redis.CacheNames;
 import com.app.folioman.shared.AbstractIntegrationTest;
 import java.math.BigDecimal;
-import java.sql.Date;
 import java.time.LocalDate;
 import java.util.Set;
 import org.junit.jupiter.api.DisplayName;
@@ -79,7 +78,7 @@ class PortfolioHistoryControllerIT extends AbstractIntegrationTest {
     @Test
     @DisplayName("Should apply explicit from/to query parameters when provided")
     void shouldApplyExplicitFromToQueryParameters() throws Exception {
-        Long casId = insertTestPortfolioHistory("user", LocalDate.now().minusDays(100));
+        Long casId = insertTestPortfolioHistory("user", LocalDate.now().minusDays(20));
         LocalDate fromDate = LocalDate.now().minusDays(40);
         LocalDate toDate = LocalDate.now();
 
@@ -91,13 +90,15 @@ class PortfolioHistoryControllerIT extends AbstractIntegrationTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.invested").isArray())
-                .andExpect(jsonPath("$.value").isArray());
+                .andExpect(jsonPath("$.invested").isNotEmpty())
+                .andExpect(jsonPath("$.value").isArray())
+                .andExpect(jsonPath("$.value").isNotEmpty());
     }
 
     @Test
     @DisplayName("Should default to the last year when from/to are omitted")
     void shouldUseDefaultDateRangeWhenParametersAreOmitted() throws Exception {
-        Long casId = insertTestPortfolioHistory("user", LocalDate.now().minusDays(400));
+        Long casId = insertTestPortfolioHistory("user", LocalDate.now().minusDays(200));
 
         this.mockMvc
                 .perform(get("/api/mutualfunds/portfolio/{id}/history", casId)
@@ -105,36 +106,51 @@ class PortfolioHistoryControllerIT extends AbstractIntegrationTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.invested").isArray())
-                .andExpect(jsonPath("$.value").isArray());
+                .andExpect(jsonPath("$.invested").isNotEmpty())
+                .andExpect(jsonPath("$.value").isArray())
+                .andExpect(jsonPath("$.value").isNotEmpty());
     }
 
+    @Autowired
+    private jakarta.persistence.EntityManager entityManager;
+
+    @Autowired
+    private org.springframework.transaction.support.TransactionTemplate transactionTemplate;
+
     private Long insertTestPortfolioHistory(String email, LocalDate date) {
-        Long casId = jdbcTemplate.queryForObject("select nextval('portfolio.user_cas_details_seq')", Long.class);
-        jdbcTemplate.update(
-                "insert into portfolio.user_cas_details (id, cas_type, file_type, created_at, updated_at) values (?, ?, ?, now(), now())",
-                casId,
-                "CAMS",
-                "DETAILED");
-        jdbcTemplate.update(
-                "insert into portfolio.investor_info (id, email, name, mobile, address, user_cas_details_id, created_at, updated_at) values (?, ?, ?, ?, ?, ?, now(), now())",
-                casId,
-                email,
-                "Integration Test User",
-                "9999999999",
-                "Test Address",
-                casId);
+        return transactionTemplate.execute(status -> {
+            com.app.folioman.portfolio.domain.UserCasDetailsEntity casDetails =
+                    new com.app.folioman.portfolio.domain.UserCasDetailsEntity()
+                            .setCasTypeEnum(com.app.folioman.portfolio.domain.CasTypeEnum.DETAILED)
+                            .setFileTypeEnum(com.app.folioman.portfolio.domain.FileTypeEnum.CAMS);
 
-        Long valueId = jdbcTemplate.queryForObject("select nextval('portfolio.user_portfolio_value_seq')", Long.class);
-        jdbcTemplate.update(
-                "insert into portfolio.user_portfolio_value (id, date, invested, value, xirr, live_xirr, user_cas_details_id, created_at, updated_at) values (?, ?, ?, ?, ?, ?, ?, now(), now())",
-                valueId,
-                Date.valueOf(date),
-                BigDecimal.valueOf(1000L),
-                BigDecimal.valueOf(1200L),
-                null,
-                null,
-                casId);
+            com.app.folioman.portfolio.domain.InvestorInfoEntity investorInfo =
+                    new com.app.folioman.portfolio.domain.InvestorInfoEntity()
+                            .setEmail(email)
+                            .setName("Integration Test User")
+                            .setMobile("9999999999")
+                            .setAddress("Test Address")
+                            .setUserCasDetailsEntity(casDetails);
 
-        return casId;
+            casDetails.setInvestorInfoEntity(investorInfo);
+
+            entityManager.persist(casDetails);
+            entityManager.flush();
+            Long casId = casDetails.getId();
+
+            com.app.folioman.portfolio.domain.UserPortfolioValueEntity valueEntity =
+                    new com.app.folioman.portfolio.domain.UserPortfolioValueEntity()
+                            .setDate(date)
+                            .setInvested(BigDecimal.valueOf(1000L))
+                            .setValue(BigDecimal.valueOf(1100L))
+                            .setXirr(BigDecimal.valueOf(10.5))
+                            .setLiveXirr(BigDecimal.valueOf(12.5))
+                            .setUserCasDetails(casDetails);
+
+            entityManager.persist(valueEntity);
+            entityManager.flush();
+
+            return casId;
+        });
     }
 }

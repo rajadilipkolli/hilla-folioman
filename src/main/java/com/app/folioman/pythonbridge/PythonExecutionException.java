@@ -1,4 +1,4 @@
-package com.app.folioman.pythonbridge.domain;
+package com.app.folioman.pythonbridge;
 
 import org.jspecify.annotations.Nullable;
 

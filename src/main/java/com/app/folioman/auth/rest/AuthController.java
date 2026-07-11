@@ -97,10 +97,12 @@ public class AuthController {
 
             loginAttemptService.recordSuccessfulLogin(username);
 
-            String accessToken = jwtService.generateAccessToken(userDetails);
-            String refreshToken = jwtService.generateRefreshToken(userDetails);
-
             Optional<UserEntity> userEntityOptional = userManagementService.findByUsername(userDetails.getUsername());
+            String email = userEntityOptional.map(UserEntity::getEmail).orElse(userDetails.getUsername());
+
+            String accessToken = jwtService.generateAccessToken(userDetails, email);
+            String refreshToken = jwtService.generateRefreshToken(userDetails, email);
+
             userEntityOptional.ifPresent(
                     userEntity -> refreshTokenService.createRefreshToken(userEntity.getId(), refreshToken));
 
@@ -163,11 +165,12 @@ public class AuthController {
                             }
 
                             UserDetails userDetails = userDetailsService.loadUserByUsername(user.getUsername());
-                            String newAccessToken = jwtService.generateAccessToken(userDetails);
+                            String email = user.getEmail();
+                            String newAccessToken = jwtService.generateAccessToken(userDetails, email);
 
                             // Optionally rotate refresh token
                             refreshTokenService.revokeToken(refreshToken);
-                            String newRefreshToken = jwtService.generateRefreshToken(userDetails);
+                            String newRefreshToken = jwtService.generateRefreshToken(userDetails, email);
                             refreshTokenService.createRefreshToken(user.getId(), newRefreshToken);
 
                             ResponseCookie newCookie = ResponseCookie.from("refreshToken", newRefreshToken)

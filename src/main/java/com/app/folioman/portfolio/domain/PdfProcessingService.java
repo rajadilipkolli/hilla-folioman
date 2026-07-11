@@ -1,10 +1,10 @@
 package com.app.folioman.portfolio.domain;
 
 import com.app.folioman.portfolio.rest.dtos.CasDTO;
+import com.app.folioman.pythonbridge.PythonBridgeProperties;
 import com.app.folioman.pythonbridge.PythonCommands;
 import com.app.folioman.pythonbridge.PythonExecutor;
-import com.app.folioman.pythonbridge.config.PythonBridgeProperties;
-import com.app.folioman.pythonbridge.domain.PythonResult;
+import com.app.folioman.pythonbridge.PythonResult;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;

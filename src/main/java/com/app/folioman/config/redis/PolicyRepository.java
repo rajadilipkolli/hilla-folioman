@@ -16,7 +16,7 @@ public class PolicyRepository {
      * @return a caching policy based on the provided strategy string
      */
     public CachePolicy getPolicy(@NonNull String strategy) {
-        if (strategy.isEmpty()) {
+        if (strategy == null || strategy.isEmpty()) {
             throw new IllegalArgumentException("Strategy cannot be null or empty");
         }
         return switch (strategy) {

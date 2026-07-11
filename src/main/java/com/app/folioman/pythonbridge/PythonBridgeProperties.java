@@ -1,4 +1,4 @@
-package com.app.folioman.pythonbridge.config;
+package com.app.folioman.pythonbridge;
 
 import java.util.Map;
 import org.springframework.boot.context.properties.ConfigurationProperties;

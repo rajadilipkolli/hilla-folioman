@@ -53,9 +53,9 @@ public class XirrCalculator {
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    // Add null checks to handle invalid inputs
+    // Add combined null/empty checks to handle invalid inputs
     public static BigDecimal xirr(@NonNull Map<LocalDate, BigDecimal> valuesPerDate) {
-        if (valuesPerDate.isEmpty()) {
+        if (valuesPerDate == null || valuesPerDate.isEmpty()) {
             throw new IllegalArgumentException("Input map cannot be null or empty");
         }
         if (valuesPerDate.values().stream().allMatch(v -> v.compareTo(BigDecimal.ZERO) >= 0)) {

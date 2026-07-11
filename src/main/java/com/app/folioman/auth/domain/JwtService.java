@@ -9,6 +9,7 @@ import java.util.Date;
 import java.util.UUID;
 import java.util.function.Function;
 import javax.crypto.SecretKey;
+import org.jspecify.annotations.Nullable;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -51,20 +52,20 @@ public class JwtService {
                 .getPayload();
     }
 
-    public String generateAccessToken(UserDetails userDetails) {
-        return generateToken(userDetails, jwtProperties.getAccessTokenExpiry(), ACCESS_TOKEN_TYPE);
+    public String generateAccessToken(UserDetails userDetails, String email) {
+        return generateToken(userDetails, email, jwtProperties.getAccessTokenExpiry(), ACCESS_TOKEN_TYPE);
     }
 
-    public String generateRefreshToken(UserDetails userDetails) {
-        return generateToken(userDetails, jwtProperties.getRefreshTokenExpiry(), REFRESH_TOKEN_TYPE);
+    public String generateRefreshToken(UserDetails userDetails, String email) {
+        return generateToken(userDetails, email, jwtProperties.getRefreshTokenExpiry(), REFRESH_TOKEN_TYPE);
     }
 
-    private String generateToken(UserDetails userDetails, long expirationMs, String tokenType) {
+    private String generateToken(UserDetails userDetails, String email, long expirationMs, String tokenType) {
         return Jwts.builder()
                 .subject(userDetails.getUsername())
                 .id(UUID.randomUUID().toString())
                 .claim(TOKEN_TYPE_CLAIM, tokenType)
-                .claim(EMAIL_CLAIM, userDetails.getUsername())
+                .claim(EMAIL_CLAIM, email)
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + expirationMs))
                 .signWith(getSignInKey())
@@ -84,7 +85,7 @@ public class JwtService {
         }
     }
 
-    public String extractEmail(String token) {
+    public @Nullable String extractEmail(String token) {
         return extractClaim(token, claims -> claims.get(EMAIL_CLAIM, String.class));
     }
 

@@ -3,8 +3,6 @@ package com.app.folioman.pythonbridge;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-import com.app.folioman.pythonbridge.domain.PythonExecutionException;
-import com.app.folioman.pythonbridge.domain.PythonResult;
 import com.app.folioman.shared.AbstractIntegrationTest;
 import java.util.Map;
 import org.junit.jupiter.api.Test;

@@ -6,6 +6,7 @@ import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
 import java.time.Duration;
 import java.util.function.Supplier;
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -70,8 +71,10 @@ public class CacheCircuitBreaker {
      * @param fallback the fallback operation to use when the circuit is open
      * @return the result of the operation or fallback
      */
-    public <T> T executeWithFallback(@NonNull Supplier<T> supplier, @NonNull Supplier<T> fallback) {
-
+    public <T> @Nullable T executeWithFallback(@NonNull Supplier<T> supplier, @NonNull Supplier<T> fallback) {
+        if (supplier == null) {
+            throw new IllegalArgumentException("Supplier cannot be null");
+        }
         try {
             return CircuitBreaker.decorateSupplier(circuitBreaker, supplier).get();
         } catch (Exception e) {
@@ -87,7 +90,7 @@ public class CacheCircuitBreaker {
      * @param supplier the operation to execute
      * @return the result of the operation or null if the circuit is open
      */
-    public <T> T execute(@NonNull Supplier<T> supplier) {
+    public <T> @Nullable T execute(@NonNull Supplier<T> supplier) {
         return executeWithFallback(supplier, () -> null);
     }
 

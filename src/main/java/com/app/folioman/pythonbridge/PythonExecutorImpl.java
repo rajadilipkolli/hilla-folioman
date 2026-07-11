@@ -1,7 +1,5 @@
-package com.app.folioman.pythonbridge.domain;
+package com.app.folioman.pythonbridge;
 
-import com.app.folioman.pythonbridge.PythonExecutor;
-import com.app.folioman.pythonbridge.config.PythonBridgeProperties;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;

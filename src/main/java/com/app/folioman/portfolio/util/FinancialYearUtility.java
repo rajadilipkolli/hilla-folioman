@@ -26,7 +26,9 @@ public final class FinancialYearUtility {
      * @return the FinancialYear containing the start and end dates
      */
     public static FinancialYear getFinancialYearForDate(@NonNull LocalDate date) {
-
+        if (date == null) {
+            throw new IllegalArgumentException("Date cannot be null");
+        }
         int year = date.getYear();
         if (date.getMonthValue() < Month.APRIL.getValue()) {
             return new FinancialYear(LocalDate.of(year - 1, Month.APRIL, 1), LocalDate.of(year, Month.MARCH, 31));

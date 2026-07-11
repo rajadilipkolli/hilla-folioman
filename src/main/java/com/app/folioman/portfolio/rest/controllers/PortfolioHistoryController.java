@@ -1,17 +1,17 @@
 package com.app.folioman.portfolio.rest.controllers;
 
-import com.app.folioman.config.redis.CacheNames;
 import com.app.folioman.portfolio.PortfolioAPI;
 import com.app.folioman.portfolio.rest.dtos.PortfolioHistoryDTO;
 import com.vaadin.hilla.Endpoint;
 import jakarta.annotation.security.RolesAllowed;
 import java.security.Principal;
 import java.time.LocalDate;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,7 +33,6 @@ public class PortfolioHistoryController {
     }
 
     @GetMapping("/{id}/history")
-    @Cacheable(cacheNames = CacheNames.PORTFOLIO_HISTORY_CACHE, key = "'history_' + #id + '_' + #from + '_' + #to")
     public ResponseEntity<PortfolioHistoryDTO> getPortfolioHistory(
             @PathVariable Long id,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
@@ -51,10 +50,33 @@ public class PortfolioHistoryController {
     }
 
     private String extractUserEmail(Principal principal) {
-        if (principal instanceof Authentication authentication
-                && authentication.getPrincipal() instanceof UserDetails userDetails) {
-            return userDetails.getUsername();
+        if (principal instanceof Authentication authentication) {
+            Object authPrincipal = authentication.getPrincipal();
+            if (authPrincipal instanceof UserDetails userDetails) {
+                try {
+                    java.lang.reflect.Method getEmailMethod =
+                            authPrincipal.getClass().getMethod("getEmail");
+                    String email = (String) getEmailMethod.invoke(authPrincipal);
+                    if (email != null) {
+                        return email;
+                    }
+                } catch (Exception ignored) {
+                    // Fall back to username
+                }
+                return userDetails.getUsername();
+            }
+            if (authentication.getPrincipal() instanceof OidcUser oidcUser) {
+                String email = oidcUser.getEmail();
+                return email != null ? email : "";
+            }
+            if (authentication.getPrincipal() instanceof OAuth2User oauth2User) {
+                String email = oauth2User.getAttribute("email");
+                return email != null ? email : "";
+            }
+            if (authentication.getPrincipal() instanceof UserDetails userDetails) {
+                return userDetails.getUsername() != null ? userDetails.getUsername() : "";
+            }
         }
-        return principal != null ? principal.getName() : "";
+        return principal != null && principal.getName() != null ? principal.getName() : "";
     }
 }

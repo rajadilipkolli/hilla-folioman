@@ -68,6 +68,9 @@ class PortfolioValueUpdateServiceTest {
     @Mock
     private UserFolioValueRepository userFolioValueRepository;
 
+    @Mock
+    private org.springframework.transaction.support.TransactionTemplate transactionTemplate;
+
     @InjectMocks
     private PortfolioValueUpdateService portfolioValueUpdateService;
 
@@ -113,6 +116,24 @@ class PortfolioValueUpdateServiceTest {
         when(mfNavService.getNavsForSchemesAndDates(anySet(), any(LocalDate.class), any(LocalDate.class)))
                 .thenReturn(createMockNavData());
 
+        Mockito.lenient()
+                .doAnswer(invocation -> {
+                    org.springframework.transaction.support.TransactionCallback<?> action = invocation.getArgument(0);
+                    return action.doInTransaction(null);
+                })
+                .when(transactionTemplate)
+                .execute(any(org.springframework.transaction.support.TransactionCallback.class));
+
+        Mockito.lenient()
+                .doAnswer(invocation -> {
+                    java.util.function.Consumer<org.springframework.transaction.TransactionStatus> action =
+                            invocation.getArgument(0);
+                    action.accept(null);
+                    return null;
+                })
+                .when(transactionTemplate)
+                .executeWithoutResult(any());
+
         // Return an existing FolioSchemeEntity so the service enters processing branch
         FolioSchemeEntity existingFolioScheme = new FolioSchemeEntity();
         existingFolioScheme.setId(10L);
@@ -156,7 +177,7 @@ class PortfolioValueUpdateServiceTest {
 
                 // When
                 Mockito.lenient()
-                        .when(userCASDetailsRepository.findById(anyLong()))
+                        .when(userCASDetailsRepository.findUserCasDetailsEntityById(anyLong()))
                         .thenReturn(Optional.of(userCasDetailsEntity));
 
                 portfolioValueUpdateService.updatePortfolioValue(userCasDetailsEntity.getId());
@@ -405,9 +426,9 @@ class PortfolioValueUpdateServiceTest {
             if (schemeCode != null) {
                 Map<LocalDate, MFSchemeNavProjection> schemeNavs = new HashMap<>();
 
-                // Add NAVs for all dates in last month
+                // Add NAVs for all dates starting from way before any transaction
                 LocalDate endDate = LocalDate.now();
-                LocalDate startDate = endDate.minusMonths(1);
+                LocalDate startDate = LocalDate.of(2020, 1, 1);
 
                 startDate.datesUntil(endDate.plusDays(1)).forEach(date -> schemeNavs.put(date, mfSchemeNavProjection));
 

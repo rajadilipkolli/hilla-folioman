@@ -158,8 +158,8 @@ class AuthControllerTest {
         when(loginAttemptService.isAccountLocked("testuser")).thenReturn(false);
         when(authenticationManager.authenticate(any())).thenReturn(auth);
 
-        when(jwtService.generateAccessToken(userDetails)).thenReturn("access-token-123");
-        when(jwtService.generateRefreshToken(userDetails)).thenReturn("refresh-token-123");
+        when(jwtService.generateAccessToken(eq(userDetails), any())).thenReturn("access-token-123");
+        when(jwtService.generateRefreshToken(eq(userDetails), any())).thenReturn("refresh-token-123");
 
         UserEntity ue = new UserEntity();
         ue.setId(1L);
@@ -290,8 +290,8 @@ class AuthControllerTest {
                 User.withUsername("user").password("pass").roles("USER").build();
         when(userDetailsService.loadUserByUsername("user")).thenReturn(userDetails);
 
-        when(jwtService.generateAccessToken(userDetails)).thenReturn("new-access");
-        when(jwtService.generateRefreshToken(userDetails)).thenReturn("new-refresh");
+        when(jwtService.generateAccessToken(eq(userDetails), any())).thenReturn("new-access");
+        when(jwtService.generateRefreshToken(eq(userDetails), any())).thenReturn("new-refresh");
         when(jwtProperties.getRefreshTokenExpiry()).thenReturn(3600000L);
         when(jwtProperties.getAccessTokenExpiry()).thenReturn(1800000L);
 

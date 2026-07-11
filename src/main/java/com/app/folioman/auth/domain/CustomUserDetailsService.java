@@ -1,7 +1,7 @@
 package com.app.folioman.auth.domain;
 
+import com.app.folioman.auth.CustomUserDetails;
 import org.jspecify.annotations.NonNull;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -30,12 +30,20 @@ public class CustomUserDetailsService implements UserDetailsService {
             throw new UsernameNotFoundException("User has no roles assigned: " + username);
         }
 
-        return User.builder()
-                .username(userEntity.getUsername())
-                .password(userEntity.getPasswordHash())
-                .disabled(!userEntity.isEnabled())
-                .accountLocked(userEntity.isAccountLocked())
-                .roles(roles)
-                .build();
+        java.util.List<org.springframework.security.core.authority.SimpleGrantedAuthority> authorityList =
+                java.util.Arrays.stream(roles)
+                        .map(role ->
+                                new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_" + role))
+                        .toList();
+
+        return new CustomUserDetails(
+                userEntity.getUsername(),
+                userEntity.getPasswordHash(),
+                userEntity.isEnabled(),
+                true,
+                true,
+                !userEntity.isAccountLocked(),
+                authorityList,
+                userEntity.getEmail());
     }
 }

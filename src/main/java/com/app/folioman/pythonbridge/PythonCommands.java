@@ -1,6 +1,5 @@
 package com.app.folioman.pythonbridge;
 
-import com.app.folioman.pythonbridge.domain.PythonCommand;
 import java.nio.file.Path;
 import java.util.List;
 
