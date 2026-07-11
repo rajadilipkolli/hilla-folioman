@@ -15,6 +15,7 @@ import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
+import org.hibernate.annotations.BatchSize;
 
 @Entity
 @Table(name = "user_cas_details", schema = "portfolio")
@@ -39,6 +40,7 @@ public class UserCasDetailsEntity extends BaseEntity {
     private InvestorInfoEntity investorInfoEntity;
 
     @OneToMany(mappedBy = "userCasDetailsEntity", cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 50)
     private List<UserFolioDetailsEntity> folios = new ArrayList<>();
 
     public Long getId() {

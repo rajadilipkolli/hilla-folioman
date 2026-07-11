@@ -26,6 +26,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
@@ -33,6 +34,7 @@ import org.springframework.mock.web.MockMultipartFile;
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @Execution(ExecutionMode.SAME_THREAD)
 class ImportMutualFundControllerIT extends AbstractIntegrationTest {
+    @Autowired
     private PortfolioValueUpdateService portfolioValueUpdateService;
 
     @Test
@@ -165,13 +167,16 @@ class ImportMutualFundControllerIT extends AbstractIntegrationTest {
             tempFile.deleteOnExit();
         }
 
+        java.util.concurrent.atomic.AtomicBoolean updateCalled = new java.util.concurrent.atomic.AtomicBoolean(false);
         await().atMost(Duration.ofMinutes(4)).pollDelay(Duration.ofSeconds(2)).untilAsserted(() -> {
             Long casId = jdbcTemplate.queryForObject(
                     "select id from portfolio.user_cas_details order by id desc limit 1", Long.class);
-            if (casId != null) {
+            if (casId != null && updateCalled.compareAndSet(false, true)) {
                 try {
                     portfolioValueUpdateService.updatePortfolioValue(casId);
                 } catch (Exception e) {
+                    System.err.println("Error calling updatePortfolioValue for casId: " + casId);
+                    e.printStackTrace();
                 }
             }
             long countAfterInsert =

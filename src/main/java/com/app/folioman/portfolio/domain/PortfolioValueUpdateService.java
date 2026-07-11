@@ -31,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StopWatch;
 
@@ -64,7 +65,7 @@ public class PortfolioValueUpdateService {
             UserTransactionDetailsRepository userTransactionDetailsRepository,
             UserFolioValueRepository userFolioValueRepository,
             UserCASDetailsRepository userCASDetailsRepository,
-            org.springframework.transaction.support.TransactionTemplate transactionTemplate) {
+            TransactionTemplate transactionTemplate) {
         this.userPortfolioValueRepository = userPortfolioValueRepository;
         this.mfNavService = mfNavService;
         this.folioSchemeRepository = folioSchemeRepository;

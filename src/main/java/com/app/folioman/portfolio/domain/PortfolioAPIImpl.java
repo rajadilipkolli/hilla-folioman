@@ -1,11 +1,22 @@
 package com.app.folioman.portfolio.domain;
 
+import com.app.folioman.config.redis.CacheNames;
 import com.app.folioman.portfolio.PortfolioAPI;
 import com.app.folioman.portfolio.PortfolioSummaryProjection;
 import com.app.folioman.portfolio.domain.models.CapitalGainsHarvestingRequest;
 import com.app.folioman.portfolio.domain.models.CapitalGainsHarvestingResponse;
 import com.app.folioman.portfolio.domain.models.projection.PortfolioValueDateProjection;
-import com.app.folioman.portfolio.rest.dtos.*;
+import com.app.folioman.portfolio.rest.dtos.CapitalGainsHarvestingRequestDTO;
+import com.app.folioman.portfolio.rest.dtos.CapitalGainsHarvestingResponseDTO;
+import com.app.folioman.portfolio.rest.dtos.CasDTO;
+import com.app.folioman.portfolio.rest.dtos.HarvestRecommendationDTO;
+import com.app.folioman.portfolio.rest.dtos.HarvestSummaryDTO;
+import com.app.folioman.portfolio.rest.dtos.InvestmentReturnsDTO;
+import com.app.folioman.portfolio.rest.dtos.MonthlyInvestmentResponseDTO;
+import com.app.folioman.portfolio.rest.dtos.PortfolioHistoryDTO;
+import com.app.folioman.portfolio.rest.dtos.PortfolioResponse;
+import com.app.folioman.portfolio.rest.dtos.UploadFileResponse;
+import com.app.folioman.portfolio.rest.dtos.YearlyInvestmentResponseDTO;
 import com.app.folioman.shared.LocalDateUtility;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -109,7 +120,7 @@ public class PortfolioAPIImpl implements PortfolioAPI {
 
     @Override
     @Cacheable(
-            cacheNames = com.app.folioman.config.redis.CacheNames.PORTFOLIO_HISTORY_CACHE,
+            cacheNames = CacheNames.PORTFOLIO_HISTORY_CACHE,
             key = "'history_' + #casId + '_' + #userEmail + '_' + #from + '_' + #to")
     public Optional<PortfolioHistoryDTO> getPortfolioHistory(
             Long casId, String userEmail, LocalDate from, LocalDate to) {

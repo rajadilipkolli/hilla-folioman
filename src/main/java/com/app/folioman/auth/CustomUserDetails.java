@@ -1,10 +1,11 @@
 package com.app.folioman.auth;
 
+import com.app.folioman.shared.EmailAware;
 import java.util.Collection;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 
-public class CustomUserDetails extends User {
+public class CustomUserDetails extends User implements EmailAware {
 
     private final String email;
 

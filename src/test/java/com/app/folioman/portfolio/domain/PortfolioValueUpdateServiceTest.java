@@ -25,10 +25,12 @@ import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -426,9 +428,15 @@ class PortfolioValueUpdateServiceTest {
             if (schemeCode != null) {
                 Map<LocalDate, MFSchemeNavProjection> schemeNavs = new HashMap<>();
 
-                // Add NAVs for all dates starting from way before any transaction
+                // Add NAVs for all dates starting from the earliest transaction
                 LocalDate endDate = LocalDate.now();
-                LocalDate startDate = LocalDate.of(2020, 1, 1);
+                LocalDate startDate = userCasDetailsEntity.getFolios().stream()
+                        .flatMap(folio -> folio.getSchemes().stream())
+                        .flatMap(s -> s.getTransactions().stream())
+                        .map(UserTransactionDetailsEntity::getTransactionDate)
+                        .filter(Objects::nonNull)
+                        .min(Comparator.naturalOrder())
+                        .orElse(LocalDate.of(2020, 1, 1));
 
                 startDate.datesUntil(endDate.plusDays(1)).forEach(date -> schemeNavs.put(date, mfSchemeNavProjection));
 

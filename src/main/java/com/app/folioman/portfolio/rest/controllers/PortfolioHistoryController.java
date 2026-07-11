@@ -2,6 +2,7 @@ package com.app.folioman.portfolio.rest.controllers;
 
 import com.app.folioman.portfolio.PortfolioAPI;
 import com.app.folioman.portfolio.rest.dtos.PortfolioHistoryDTO;
+import com.app.folioman.shared.EmailAware;
 import com.vaadin.hilla.Endpoint;
 import jakarta.annotation.security.RolesAllowed;
 import java.security.Principal;
@@ -53,15 +54,8 @@ public class PortfolioHistoryController {
         if (principal instanceof Authentication authentication) {
             Object authPrincipal = authentication.getPrincipal();
             if (authPrincipal instanceof UserDetails userDetails) {
-                try {
-                    java.lang.reflect.Method getEmailMethod =
-                            authPrincipal.getClass().getMethod("getEmail");
-                    String email = (String) getEmailMethod.invoke(authPrincipal);
-                    if (email != null) {
-                        return email;
-                    }
-                } catch (Exception ignored) {
-                    // Fall back to username
+                if (authPrincipal instanceof EmailAware emailAware) {
+                    return emailAware.getEmail();
                 }
                 return userDetails.getUsername();
             }
@@ -72,9 +66,6 @@ public class PortfolioHistoryController {
             if (authentication.getPrincipal() instanceof OAuth2User oauth2User) {
                 String email = oauth2User.getAttribute("email");
                 return email != null ? email : "";
-            }
-            if (authentication.getPrincipal() instanceof UserDetails userDetails) {
-                return userDetails.getUsername() != null ? userDetails.getUsername() : "";
             }
         }
         return principal != null && principal.getName() != null ? principal.getName() : "";
