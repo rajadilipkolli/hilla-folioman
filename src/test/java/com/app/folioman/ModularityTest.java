@@ -10,7 +10,7 @@ import org.springframework.modulith.docs.Documenter;
 
 class ModularityTest {
 
-    static ApplicationModules modules = ApplicationModules.of(Application.class);
+    static final ApplicationModules modules = ApplicationModules.of(Application.class);
 
     @Test
     @DisplayName("Application modules should be valid with no violations")
@@ -59,10 +59,11 @@ class ModularityTest {
     @DisplayName("All expected modules should be present")
     void verifyAllModulesPresent() {
         assertThat(modules.stream().map(m -> m.getIdentifier().toString()))
-                .contains("mfschemes", "portfolio", "shared");
+                .contains("config", "mfschemes", "portfolio", "shared");
     }
 
     @Test
+    @DisplayName("Generate Spring Moduliths Documentation")
     void createModulithsDocumentation() {
 
         new Documenter(modules).writeDocumentation();

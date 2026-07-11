@@ -11,7 +11,7 @@ import org.mapstruct.MappingTarget;
 import org.springframework.util.StringUtils;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public interface MfSchemeEntityToDtoMapper {
+interface MfSchemeEntityToDtoMapper {
 
     @Mapping(target = "schemeName", source = "name")
     @Mapping(target = "date", ignore = true)

@@ -1,13 +1,12 @@
 package com.app.folioman.auth.rest;
 
+import com.app.folioman.auth.AuthAPI;
+import com.app.folioman.auth.CustomUserDetails;
 import com.app.folioman.auth.config.JwtProperties;
 import com.app.folioman.auth.domain.CustomUserDetailsService;
 import com.app.folioman.auth.domain.JwtService;
 import com.app.folioman.auth.domain.LoginAttemptService;
-import com.app.folioman.auth.domain.RefreshTokenService;
 import com.app.folioman.auth.domain.TokenBlacklistService;
-import com.app.folioman.auth.domain.UserEntity;
-import com.app.folioman.auth.domain.UserManagementService;
 import com.app.folioman.auth.rest.dto.AuthResponse;
 import com.app.folioman.auth.rest.dto.LoginRequest;
 import jakarta.servlet.http.HttpServletRequest;
@@ -47,28 +46,25 @@ public class AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
-    private final RefreshTokenService refreshTokenService;
     private final CustomUserDetailsService userDetailsService;
     private final LoginAttemptService loginAttemptService;
-    private final UserManagementService userManagementService;
+    private final AuthAPI authAPI;
     private final JwtProperties jwtProperties;
     private final TokenBlacklistService tokenBlacklistService;
 
     public AuthController(
             AuthenticationManager authenticationManager,
             JwtService jwtService,
-            RefreshTokenService refreshTokenService,
             CustomUserDetailsService userDetailsService,
             LoginAttemptService loginAttemptService,
-            UserManagementService userManagementService,
+            AuthAPI authAPI,
             JwtProperties jwtProperties,
             TokenBlacklistService tokenBlacklistService) {
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
-        this.refreshTokenService = refreshTokenService;
         this.userDetailsService = userDetailsService;
         this.loginAttemptService = loginAttemptService;
-        this.userManagementService = userManagementService;
+        this.authAPI = authAPI;
         this.jwtProperties = jwtProperties;
         this.tokenBlacklistService = tokenBlacklistService;
     }
@@ -97,14 +93,14 @@ public class AuthController {
 
             loginAttemptService.recordSuccessfulLogin(username);
 
-            Optional<UserEntity> userEntityOptional = userManagementService.findByUsername(userDetails.getUsername());
-            String email = userEntityOptional.map(UserEntity::getEmail).orElse(userDetails.getUsername());
+            Optional<CustomUserDetails> userEntityOptional =
+                    authAPI.findUserDetailsByUsername(userDetails.getUsername());
+            String email = userEntityOptional.map(CustomUserDetails::getEmail).orElse(userDetails.getUsername());
 
             String accessToken = jwtService.generateAccessToken(userDetails, email);
             String refreshToken = jwtService.generateRefreshToken(userDetails, email);
 
-            userEntityOptional.ifPresent(
-                    userEntity -> refreshTokenService.createRefreshToken(userEntity.getId(), refreshToken));
+            userEntityOptional.ifPresent(userEntity -> authAPI.createRefreshToken(userEntity.getId(), refreshToken));
 
             LOGGER.info("Successful login for user: {} from IP: {}", maskUsername(username), maskIp(ipAddress));
 
@@ -149,52 +145,50 @@ public class AuthController {
                     .body(pd);
         }
 
-        return refreshTokenService
-                .findByToken(refreshToken)
-                .map(token -> {
-                    if (refreshTokenService.isTokenValid(token)) {
-                        Optional<UserEntity> userOpt = userManagementService.findById(token.getUserId());
-                        if (userOpt.isPresent()) {
-                            UserEntity user = userOpt.get();
-                            if (!user.isEnabled() || loginAttemptService.isAccountLocked(user.getUsername())) {
-                                refreshTokenService.revokeToken(refreshToken);
-                                ProblemDetail pd = ProblemDetail.forStatusAndDetail(
-                                        HttpStatus.FORBIDDEN, "User account is locked or disabled");
-                                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                                        .body(pd);
-                            }
+        if (!authAPI.isTokenValidAndExists(refreshToken)) {
+            return unauthorizedResponse();
+        }
 
-                            UserDetails userDetails = userDetailsService.loadUserByUsername(user.getUsername());
-                            String email = user.getEmail();
-                            String newAccessToken = jwtService.generateAccessToken(userDetails, email);
+        Optional<CustomUserDetails> userOpt =
+                authAPI.getUserIdByRefreshToken(refreshToken).flatMap(authAPI::findUserDetailsById);
 
-                            // Optionally rotate refresh token
-                            refreshTokenService.revokeToken(refreshToken);
-                            String newRefreshToken = jwtService.generateRefreshToken(userDetails, email);
-                            refreshTokenService.createRefreshToken(user.getId(), newRefreshToken);
+        if (userOpt.isEmpty()) {
+            return unauthorizedResponse();
+        }
 
-                            ResponseCookie newCookie = ResponseCookie.from("refreshToken", newRefreshToken)
-                                    .httpOnly(true)
-                                    .secure(request.isSecure() || jwtProperties.isSecureCookies())
-                                    .path("/api/auth")
-                                    .maxAge(jwtProperties.getRefreshTokenExpiry() / 1000)
-                                    .sameSite("Strict")
-                                    .build();
+        CustomUserDetails user = userOpt.get();
+        if (!user.isEnabled() || loginAttemptService.isAccountLocked(user.getUsername())) {
+            authAPI.revokeToken(refreshToken);
+            ProblemDetail pd =
+                    ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, "User account is locked or disabled");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(pd);
+        }
 
-                            return ResponseEntity.ok()
-                                    .header(HttpHeaders.SET_COOKIE, newCookie.toString())
-                                    .body(new AuthResponse(newAccessToken, jwtProperties.getAccessTokenExpiry()));
-                        }
-                    }
-                    ProblemDetail pd = ProblemDetail.forStatusAndDetail(
-                            HttpStatus.UNAUTHORIZED, "Invalid or expired refresh token");
-                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(pd);
-                })
-                .orElseGet(() -> {
-                    ProblemDetail pd =
-                            ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, "Refresh token not found");
-                    return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(pd);
-                });
+        UserDetails userDetails = userDetailsService.loadUserByUsername(user.getUsername());
+        String email = user.getEmail();
+        String newAccessToken = jwtService.generateAccessToken(userDetails, email);
+
+        // Rotate refresh token
+        authAPI.revokeToken(refreshToken);
+        String newRefreshToken = jwtService.generateRefreshToken(userDetails, email);
+        authAPI.createRefreshToken(user.getId(), newRefreshToken);
+
+        ResponseCookie newCookie = ResponseCookie.from("refreshToken", newRefreshToken)
+                .httpOnly(true)
+                .secure(request.isSecure() || jwtProperties.isSecureCookies())
+                .path("/api/auth")
+                .maxAge(jwtProperties.getRefreshTokenExpiry() / 1000)
+                .sameSite("Strict")
+                .build();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, newCookie.toString())
+                .body(new AuthResponse(newAccessToken, jwtProperties.getAccessTokenExpiry()));
+    }
+
+    private ResponseEntity<ProblemDetail> unauthorizedResponse() {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, "Invalid or expired refresh token"));
     }
 
     private ResponseCookie expiredRefreshCookie(HttpServletRequest request) {
@@ -230,7 +224,7 @@ public class AuthController {
         }
 
         if (cookieToken != null) {
-            refreshTokenService.revokeToken(cookieToken);
+            authAPI.revokeToken(cookieToken);
         }
 
         ResponseCookie deleteCookie = ResponseCookie.from("refreshToken", "")

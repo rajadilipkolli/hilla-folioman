@@ -20,7 +20,7 @@ import org.hibernate.annotations.BatchSize;
 @Entity
 @Table(name = "user_cas_details", schema = "portfolio")
 @SuppressWarnings("NullAway.Init")
-public class UserCasDetailsEntity extends BaseEntity {
+class UserCasDetailsEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "usercasdetails_seq")

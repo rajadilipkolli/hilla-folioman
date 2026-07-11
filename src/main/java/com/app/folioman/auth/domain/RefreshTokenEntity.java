@@ -12,7 +12,7 @@ import java.time.Instant;
 
 @Entity
 @Table(name = "refresh_tokens", schema = "portfolio")
-public class RefreshTokenEntity extends BaseEntity {
+class RefreshTokenEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "refresh_tokens_seq_gen")

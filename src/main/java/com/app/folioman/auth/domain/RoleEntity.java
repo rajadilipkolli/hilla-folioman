@@ -11,7 +11,7 @@ import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "roles", schema = "portfolio")
-public class RoleEntity extends BaseEntity {
+class RoleEntity extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "roles_seq_gen")

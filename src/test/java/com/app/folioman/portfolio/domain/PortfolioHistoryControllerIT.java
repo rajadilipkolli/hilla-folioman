@@ -1,4 +1,4 @@
-package com.app.folioman.portfolio.rest.controllers;
+package com.app.folioman.portfolio.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -7,11 +7,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.app.folioman.config.redis.CacheNames;
-import com.app.folioman.portfolio.domain.CasTypeEnum;
-import com.app.folioman.portfolio.domain.FileTypeEnum;
-import com.app.folioman.portfolio.domain.InvestorInfoEntity;
-import com.app.folioman.portfolio.domain.UserCasDetailsEntity;
-import com.app.folioman.portfolio.domain.UserPortfolioValueEntity;
 import com.app.folioman.shared.AbstractIntegrationTest;
 import java.math.BigDecimal;
 import java.time.LocalDate;

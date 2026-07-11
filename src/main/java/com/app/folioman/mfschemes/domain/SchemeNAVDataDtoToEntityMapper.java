@@ -6,7 +6,7 @@ import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
-public interface SchemeNAVDataDtoToEntityMapper {
+interface SchemeNAVDataDtoToEntityMapper {
 
     @Mapping(target = "mfFundSchemeEntity", ignore = true)
     @Mapping(target = "id", ignore = true)

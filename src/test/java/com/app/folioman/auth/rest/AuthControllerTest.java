@@ -7,18 +7,17 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import com.app.folioman.auth.AuthAPI;
+import com.app.folioman.auth.CustomUserDetails;
 import com.app.folioman.auth.config.JwtProperties;
 import com.app.folioman.auth.domain.CustomUserDetailsService;
 import com.app.folioman.auth.domain.JwtService;
 import com.app.folioman.auth.domain.LoginAttemptService;
-import com.app.folioman.auth.domain.RefreshTokenEntity;
-import com.app.folioman.auth.domain.RefreshTokenService;
 import com.app.folioman.auth.domain.TokenBlacklistService;
-import com.app.folioman.auth.domain.UserEntity;
-import com.app.folioman.auth.domain.UserManagementService;
 import com.app.folioman.auth.rest.dto.LoginRequest;
 import jakarta.servlet.http.Cookie;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
@@ -53,16 +52,13 @@ class AuthControllerTest {
     private JwtService jwtService;
 
     @MockitoBean
-    private RefreshTokenService refreshTokenService;
-
-    @MockitoBean
     private CustomUserDetailsService userDetailsService;
 
     @MockitoBean
     private LoginAttemptService loginAttemptService;
 
     @MockitoBean
-    private UserManagementService userManagementService;
+    private AuthAPI authAPI;
 
     @MockitoBean
     private JwtProperties jwtProperties;
@@ -163,11 +159,9 @@ class AuthControllerTest {
         when(jwtService.generateRefreshToken(eq(userDetails), eq("expected@email.com")))
                 .thenReturn("refresh-token-123");
 
-        UserEntity ue = new UserEntity();
-        ue.setId(1L);
-        ue.setUsername("testuser");
-        ue.setEmail("expected@email.com");
-        when(userManagementService.findByUsername("testuser")).thenReturn(Optional.of(ue));
+        when(authAPI.findUserDetailsByUsername("testuser"))
+                .thenReturn(Optional.of(new CustomUserDetails(
+                        "testuser", "password", true, true, true, true, List.of(), "expected@email.com", 1L)));
         when(jwtProperties.getRefreshTokenExpiry()).thenReturn(3600000L);
         when(jwtProperties.getAccessTokenExpiry()).thenReturn(1800000L);
 
@@ -191,7 +185,7 @@ class AuthControllerTest {
         assertThat(result.getResponse().getCookie("refreshToken").isHttpOnly()).isTrue();
 
         verify(loginAttemptService).recordSuccessfulLogin("testuser");
-        verify(refreshTokenService).createRefreshToken(1L, "refresh-token-123");
+        verify(authAPI).createRefreshToken(1L, "refresh-token-123");
     }
 
     @Test
@@ -208,22 +202,7 @@ class AuthControllerTest {
 
     @Test
     void refresh_tokenNotFound_returns401() {
-        when(refreshTokenService.findByToken("token")).thenReturn(Optional.empty());
-
-        var result = mockMvcTester
-                .post()
-                .uri("/api/auth/refresh")
-                .cookie(new Cookie("refreshToken", "token"))
-                .exchange();
-
-        assertThat(result).hasStatus(HttpStatus.UNAUTHORIZED);
-    }
-
-    @Test
-    void refresh_tokenInvalid_returns401() {
-        RefreshTokenEntity rfe = new RefreshTokenEntity();
-        when(refreshTokenService.findByToken("token")).thenReturn(Optional.of(rfe));
-        when(refreshTokenService.isTokenValid(rfe)).thenReturn(false);
+        when(authAPI.isTokenValidAndExists("token")).thenReturn(false);
 
         var result = mockMvcTester
                 .post()
@@ -236,11 +215,9 @@ class AuthControllerTest {
 
     @Test
     void refresh_userNotFound_returns401() {
-        RefreshTokenEntity rfe = new RefreshTokenEntity();
-        rfe.setUserId(1L);
-        when(refreshTokenService.findByToken("token")).thenReturn(Optional.of(rfe));
-        when(refreshTokenService.isTokenValid(rfe)).thenReturn(true);
-        when(userManagementService.findById(1L)).thenReturn(Optional.empty());
+        when(authAPI.isTokenValidAndExists("token")).thenReturn(true);
+        when(authAPI.getUserIdByRefreshToken("token")).thenReturn(Optional.of(1L));
+        when(authAPI.findUserDetailsById(1L)).thenReturn(Optional.empty());
 
         var result = mockMvcTester
                 .post()
@@ -253,15 +230,12 @@ class AuthControllerTest {
 
     @Test
     void refresh_userLocked_returns403() {
-        RefreshTokenEntity rfe = new RefreshTokenEntity();
-        rfe.setUserId(1L);
-        when(refreshTokenService.findByToken("token")).thenReturn(Optional.of(rfe));
-        when(refreshTokenService.isTokenValid(rfe)).thenReturn(true);
+        when(authAPI.isTokenValidAndExists("token")).thenReturn(true);
+        when(authAPI.getUserIdByRefreshToken("token")).thenReturn(Optional.of(1L));
 
-        UserEntity ue = new UserEntity();
-        ue.setUsername("user");
-        ue.setEnabled(true);
-        when(userManagementService.findById(1L)).thenReturn(Optional.of(ue));
+        when(authAPI.findUserDetailsById(1L))
+                .thenReturn(Optional.of(new CustomUserDetails(
+                        "user", "password", true, true, true, true, List.of(), "expected@email.com", 1L)));
         when(loginAttemptService.isAccountLocked("user")).thenReturn(true);
 
         var result = mockMvcTester
@@ -272,22 +246,17 @@ class AuthControllerTest {
 
         assertThat(result).hasStatus(HttpStatus.FORBIDDEN);
 
-        verify(refreshTokenService).revokeToken("token");
+        verify(authAPI).revokeToken("token");
     }
 
     @Test
     void refresh_success_returnsNewTokens() {
-        RefreshTokenEntity rfe = new RefreshTokenEntity();
-        rfe.setUserId(1L);
-        when(refreshTokenService.findByToken("token")).thenReturn(Optional.of(rfe));
-        when(refreshTokenService.isTokenValid(rfe)).thenReturn(true);
+        when(authAPI.isTokenValidAndExists("token")).thenReturn(true);
+        when(authAPI.getUserIdByRefreshToken("token")).thenReturn(Optional.of(1L));
 
-        UserEntity ue = new UserEntity();
-        ue.setId(1L);
-        ue.setUsername("user");
-        ue.setEnabled(true);
-        ue.setEmail("expected@email.com");
-        when(userManagementService.findById(1L)).thenReturn(Optional.of(ue));
+        when(authAPI.findUserDetailsById(1L))
+                .thenReturn(Optional.of(new CustomUserDetails(
+                        "user", "password", true, true, true, true, List.of(), "expected@email.com", 1L)));
         when(loginAttemptService.isAccountLocked("user")).thenReturn(false);
 
         UserDetails userDetails =
@@ -316,8 +285,8 @@ class AuthControllerTest {
 
         assertThat(result.getResponse().getCookie("refreshToken").getValue()).isEqualTo("new-refresh");
 
-        verify(refreshTokenService).revokeToken("token");
-        verify(refreshTokenService).createRefreshToken(1L, "new-refresh");
+        verify(authAPI).revokeToken("token");
+        verify(authAPI).createRefreshToken(1L, "new-refresh");
     }
 
     @Test
@@ -335,7 +304,7 @@ class AuthControllerTest {
         assertThat(result).hasStatusOk();
         assertThat(result.getResponse().getCookie("refreshToken").getValue()).isEqualTo("");
 
-        verify(refreshTokenService).revokeToken("refresh");
+        verify(authAPI).revokeToken("refresh");
         verify(tokenBlacklistService).blacklist(eq("jti-123"), any(Long.class));
     }
 

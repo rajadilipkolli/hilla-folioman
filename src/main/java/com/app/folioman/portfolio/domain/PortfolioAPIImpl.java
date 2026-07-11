@@ -136,22 +136,14 @@ public class PortfolioAPIImpl implements PortfolioAPI {
                             .sorted(Comparator.comparing(UserPortfolioValueEntity::getDate))
                             .toList();
 
-                    List<long[]> invested = sortedValues.stream()
-                            .map(entry -> new long[] {
-                                LocalDateUtility.toEpochMillis(entry.getDate()),
-                                entry.getInvested()
-                                        .setScale(0, java.math.RoundingMode.HALF_UP)
-                                        .longValue()
-                            })
+                    List<Number[]> invested = sortedValues.stream()
+                            .map(entry ->
+                                    new Number[] {LocalDateUtility.toEpochMillis(entry.getDate()), entry.getInvested()})
                             .toList();
 
-                    List<long[]> value = sortedValues.stream()
-                            .map(entry -> new long[] {
-                                LocalDateUtility.toEpochMillis(entry.getDate()),
-                                entry.getValue()
-                                        .setScale(0, java.math.RoundingMode.HALF_UP)
-                                        .longValue()
-                            })
+                    List<Number[]> value = sortedValues.stream()
+                            .map(entry ->
+                                    new Number[] {LocalDateUtility.toEpochMillis(entry.getDate()), entry.getValue()})
                             .toList();
 
                     return new PortfolioHistoryDTO(invested, value);

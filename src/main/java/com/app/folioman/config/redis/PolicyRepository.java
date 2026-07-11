@@ -1,6 +1,6 @@
 package com.app.folioman.config.redis;
 
-import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Component;
 
 /**
@@ -15,7 +15,7 @@ public class PolicyRepository {
      * @param strategy the strategy string used to determine which caching policy to instantiate
      * @return a caching policy based on the provided strategy string
      */
-    public CachePolicy getPolicy(@NonNull String strategy) {
+    public CachePolicy getPolicy(@Nullable String strategy) {
         if (strategy == null || strategy.isEmpty()) {
             throw new IllegalArgumentException("Strategy cannot be null or empty");
         }

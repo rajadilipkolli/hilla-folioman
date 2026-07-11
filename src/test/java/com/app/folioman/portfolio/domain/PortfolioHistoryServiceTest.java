@@ -97,15 +97,15 @@ class PortfolioHistoryServiceTest {
                         .atStartOfDay(java.time.ZoneOffset.UTC)
                         .toInstant()
                         .toEpochMilli());
-        assertThat(historyDTO.invested().get(0)[1]).isEqualTo(1000L);
+        assertThat(historyDTO.invested().get(0)[1]).isEqualTo(BigDecimal.valueOf(1000L));
         assertThat(historyDTO.invested().get(1)[0])
                 .isEqualTo(LocalDate.of(2024, 11, 1)
                         .atStartOfDay(java.time.ZoneOffset.UTC)
                         .toInstant()
                         .toEpochMilli());
-        assertThat(historyDTO.invested().get(1)[1]).isEqualTo(1200L);
+        assertThat(historyDTO.invested().get(1)[1]).isEqualTo(BigDecimal.valueOf(1200L));
 
-        assertThat(historyDTO.value().get(0)[1]).isEqualTo(2000L);
-        assertThat(historyDTO.value().get(1)[1]).isEqualTo(2100L);
+        assertThat(historyDTO.value().get(0)[1]).isEqualTo(BigDecimal.valueOf(2000L));
+        assertThat(historyDTO.value().get(1)[1]).isEqualTo(BigDecimal.valueOf(2100L));
     }
 }

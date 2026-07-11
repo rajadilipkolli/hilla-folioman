@@ -8,6 +8,7 @@ import org.springframework.security.core.userdetails.User;
 public class CustomUserDetails extends User implements EmailAware {
 
     private final String email;
+    private final Long id;
 
     public CustomUserDetails(
             String username,
@@ -17,12 +18,18 @@ public class CustomUserDetails extends User implements EmailAware {
             boolean credentialsNonExpired,
             boolean accountNonLocked,
             Collection<? extends GrantedAuthority> authorities,
-            String email) {
+            String email,
+            Long id) {
         super(username, password, enabled, accountNonExpired, credentialsNonExpired, accountNonLocked, authorities);
         this.email = email;
+        this.id = id;
     }
 
     public String getEmail() {
         return email;
+    }
+
+    public Long getId() {
+        return id;
     }
 }

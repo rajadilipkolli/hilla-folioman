@@ -7,7 +7,6 @@ import com.app.folioman.Application;
 import com.app.folioman.config.NoSQLContainersConfig;
 import com.app.folioman.config.SQLContainersConfig;
 import com.app.folioman.mfschemes.config.ApplicationProperties;
-import com.app.folioman.mfschemes.domain.MfSchemeDtoToEntityMapper;
 import com.app.folioman.mfschemes.domain.MfSchemeSyncService;
 import com.app.folioman.portfolio.config.PortfolioCacheProperties;
 import jakarta.persistence.EntityManager;
@@ -52,9 +51,6 @@ public abstract class AbstractIntegrationTest {
 
     @Autowired
     protected ApplicationEventPublisher applicationEventPublisher;
-
-    @Autowired
-    protected MfSchemeDtoToEntityMapper mfSchemeDtoToEntityMapper;
 
     @Autowired
     protected ApplicationProperties applicationProperties;
