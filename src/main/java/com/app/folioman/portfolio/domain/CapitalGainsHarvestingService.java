@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -160,7 +161,7 @@ public class CapitalGainsHarvestingService {
         return buildResponse(allRecommendations);
     }
 
-    private @org.jspecify.annotations.Nullable HarvestRecommendation evaluateScheme(
+    private @Nullable HarvestRecommendation evaluateScheme(
             PortfolioDetailsProjection holding,
             CapitalGainsHarvestingRequest request,
             CapitalGainsTaxProperties.TaxRuleSet rules,

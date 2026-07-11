@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Stream;
 import org.assertj.core.api.InstanceOfAssertFactories;
+import org.assertj.core.data.Percentage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -318,7 +319,7 @@ class XirrCalculatorTest {
         // Act & Assert - For extremely short periods, we'll accept any value that indicates high returns
         // (since the annual rate will be enormous)
         BigDecimal result = XirrCalculator.xirr(valuesPerDate);
-        assertThat(result).isCloseTo(new BigDecimal("1313311686664063.2"), within(new BigDecimal("2.0")));
+        assertThat(result).isCloseTo(new BigDecimal("1313311686664063.2"), Percentage.withPercentage(1.0));
     }
 
     @Test

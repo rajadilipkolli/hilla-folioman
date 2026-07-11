@@ -1,6 +1,7 @@
 package com.app.folioman.auth.domain;
 
 import java.time.Duration;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -18,7 +19,7 @@ public class TokenBlacklistService {
         this.redisTemplate = redisTemplate;
     }
 
-    public void blacklist(String jti, long ttlMillis) {
+    public void blacklist(@Nullable String jti, long ttlMillis) {
         if (jti == null || ttlMillis <= 0) {
             return;
         }
@@ -32,7 +33,7 @@ public class TokenBlacklistService {
         }
     }
 
-    public boolean isBlacklisted(String jti) {
+    public boolean isBlacklisted(@Nullable String jti) {
         if (jti == null) {
             return false;
         }

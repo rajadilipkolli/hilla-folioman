@@ -15,6 +15,7 @@ import jakarta.persistence.UniqueConstraint;
 import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
+import org.jspecify.annotations.Nullable;
 
 @Entity
 @Table(
@@ -54,7 +55,7 @@ public class UserEntity extends BaseEntity {
     private int failedLoginAttempts = 0;
 
     @Column(name = "lock_expires_at")
-    private Instant lockExpiresAt;
+    private @Nullable Instant lockExpiresAt;
 
     @ManyToMany
     @JoinTable(
@@ -136,11 +137,11 @@ public class UserEntity extends BaseEntity {
         this.failedLoginAttempts = failedLoginAttempts;
     }
 
-    public Instant getLockExpiresAt() {
+    public @Nullable Instant getLockExpiresAt() {
         return lockExpiresAt;
     }
 
-    public void setLockExpiresAt(Instant lockExpiresAt) {
+    public void setLockExpiresAt(@Nullable Instant lockExpiresAt) {
         this.lockExpiresAt = lockExpiresAt;
     }
 

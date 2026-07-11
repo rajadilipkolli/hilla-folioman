@@ -19,6 +19,9 @@ interface UserCASDetailsRepository extends JpaRepository<UserCasDetailsEntity, L
             """)
     Optional<UserCasDetailsEntity> findByInvestorEmailAndName(@Param("email") String email, @Param("name") String name);
 
+    @Query("select u from UserCasDetailsEntity u left join fetch u.folios where u.id = :id")
+    Optional<UserCasDetailsEntity> findUserCasDetailsEntityById(@Param("id") Long id);
+
     @NativeQuery("""
             WITH tempView AS (
                 SELECT utd.balance AS balance,

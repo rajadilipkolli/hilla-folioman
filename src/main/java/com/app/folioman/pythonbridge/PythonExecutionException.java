@@ -1,4 +1,4 @@
-package com.app.folioman.pythonbridge.domain;
+package com.app.folioman.pythonbridge;
 
 import org.jspecify.annotations.Nullable;
 
@@ -29,8 +29,7 @@ public class PythonExecutionException extends RuntimeException {
         return exitCode;
     }
 
-    @Nullable
-    public String getStderr() {
+    public @Nullable String getStderr() {
         return stderr;
     }
 

@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -35,6 +36,9 @@ public class XirrCalculator {
                         double days = ChronoUnit.DAYS.between(t0, entry.getKey());
                         double denomDouble =
                                 Math.pow(1.0 + rate.negate().doubleValue(), days / DAYS_PER_YEAR.doubleValue());
+                        if (!Double.isFinite(denomDouble) || denomDouble == 0.0) {
+                            return BigDecimal.ZERO;
+                        }
                         return vi.divide(BigDecimal.valueOf(denomDouble), MC);
                     })
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -45,13 +49,16 @@ public class XirrCalculator {
                     BigDecimal vi = entry.getValue();
                     double days = ChronoUnit.DAYS.between(t0, entry.getKey());
                     double denomDouble = Math.pow(1.0 + rate.doubleValue(), days / DAYS_PER_YEAR.doubleValue());
+                    if (!Double.isFinite(denomDouble) || denomDouble == 0.0) {
+                        return BigDecimal.ZERO;
+                    }
                     return vi.divide(BigDecimal.valueOf(denomDouble), MC);
                 })
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
-    // Add null checks to handle invalid inputs
-    public static BigDecimal xirr(Map<LocalDate, BigDecimal> valuesPerDate) {
+    // Add combined null/empty checks to handle invalid inputs
+    public static BigDecimal xirr(@NonNull Map<LocalDate, BigDecimal> valuesPerDate) {
         if (valuesPerDate == null || valuesPerDate.isEmpty()) {
             throw new IllegalArgumentException("Input map cannot be null or empty");
         }

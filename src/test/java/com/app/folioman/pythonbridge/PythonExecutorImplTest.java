@@ -1,10 +1,9 @@
-package com.app.folioman.pythonbridge.domain;
+package com.app.folioman.pythonbridge;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.when;
 
-import com.app.folioman.pythonbridge.config.PythonBridgeProperties;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

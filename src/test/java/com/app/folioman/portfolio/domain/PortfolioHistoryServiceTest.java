@@ -10,9 +10,9 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -34,17 +34,8 @@ class PortfolioHistoryServiceTest {
     @Mock
     private UserPortfolioValueRepository userPortfolioValueRepository;
 
+    @InjectMocks
     private PortfolioAPIImpl portfolioAPI;
-
-    @BeforeEach
-    void setUp() {
-        portfolioAPI = new PortfolioAPIImpl(
-                userTransactionDetailsService,
-                userDetailService,
-                pdfProcessingService,
-                userCASDetailsRepository,
-                userPortfolioValueRepository);
-    }
 
     @Test
     void shouldReturnEmptyWhenCasDoesNotExist() {

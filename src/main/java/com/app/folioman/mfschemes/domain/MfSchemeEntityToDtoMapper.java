@@ -2,6 +2,7 @@ package com.app.folioman.mfschemes.domain;
 
 import com.app.folioman.mfschemes.rest.dtos.MFSchemeDTO;
 import java.time.LocalDate;
+import java.util.Comparator;
 import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -22,13 +23,18 @@ public interface MfSchemeEntityToDtoMapper {
 
     @AfterMapping
     default MFSchemeDTO updateMFScheme(MfFundSchemeEntity mfFundSchemeEntity, @MappingTarget MFSchemeDTO mfSchemeDTO) {
-        String date = null;
-        String nav = null;
+        String date = "";
+        String nav = "";
         if (!mfFundSchemeEntity.getMfSchemeNavs().isEmpty()) {
-            LocalDate localDate =
-                    mfFundSchemeEntity.getMfSchemeNavs().getFirst().getNavDate();
-            nav = String.valueOf(mfFundSchemeEntity.getMfSchemeNavs().getFirst().getNav());
-            if (null != localDate) {
+            var latestNav = mfFundSchemeEntity.getMfSchemeNavs().stream()
+                    .max(Comparator.comparing(
+                            MFSchemeNavEntity::getNavDate, Comparator.nullsFirst(Comparator.naturalOrder())))
+                    .orElse(mfFundSchemeEntity.getMfSchemeNavs().getFirst());
+            LocalDate localDate = latestNav.getNavDate();
+            if (latestNav.getNav() != null) {
+                nav = String.valueOf(latestNav.getNav());
+            }
+            if (localDate != null) {
                 date = localDate.toString();
             }
         }

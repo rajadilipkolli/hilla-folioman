@@ -3,6 +3,7 @@ package com.app.folioman.config.redis;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Duration;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -29,7 +30,7 @@ class CustomRedisCacheManagerTest {
         }
 
         @Override
-        public Object deserialize(byte[] bytes) {
+        public @Nullable Object deserialize(byte[] bytes) {
             return null;
         }
     };
