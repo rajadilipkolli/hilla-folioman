@@ -50,4 +50,25 @@ interface MfSchemeNavRepository extends JpaRepository<MFSchemeNavEntity, Long> {
     @Query(
             "SELECT new com.app.folioman.mfschemes.domain.models.projection.NavDateValueProjection(n.nav, n.navDate) FROM MFSchemeNavEntity n WHERE n.mfFundSchemeEntity.id = :schemeId")
     List<NavDateValueProjection> findAllNavDateValuesBySchemeId(@Param("schemeId") Long schemeId);
+
+    @Query(value = """
+            SELECT nav, nav_date as navDate, amfi_code as amfiCode FROM (
+                SELECT msn.nav, msn.nav_date, mfs.amfi_code,
+                       ROW_NUMBER() OVER (PARTITION BY mfs.amfi_code ORDER BY msn.nav_date DESC, msn.id DESC) as rn
+                FROM mfschemes.mf_scheme_nav msn
+                JOIN mfschemes.mf_fund_scheme mfs ON msn.mf_scheme_id = mfs.id
+                WHERE mfs.amfi_code IN :amfiCodes
+            ) sub
+            WHERE sub.rn <= 2
+            ORDER BY sub.amfi_code, sub.rn ASC
+            """, nativeQuery = true)
+    List<AmfiNavProjection> findLatest2NavsByAmfiCodes(@Param("amfiCodes") Set<Long> amfiCodes);
+
+    interface AmfiNavProjection {
+        java.math.BigDecimal getNav();
+
+        LocalDate getNavDate();
+
+        Long getAmfiCode();
+    }
 }

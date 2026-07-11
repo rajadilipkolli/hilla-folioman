@@ -6,6 +6,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.SequenceGenerator;
@@ -14,7 +15,10 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "scheme_value", schema = "portfolio")
+@Table(
+        name = "scheme_value",
+        schema = "portfolio",
+        indexes = {@Index(name = "idx_scheme_value_usd_id_date", columnList = "user_scheme_detail_id, date")})
 @SuppressWarnings("NullAway.Init")
 class SchemeValueEntity extends BaseEntity {
 

@@ -39,4 +39,13 @@ public interface MFNavService {
      */
     Map<Long, Map<LocalDate, MFSchemeNavProjection>> getNavsForSchemesAndDates(
             Set<Long> schemeCodes, LocalDate startDate, LocalDate endDate);
+
+    /**
+     * Retrieves the last two NAVs for a given set of AMFI codes.
+     * Batched to avoid N+1 lookups.
+     *
+     * @param amfiCodes Set of AMFI codes
+     * @return Map of AMFI code to a list of the latest two NAV projections
+     */
+    Map<Long, List<MFSchemeNavProjection>> getLastTwoNavsForSchemes(Set<Long> amfiCodes);
 }

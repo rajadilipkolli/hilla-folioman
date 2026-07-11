@@ -40,4 +40,11 @@
                                  referencedTableSchemaName="portfolio"/>
     </changeSet>
 
+    <changeSet id="1726853021906-4" author="appUser">
+        <createIndex indexName="idx_scheme_value_usd_id_date" schemaName="portfolio" tableName="scheme_value">
+            <column name="user_scheme_detail_id"/>
+            <column name="date" descending="true"/>
+        </createIndex>
+    </changeSet>
+
 </databaseChangeLog>

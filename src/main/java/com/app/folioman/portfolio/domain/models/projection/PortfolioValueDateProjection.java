@@ -11,4 +11,7 @@ public interface PortfolioValueDateProjection {
 
     @Nullable
     BigDecimal getXirr();
+
+    @Nullable
+    BigDecimal getLiveXirr();
 }

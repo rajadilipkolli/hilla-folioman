@@ -5,4 +5,7 @@ import org.jspecify.annotations.Nullable;
 public interface MFSchemeTypeProjection {
     @Nullable
     String getCategory();
+
+    @Nullable
+    String getSubCategory();
 }

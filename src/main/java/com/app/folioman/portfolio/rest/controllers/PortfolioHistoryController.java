@@ -50,6 +50,16 @@ public class PortfolioHistoryController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @GetMapping("/{id}/summary")
+    public ResponseEntity<com.app.folioman.portfolio.rest.dtos.PortfolioSummaryDTO> getPortfolioSummary(
+            @PathVariable Long id, Principal principal) {
+        String userEmail = extractUserEmail(principal);
+        return portfolioAPI
+                .getPortfolioSummary(id, userEmail)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     private String extractUserEmail(Principal principal) {
         if (principal instanceof Authentication authentication) {
             Object authPrincipal = authentication.getPrincipal();

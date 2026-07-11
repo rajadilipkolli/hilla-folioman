@@ -38,6 +38,7 @@ public class PortfolioAPIImpl implements PortfolioAPI {
     private final UserCASDetailsRepository userCASDetailsRepository;
     private final UserPortfolioValueRepository userPortfolioValueRepository;
     private final CapitalGainsHarvestingService capitalGainsHarvestingService;
+    private final PortfolioSummaryService portfolioSummaryService;
 
     PortfolioAPIImpl(
             UserTransactionDetailsService userTransactionDetailsService,
@@ -45,13 +46,15 @@ public class PortfolioAPIImpl implements PortfolioAPI {
             PdfProcessingService pdfProcessingService,
             UserCASDetailsRepository userCASDetailsRepository,
             UserPortfolioValueRepository userPortfolioValueRepository,
-            CapitalGainsHarvestingService capitalGainsHarvestingService) {
+            CapitalGainsHarvestingService capitalGainsHarvestingService,
+            PortfolioSummaryService portfolioSummaryService) {
         this.userTransactionDetailsService = userTransactionDetailsService;
         this.userDetailService = userDetailService;
         this.pdfProcessingService = pdfProcessingService;
         this.userCASDetailsRepository = userCASDetailsRepository;
         this.userPortfolioValueRepository = userPortfolioValueRepository;
         this.capitalGainsHarvestingService = capitalGainsHarvestingService;
+        this.portfolioSummaryService = portfolioSummaryService;
     }
 
     public Optional<InvestmentReturnsDTO> getInvestmentReturnsByPan(String pan) {
@@ -148,6 +151,13 @@ public class PortfolioAPIImpl implements PortfolioAPI {
 
                     return new PortfolioHistoryDTO(invested, value);
                 });
+    }
+
+    @Override
+    @Cacheable(cacheNames = CacheNames.SUMMARY_CACHE, key = "'summary_' + #casId + '_' + #userEmail")
+    public Optional<com.app.folioman.portfolio.rest.dtos.PortfolioSummaryDTO> getPortfolioSummary(
+            Long casId, String userEmail) {
+        return portfolioSummaryService.getPortfolioSummary(casId, userEmail);
     }
 
     public CapitalGainsHarvestingResponseDTO getCapitalGainsHarvesting(

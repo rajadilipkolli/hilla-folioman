@@ -18,8 +18,11 @@ class NewlyInsertedSchemesListenerIT extends AbstractIntegrationTest {
         List<Long> schemeCodes = List.of(118272L, 120503L);
         UploadedSchemesList event = new UploadedSchemesList(schemeCodes);
 
-        // Publish the event to trigger async processing
-        applicationEventPublisher.publishEvent(event);
+        // Publish the event to trigger async processing within a transaction
+        // so that the @ApplicationModuleListener (which is a @TransactionalEventListener) fires after commit.
+        transactionTemplate.executeWithoutResult(status -> {
+            applicationEventPublisher.publishEvent(event);
+        });
 
         // Record the time before processing to verify new NAVs
         // Widen window to 7 days to include NAVs that may have older navDate values due
