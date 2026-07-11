@@ -22,21 +22,25 @@ class AuthAPIImpl implements AuthAPI {
 
     @Override
     public Optional<CustomUserDetails> findUserDetailsByUsername(String username) {
-        return userRepository.findByUsername(username).map(this::mapToUserDetails);
+        return userRepository.findByUsername(username).flatMap(this::mapToUserDetails);
     }
 
     @Override
     public Optional<CustomUserDetails> findUserDetailsById(Long id) {
-        return userRepository.findById(id).map(this::mapToUserDetails);
+        return userRepository.findById(id).flatMap(this::mapToUserDetails);
     }
 
-    private CustomUserDetails mapToUserDetails(UserEntity userEntity) {
+    private Optional<CustomUserDetails> mapToUserDetails(UserEntity userEntity) {
         List<SimpleGrantedAuthority> authorityList = userEntity.getRoles().stream()
                 .map(RoleEntity::getName)
                 .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
                 .toList();
 
-        return new CustomUserDetails(
+        if (authorityList.isEmpty()) {
+            return Optional.empty();
+        }
+
+        return Optional.of(new CustomUserDetails(
                 userEntity.getUsername(),
                 userEntity.getPasswordHash(),
                 userEntity.isEnabled(),
@@ -45,7 +49,7 @@ class AuthAPIImpl implements AuthAPI {
                 !userEntity.isAccountLocked(),
                 authorityList,
                 userEntity.getEmail(),
-                userEntity.getId());
+                userEntity.getId()));
     }
 
     @Override

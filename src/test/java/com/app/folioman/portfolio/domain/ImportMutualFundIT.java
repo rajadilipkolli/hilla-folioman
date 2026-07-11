@@ -32,7 +32,7 @@ import org.springframework.mock.web.MockMultipartFile;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @Execution(ExecutionMode.SAME_THREAD)
-class ImportMutualFundControllerIT extends AbstractIntegrationTest {
+class ImportMutualFundIT extends AbstractIntegrationTest {
     @Autowired
     private PortfolioValueUpdateService portfolioValueUpdateService;
 

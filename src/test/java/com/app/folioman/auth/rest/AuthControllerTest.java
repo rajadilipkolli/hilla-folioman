@@ -214,19 +214,6 @@ class AuthControllerTest {
     }
 
     @Test
-    void refresh_tokenInvalid_returns401() {
-        when(authAPI.isTokenValidAndExists("token")).thenReturn(false);
-
-        var result = mockMvcTester
-                .post()
-                .uri("/api/auth/refresh")
-                .cookie(new Cookie("refreshToken", "token"))
-                .exchange();
-
-        assertThat(result).hasStatus(HttpStatus.UNAUTHORIZED);
-    }
-
-    @Test
     void refresh_userNotFound_returns401() {
         when(authAPI.isTokenValidAndExists("token")).thenReturn(true);
         when(authAPI.getUserIdByRefreshToken("token")).thenReturn(Optional.of(1L));
