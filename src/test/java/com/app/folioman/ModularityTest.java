@@ -2,22 +2,15 @@ package com.app.folioman;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.app.folioman.shared.AbstractIntegrationTest;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.modulith.core.ApplicationModule;
 import org.springframework.modulith.core.ApplicationModules;
 import org.springframework.modulith.docs.Documenter;
 
-class ApplicationIntTest extends AbstractIntegrationTest {
+class ModularityTest {
 
-    private static ApplicationModules modules;
-
-    @BeforeAll
-    static void setUp() {
-        modules = ApplicationModules.of(Application.class);
-    }
+    static ApplicationModules modules = ApplicationModules.of(Application.class);
 
     @Test
     @DisplayName("Application modules should be valid with no violations")

@@ -59,11 +59,11 @@ public class PortfolioHistoryController {
                 }
                 return userDetails.getUsername();
             }
-            if (authentication.getPrincipal() instanceof OidcUser oidcUser) {
+            if (authPrincipal instanceof OidcUser oidcUser) {
                 String email = oidcUser.getEmail();
                 return email != null ? email : "";
             }
-            if (authentication.getPrincipal() instanceof OAuth2User oauth2User) {
+            if (authPrincipal instanceof OAuth2User oauth2User) {
                 String email = oauth2User.getAttribute("email");
                 return email != null ? email : "";
             }

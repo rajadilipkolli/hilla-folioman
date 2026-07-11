@@ -10,6 +10,7 @@ import com.app.folioman.mfschemes.config.ApplicationProperties;
 import com.app.folioman.mfschemes.domain.MfSchemeDtoToEntityMapper;
 import com.app.folioman.mfschemes.domain.MfSchemeSyncService;
 import com.app.folioman.portfolio.config.PortfolioCacheProperties;
+import jakarta.persistence.EntityManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
@@ -72,6 +73,9 @@ public abstract class AbstractIntegrationTest {
 
     @Autowired
     protected TransactionTemplate transactionTemplate;
+
+    @Autowired
+    protected EntityManager entityManager;
 
     @LocalServerPort
     protected int port;
