@@ -58,8 +58,7 @@ class PortfolioSummaryControllerIT extends AbstractIntegrationTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.invested").value(1000.0))
                 .andExpect(jsonPath("$.value").value(1100.0))
-                .andExpect(jsonPath("$.xirr.current")
-                        .doesNotExist()) // Note: the user endpoint uses the projection which has `xirr` for overall
+                .andExpect(jsonPath("$.xirr.current").value(12.5))
                 .andExpect(jsonPath("$.xirr.overall").value(10.5)) // mapped to XirrDTO
                 .andExpect(jsonPath("$.change.D").isNumber())
                 .andExpect(jsonPath("$.change.A").isNumber())

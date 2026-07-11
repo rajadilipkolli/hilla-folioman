@@ -22,6 +22,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -197,9 +198,7 @@ public class PortfolioSummaryService {
                 schemeChangePctD =
                         schemeChangeD.multiply(new BigDecimal("100")).divide(prevValue, 2, RoundingMode.HALF_UP);
             }
-
-            BigDecimal schemeXirr = folioDataList.get(0).xirr();
-
+            BigDecimal schemeXirr = getXirr(folioDataList);
             schemeSummaries.add(new SchemeSummaryDTO(
                     isin,
                     name,
@@ -238,6 +237,7 @@ public class PortfolioSummaryService {
             if (p.getValue() != null) finalPortValue = p.getValue();
             if (p.getDate() != null) finalDate = p.getDate();
             if (p.getXirr() != null) overallXirr = p.getXirr();
+            if (p.getLiveXirr() != null) currentXirr = p.getLiveXirr();
         }
 
         portTotalChangeA = finalPortValue.subtract(finalPortInvested);
@@ -269,9 +269,27 @@ public class PortfolioSummaryService {
         return Optional.of(responseDTO);
     }
 
+    private @Nullable BigDecimal getXirr(List<FolioData> folioDataList) {
+        BigDecimal totalXirrWeight = BigDecimal.ZERO;
+        BigDecimal totalWeightedXirr = BigDecimal.ZERO;
+        for (FolioData fd : folioDataList) {
+            if (fd.xirr() != null
+                    && fd.schemeValue().getInvested() != null
+                    && fd.schemeValue().getInvested().compareTo(BigDecimal.ZERO) > 0) {
+                totalXirrWeight = totalXirrWeight.add(fd.schemeValue().getInvested());
+                totalWeightedXirr = totalWeightedXirr.add(
+                        fd.xirr().multiply(fd.schemeValue().getInvested()));
+            }
+        }
+        BigDecimal schemeXirr = totalXirrWeight.compareTo(BigDecimal.ZERO) > 0
+                ? totalWeightedXirr.divide(totalXirrWeight, 2, RoundingMode.HALF_UP)
+                : null;
+        return schemeXirr;
+    }
+
     private record FolioData(
             String folioNumber,
             UserSchemeDetailsEntity schemeDetails,
             SchemeValueEntity schemeValue,
-            @org.jspecify.annotations.Nullable BigDecimal xirr) {}
+            @Nullable BigDecimal xirr) {}
 }

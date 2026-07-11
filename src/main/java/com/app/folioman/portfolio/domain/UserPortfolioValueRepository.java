@@ -28,7 +28,7 @@ interface UserPortfolioValueRepository extends JpaRepository<UserPortfolioValueE
     Optional<UserPortfolioValueProjection> getLatestPortfolioValueByPan(@Param("pan") String pan);
 
     @NativeQuery("""
-            SELECT upv.value as value, upv.date as date, upv.xirr as xirr
+            SELECT upv.value as value, upv.date as date, upv.xirr as xirr, upv.live_xirr as liveXirr
             FROM portfolio.user_portfolio_value upv
             WHERE upv.user_cas_details_id = :casId
             ORDER BY upv.date DESC, upv.id DESC
