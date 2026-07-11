@@ -36,7 +36,9 @@ public class XirrCalculator {
                         double days = ChronoUnit.DAYS.between(t0, entry.getKey());
                         double denomDouble =
                                 Math.pow(1.0 + rate.negate().doubleValue(), days / DAYS_PER_YEAR.doubleValue());
-                        if (!Double.isFinite(denomDouble)) return BigDecimal.ZERO;
+                        if (!Double.isFinite(denomDouble) || denomDouble == 0.0) {
+                            return BigDecimal.ZERO;
+                        }
                         return vi.divide(BigDecimal.valueOf(denomDouble), MC);
                     })
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
@@ -47,7 +49,9 @@ public class XirrCalculator {
                     BigDecimal vi = entry.getValue();
                     double days = ChronoUnit.DAYS.between(t0, entry.getKey());
                     double denomDouble = Math.pow(1.0 + rate.doubleValue(), days / DAYS_PER_YEAR.doubleValue());
-                    if (!Double.isFinite(denomDouble)) return BigDecimal.ZERO;
+                    if (!Double.isFinite(denomDouble) || denomDouble == 0.0) {
+                        return BigDecimal.ZERO;
+                    }
                     return vi.divide(BigDecimal.valueOf(denomDouble), MC);
                 })
                 .reduce(BigDecimal.ZERO, BigDecimal::add);

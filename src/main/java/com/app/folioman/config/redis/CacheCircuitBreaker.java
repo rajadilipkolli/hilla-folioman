@@ -75,6 +75,9 @@ public class CacheCircuitBreaker {
         if (supplier == null) {
             throw new IllegalArgumentException("Supplier cannot be null");
         }
+        if (fallback == null) {
+            throw new IllegalArgumentException("Fallback cannot be null");
+        }
         try {
             return CircuitBreaker.decorateSupplier(circuitBreaker, supplier).get();
         } catch (Exception e) {
