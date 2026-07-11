@@ -75,11 +75,11 @@
       "@vaadin/vaadin-lumo-styles": "25.2.0",
       "@vaadin/vaadin-themable-mixin": "25.2.0",
       "@vaadin/vaadin-usage-statistics": "2.1.2",
-      "date-fns": "4.1.0",
+      "date-fns": "4.4.0",
       "lit": "3.3.3",
       "react": "19.2.7",
       "react-dom": "19.2.7",
-      "react-router": "7.18.0"
+      "react-router": "8.2.0"
     },
     "devDependencies": {
       "@babel/core": "7.29.7",
@@ -90,7 +90,7 @@
       "@rolldown/plugin-babel": "0.2.3",
       "@rollup/plugin-replace": "6.0.3",
       "@rollup/pluginutils": "5.4.0",
-      "@types/node": "25.9.4",
+      "@types/node": "25.9.5",
       "@types/react": "19.2.17",
       "@types/react-dom": "19.2.3",
       "@vaadin/hilla-generator-cli": "25.2.0",
@@ -111,7 +111,7 @@
       "strip-css-comments": "5.0.0",
       "transform-ast": "2.4.4",
       "typescript": "6.0.3",
-      "vite": "8.0.16",
+      "vite": "8.1.4",
       "vite-plugin-checker": "0.14.4"
     },
     "hash": "ff186bf03e2605b97b4af52726fabab3c4a643ede62287f4dda5bf6e08d662d3",

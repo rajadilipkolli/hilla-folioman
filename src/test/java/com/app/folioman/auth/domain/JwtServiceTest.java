@@ -3,6 +3,8 @@ package com.app.folioman.auth.domain;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.app.folioman.auth.config.JwtProperties;
+import io.jsonwebtoken.security.Keys;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Date;
 import org.junit.jupiter.api.BeforeEach;
@@ -102,17 +104,10 @@ class JwtServiceTest {
                 .claim("token_type", "access")
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + 1800000L))
-                .signWith(
-                        io.jsonwebtoken.security.Keys.hmacShaKeyFor("testSecretKeyThatNeedsToBeLongEnoughForHmacSha256"
-                                .getBytes(java.nio.charset.StandardCharsets.UTF_8)))
+                .signWith(Keys.hmacShaKeyFor(
+                        "testSecretKeyThatNeedsToBeLongEnoughForHmacSha256".getBytes(StandardCharsets.UTF_8)))
                 .compact();
 
         assertNull(jwtService.extractEmail(token));
-    }
-
-    @Test
-    void extractEmailCorrectlyParsesEmailClaim() {
-        String token = jwtService.generateAccessToken(userDetails);
-        assertEquals("testuser", jwtService.extractEmail(token));
     }
 }

@@ -7,29 +7,21 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.app.folioman.config.redis.CacheNames;
+import com.app.folioman.portfolio.domain.CasTypeEnum;
+import com.app.folioman.portfolio.domain.FileTypeEnum;
+import com.app.folioman.portfolio.domain.InvestorInfoEntity;
+import com.app.folioman.portfolio.domain.UserCasDetailsEntity;
+import com.app.folioman.portfolio.domain.UserPortfolioValueEntity;
 import com.app.folioman.shared.AbstractIntegrationTest;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Set;
-import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.transaction.support.TransactionTemplate;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.web.servlet.MvcResult;
 
 class PortfolioHistoryControllerIT extends AbstractIntegrationTest {
-
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
-  
-    @Autowired
-    private EntityManager entityManager;
-
-    @Autowired
-    private TransactionTemplate transactionTemplate;
 
     @Test
     @DisplayName("Should return unauthorized when no authentication token is provided")
@@ -121,18 +113,16 @@ class PortfolioHistoryControllerIT extends AbstractIntegrationTest {
 
     private Long insertTestPortfolioHistory(String email, LocalDate date) {
         return transactionTemplate.execute(status -> {
-            com.app.folioman.portfolio.domain.UserCasDetailsEntity casDetails =
-                    new com.app.folioman.portfolio.domain.UserCasDetailsEntity()
-                            .setCasTypeEnum(com.app.folioman.portfolio.domain.CasTypeEnum.DETAILED)
-                            .setFileTypeEnum(com.app.folioman.portfolio.domain.FileTypeEnum.CAMS);
+            UserCasDetailsEntity casDetails = new UserCasDetailsEntity()
+                    .setCasTypeEnum(CasTypeEnum.DETAILED)
+                    .setFileTypeEnum(FileTypeEnum.CAMS);
 
-            com.app.folioman.portfolio.domain.InvestorInfoEntity investorInfo =
-                    new com.app.folioman.portfolio.domain.InvestorInfoEntity()
-                            .setEmail(email)
-                            .setName("Integration Test User")
-                            .setMobile("9999999999")
-                            .setAddress("Test Address")
-                            .setUserCasDetailsEntity(casDetails);
+            InvestorInfoEntity investorInfo = new InvestorInfoEntity()
+                    .setEmail(email)
+                    .setName("Integration Test User")
+                    .setMobile("9999999999")
+                    .setAddress("Test Address")
+                    .setUserCasDetailsEntity(casDetails);
 
             casDetails.setInvestorInfoEntity(investorInfo);
 
@@ -140,14 +130,13 @@ class PortfolioHistoryControllerIT extends AbstractIntegrationTest {
             entityManager.flush();
             Long casId = casDetails.getId();
 
-            com.app.folioman.portfolio.domain.UserPortfolioValueEntity valueEntity =
-                    new com.app.folioman.portfolio.domain.UserPortfolioValueEntity()
-                            .setDate(date)
-                            .setInvested(BigDecimal.valueOf(1000L))
-                            .setValue(BigDecimal.valueOf(1100L))
-                            .setXirr(BigDecimal.valueOf(10.5))
-                            .setLiveXirr(BigDecimal.valueOf(12.5))
-                            .setUserCasDetails(casDetails);
+            UserPortfolioValueEntity valueEntity = new UserPortfolioValueEntity()
+                    .setDate(date)
+                    .setInvested(BigDecimal.valueOf(1000L))
+                    .setValue(BigDecimal.valueOf(1100L))
+                    .setXirr(BigDecimal.valueOf(10.5))
+                    .setLiveXirr(BigDecimal.valueOf(12.5))
+                    .setUserCasDetails(casDetails);
 
             entityManager.persist(valueEntity);
             entityManager.flush();
