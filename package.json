@@ -49,6 +49,7 @@
     "@vaadin/hilla-generator-plugin-transfertypes": "25.2.4",
     "@vaadin/hilla-generator-utils": "25.2.4",
     "@vitejs/plugin-react": "6.0.3",
+    "@babel/core": "7.29.7",
     "magic-string": "1.0.0",
     "rollup-plugin-brotli": "3.1.0",
     "rollup-plugin-visualizer": "7.0.1",
@@ -114,7 +115,7 @@
       "vite": "8.0.16",
       "vite-plugin-checker": "0.14.4"
     },
-    "hash": "cbcae0db82fde667d151a1314c22cb2515a8931743368864a37a9278ab4ebf5e"
+    "hash": "f5acd19f31544509ad8eec0763b9b08068aa57195912e9723756e5725a4a8f21"
   },
   "overrides": {
     "@vaadin/common-frontend": "$@vaadin/common-frontend",
