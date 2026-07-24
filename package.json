@@ -4,7 +4,7 @@
   "type": "module",
   "dependencies": {
     "@vaadin/aura": "25.2.5",
-    "@vaadin/common-frontend": "0.0.23",
+    "@vaadin/common-frontend": "0.0.24",
     "@vaadin/hilla-file-router": "25.2.4",
     "@vaadin/hilla-frontend": "25.2.4",
     "@vaadin/hilla-lit-form": "25.2.4",
