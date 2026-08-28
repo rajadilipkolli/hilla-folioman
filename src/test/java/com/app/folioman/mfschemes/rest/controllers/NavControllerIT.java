@@ -38,7 +38,7 @@ class NavControllerIT extends AbstractIntegrationTest {
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, is(MediaType.APPLICATION_JSON_VALUE)))
                 .andExpect(jsonPath("$.schemeCode", is(120503L), Long.class))
                 .andExpect(jsonPath("$.isin", is("INF846K01EW2")))
-                .andExpect(jsonPath("$.schemeName", is("AXIS ELSS TAX SAVER FUND - DIRECT GROWTH")))
+                .andExpect(jsonPath("$.schemeName", is("AXIS ELSS- TAX SAVER FUND - DIRECT GROWTH")))
                 .andExpect(jsonPath("$.nav", notNullValue(String.class)))
                 .andExpect(jsonPath("$.date", notNullValue(String.class)));
     }
@@ -52,10 +52,10 @@ class NavControllerIT extends AbstractIntegrationTest {
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, is(MediaType.APPLICATION_JSON_VALUE)))
                 .andExpect(jsonPath("$.schemeCode", is(120503L), Long.class))
                 .andExpect(jsonPath("$.isin", is("INF846K01EW2")))
-                .andExpect(jsonPath("$.schemeName", is("AXIS ELSS TAX SAVER FUND - DIRECT GROWTH")))
+                .andExpect(jsonPath("$.schemeName", is("AXIS ELSS- TAX SAVER FUND - DIRECT GROWTH")))
                 .andExpect(jsonPath("$.nav", is("73.60850")))
                 .andExpect(jsonPath("$.date", is("2022-12-20")))
-                .andExpect(jsonPath("$.schemeType", is("Open Ended(Equity Scheme - ELSS)")));
+                .andExpect(jsonPath("$.schemeType", is("Open Ended(Equity Schemes - ELSS- Tax Saver Fund)")));
     }
 
     @Test
@@ -115,6 +115,6 @@ class NavControllerIT extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.schemeName", is("HSBC VALUE FUND DIRECT PLAN - GROWTH")))
                 .andExpect(jsonPath("$.nav", is("63.16200")))
                 .andExpect(jsonPath("$.date", is("2022-10-20")))
-                .andExpect(jsonPath("$.schemeType", is("Open Ended(Equity Scheme - Value Fund)")));
+                .andExpect(jsonPath("$.schemeType", is("Open Ended(Equity Schemes - Value Fund)")));
     }
 }
