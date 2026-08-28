@@ -125,14 +125,14 @@ class MfHistoricalNavService {
             String amc,
             String schemeType,
             Long inputSchemeCode) {
-        final Long schemeCode = Long.valueOf(tokenize[0]);
-        final String payout = tokenize[2];
+        final Long schemeCode = Long.valueOf(tokenize[0].strip());
+        final String payout = tokenize.length > 4 ? tokenize[4] : "";
         if (payout.equalsIgnoreCase(isin) || schemeCode.equals(inputSchemeCode)) {
             oldSchemeId = String.valueOf(schemeCode);
             if (persistSchemeInfo) {
-                String nav = tokenize[4];
-                String date = tokenize[7];
-                String schemeName = tokenize[1];
+                String nav = tokenize.length > 6 ? tokenize[6] : "";
+                String date = tokenize.length > 7 ? tokenize[7] : "";
+                String schemeName = tokenize.length > 1 ? tokenize[1] : "";
                 MFSchemeDTO mfSchemeDTO = new MFSchemeDTO(amc, schemeCode, payout, schemeName, nav, date, schemeType);
                 MfFundSchemeEntity mfScheme = mfSchemeDtoToEntityMapper.mapMFSchemeDTOToMfFundScheme(mfSchemeDTO);
                 mfSchemeService.saveEntity(mfScheme);
