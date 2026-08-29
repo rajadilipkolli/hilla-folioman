@@ -1,5 +1,6 @@
 package com.app.folioman.mfschemes.domain;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
@@ -22,6 +23,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -93,7 +95,7 @@ class InitializerTest {
                 .when(amfiService)
                 .fetchAmfiSchemeData(any(Consumer.class));
 
-        given(mfNavService.getAmfiCodeIsinMap()).willReturn(Collections.emptyMap());
+        given(mfNavService.getAmfiCodeIsinMap()).willReturn(Map.of("NAV-ISIN", 1L));
 
         // Mock BSE data
         BSEStarMasterDataService.BseMasterDataResult mockBseResult =
@@ -104,7 +106,8 @@ class InitializerTest {
         for (Long amfiCode : amfiData.keySet()) {
             bseData.put(amfiCode, new MfFundSchemeEntity());
         }
-        given(bseStarMasterDataService.processAmfiBatch(eq(mockBseResult), anyMap(), anyMap()))
+        ArgumentCaptor<Map<Long, String>> mappingCaptor = ArgumentCaptor.forClass(Map.class);
+        given(bseStarMasterDataService.processAmfiBatch(eq(mockBseResult), anyMap(), mappingCaptor.capture()))
                 .willReturn(bseData);
 
         // Mock DB data
@@ -118,6 +121,7 @@ class InitializerTest {
         verify(bseStarMasterDataService, times(1)).parseBseMasterData("bseRawData");
         verify(bseStarMasterDataService, times(1)).processAmfiBatch(eq(mockBseResult), anyMap(), anyMap());
         verify(mfFundSchemeService, times(1)).findAllAmfiCodes();
+        assertThat(mappingCaptor.getValue()).containsEntry(1L, "NAV-ISIN").containsEntry(2L, "ISIN2");
 
         // Verify batching is done with the mocked batch size of 100
         verify(mfFundSchemeService, times(1)).saveDataInBatches(anyList(), eq(100));

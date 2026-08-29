@@ -347,6 +347,51 @@ class MFNavServiceImplTest {
     }
 
     @Test
+    void getAmfiCodeIsinMapSkipsMalformedSchemeCode() {
+        String allNavs =
+                "Scheme Code;Scheme Name;ISIN Div Payout/ ISIN Growth;ISIN Div Reinvestment;Net Asset Value;Repurchase Price;Sale Price;Date\n"
+                        + "not-a-code;Scheme 123456;INVALID1;INVALID2;10.5;;;15-Jan-2024\n"
+                        + "654321;Scheme2;ISIN3;-;20.75;;;15-Jan-2024";
+
+        doReturn(requestHeadersUriSpec).when(restClient).get();
+        doReturn(requestHeadersSpec).when(requestHeadersUriSpec).uri(anyString());
+        doReturn(requestHeadersSpec).when(requestHeadersSpec).headers(any());
+        doReturn(requestHeadersSpec).when(requestHeadersSpec).header(anyString(), anyString());
+        doReturn(responseSpec).when(requestHeadersSpec).retrieve();
+        doReturn(responseSpec).when(responseSpec).onStatus(any(), any());
+        doReturn(allNavs).when(responseSpec).body(String.class);
+        when(applicationProperties.getNav()).thenReturn(nav);
+        when(nav.getAmfi()).thenReturn(amfi);
+        when(amfi.getDataUrl()).thenReturn("http://test.com");
+
+        Map<String, Long> result = mfNavService.getAmfiCodeIsinMap();
+
+        assertThat(result).containsOnly(Map.entry("ISIN3", 654321L));
+    }
+
+    @Test
+    void loadLastDayDataNavSkipsRowWithoutSchemeCodeColumn() {
+        String allNavs = "Date;Net Asset Value;Scheme Code\n15-Jan-2024;123456;";
+
+        when(MfSchemeNavRepository.findMFSchemeNavsByNavNotLoaded(any(LocalDate.class)))
+                .thenReturn(List.of(123456L));
+        doReturn(requestHeadersUriSpec).when(restClient).get();
+        doReturn(requestHeadersSpec).when(requestHeadersUriSpec).uri(anyString());
+        doReturn(requestHeadersSpec).when(requestHeadersSpec).headers(any());
+        doReturn(requestHeadersSpec).when(requestHeadersSpec).header(anyString(), anyString());
+        doReturn(responseSpec).when(requestHeadersSpec).retrieve();
+        doReturn(responseSpec).when(responseSpec).onStatus(any(), any());
+        doReturn(allNavs).when(responseSpec).body(String.class);
+        when(applicationProperties.getNav()).thenReturn(nav);
+        when(nav.getAmfi()).thenReturn(amfi);
+        when(amfi.getDataUrl()).thenReturn("http://test.com");
+
+        mfNavService.loadLastDayDataNav();
+
+        verify(MfSchemeNavRepository, never()).saveAll(anyList());
+    }
+
+    @Test
     void getAmfiCodeIsinMapRestClientException() {
         doReturn(requestHeadersUriSpec).when(restClient).get();
         doReturn(requestHeadersSpec).when(requestHeadersUriSpec).uri(anyString());

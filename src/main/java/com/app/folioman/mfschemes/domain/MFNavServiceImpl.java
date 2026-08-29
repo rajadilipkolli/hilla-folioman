@@ -259,6 +259,7 @@ class MFNavServiceImpl implements MFNavService {
                 String[] rowParts = row.split(SchemeConstants.NAV_SEPARATOR);
                 if (rowParts.length > indices.schemeCodeIdx) {
                     String schemeCodeStr = rowParts[indices.schemeCodeIdx].trim();
+                    if (!schemeCodePattern.matcher(schemeCodeStr).matches()) continue;
                     if (rowParts.length > indices.isinIdx
                             && !rowParts[indices.isinIdx].trim().equals("-")
                             && !rowParts[indices.isinIdx].trim().isEmpty()) {
@@ -307,12 +308,16 @@ class MFNavServiceImpl implements MFNavService {
             Matcher matcher = schemeCodePattern.matcher(row);
             if (matcher.find()) {
                 String[] rowParts = row.split(SchemeConstants.NAV_SEPARATOR);
-                if (rowParts.length > indices.dateIdx && rowParts.length > indices.navIdx) {
+                if (rowParts.length > indices.dateIdx
+                        && rowParts.length > indices.navIdx
+                        && rowParts.length > indices.schemeCodeIdx) {
+                    String schemeCode = rowParts[indices.schemeCodeIdx].strip();
+                    if (!schemeCodePattern.matcher(schemeCode).matches()) continue;
                     String nav = rowParts[indices.navIdx].strip();
                     LocalDate navDate = LocalDate.parse(rowParts[indices.dateIdx].strip(), FLEXIBLE_DATE_FORMATTER);
                     if (navDate.isEqual(LocalDateUtility.getYesterday())) {
                         amfiCodeIsinMap.put(
-                                Long.valueOf(rowParts[indices.schemeCodeIdx].strip()),
+                                Long.valueOf(schemeCode),
                                 new NavHolder("N.A.".equals(nav) ? BigDecimal.ZERO : new BigDecimal(nav), navDate));
                     }
                 }
