@@ -33,13 +33,12 @@ class MfFundSchemeService {
      * If a transaction fails, it will be retried with smaller batches.
      *
      * @param mfFundSchemes List of mutual fund schemes to save
-     * @param batchSize Size of each batch to process
+     * @param batchSize     Size of each batch to process
      * @return Number of schemes successfully saved
      */
     int saveDataInBatches(List<MfFundSchemeEntity> mfFundSchemes, int batchSize) {
 
         final AtomicInteger successCount = new AtomicInteger(0);
-
         int totalSize = mfFundSchemes.size();
 
         // Process in batches
@@ -54,14 +53,11 @@ class MfFundSchemeService {
                     try {
                         // Create a batch list limited to the current batch size
                         List<MfFundSchemeEntity> batch = new ArrayList<>(currentBatchSize);
-
                         for (int i = batchStartIdx; i < batchEndIdx; i++) {
                             batch.add(mfFundSchemes.get(i));
                         }
-
                         mfFundSchemeRepository.saveAll(batch);
                         successCount.addAndGet(batch.size());
-
                         LOGGER.debug(
                                 "Successfully saved batch of {} schemes ({}-{})",
                                 batch.size(),
@@ -80,7 +76,6 @@ class MfFundSchemeService {
                 // If batch save fails, try individual saves
                 for (int i = batchStartIdx; i < batchEndIdx; i++) {
                     final MfFundSchemeEntity scheme = mfFundSchemes.get(i);
-
                     transactionTemplate.execute(status -> {
                         try {
                             mfFundSchemeRepository.save(scheme);
@@ -102,7 +97,7 @@ class MfFundSchemeService {
         return mfFundSchemeRepository.count();
     }
 
-    List<String> findDistinctAmfiCode() {
-        return mfFundSchemeRepository.findDistinctAmfiCode();
+    List<Long> findAllAmfiCodes() {
+        return mfFundSchemeRepository.findAllAmfiCodes();
     }
 }

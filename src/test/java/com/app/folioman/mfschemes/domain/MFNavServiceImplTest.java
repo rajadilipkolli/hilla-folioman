@@ -240,7 +240,10 @@ class MFNavServiceImplTest {
     @Test
     void loadLastDayDataNavWithData() {
         List<Long> schemeIds = Arrays.asList(123456L, 654321L);
-        String allNavs = "123456;ISIN1;ISIN2;Scheme1;10.5;15-Jan-2024\n654321;ISIN3;ISIN4;Scheme2;20.75;15-Jan-2024";
+        String allNavs =
+                "Scheme Code;Scheme Name;ISIN Div Payout/ ISIN Growth;ISIN Div Reinvestment;Net Asset Value;Repurchase Price;Sale Price;Date\n"
+                        + "123456;Scheme1;ISIN1;ISIN2;10.5;;;15-Jan-2024\n"
+                        + "654321;Scheme2;ISIN3;ISIN4;20.75;;;15-Jan-2024";
         MfFundSchemeEntity scheme1 = new MfFundSchemeEntity();
         MfFundSchemeEntity scheme2 = new MfFundSchemeEntity();
 
@@ -318,7 +321,10 @@ class MFNavServiceImplTest {
 
     @Test
     void getAmfiCodeIsinMap() {
-        String allNavs = "123456;ISIN1;ISIN2;Scheme1;10.5;15-Jan-2024\n654321;ISIN3;-;Scheme2;20.75;15-Jan-2024";
+        String allNavs =
+                "Scheme Code;Scheme Name;ISIN Div Payout/ ISIN Growth;ISIN Div Reinvestment;Net Asset Value;Repurchase Price;Sale Price;Date\n"
+                        + "123456;Scheme1;ISIN1;ISIN2;10.5;;;15-Jan-2024\n"
+                        + "654321;Scheme2;ISIN3;-;20.75;;;15-Jan-2024";
 
         doReturn(requestHeadersUriSpec).when(restClient).get();
         doReturn(requestHeadersSpec).when(requestHeadersUriSpec).uri(anyString());
@@ -331,12 +337,12 @@ class MFNavServiceImplTest {
         when(nav.getAmfi()).thenReturn(amfi);
         when(amfi.getDataUrl()).thenReturn("http://test.com");
 
-        Map<String, String> result = mfNavService.getAmfiCodeIsinMap();
+        Map<String, Long> result = mfNavService.getAmfiCodeIsinMap();
 
         assertThat(result)
-                .containsEntry("ISIN1", "123456")
-                .containsEntry("ISIN2", "123456")
-                .containsEntry("ISIN3", "654321")
+                .containsEntry("ISIN1", 123456L)
+                .containsEntry("ISIN2", 123456L)
+                .containsEntry("ISIN3", 654321L)
                 .doesNotContainKey("-");
     }
 
@@ -353,7 +359,7 @@ class MFNavServiceImplTest {
         when(nav.getAmfi()).thenReturn(amfi);
         when(amfi.getDataUrl()).thenReturn("http://test.com");
 
-        Map<String, String> result = mfNavService.getAmfiCodeIsinMap();
+        Map<String, Long> result = mfNavService.getAmfiCodeIsinMap();
 
         assertThat(result).isEmpty();
     }

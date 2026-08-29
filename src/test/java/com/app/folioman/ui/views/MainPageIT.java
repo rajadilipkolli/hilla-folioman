@@ -108,6 +108,7 @@ class MainPageIT extends AbstractIntegrationTest {
         driver.get(baseUrl + "/");
 
         wait.until(ExpectedConditions.urlToBe(baseUrl + "/"));
+        wait.until(d -> d.getTitle() != null && !d.getTitle().isEmpty());
 
         assertThat(driver.getTitle() != null && !driver.getTitle().isEmpty())
                 .as("Main page should load and have a title")
@@ -144,6 +145,7 @@ class MainPageIT extends AbstractIntegrationTest {
                 }
             });
         } catch (TimeoutException e) {
+            System.out.println("TIMEOUT! Page Source:\n" + driver.getPageSource());
             throw e;
         }
 

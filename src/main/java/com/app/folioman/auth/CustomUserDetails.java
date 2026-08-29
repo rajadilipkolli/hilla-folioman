@@ -25,6 +25,7 @@ public class CustomUserDetails extends User implements EmailAware {
         this.id = id;
     }
 
+    @Override
     public String getEmail() {
         return email;
     }

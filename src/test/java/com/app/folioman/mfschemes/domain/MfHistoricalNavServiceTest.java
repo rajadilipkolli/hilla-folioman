@@ -226,8 +226,8 @@ class MfHistoricalNavServiceTest {
 
     private String createMockNavResponse(Long schemeCode, String isin) {
         return """
-            ;
-            ;
+            Scheme Code;Scheme Name;ISIN Div Payout/ ISIN Growth;ISIN Div Reinvestment;Net Asset Value;Repurchase Price;Sale Price;Date
+
             Open Ended Schemes ( All Schemes )
             HDFC Asset Management Company Limited
 
@@ -237,8 +237,8 @@ class MfHistoricalNavServiceTest {
 
     private String createComplexMockNavResponse(Long schemeCode, String isin) {
         return """
-            ;
-            ;
+            Scheme Code;Scheme Name;ISIN Div Payout/ ISIN Growth;ISIN Div Reinvestment;Net Asset Value;Repurchase Price;Sale Price;Date
+
             Open Ended Schemes ( All Schemes )
             HDFC Asset Management Company Limited
 

@@ -70,8 +70,8 @@ interface MfFundSchemeRepository extends JpaRepository<MfFundSchemeEntity, Long>
 
     Optional<MFSchemeProjection> findByIsin(String isin);
 
-    @Query("select distinct m.amfiCode from MfFundSchemeEntity m")
-    List<String> findDistinctAmfiCode();
+    @Query("select m.amfiCode from MfFundSchemeEntity m")
+    List<Long> findAllAmfiCodes();
 
     List<MFSchemeProjection> findByRtaCodeStartsWith(String rtaCode);
 

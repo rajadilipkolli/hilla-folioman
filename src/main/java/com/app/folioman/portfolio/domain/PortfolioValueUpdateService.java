@@ -98,8 +98,7 @@ public class PortfolioValueUpdateService {
             if (entity != null) {
                 // Eagerly initialize folios, schemes, and transactions before leaving the transaction
                 entity.getFolios().forEach(folio -> {
-                    folio.getSchemes()
-                            .forEach(scheme -> scheme.getTransactions().size());
+                    folio.getSchemes().forEach(scheme -> org.hibernate.Hibernate.initialize(scheme.getTransactions()));
                 });
             }
             return entity;
@@ -989,11 +988,11 @@ public class PortfolioValueUpdateService {
                             dataContainer.cashFlowsByScheme().get(schemeCode))
                     .setScale(4, RoundingMode.HALF_UP);
 
-            // Create or update FolioSchemeEntity with XIRR
-            FolioSchemeEntity FolioSchemeEntity = findOrCreateFolioScheme(schemeDetailId, userSchemeDetailsEntity);
-            FolioSchemeEntity.setXirr(xirrValue);
-            FolioSchemeEntity.setValuationDate(endDate);
-            folioSchemeRepository.save(FolioSchemeEntity);
+            // Create or update folioSchemeEntity with XIRR
+            FolioSchemeEntity folioSchemeEntity = findOrCreateFolioScheme(schemeDetailId, userSchemeDetailsEntity);
+            folioSchemeEntity.setXirr(xirrValue);
+            folioSchemeEntity.setValuationDate(endDate);
+            folioSchemeRepository.save(folioSchemeEntity);
 
             LOGGER.debug("Saved XIRR {} for scheme ID {}", xirrValue, schemeDetailId);
         } catch (Exception e) {

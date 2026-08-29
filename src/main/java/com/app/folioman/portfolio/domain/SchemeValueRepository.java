@@ -19,7 +19,7 @@ interface SchemeValueRepository extends JpaRepository<@NonNull SchemeValueEntity
             Long id, LocalDate schemeFromDate);
 
     @Query("""
-            SELECT sv FROM SchemeValueEntity sv
+            SELECT sv FROM SchemeValueEntity sv JOIN FETCH sv.userSchemeDetailsEntity
             WHERE sv.userSchemeDetailsEntity.id IN :schemeIds
               AND sv.date = (SELECT MAX(sv2.date) FROM SchemeValueEntity sv2 WHERE sv2.userSchemeDetailsEntity.id = sv.userSchemeDetailsEntity.id)
             """)

@@ -20,7 +20,7 @@ public interface MFNavService {
 
     void loadHistoricalDataIfNotExists();
 
-    Map<String, String> getAmfiCodeIsinMap();
+    Map<String, Long> getAmfiCodeIsinMap();
 
     Optional<MFSchemeDTO> findTopBySchemeIdOrderByDateDesc(Long schemeId);
     /**

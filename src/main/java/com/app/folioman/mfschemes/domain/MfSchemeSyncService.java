@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 import org.jobrunr.jobs.annotations.Job;
@@ -69,8 +68,8 @@ public class MfSchemeSyncService {
                 if (amfiDataMap.isEmpty()) return;
 
                 try {
-                    Map<String, String> amfiCodeIsinMapping = getAmfiCodeISINMapping(amfiDataMap);
-                    Map<String, MfFundSchemeEntity> incomingSchemesMap =
+                    Map<Long, String> amfiCodeIsinMapping = getAmfiCodeISINMapping(amfiDataMap);
+                    Map<Long, MfFundSchemeEntity> incomingSchemesMap =
                             bseStarMasterDataService.processAmfiBatch(bseDataResult, amfiDataMap, amfiCodeIsinMapping);
 
                     if (!incomingSchemesMap.isEmpty()) {
@@ -95,19 +94,17 @@ public class MfSchemeSyncService {
         }
     }
 
-    private void processIncomingBatch(Map<String, MfFundSchemeEntity> incomingSchemesMap, SyncStatistics stats) {
-        Set<Long> amfiCodes =
-                incomingSchemesMap.keySet().stream().map(Long::valueOf).collect(Collectors.toSet());
-
+    private void processIncomingBatch(Map<Long, MfFundSchemeEntity> incomingSchemesMap, SyncStatistics stats) {
         // Fetch existing schemes for O(1) lookup
-        Map<Long, MfFundSchemeEntity> existingSchemesMap = mfFundSchemeRepository.findByAmfiCodeIn(amfiCodes).stream()
-                .collect(Collectors.toMap(MfFundSchemeEntity::getAmfiCode, scheme -> scheme));
+        Map<Long, MfFundSchemeEntity> existingSchemesMap =
+                mfFundSchemeRepository.findByAmfiCodeIn(incomingSchemesMap.keySet()).stream()
+                        .collect(Collectors.toMap(MfFundSchemeEntity::getAmfiCode, scheme -> scheme));
 
         List<MfFundSchemeEntity> newSchemesToSave = new ArrayList<>();
         List<MfFundSchemeEntity> updatedSchemesToSave = new ArrayList<>();
 
-        for (Map.Entry<String, MfFundSchemeEntity> entry : incomingSchemesMap.entrySet()) {
-            Long amfiCode = Long.valueOf(entry.getKey());
+        for (Map.Entry<Long, MfFundSchemeEntity> entry : incomingSchemesMap.entrySet()) {
+            Long amfiCode = entry.getKey();
             MfFundSchemeEntity incoming = entry.getValue();
             MfFundSchemeEntity existing = existingSchemesMap.get(amfiCode);
 
@@ -168,10 +165,10 @@ public class MfSchemeSyncService {
         return !Objects.equals(existingCategoryId, incomingCategoryId);
     }
 
-    private Map<String, String> getAmfiCodeISINMapping(Map<String, Map<String, String>> amfiDataMap) {
-        Map<String, String> localAmfiCodeIsinMap = new java.util.HashMap<>();
-        for (Map.Entry<String, Map<String, String>> outerEntry : amfiDataMap.entrySet()) {
-            String amfiCode = outerEntry.getKey();
+    private Map<Long, String> getAmfiCodeISINMapping(Map<Long, Map<String, String>> amfiDataMap) {
+        Map<Long, String> localAmfiCodeIsinMap = new java.util.HashMap<>();
+        for (Map.Entry<Long, Map<String, String>> outerEntry : amfiDataMap.entrySet()) {
+            Long amfiCode = outerEntry.getKey();
             String isin = outerEntry.getValue().get(ISIN_KEY);
             if (isin != null) {
                 String processedIsin = (isin.length() > 12) ? isin.substring(0, 12) : isin;

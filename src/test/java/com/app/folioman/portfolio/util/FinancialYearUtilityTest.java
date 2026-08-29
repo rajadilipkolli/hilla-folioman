@@ -1,6 +1,7 @@
 package com.app.folioman.portfolio.util;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
@@ -31,5 +32,12 @@ class FinancialYearUtilityTest {
 
         assertThat(fy.startDate()).isEqualTo(LocalDate.of(2023, 4, 1));
         assertThat(fy.endDate()).isEqualTo(LocalDate.of(2024, 3, 31));
+    }
+
+    @Test
+    void shouldThrowExceptionWhenDateIsNull() {
+        assertThatThrownBy(() -> FinancialYearUtility.getFinancialYearForDate(null))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Date cannot be null");
     }
 }

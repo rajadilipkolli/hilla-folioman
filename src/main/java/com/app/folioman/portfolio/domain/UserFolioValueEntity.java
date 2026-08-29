@@ -3,6 +3,7 @@ package com.app.folioman.portfolio.domain;
 import com.app.folioman.shared.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -42,7 +43,7 @@ class UserFolioValueEntity extends BaseEntity {
     @Column(precision = 30, scale = 2, nullable = false)
     private BigDecimal value;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_folio_details_id", nullable = false)
     private UserFolioDetailsEntity userFolioDetailsEntity;
 

@@ -3,6 +3,7 @@ package com.app.folioman.portfolio.domain;
 import com.app.folioman.shared.BaseEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -45,7 +46,7 @@ class SchemeValueEntity extends BaseEntity {
     @Column(precision = 20, scale = 3)
     private BigDecimal balance;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_scheme_detail_id", nullable = false)
     private UserSchemeDetailsEntity userSchemeDetailsEntity;
 

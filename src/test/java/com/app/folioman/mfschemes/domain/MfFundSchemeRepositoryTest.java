@@ -109,7 +109,7 @@ class MfFundSchemeRepositoryTest {
 
     @Test
     void findDistinctAmfiCode_ShouldReturnListOfStrings() {
-        List<String> result = mfFundSchemeRepository.findDistinctAmfiCode();
+        List<Long> result = mfFundSchemeRepository.findAllAmfiCodes();
         assertThat(result).isNotNull();
     }
 

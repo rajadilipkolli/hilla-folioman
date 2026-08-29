@@ -4,6 +4,7 @@ import com.app.folioman.shared.BaseEntity;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -60,7 +61,7 @@ class UserSchemeDetailsEntity extends BaseEntity {
     @Column(name = "close_calculated")
     private @Nullable String closeCalculated;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_folio_id", nullable = false)
     private UserFolioDetailsEntity userFolioDetails;
 

@@ -133,12 +133,12 @@ class BSEStarMasterDataService {
         return new BseMasterDataResult(headerIndexKeyMap, isinToRowsMap);
     }
 
-    public Map<String, MfFundSchemeEntity> processAmfiBatch(
+    public Map<Long, MfFundSchemeEntity> processAmfiBatch(
             BseMasterDataResult bseData,
-            Map<String, Map<String, String>> amfiDataMap,
-            Map<String, String> amfiCodeIsinMapping) {
+            Map<Long, Map<String, String>> amfiDataMap,
+            Map<Long, String> amfiCodeIsinMapping) {
 
-        Map<String, MfFundSchemeEntity> masterData = new ConcurrentHashMap<>();
+        Map<Long, MfFundSchemeEntity> masterData = new ConcurrentHashMap<>();
         Map<String, MfFundSchemeEntity> isinMasterData = new ConcurrentHashMap<>();
 
         if (bseData.headerIndexKeyMap().isEmpty()) {
@@ -148,9 +148,9 @@ class BSEStarMasterDataService {
         // Process based on current batch's AMFI codes and their ISINs
         List<CompletableFuture<Void>> futures = new ArrayList<>();
 
-        for (Map.Entry<String, Map<String, String>> amfiEntry : amfiDataMap.entrySet()) {
+        for (Map.Entry<Long, Map<String, String>> amfiEntry : amfiDataMap.entrySet()) {
             CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
-                        String amfiCode = amfiEntry.getKey();
+                        Long amfiCode = amfiEntry.getKey();
                         String isin = amfiEntry.getValue().get(AMFI_ISIN_KEY);
 
                         // Process ISIN if present
@@ -191,12 +191,12 @@ class BSEStarMasterDataService {
             Map<String, Integer> headerIndexKeyMap, Map<String, List<String[]>> isinToRowsMap) {}
 
     private void processAmfiFallback(
-            String amfiCode,
+            Long amfiCode,
             @Nullable Map<String, String> amfiSchemeData,
-            Map<String, MfFundSchemeEntity> masterData,
-            Map<String, String> amfiCodeIsinMapping) {
+            Map<Long, MfFundSchemeEntity> masterData,
+            Map<Long, String> amfiCodeIsinMapping) {
         MfFundSchemeEntity fallbackScheme = new MfFundSchemeEntity();
-        fallbackScheme.setAmfiCode(Long.valueOf(amfiCode));
+        fallbackScheme.setAmfiCode(amfiCode);
         fallbackScheme.setIsin(amfiCodeIsinMapping.get(amfiCode));
         if (amfiSchemeData != null) {
             fallbackScheme.setName(
@@ -216,10 +216,10 @@ class BSEStarMasterDataService {
     private void processSchemeData(
             String[] row,
             Map<String, Integer> headerIndexKeyMap,
-            Map<String, MfFundSchemeEntity> masterData,
+            Map<Long, MfFundSchemeEntity> masterData,
             Map<String, MfFundSchemeEntity> isinMasterData,
-            Map<String, Map<String, String>> amfiDataMap,
-            String amfiCode) {
+            Map<Long, Map<String, String>> amfiDataMap,
+            Long amfiCode) {
 
         String isin = getRequiredValue(row, headerIndexKeyMap, "ISIN");
         String schemeCode = getRequiredValue(row, headerIndexKeyMap, "Scheme Code");
@@ -236,7 +236,7 @@ class BSEStarMasterDataService {
 
             Map<String, String> amfiDataMapByAmfiCode = amfiDataMap.get(amfiCode);
             MfFundSchemeEntity scheme = createMfFundScheme(row, headerIndexKeyMap, amfiDataMapByAmfiCode);
-            scheme.setAmfiCode(Long.valueOf(amfiCode));
+            scheme.setAmfiCode(amfiCode);
 
             // Process AMC
             String amcCode = getRequiredValue(row, headerIndexKeyMap, "AMC Code");
