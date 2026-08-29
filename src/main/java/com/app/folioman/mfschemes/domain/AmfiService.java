@@ -35,7 +35,7 @@ class AmfiService {
         this.mfSchemesProperties = mfSchemesProperties;
     }
 
-    public void fetchAmfiSchemeData(Consumer<Map<String, Map<String, String>>> batchProcessor)
+    public void fetchAmfiSchemeData(Consumer<Map<Long, Map<String, String>>> batchProcessor)
             throws IOException, CsvException {
         LOGGER.info("Downloading AMFI scheme data...");
 
@@ -70,7 +70,7 @@ class AmfiService {
             }
 
             int batchSize = mfSchemesProperties.getCsvProcessingBatchSize();
-            Map<String, Map<String, String>> currentBatch = new HashMap<>(batchSize);
+            Map<Long, Map<String, String>> currentBatch = new HashMap<>(batchSize);
 
             // Process each row incrementally
             String[] row;
@@ -81,7 +81,7 @@ class AmfiService {
                     continue;
                 }
                 // Get the 'Code' column value
-                String code = row[1].strip();
+                Long code = Long.valueOf(row[1].strip());
 
                 // Create a map for each row with header-value pairs
                 Map<String, String> rowData = new HashMap<>();

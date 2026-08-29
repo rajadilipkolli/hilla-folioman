@@ -18,6 +18,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import org.hibernate.annotations.NaturalId;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
@@ -42,13 +43,14 @@ class MfFundSchemeEntity extends BaseEntity {
     private @Nullable String amcCode;
 
     @Column(unique = true)
+    @NaturalId
     private Long amfiCode;
 
     private @Nullable String isin;
     private @Nullable LocalDate startDate;
     private @Nullable LocalDate endDate;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "mf_amc_id", nullable = false)
     private MfAmcEntity amc;
 

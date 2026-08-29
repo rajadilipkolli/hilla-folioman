@@ -735,4 +735,59 @@ class XirrCalculatorTest {
         assertThat(XirrCalculator.cagr(new BigDecimal("-1000"), new BigDecimal("1100"), 365))
                 .isNull();
     }
+
+    @Test
+    @DisplayName("Should test cleanXirr method filtering zero values")
+    void testCleanXirr() {
+        Map<LocalDate, BigDecimal> valuesPerDate = Map.of(
+                LocalDate.of(2020, 1, 1), new BigDecimal("-1000"),
+                LocalDate.of(2021, 1, 1), new BigDecimal("1100"),
+                LocalDate.of(2021, 6, 1), new BigDecimal("0.001") // Should be filtered out
+                );
+        BigDecimal result = XirrCalculator.cleanXirr(valuesPerDate);
+        assertThat(result).isNotNull();
+        assertThat(result).isCloseTo(new BigDecimal("0.1"), within(TOLERANCE));
+    }
+
+    @Test
+    @DisplayName("Should return null for cleanXirr when rate is extremely high")
+    void testCleanXirrHighRate() {
+        Map<LocalDate, BigDecimal> valuesPerDate = Map.of(
+                LocalDate.of(2020, 1, 1), new BigDecimal("-1"),
+                LocalDate.of(2021, 1, 1), new BigDecimal("200") // Expected to be >= 100
+                );
+        BigDecimal result = XirrCalculator.cleanXirr(valuesPerDate);
+        assertThat(result).isNull();
+    }
+
+    @Test
+    @DisplayName("Should return null for cleanXirr when exception occurs")
+    void testCleanXirrException() {
+        Map<LocalDate, BigDecimal> valuesPerDate = Map.of(
+                LocalDate.of(2020, 1, 1), new BigDecimal("-1000"),
+                LocalDate.of(2021, 1, 1), new BigDecimal("-1000") // Will throw exception because no positive flow
+                );
+        BigDecimal result = XirrCalculator.cleanXirr(valuesPerDate);
+        assertThat(result).isNull();
+    }
+
+    @Test
+    @DisplayName("Should return null for cleanXirr when rate is approximately zero")
+    void testCleanXirrZeroRate() {
+        Map<LocalDate, BigDecimal> valuesPerDate = Map.of(
+                LocalDate.of(2020, 1, 1), new BigDecimal("-1000"),
+                LocalDate.of(2021, 1, 1), new BigDecimal("1000.00001"));
+        BigDecimal result = XirrCalculator.cleanXirr(valuesPerDate);
+        assertThat(result).isNull();
+    }
+
+    @Test
+    @DisplayName("Should test listsXirr method")
+    void testListsXirr() {
+        java.util.List<LocalDate> dates = java.util.List.of(LocalDate.of(2020, 1, 1), LocalDate.of(2021, 1, 1));
+        java.util.List<BigDecimal> values = java.util.List.of(new BigDecimal("-1000"), new BigDecimal("1100"));
+        BigDecimal result = XirrCalculator.listsXirr(dates, values, XirrCalculator::xirr);
+        assertThat(result).isNotNull();
+        assertThat(result).isCloseTo(new BigDecimal("0.1"), within(TOLERANCE));
+    }
 }

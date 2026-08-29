@@ -4,6 +4,7 @@ import com.app.folioman.shared.BaseEntity;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -52,7 +53,7 @@ class UserFolioDetailsEntity extends BaseEntity {
     @org.hibernate.annotations.BatchSize(size = 50)
     private List<UserSchemeDetailsEntity> schemes = new ArrayList<>();
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_cas_details_id", nullable = false)
     private UserCasDetailsEntity userCasDetailsEntity;
 

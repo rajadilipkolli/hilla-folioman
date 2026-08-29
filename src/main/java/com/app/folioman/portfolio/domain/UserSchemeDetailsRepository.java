@@ -14,7 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 interface UserSchemeDetailsRepository extends JpaRepository<UserSchemeDetailsEntity, Long> {
 
     @Query("""
-            select u from UserSchemeDetailsEntity u left join u.userFolioDetails.schemes schemes join fetch u.transactions where schemes in :schemes
+            select u from UserSchemeDetailsEntity u join fetch u.userFolioDetails left join u.userFolioDetails.schemes schemes join fetch u.transactions where schemes in :schemes
             """)
     List<UserSchemeDetailsEntity> findByUserFolioDetails_SchemesIn(
             @Param("schemes") List<UserSchemeDetailsEntity> schemes);
@@ -22,7 +22,7 @@ interface UserSchemeDetailsRepository extends JpaRepository<UserSchemeDetailsEnt
     List<UserSchemeDetailsEntity> findByAmfiIsNull();
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    @Modifying
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("update UserSchemeDetailsEntity u set u.amfi = :amfi, u.isin = :isin where u.id = :id")
     void updateAmfiAndIsinById(
             @Nullable @Param("amfi") Long schemeId, @Nullable @Param("isin") String isin, @Param("id") Long id);

@@ -60,11 +60,11 @@ class MfSchemeSyncServiceTest {
                 new BSEStarMasterDataService.BseMasterDataResult(new HashMap<>(), new HashMap<>());
         given(bseStarMasterDataService.parseBseMasterData("bseData")).willReturn(mockResult);
 
-        Map<String, Map<String, String>> amfiData =
-                Map.of("101", Map.of("ISIN Div Payout/ ISIN GrowthISIN Div Reinvestment", "ISIN101"));
+        Map<Long, Map<String, String>> amfiData =
+                Map.of(101L, Map.of("ISIN Div Payout/ ISIN GrowthISIN Div Reinvestment", "ISIN101"));
 
         doAnswer(invocation -> {
-                    Consumer<Map<String, Map<String, String>>> consumer = invocation.getArgument(0);
+                    Consumer<Map<Long, Map<String, String>>> consumer = invocation.getArgument(0);
                     consumer.accept(amfiData);
                     return null;
                 })
@@ -75,7 +75,7 @@ class MfSchemeSyncServiceTest {
         scheme1.setAmfiCode(101L);
         scheme1.setName("New Scheme 1");
 
-        Map<String, MfFundSchemeEntity> incomingMap = Map.of("101", scheme1);
+        Map<Long, MfFundSchemeEntity> incomingMap = Map.of(101L, scheme1);
         given(bseStarMasterDataService.processAmfiBatch(eq(mockResult), eq(amfiData), anyMap()))
                 .willReturn(incomingMap);
 
@@ -102,13 +102,13 @@ class MfSchemeSyncServiceTest {
                 new BSEStarMasterDataService.BseMasterDataResult(new HashMap<>(), new HashMap<>());
         given(bseStarMasterDataService.parseBseMasterData("bseData")).willReturn(mockResult);
 
-        Map<String, Map<String, String>> amfiData = Map.of(
-                "101", Map.of(),
-                "102", Map.of(),
-                "103", Map.of());
+        Map<Long, Map<String, String>> amfiData = Map.of(
+                101L, Map.of(),
+                102L, Map.of(),
+                103L, Map.of());
 
         doAnswer(invocation -> {
-                    Consumer<Map<String, Map<String, String>>> consumer = invocation.getArgument(0);
+                    Consumer<Map<Long, Map<String, String>>> consumer = invocation.getArgument(0);
                     consumer.accept(amfiData);
                     return null;
                 })
@@ -122,10 +122,10 @@ class MfSchemeSyncServiceTest {
         MfFundSchemeEntity incomingUnchanged =
                 new MfFundSchemeEntity().setAmfiCode(103L).setName("Unchanged Scheme");
 
-        Map<String, MfFundSchemeEntity> incomingMap = Map.of(
-                "101", incomingNew,
-                "102", incomingChanged,
-                "103", incomingUnchanged);
+        Map<Long, MfFundSchemeEntity> incomingMap = Map.of(
+                101L, incomingNew,
+                102L, incomingChanged,
+                103L, incomingUnchanged);
         given(bseStarMasterDataService.processAmfiBatch(eq(mockResult), eq(amfiData), anyMap()))
                 .willReturn(incomingMap);
 

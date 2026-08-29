@@ -60,7 +60,7 @@ class InitializerTest {
 
         // Setup data for this specific test
         doAnswer(invocation -> {
-                    Consumer<Map<String, Map<String, String>>> consumer = invocation.getArgument(0);
+                    Consumer<Map<Long, Map<String, String>>> consumer = invocation.getArgument(0);
                     consumer.accept(Collections.emptyMap());
                     return null;
                 })
@@ -84,9 +84,9 @@ class InitializerTest {
         given(bseStarMasterDataService.downloadBseMasterData()).willReturn("bseRawData");
 
         // Setup data for this specific test
-        Map<String, Map<String, String>> amfiData = createAmfiTestData(20);
+        Map<Long, Map<String, String>> amfiData = createAmfiTestData(20);
         doAnswer(invocation -> {
-                    Consumer<Map<String, Map<String, String>>> consumer = invocation.getArgument(0);
+                    Consumer<Map<Long, Map<String, String>>> consumer = invocation.getArgument(0);
                     consumer.accept(amfiData);
                     return null;
                 })
@@ -100,15 +100,15 @@ class InitializerTest {
                 new BSEStarMasterDataService.BseMasterDataResult(Map.of("ISIN", 0), Map.of());
         given(bseStarMasterDataService.parseBseMasterData("bseRawData")).willReturn(mockBseResult);
 
-        Map<String, MfFundSchemeEntity> bseData = new HashMap<>();
-        for (String amfiCode : amfiData.keySet()) {
+        Map<Long, MfFundSchemeEntity> bseData = new HashMap<>();
+        for (Long amfiCode : amfiData.keySet()) {
             bseData.put(amfiCode, new MfFundSchemeEntity());
         }
         given(bseStarMasterDataService.processAmfiBatch(eq(mockBseResult), anyMap(), anyMap()))
                 .willReturn(bseData);
 
         // Mock DB data
-        given(mfFundSchemeService.findDistinctAmfiCode()).willReturn(Collections.emptyList());
+        given(mfFundSchemeService.findAllAmfiCodes()).willReturn(Collections.emptyList());
 
         // Execute
         initializer.handleApplicationStartedEvent(event);
@@ -117,7 +117,7 @@ class InitializerTest {
         verify(amfiService, times(1)).fetchAmfiSchemeData(any(Consumer.class));
         verify(bseStarMasterDataService, times(1)).parseBseMasterData("bseRawData");
         verify(bseStarMasterDataService, times(1)).processAmfiBatch(eq(mockBseResult), anyMap(), anyMap());
-        verify(mfFundSchemeService, times(1)).findDistinctAmfiCode();
+        verify(mfFundSchemeService, times(1)).findAllAmfiCodes();
 
         // Verify batching is done with the mocked batch size of 100
         verify(mfFundSchemeService, times(1)).saveDataInBatches(anyList(), eq(100));
@@ -134,7 +134,7 @@ class InitializerTest {
         // Setup - first call throws exception, second succeeds
         doThrow(new IOException("Test exception"))
                 .doAnswer(invocation -> {
-                    Consumer<Map<String, Map<String, String>>> consumer = invocation.getArgument(0);
+                    Consumer<Map<Long, Map<String, String>>> consumer = invocation.getArgument(0);
                     consumer.accept(createAmfiTestData(10));
                     return null;
                 })
@@ -146,13 +146,13 @@ class InitializerTest {
                 new BSEStarMasterDataService.BseMasterDataResult(Map.of("ISIN", 0), Map.of());
         given(bseStarMasterDataService.parseBseMasterData("bseData")).willReturn(mockBseResult);
 
-        Map<String, MfFundSchemeEntity> bseDataResultMap = new HashMap<>();
-        bseDataResultMap.put("1", new MfFundSchemeEntity());
+        Map<Long, MfFundSchemeEntity> bseDataResultMap = new HashMap<>();
+        bseDataResultMap.put(1L, new MfFundSchemeEntity());
         given(bseStarMasterDataService.processAmfiBatch(eq(mockBseResult), anyMap(), anyMap()))
                 .willReturn(bseDataResultMap);
 
-        given(mfNavService.getAmfiCodeIsinMap()).willReturn(Map.of("ISIN", "1"));
-        given(mfFundSchemeService.findDistinctAmfiCode()).willReturn(List.of());
+        given(mfNavService.getAmfiCodeIsinMap()).willReturn(Map.of("ISIN", 1L));
+        given(mfFundSchemeService.findAllAmfiCodes()).willReturn(List.of());
 
         // Execute
         initializer.handleApplicationStartedEvent(event);
@@ -161,14 +161,13 @@ class InitializerTest {
         verify(amfiService, times(2)).fetchAmfiSchemeData(any(Consumer.class));
     }
 
-    private Map<String, Map<String, String>> createAmfiTestData(int count) {
-        Map<String, Map<String, String>> result = new HashMap<>();
+    private Map<Long, Map<String, String>> createAmfiTestData(int count) {
+        Map<Long, Map<String, String>> result = new HashMap<>();
         for (int i = 1; i <= count; i++) {
-            String amfiCode = String.valueOf(i);
             Map<String, String> schemeData = new HashMap<>();
             schemeData.put("ISIN Div Payout/ ISIN GrowthISIN Div Reinvestment", "ISIN" + i);
             schemeData.put("NAME", "Test Scheme " + i);
-            result.put(amfiCode, schemeData);
+            result.put((long) i, schemeData);
         }
         return result;
     }

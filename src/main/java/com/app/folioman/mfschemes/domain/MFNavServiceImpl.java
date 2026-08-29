@@ -132,7 +132,7 @@ class MFNavServiceImpl implements MFNavService {
     public void loadLastDayDataNav() {
         List<Long> historicalDataNotLoadedSchemeIdList = getHistoricalDataNotLoadedSchemeIdList();
         if (!historicalDataNotLoadedSchemeIdList.isEmpty()) {
-            @Nullable String allNAVs = downloadAllNAVs();
+            String allNAVs = downloadAllNAVs();
             Map<Long, NavHolder> amfiCodeNavMap;
             if (allNAVs != null && !allNAVs.isEmpty()) {
                 amfiCodeNavMap = getAmfiCodeNavMap(allNAVs);
@@ -167,8 +167,8 @@ class MFNavServiceImpl implements MFNavService {
     }
 
     @Override
-    public Map<String, String> getAmfiCodeIsinMap() {
-        @Nullable String downloadedAllNAVs = downloadAllNAVs();
+    public Map<String, Long> getAmfiCodeIsinMap() {
+        String downloadedAllNAVs = downloadAllNAVs();
         if (downloadedAllNAVs != null && !downloadedAllNAVs.isEmpty()) {
             return getAmfiCodeIsinMap(downloadedAllNAVs);
         }
@@ -247,17 +247,29 @@ class MFNavServiceImpl implements MFNavService {
                 .collect(Collectors.groupingBy(MFSchemeNavProjection::amfiCode));
     }
 
-    private Map<String, String> getAmfiCodeIsinMap(String allNAVs) {
-        Map<String, String> amfiCodeIsinMap = new HashMap<>();
-        for (String row : allNAVs.split("\n")) {
+    private Map<String, Long> getAmfiCodeIsinMap(String allNAVs) {
+        Map<String, Long> amfiCodeIsinMap = new HashMap<>();
+        String[] rows = allNAVs.split("\n");
+        if (rows.length == 0) return amfiCodeIsinMap;
+        AmfiNavHeaderIndices indices = new AmfiNavHeaderIndices(rows[0]);
+
+        for (String row : rows) {
             Matcher matcher = schemeCodePattern.matcher(row);
             if (matcher.find()) {
                 String[] rowParts = row.split(SchemeConstants.NAV_SEPARATOR);
-                if (rowParts.length >= 3 && !rowParts[1].equals("-")) {
-                    amfiCodeIsinMap.put(rowParts[1].trim(), rowParts[0].trim());
-                }
-                if (rowParts.length >= 4 && !rowParts[2].equals("-")) {
-                    amfiCodeIsinMap.put(rowParts[2].trim(), rowParts[0].trim());
+                if (rowParts.length > indices.schemeCodeIdx) {
+                    String schemeCodeStr = rowParts[indices.schemeCodeIdx].trim();
+                    if (rowParts.length > indices.isinIdx
+                            && !rowParts[indices.isinIdx].trim().equals("-")
+                            && !rowParts[indices.isinIdx].trim().isEmpty()) {
+                        amfiCodeIsinMap.put(rowParts[indices.isinIdx].trim(), Long.valueOf(schemeCodeStr));
+                    }
+                    if (indices.isin2Idx != -1
+                            && rowParts.length > indices.isin2Idx
+                            && !rowParts[indices.isin2Idx].trim().equals("-")
+                            && !rowParts[indices.isin2Idx].trim().isEmpty()) {
+                        amfiCodeIsinMap.put(rowParts[indices.isin2Idx].trim(), Long.valueOf(schemeCodeStr));
+                    }
                 }
             }
         }
@@ -266,7 +278,7 @@ class MFNavServiceImpl implements MFNavService {
 
     private @Nullable String downloadAllNAVs() {
         LOGGER.info("Downloading NAVAll from AMFI");
-        @Nullable String allNAVs = null;
+        String allNAVs = null;
         try {
             allNAVs = restClient
                     .get()
@@ -287,17 +299,22 @@ class MFNavServiceImpl implements MFNavService {
 
     private Map<Long, NavHolder> getAmfiCodeNavMap(String allNAVs) {
         Map<Long, NavHolder> amfiCodeIsinMap = new HashMap<>();
+        String[] rows = allNAVs.split("\n");
+        if (rows.length == 0) return amfiCodeIsinMap;
+        AmfiNavHeaderIndices indices = new AmfiNavHeaderIndices(rows[0]);
 
-        for (String row : allNAVs.split("\n")) {
+        for (String row : rows) {
             Matcher matcher = schemeCodePattern.matcher(row);
             if (matcher.find()) {
                 String[] rowParts = row.split(SchemeConstants.NAV_SEPARATOR);
-                String nav = rowParts[4].strip();
-                LocalDate navDate = LocalDate.parse(rowParts[5].strip(), FLEXIBLE_DATE_FORMATTER);
-                if (navDate.isEqual(LocalDateUtility.getYesterday())) {
-                    amfiCodeIsinMap.put(
-                            Long.valueOf(rowParts[0].strip()),
-                            new NavHolder("N.A.".equals(nav) ? BigDecimal.ZERO : new BigDecimal(nav), navDate));
+                if (rowParts.length > indices.dateIdx && rowParts.length > indices.navIdx) {
+                    String nav = rowParts[indices.navIdx].strip();
+                    LocalDate navDate = LocalDate.parse(rowParts[indices.dateIdx].strip(), FLEXIBLE_DATE_FORMATTER);
+                    if (navDate.isEqual(LocalDateUtility.getYesterday())) {
+                        amfiCodeIsinMap.put(
+                                Long.valueOf(rowParts[indices.schemeCodeIdx].strip()),
+                                new NavHolder("N.A.".equals(nav) ? BigDecimal.ZERO : new BigDecimal(nav), navDate));
+                    }
                 }
             }
         }

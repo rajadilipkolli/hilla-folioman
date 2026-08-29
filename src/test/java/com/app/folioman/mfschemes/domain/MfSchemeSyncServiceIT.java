@@ -55,13 +55,13 @@ class MfSchemeSyncServiceIT extends AbstractIntegrationTest {
                 new BSEStarMasterDataService.BseMasterDataResult(new HashMap<>(), new HashMap<>());
         given(bseStarMasterDataService.parseBseMasterData("mock-bse-data")).willReturn(mockResult);
 
-        Map<String, Map<String, String>> amfiData = Map.of(
-                "201", Map.of(),
-                "202", Map.of(),
-                "203", Map.of());
+        Map<Long, Map<String, String>> amfiData = Map.of(
+                201L, Map.of(),
+                202L, Map.of(),
+                203L, Map.of());
 
         doAnswer(invocation -> {
-                    Consumer<Map<String, Map<String, String>>> consumer = invocation.getArgument(0);
+                    Consumer<Map<Long, Map<String, String>>> consumer = invocation.getArgument(0);
                     consumer.accept(amfiData);
                     return null;
                 })
@@ -96,10 +96,10 @@ class MfSchemeSyncServiceIT extends AbstractIntegrationTest {
                 .setSid(3)
                 .setVersion((short) 0);
 
-        Map<String, MfFundSchemeEntity> incomingMap = Map.of(
-                "201", incomingChanged,
-                "202", incomingUnchanged,
-                "203", incomingNew);
+        Map<Long, MfFundSchemeEntity> incomingMap = Map.of(
+                201L, incomingChanged,
+                202L, incomingUnchanged,
+                203L, incomingNew);
         given(bseStarMasterDataService.processAmfiBatch(eq(mockResult), eq(amfiData), anyMap()))
                 .willReturn(incomingMap);
 

@@ -14,6 +14,7 @@ import com.app.folioman.portfolio.rest.dtos.XirrDTO;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -176,12 +177,12 @@ public class PortfolioSummaryService {
                     : (folioDataList.get(0).schemeDetails().getIsin() != null
                             ? folioDataList.get(0).schemeDetails().getIsin()
                             : amfiCode.toString());
-            String name = folioDataList.get(0).schemeDetails().getScheme();
+            String name = folioDataList.getFirst().schemeDetails().getScheme();
 
             List<MFSchemeNavProjection> navs = navMap.getOrDefault(amfiCode, List.of());
             BigDecimal nav0 = !navs.isEmpty() ? navs.get(0).nav() : BigDecimal.ZERO;
             BigDecimal nav1 = navs.size() > 1 ? navs.get(1).nav() : nav0;
-            LocalDate navDate = !navs.isEmpty() ? navs.get(0).navDate() : LocalDate.now();
+            LocalDate navDate = !navs.isEmpty() ? navs.get(0).navDate() : LocalDate.now(ZoneId.systemDefault());
 
             BigDecimal schemeChangeA = schemeValue.subtract(schemeInvested);
             BigDecimal schemeChangeD = schemeValue.subtract(schemeUnits.multiply(nav1));
@@ -228,7 +229,7 @@ public class PortfolioSummaryService {
 
         BigDecimal finalPortValue = portTotalValue;
         BigDecimal finalPortInvested = portTotalInvested;
-        LocalDate finalDate = LocalDate.now();
+        LocalDate finalDate = LocalDate.now(ZoneId.systemDefault());
         BigDecimal currentXirr = null;
         BigDecimal overallXirr = null;
 

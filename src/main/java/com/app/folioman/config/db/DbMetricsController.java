@@ -60,8 +60,8 @@ public class DbMetricsController {
             hikariDataSource = (HikariDataSource) current;
         } else if (current instanceof FlexyPoolDataSource) {
             Object inner = ((FlexyPoolDataSource<?>) current).getTargetDataSource();
-            if (inner instanceof HikariDataSource) {
-                hikariDataSource = (HikariDataSource) inner;
+            if (inner instanceof HikariDataSource innerHikari) {
+                hikariDataSource = innerHikari;
             }
         }
 

@@ -83,9 +83,19 @@ class MfHistoricalNavService {
         String oldSchemeId = null;
         try (BufferedReader br = new BufferedReader(inputString)) {
             String lineValue = br.readLine();
-            for (int i = 0; i < 2; ++i) {
-                lineValue = br.readLine();
-            }
+            if (lineValue == null) return null;
+
+            AmfiNavHeaderIndices indices = new AmfiNavHeaderIndices(lineValue);
+
+            int schemeCodeIdx = indices.schemeCodeIdx;
+            int schemeNameIdx = indices.schemeNameIdx;
+            int isinIdx = indices.isinIdx;
+            int navIdx = indices.navIdx;
+            int dateIdx = indices.dateIdx;
+
+            lineValue = readNextNonEmptyLine(br);
+            if (lineValue == null) return null;
+
             String schemeType = lineValue;
             String amc = lineValue;
             while (lineValue != null && !StringUtils.hasText(oldSchemeId)) {
@@ -101,12 +111,34 @@ class MfHistoricalNavService {
                     } else {
                         amc = tempVal;
                         oldSchemeId = handleMultipleTokenLine(
-                                isin, persistSchemeInfo, tokenize, oldSchemeId, amc, schemeType, schemeCode);
+                                isin,
+                                persistSchemeInfo,
+                                tokenize,
+                                oldSchemeId,
+                                amc,
+                                schemeType,
+                                schemeCode,
+                                schemeCodeIdx,
+                                schemeNameIdx,
+                                isinIdx,
+                                navIdx,
+                                dateIdx);
                     }
 
                 } else {
                     oldSchemeId = handleMultipleTokenLine(
-                            isin, persistSchemeInfo, tokenize, oldSchemeId, amc, schemeType, schemeCode);
+                            isin,
+                            persistSchemeInfo,
+                            tokenize,
+                            oldSchemeId,
+                            amc,
+                            schemeType,
+                            schemeCode,
+                            schemeCodeIdx,
+                            schemeNameIdx,
+                            isinIdx,
+                            navIdx,
+                            dateIdx);
                 }
                 lineValue = readNextNonEmptyLine(br);
             }
@@ -124,15 +156,20 @@ class MfHistoricalNavService {
             @Nullable String oldSchemeId,
             String amc,
             String schemeType,
-            Long inputSchemeCode) {
-        final Long schemeCode = Long.valueOf(tokenize[0].strip());
-        final String payout = tokenize.length > 4 ? tokenize[4] : "";
+            Long inputSchemeCode,
+            int schemeCodeIdx,
+            int schemeNameIdx,
+            int isinIdx,
+            int navIdx,
+            int dateIdx) {
+        final Long schemeCode = Long.valueOf(tokenize[schemeCodeIdx].strip());
+        final String payout = tokenize.length > isinIdx ? tokenize[isinIdx] : "";
         if (payout.equalsIgnoreCase(isin) || schemeCode.equals(inputSchemeCode)) {
             oldSchemeId = String.valueOf(schemeCode);
             if (persistSchemeInfo) {
-                String nav = tokenize.length > 6 ? tokenize[6] : "";
-                String date = tokenize.length > 7 ? tokenize[7] : "";
-                String schemeName = tokenize.length > 1 ? tokenize[1] : "";
+                String nav = tokenize.length > navIdx ? tokenize[navIdx] : "";
+                String date = tokenize.length > dateIdx ? tokenize[dateIdx] : "";
+                String schemeName = tokenize.length > schemeNameIdx ? tokenize[schemeNameIdx] : "";
                 MFSchemeDTO mfSchemeDTO = new MFSchemeDTO(amc, schemeCode, payout, schemeName, nav, date, schemeType);
                 MfFundSchemeEntity mfScheme = mfSchemeDtoToEntityMapper.mapMFSchemeDTOToMfFundScheme(mfSchemeDTO);
                 mfSchemeService.saveEntity(mfScheme);

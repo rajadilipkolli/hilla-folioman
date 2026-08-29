@@ -145,22 +145,22 @@ class MfFundSchemeServiceTest {
 
     @Test
     void findDistinctAmfiCode_shouldReturnRepositoryResult() {
-        List<String> expectedCodes = Arrays.asList("CODE1", "CODE2", "CODE3");
-        when(mfFundSchemeRepository.findDistinctAmfiCode()).thenReturn(expectedCodes);
+        List<Long> expectedCodes = Arrays.asList(1L, 2L, 3L);
+        when(mfFundSchemeRepository.findAllAmfiCodes()).thenReturn(expectedCodes);
 
-        List<String> result = mfFundSchemeService.findDistinctAmfiCode();
+        List<Long> result = mfFundSchemeService.findAllAmfiCodes();
 
         assertThat(result).containsExactlyElementsOf(expectedCodes);
-        verify(mfFundSchemeRepository).findDistinctAmfiCode();
+        verify(mfFundSchemeRepository).findAllAmfiCodes();
     }
 
     @Test
     void findDistinctAmfiCode_shouldReturnEmptyList_whenNoData() {
-        when(mfFundSchemeRepository.findDistinctAmfiCode()).thenReturn(Collections.emptyList());
+        when(mfFundSchemeRepository.findAllAmfiCodes()).thenReturn(Collections.emptyList());
 
-        List<String> result = mfFundSchemeService.findDistinctAmfiCode();
+        List<Long> result = mfFundSchemeService.findAllAmfiCodes();
 
         assertThat(result).containsExactlyElementsOf(Collections.emptyList());
-        verify(mfFundSchemeRepository).findDistinctAmfiCode();
+        verify(mfFundSchemeRepository).findAllAmfiCodes();
     }
 }

@@ -6,6 +6,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -36,7 +37,7 @@ class UserCasDetailsEntity extends BaseEntity {
     @Column(name = "file_type", nullable = false)
     private FileTypeEnum fileTypeEnum;
 
-    @OneToOne(mappedBy = "userCasDetailsEntity", cascade = CascadeType.ALL, optional = false)
+    @OneToOne(fetch = FetchType.LAZY, mappedBy = "userCasDetailsEntity", cascade = CascadeType.ALL, optional = false)
     private InvestorInfoEntity investorInfoEntity;
 
     @OneToMany(mappedBy = "userCasDetailsEntity", cascade = CascadeType.ALL, orphanRemoval = true)

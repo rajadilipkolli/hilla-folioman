@@ -10,6 +10,7 @@ import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Pattern;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -97,6 +98,7 @@ public class ImportMutualFundController {
                     @PastOrPresent(message = "Date should be past or today")
                     @Nullable
                     LocalDate asOfDate) {
-        return portfolioAPI.getPortfolioByPAN(panNumber, asOfDate != null ? asOfDate : LocalDate.now());
+        return portfolioAPI.getPortfolioByPAN(
+                panNumber, asOfDate != null ? asOfDate : LocalDate.now(ZoneId.systemDefault()));
     }
 }

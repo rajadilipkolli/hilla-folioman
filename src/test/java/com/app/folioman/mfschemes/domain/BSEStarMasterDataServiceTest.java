@@ -65,9 +65,9 @@ class BSEStarMasterDataServiceTest {
     @Test
     void fetchBseStarMasterData_ShouldReturnMasterData_WhenValidInputProvided() throws Exception {
         // Given
-        Map<String, Map<String, String>> amfiDataMap = new HashMap<>();
-        Map<String, String> amfiCodeIsinMapping = new HashMap<>();
-        amfiCodeIsinMapping.put("INF123456789", "12345");
+        Map<Long, Map<String, String>> amfiDataMap = new HashMap<>();
+        Map<Long, String> amfiCodeIsinMapping = new HashMap<>();
+        amfiCodeIsinMapping.put(12345L, "INF123456789");
 
         Map<String, String> schemeData = new HashMap<>();
         schemeData.put("Scheme Name", "Test Scheme");
@@ -75,7 +75,7 @@ class BSEStarMasterDataServiceTest {
         schemeData.put("Scheme Category", "Equity-Large Cap");
         schemeData.put("Scheme Type", "Open Ended");
         schemeData.put(BSEStarMasterDataService.AMFI_ISIN_KEY, "INF123456789");
-        amfiDataMap.put("12345", schemeData);
+        amfiDataMap.put(12345L, schemeData);
 
         String csvResponse = """
                                 Unique No|Scheme Code|ISIN|Scheme Name|AMC Code|AMC Scheme Code|Scheme Plan|RTA Agent Code|Channel Partner Code|Start Date|End Date
@@ -90,17 +90,17 @@ class BSEStarMasterDataServiceTest {
         // When
         BSEStarMasterDataService.BseMasterDataResult bseDataResult =
                 bseStarMasterDataService.parseBseMasterData(csvResponse);
-        Map<String, MfFundSchemeEntity> result =
+        Map<Long, MfFundSchemeEntity> result =
                 bseStarMasterDataService.processAmfiBatch(bseDataResult, amfiDataMap, amfiCodeIsinMapping);
 
-        assertThat(result).containsKey("12345");
+        assertThat(result).containsKey(12345L);
     }
 
     @Test
     void fetchBseStarMasterData_ShouldThrowIOException_WhenFormNotFound() throws Exception {
         // Given
-        Map<String, Map<String, String>> amfiDataMap = new HashMap<>();
-        Map<String, String> amfiCodeIsinMapping = new HashMap<>();
+        Map<Long, Map<String, String>> amfiDataMap = new HashMap<>();
+        Map<Long, String> amfiCodeIsinMapping = new HashMap<>();
 
         String invalidHtmlResponse = "<html><body>No form here</body></html>";
 
@@ -123,8 +123,8 @@ class BSEStarMasterDataServiceTest {
     @Test
     void fetchBseStarMasterData_ShouldHandleEmptyResponse() throws Exception {
         // Given
-        Map<String, Map<String, String>> amfiDataMap = new HashMap<>();
-        Map<String, String> amfiCodeIsinMapping = new HashMap<>();
+        Map<Long, Map<String, String>> amfiDataMap = new HashMap<>();
+        Map<Long, String> amfiCodeIsinMapping = new HashMap<>();
 
         String htmlResponse = """
                                 <html>
@@ -140,7 +140,7 @@ class BSEStarMasterDataServiceTest {
 
         // When
         BSEStarMasterDataService.BseMasterDataResult bseDataResult = bseStarMasterDataService.parseBseMasterData("");
-        Map<String, MfFundSchemeEntity> result =
+        Map<Long, MfFundSchemeEntity> result =
                 bseStarMasterDataService.processAmfiBatch(bseDataResult, amfiDataMap, amfiCodeIsinMapping);
 
         // Then
@@ -194,9 +194,9 @@ class BSEStarMasterDataServiceTest {
     @Test
     void fetchBseStarMasterData_ShouldProcessAmfiFallback_WhenSchemeNotInBseData() throws Exception {
         // Given
-        Map<String, Map<String, String>> amfiDataMap = new HashMap<>();
-        Map<String, String> amfiCodeIsinMapping = new HashMap<>();
-        amfiCodeIsinMapping.put("INF987654321", "54321");
+        Map<Long, Map<String, String>> amfiDataMap = new HashMap<>();
+        Map<Long, String> amfiCodeIsinMapping = new HashMap<>();
+        amfiCodeIsinMapping.put(54321L, "INF987654321");
 
         Map<String, String> schemeData = new HashMap<>();
         schemeData.put("Scheme Name", "Fallback Scheme");
@@ -204,7 +204,7 @@ class BSEStarMasterDataServiceTest {
         schemeData.put("Scheme Category", "Debt-Short Duration");
         schemeData.put("Scheme Type", "Close Ended");
         schemeData.put(BSEStarMasterDataService.AMFI_ISIN_KEY, "INF987654321");
-        amfiDataMap.put("54321", schemeData);
+        amfiDataMap.put(54321L, schemeData);
 
         String htmlResponse = """
                                 <html>
@@ -225,11 +225,11 @@ class BSEStarMasterDataServiceTest {
         // When
         BSEStarMasterDataService.BseMasterDataResult bseDataResult =
                 bseStarMasterDataService.parseBseMasterData(emptyCsvResponse);
-        Map<String, MfFundSchemeEntity> result =
+        Map<Long, MfFundSchemeEntity> result =
                 bseStarMasterDataService.processAmfiBatch(bseDataResult, amfiDataMap, amfiCodeIsinMapping);
 
-        assertThat(result).containsKey("54321");
-        MfFundSchemeEntity scheme = result.get("54321");
+        assertThat(result).containsKey(54321L);
+        MfFundSchemeEntity scheme = result.get(54321L);
         assertThat(scheme.getAmfiCode()).isEqualTo(54321L);
         assertThat(scheme.getName()).isEqualTo("Fallback Scheme");
     }

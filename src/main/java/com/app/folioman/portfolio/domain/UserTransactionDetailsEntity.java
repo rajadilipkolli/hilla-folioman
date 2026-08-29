@@ -5,6 +5,7 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -34,7 +35,10 @@ class UserTransactionDetailsEntity extends BaseEntity {
 
     private @Nullable LocalDate transactionDate;
     private @Nullable String description;
+
+    @Column(precision = 19, scale = 4)
     private @Nullable BigDecimal amount;
+
     private @Nullable Double units;
     private @Nullable Double nav;
     private @Nullable Double balance;
@@ -45,7 +49,7 @@ class UserTransactionDetailsEntity extends BaseEntity {
 
     private @Nullable String dividendRate;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_scheme_detail_id")
     private @Nullable UserSchemeDetailsEntity userSchemeDetails;
 

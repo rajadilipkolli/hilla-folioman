@@ -55,7 +55,7 @@ class AmfiServiceTest {
     @Test
     void fetchAmfiSchemeData_SuccessfulRetrieval() throws Exception {
         String csvContent =
-                "Scheme Code,Scheme Name,Net Asset Value,Date\n123,Test Fund,100.50,01-Jan-2024\n456,Another Fund,200.75,01-Jan-2024";
+                "Scheme Name,Scheme Code,Net Asset Value,Date\nTest Fund,123,100.50,01-Jan-2024\nAnother Fund,456,200.75,01-Jan-2024";
         String dataUrl = "http://test-url.com/data.csv";
 
         when(applicationProperties.getAmfi()).thenReturn(amfi);
@@ -68,15 +68,15 @@ class AmfiServiceTest {
         when(responseSpec.body(String.class)).thenReturn(csvContent);
         when(mfSchemesProperties.getCsvProcessingBatchSize()).thenReturn(5000);
 
-        List<Map<String, Map<String, String>>> batches = new ArrayList<>();
+        List<Map<Long, Map<String, String>>> batches = new ArrayList<>();
         amfiService.fetchAmfiSchemeData(batches::add);
 
         assertThat(batches).hasSize(1);
-        Map<String, Map<String, String>> result = batches.get(0);
+        Map<Long, Map<String, String>> result = batches.get(0);
         assertThat(result).hasSize(2);
-        assertThat(result).containsKey("Test Fund").containsKey("Another Fund");
-        assertThat(result.get("Test Fund")).containsEntry("Scheme Code", "123");
-        assertThat(result.get("Another Fund")).containsEntry("Scheme Code", "456");
+        assertThat(result).containsKey(123L).containsKey(456L);
+        assertThat(result.get(123L)).containsEntry("Scheme Name", "Test Fund");
+        assertThat(result.get(456L)).containsEntry("Scheme Name", "Another Fund");
     }
 
     @Test
@@ -92,7 +92,7 @@ class AmfiServiceTest {
                 .when(requestHeadersUriSpec)
                 .retrieve();
 
-        List<Map<String, Map<String, String>>> batches = new ArrayList<>();
+        List<Map<Long, Map<String, String>>> batches = new ArrayList<>();
         amfiService.fetchAmfiSchemeData(batches::add);
 
         assertThat(batches).isEmpty();
@@ -170,7 +170,7 @@ class AmfiServiceTest {
         doReturn(csvContent).when(responseSpec).body(String.class);
         when(mfSchemesProperties.getCsvProcessingBatchSize()).thenReturn(5000);
 
-        List<Map<String, Map<String, String>>> batches = new ArrayList<>();
+        List<Map<Long, Map<String, String>>> batches = new ArrayList<>();
         amfiService.fetchAmfiSchemeData(batches::add);
 
         assertThat(batches).isEmpty();
@@ -179,7 +179,7 @@ class AmfiServiceTest {
     @Test
     void fetchAmfiSchemeData_WithWhitespaceInData() throws Exception {
         String csvContent =
-                "Scheme Code,Scheme Name,Net Asset Value,Date\n  123  ,  Test Fund  ,  100.50  ,  01-Jan-2024  ";
+                "Scheme Name,Scheme Code,Net Asset Value,Date\n  Test Fund  ,  123  ,  100.50  ,  01-Jan-2024  ";
         String dataUrl = "http://test-url.com/data.csv";
 
         when(applicationProperties.getAmfi()).thenReturn(amfi);
@@ -192,20 +192,20 @@ class AmfiServiceTest {
         doReturn(csvContent).when(responseSpec).body(String.class);
         when(mfSchemesProperties.getCsvProcessingBatchSize()).thenReturn(5000);
 
-        List<Map<String, Map<String, String>>> batches = new ArrayList<>();
+        List<Map<Long, Map<String, String>>> batches = new ArrayList<>();
         amfiService.fetchAmfiSchemeData(batches::add);
 
         assertThat(batches).hasSize(1);
-        Map<String, Map<String, String>> result = batches.get(0);
-        assertThat(result).hasSize(1).containsKey("Test Fund");
-        assertThat(result.get("Test Fund")).containsEntry("Scheme Code", "123");
-        assertThat(result.get("Test Fund")).containsEntry("Net Asset Value", "100.50");
+        Map<Long, Map<String, String>> result = batches.get(0);
+        assertThat(result).hasSize(1).containsKey(123L);
+        assertThat(result.get(123L)).containsEntry("Scheme Name", "Test Fund");
+        assertThat(result.get(123L)).containsEntry("Net Asset Value", "100.50");
     }
 
     @Test
     void fetchAmfiSchemeData_MultipleRowsSameCode() throws Exception {
         String csvContent =
-                "Scheme Code,Scheme Name,Net Asset Value,Date\n123,Test Fund 1,100.50,01-Jan-2024\n123,Test Fund 2,200.75,02-Jan-2024";
+                "Scheme Name,Scheme Code,Net Asset Value,Date\nTest Fund 1,123,100.50,01-Jan-2024\nTest Fund 2,123,200.75,02-Jan-2024";
         String dataUrl = "http://test-url.com/data.csv";
 
         when(applicationProperties.getAmfi()).thenReturn(amfi);
@@ -218,12 +218,12 @@ class AmfiServiceTest {
         when(responseSpec.body(String.class)).thenReturn(csvContent);
         when(mfSchemesProperties.getCsvProcessingBatchSize()).thenReturn(5000);
 
-        List<Map<String, Map<String, String>>> batches = new ArrayList<>();
+        List<Map<Long, Map<String, String>>> batches = new ArrayList<>();
         amfiService.fetchAmfiSchemeData(batches::add);
 
         assertThat(batches).hasSize(1);
-        Map<String, Map<String, String>> result = batches.get(0);
-        assertThat(result).hasSize(2).containsKey("Test Fund 1").containsKey("Test Fund 2");
-        assertThat(result.get("Test Fund 2")).containsEntry("Scheme Code", "123");
+        Map<Long, Map<String, String>> result = batches.get(0);
+        assertThat(result).hasSize(1).containsKey(123L);
+        assertThat(result.get(123L)).containsEntry("Scheme Name", "Test Fund 2");
     }
 }
