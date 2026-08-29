@@ -3,6 +3,7 @@ package com.app.folioman.portfolio.domain;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -19,5 +20,6 @@ interface FolioSchemeRepository extends JpaRepository<FolioSchemeEntity, Long> {
 
     List<FolioSchemeEntity> findByUserSchemeDetails_IdIn(Collection<Long> schemeDetailIds);
 
+    @EntityGraph(attributePaths = "userSchemeDetails")
     List<FolioSchemeEntity> findByUserFolioDetails_Id(Long id);
 }

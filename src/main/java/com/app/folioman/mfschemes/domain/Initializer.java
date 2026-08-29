@@ -5,7 +5,7 @@ import com.app.folioman.mfschemes.config.MfSchemesProperties;
 import com.app.folioman.mfschemes.exception.MutualFundDataException;
 import com.opencsv.exceptions.CsvException;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -76,8 +76,8 @@ class Initializer {
                             bseStarMasterDataService.parseBseMasterData(bseMasterData);
 
                     // Load existing AMFI codes once to avoid redundant DB queries per batch.
-                    // Wrapped in a mutable ArrayList since processMasterData adds newly saved codes to it.
-                    List<Long> existingAmfiCodes = new ArrayList<>(this.mfFundSchemeService.findAllAmfiCodes());
+                    // Wrapped in a mutable HashSet since processMasterData adds newly saved codes to it.
+                    Set<Long> existingAmfiCodes = new HashSet<>(this.mfFundSchemeService.findAllAmfiCodes());
 
                     // Download NAVAll once; this is otherwise re-downloaded on every AMFI batch
                     Map<String, Long> isinToAmfiCodeMap = mfNavService.getAmfiCodeIsinMap();
@@ -160,24 +160,21 @@ class Initializer {
         // isinToAmfiCodeMap is keyed by ISIN -> amfiCode; invert it so lookups here are by amfiCode
         isinToAmfiCodeMap.forEach((isin, amfiCode) -> amfiCodeIsinMapping.putIfAbsent(amfiCode, isin));
 
-        // Only proceed if the mapping is empty
-        if (amfiCodeIsinMapping.isEmpty()) {
-            // Traverse the amfiService to create a map of amfiCode and ISIN
-            for (Map.Entry<Long, Map<String, String>> outerEntry : amfiDataMap.entrySet()) {
-                Long amfiCode = outerEntry.getKey(); // The AMFI code
-                Map<String, String> schemeData = outerEntry.getValue(); // Inner map with scheme details
+        // Traverse the AMFI data to fill codes that were missing from NAVAll
+        for (Map.Entry<Long, Map<String, String>> outerEntry : amfiDataMap.entrySet()) {
+            Long amfiCode = outerEntry.getKey(); // The AMFI code
+            Map<String, String> schemeData = outerEntry.getValue(); // Inner map with scheme details
 
-                // Retrieve ISIN value directly, avoiding redundant containsKey check
-                String isin = schemeData.get(ISIN_KEY);
+            // Retrieve ISIN value directly, avoiding redundant containsKey check
+            String isin = schemeData.get(ISIN_KEY);
 
-                // Proceed only if ISIN is not null
-                if (isin != null) {
-                    // Optimize the length check and substring operation
-                    String processedIsin = (isin.length() > 12) ? isin.substring(0, 12) : isin;
+            // Proceed only if ISIN is not null
+            if (isin != null) {
+                // Optimize the length check and substring operation
+                String processedIsin = (isin.length() > 12) ? isin.substring(0, 12) : isin;
 
-                    // Map AMFI code to ISIN - ConcurrentHashMap's putIfAbsent is thread-safe
-                    amfiCodeIsinMapping.putIfAbsent(amfiCode, processedIsin);
-                }
+                // Preserve NAVAll mappings while filling missing AMFI codes
+                amfiCodeIsinMapping.putIfAbsent(amfiCode, processedIsin);
             }
         }
         return amfiCodeIsinMapping;
@@ -191,10 +188,10 @@ class Initializer {
      *
      * @param bseStarMasterDataMap Map of scheme data from BSE Star
      * @param amfiCodeSet          Set of AMFI codes to process
-     * @param existingAmfiCodes    List of already persisted AMFI codes to update
+     * @param existingAmfiCodes    Set of already persisted AMFI codes to update
      */
     private void processMasterData(
-            Map<Long, MfFundSchemeEntity> bseStarMasterDataMap, Set<Long> amfiCodeSet, List<Long> existingAmfiCodes) {
+            Map<Long, MfFundSchemeEntity> bseStarMasterDataMap, Set<Long> amfiCodeSet, Set<Long> existingAmfiCodes) {
         // All operations in this stream are stateless and have no side effects,
         // making it safe for potential parallel execution in the future if needed
         List<MfFundSchemeEntity> mfFundSchemeList = bseStarMasterDataMap.keySet().stream()
@@ -220,7 +217,7 @@ class Initializer {
             int totalProcessed = mfFundSchemeService.saveDataInBatches(mfFundSchemeList, properties.getBatchSize());
 
             // Update the in-memory cache with newly saved AMFI codes to prevent re-processing in subsequent batches
-            // getAmfiCode() is already Long — add it directly so List<Long>.contains() works correctly next iteration
+            // getAmfiCode() is already Long — add it directly so Set<Long>.contains() works correctly next iteration
             mfFundSchemeList.forEach(scheme -> existingAmfiCodes.add(scheme.getAmfiCode()));
 
             batchStopWatch.stop();

@@ -204,6 +204,31 @@ class MfHistoricalNavServiceTest {
     }
 
     @Test
+    void getHistoricalNav_SkipsMalformedSchemeCode() {
+        Long schemeCode = 123456L;
+        LocalDate navDate = LocalDate.of(2024, 1, 3);
+        String isin = "INF123456789";
+
+        when(mfFundSchemeEntity.getIsin()).thenReturn(isin);
+        when(mfSchemeService.findBySchemeCode(schemeCode)).thenReturn(Optional.of(mfFundSchemeEntity));
+        doReturn(requestHeadersUriSpec).when(restClient).get();
+        doReturn(requestHeadersSpec).when(requestHeadersUriSpec).uri(any(URI.class));
+        doReturn(responseSpec).when(requestHeadersSpec).retrieve();
+        when(responseSpec.body(String.class)).thenReturn("""
+            Scheme Code;Scheme Name;ISIN Div Payout/ ISIN Growth;ISIN Div Reinvestment;Net Asset Value;Repurchase Price;Sale Price;Date
+
+            Open Ended Schemes ( All Schemes )
+            HDFC Asset Management Company Limited
+            invalid;Scheme 654321;%s;Growth;10.5000;;INF123456789;03-Jan-2024
+            123456;Test Scheme;%s;Growth;10.5000;;INF123456789;03-Jan-2024
+            """.formatted(isin, isin));
+
+        String result = mfHistoricalNavService.getHistoricalNav(schemeCode, navDate);
+
+        assertThat(result).isEqualTo("123456");
+    }
+
+    @Test
     void getHistoricalNav_WhenSchemeNotFoundInData_ShouldThrowNavNotFoundException() {
         Long schemeCode = 999999L;
         LocalDate navDate = LocalDate.of(2024, 1, 3);

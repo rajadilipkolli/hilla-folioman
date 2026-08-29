@@ -11,6 +11,7 @@ import java.io.StringReader;
 import java.net.URI;
 import java.time.LocalDate;
 import java.util.Optional;
+import java.util.regex.Pattern;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +25,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 class MfHistoricalNavService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MfHistoricalNavService.class);
+    private static final Pattern SCHEME_CODE_PATTERN = Pattern.compile("\\d{6}");
 
     private final MfSchemeServiceImpl mfSchemeService;
     private final RestClient restClient;
@@ -162,7 +164,10 @@ class MfHistoricalNavService {
             int isinIdx,
             int navIdx,
             int dateIdx) {
-        final Long schemeCode = Long.valueOf(tokenize[schemeCodeIdx].strip());
+        if (tokenize.length <= schemeCodeIdx) return oldSchemeId;
+        String schemeCodeValue = tokenize[schemeCodeIdx].strip();
+        if (!SCHEME_CODE_PATTERN.matcher(schemeCodeValue).matches()) return oldSchemeId;
+        final Long schemeCode = Long.valueOf(schemeCodeValue);
         final String payout = tokenize.length > isinIdx ? tokenize[isinIdx] : "";
         if (payout.equalsIgnoreCase(isin) || schemeCode.equals(inputSchemeCode)) {
             oldSchemeId = String.valueOf(schemeCode);
