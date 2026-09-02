@@ -55,7 +55,9 @@ public class PortfolioValueUpdateService {
     private final UserTransactionDetailsRepository userTransactionDetailsRepository;
     private final UserFolioValueRepository userFolioValueRepository;
     private final UserCASDetailsRepository userCASDetailsRepository;
-    private final org.springframework.transaction.support.TransactionTemplate transactionTemplate;
+    private final TransactionTemplate transactionTemplate;
+    private final UserFolioDetailsRepository userFolioDetailsRepository;
+    private final UserSchemeDetailsRepository userSchemeDetailsRepository;
 
     PortfolioValueUpdateService(
             UserPortfolioValueRepository userPortfolioValueRepository,
@@ -65,7 +67,9 @@ public class PortfolioValueUpdateService {
             UserTransactionDetailsRepository userTransactionDetailsRepository,
             UserFolioValueRepository userFolioValueRepository,
             UserCASDetailsRepository userCASDetailsRepository,
-            TransactionTemplate transactionTemplate) {
+            TransactionTemplate transactionTemplate,
+            UserFolioDetailsRepository userFolioDetailsRepository,
+            UserSchemeDetailsRepository userSchemeDetailsRepository) {
         this.userPortfolioValueRepository = userPortfolioValueRepository;
         this.mfNavService = mfNavService;
         this.folioSchemeRepository = folioSchemeRepository;
@@ -74,6 +78,8 @@ public class PortfolioValueUpdateService {
         this.userFolioValueRepository = userFolioValueRepository;
         this.userCASDetailsRepository = userCASDetailsRepository;
         this.transactionTemplate = transactionTemplate;
+        this.userFolioDetailsRepository = userFolioDetailsRepository;
+        this.userSchemeDetailsRepository = userSchemeDetailsRepository;
     }
 
     private @Nullable Long getAmfiCodeSafe(UserTransactionDetailsEntity transaction) {
@@ -352,8 +358,8 @@ public class PortfolioValueUpdateService {
                         folioValuesToSave.add(existing);
                     } else {
                         UserFolioValueEntity newFolioValue = new UserFolioValueEntity();
-                        newFolioValue.setUserFolioDetailsEntity(
-                                values.getFirst().getUserSchemeDetails().getUserFolioDetails());
+                        UserFolioDetailsEntity folioProxy = userFolioDetailsRepository.getReferenceById(folioId);
+                        newFolioValue.setUserFolioDetailsEntity(folioProxy);
                         newFolioValue.setDate(date);
                         newFolioValue.setInvested(totalInvested);
                         newFolioValue.setValue(totalValue);
@@ -423,16 +429,18 @@ public class PortfolioValueUpdateService {
             BigDecimal currentValue = currentBalance.multiply(nav).setScale(2, RoundingMode.HALF_UP);
 
             // Create SchemeValueEntity entity
-            SchemeValueEntity SchemeValueEntity = new SchemeValueEntity();
-            SchemeValueEntity.setDate(date);
-            SchemeValueEntity.setInvested(currentInvested);
-            SchemeValueEntity.setValue(currentValue);
-            SchemeValueEntity.setAvgNav(currentAverage);
-            SchemeValueEntity.setNav(nav);
-            SchemeValueEntity.setBalance(currentBalance);
-            SchemeValueEntity.setUserSchemeDetails(userSchemeDetailsEntity);
+            SchemeValueEntity schemeValueEntity = new SchemeValueEntity();
+            schemeValueEntity.setDate(date);
+            schemeValueEntity.setInvested(currentInvested);
+            schemeValueEntity.setValue(currentValue);
+            schemeValueEntity.setAvgNav(currentAverage);
+            schemeValueEntity.setNav(nav);
+            schemeValueEntity.setBalance(currentBalance);
+            UserSchemeDetailsEntity schemeProxy =
+                    userSchemeDetailsRepository.getReferenceById(userSchemeDetailsEntity.getId());
+            schemeValueEntity.setUserSchemeDetails(schemeProxy);
 
-            schemeValues.add(SchemeValueEntity);
+            schemeValues.add(schemeValueEntity);
         }
 
         return schemeValues;
@@ -884,7 +892,8 @@ public class PortfolioValueUpdateService {
         portfolioValueEntity.setDate(currentDate);
         portfolioValueEntity.setInvested(totalInvestedAmount);
         portfolioValueEntity.setValue(totalPortfolioValue);
-        portfolioValueEntity.setUserCasDetails(userCasDetailsEntity);
+        UserCasDetailsEntity casProxy = userCASDetailsRepository.getReferenceById(userCasDetailsEntity.getId());
+        portfolioValueEntity.setUserCasDetails(casProxy);
         return portfolioValueEntity;
     }
 
@@ -1080,10 +1089,13 @@ public class PortfolioValueUpdateService {
                 "[{}] No existing FolioSchemeEntity found, creating new one for schemeDetailId: {}",
                 operationId,
                 schemeDetailId);
-        FolioSchemeEntity FolioSchemeEntity = new FolioSchemeEntity();
-        FolioSchemeEntity.setUserSchemeDetailsEntity(userSchemeDetailsEntity);
-        FolioSchemeEntity.setUserFolioDetailsEntity(userSchemeDetailsEntity.getUserFolioDetails());
+        FolioSchemeEntity folioSchemeEntity = new FolioSchemeEntity();
+        UserSchemeDetailsEntity schemeProxy = userSchemeDetailsRepository.getReferenceById(schemeDetailId);
+        folioSchemeEntity.setUserSchemeDetailsEntity(schemeProxy);
+        UserFolioDetailsEntity folioProxy = userFolioDetailsRepository.getReferenceById(
+                userSchemeDetailsEntity.getUserFolioDetails().getId());
+        folioSchemeEntity.setUserFolioDetailsEntity(folioProxy);
         LOGGER.debug("[{}] New FolioSchemeEntity created for schemeDetailId: {}", operationId, schemeDetailId);
-        return FolioSchemeEntity;
+        return folioSchemeEntity;
     }
 }

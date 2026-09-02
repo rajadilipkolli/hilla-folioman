@@ -27,6 +27,7 @@ import java.util.Optional;
 import org.jspecify.annotations.Nullable;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
@@ -125,13 +126,14 @@ public class PortfolioAPIImpl implements PortfolioAPI {
     @Cacheable(
             cacheNames = CacheNames.PORTFOLIO_HISTORY_CACHE,
             key = "'history_' + #casId + '_' + #userEmail + '_' + #from + '_' + #to")
+    @Transactional(readOnly = true)
     public Optional<PortfolioHistoryDTO> getPortfolioHistory(
             Long casId, String userEmail, LocalDate from, LocalDate to) {
         return userCASDetailsRepository
                 .findById(casId)
                 .filter(cas -> cas.getInvestorInfoEntity() != null)
                 .filter(cas -> userEmail.equals(cas.getInvestorInfoEntity().getEmail()))
-                .map(cas -> {
+                .map(_ -> {
                     List<UserPortfolioValueEntity> portfolioValues =
                             userPortfolioValueRepository.findByUserCasDetailsEntity_IdAndDateBetween(casId, from, to);
 

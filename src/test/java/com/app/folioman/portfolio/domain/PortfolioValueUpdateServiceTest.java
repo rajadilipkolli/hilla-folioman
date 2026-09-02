@@ -45,6 +45,7 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.transaction.support.TransactionTemplate;
 
 @ExtendWith(MockitoExtension.class)
 class PortfolioValueUpdateServiceTest {
@@ -71,7 +72,13 @@ class PortfolioValueUpdateServiceTest {
     private UserFolioValueRepository userFolioValueRepository;
 
     @Mock
-    private org.springframework.transaction.support.TransactionTemplate transactionTemplate;
+    private TransactionTemplate transactionTemplate;
+
+    @Mock
+    private UserFolioDetailsRepository userFolioDetailsRepository;
+
+    @Mock
+    private UserSchemeDetailsRepository userSchemeDetailsRepository;
 
     @InjectMocks
     private PortfolioValueUpdateService portfolioValueUpdateService;
@@ -107,6 +114,34 @@ class PortfolioValueUpdateServiceTest {
 
         // Mock MFSchemeNavProjection - only initialize it, don't stub behavior here
         mfSchemeNavProjection = mock(MFSchemeNavProjection.class);
+
+        Mockito.lenient()
+                .when(userCASDetailsRepository.getReferenceById(Mockito.anyLong()))
+                .thenAnswer(invocation -> {
+                    Long id = invocation.getArgument(0);
+                    if (id.equals(userCasDetailsEntity.getId())) {
+                        return userCasDetailsEntity;
+                    }
+                    UserCasDetailsEntity entity = new UserCasDetailsEntity();
+                    entity.setId(id);
+                    return entity;
+                });
+
+        Mockito.lenient()
+                .when(userFolioDetailsRepository.getReferenceById(Mockito.anyLong()))
+                .thenAnswer(invocation -> {
+                    UserFolioDetailsEntity entity = new UserFolioDetailsEntity();
+                    entity.setId(invocation.getArgument(0));
+                    return entity;
+                });
+
+        Mockito.lenient()
+                .when(userSchemeDetailsRepository.getReferenceById(Mockito.anyLong()))
+                .thenAnswer(invocation -> {
+                    UserSchemeDetailsEntity entity = new UserSchemeDetailsEntity();
+                    entity.setId(invocation.getArgument(0));
+                    return entity;
+                });
     }
 
     @Test

@@ -3,6 +3,10 @@ package com.app.folioman.mfschemes.domain;
 import com.app.folioman.mfschemes.util.SchemeConstants;
 import org.springframework.util.StringUtils;
 
+/**
+ * Holds the column indices for parsing AMFI NAV data headers.
+ * Dynamically determines the position of each field based on the header line.
+ */
 class AmfiNavHeaderIndices {
     int schemeCodeIdx = 0;
     int schemeNameIdx = 1;
@@ -11,6 +15,12 @@ class AmfiNavHeaderIndices {
     int navIdx = 6;
     int dateIdx = 7;
 
+    /**
+     * Constructs the header indices by parsing the AMFI NAV header line.
+     * Identifies the column positions for scheme code, name, ISIN, NAV value, and date.
+     *
+     * @param headerLine The header line from AMFI NAV data
+     */
     AmfiNavHeaderIndices(String headerLine) {
         if (StringUtils.hasText(headerLine)) {
             String[] headers = headerLine.split(SchemeConstants.NAV_SEPARATOR);

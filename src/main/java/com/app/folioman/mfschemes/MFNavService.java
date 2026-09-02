@@ -8,24 +8,68 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * Service interface for managing and retrieving mutual fund NAV (Net Asset Value) data.
+ * Provides methods for fetching current and historical NAV information for mutual fund schemes.
+ */
 public interface MFNavService {
 
+    /**
+     * Retrieves the latest NAV for a given scheme code.
+     *
+     * @param schemeCode The scheme code to retrieve NAV for
+     * @return The mutual fund scheme DTO with latest NAV
+     */
     MFSchemeDTO getNav(Long schemeCode);
 
+    /**
+     * Retrieves the NAV for a scheme on a specific date.
+     *
+     * @param schemeCode The scheme code to retrieve NAV for
+     * @param inputDate The date to retrieve NAV for
+     * @return The mutual fund scheme DTO with NAV for the specified date
+     */
     MFSchemeDTO getNavOnDate(Long schemeCode, LocalDate inputDate);
 
+    /**
+     * Retrieves the NAV for a scheme on a specific date with retry logic.
+     *
+     * @param schemeId The scheme ID to retrieve NAV for
+     * @param asOfDate The date to retrieve NAV for
+     * @return The mutual fund scheme DTO with NAV for the specified date
+     */
     MFSchemeDTO getNavByDateWithRetry(Long schemeId, LocalDate asOfDate);
 
+    /**
+     * Loads the latest day's NAV data for all schemes.
+     */
     void loadLastDayDataNav();
 
+    /**
+     * Loads historical NAV data if it doesn't already exist in the database.
+     */
     void loadHistoricalDataIfNotExists();
 
+    /**
+     * Retrieves a mapping of AMFI codes to ISIN codes.
+     *
+     * @return A map where keys are ISIN codes and values are AMFI codes
+     */
     Map<String, Long> getAmfiCodeIsinMap();
 
+    /**
+     * Finds the most recent NAV entry for a given scheme ID.
+     *
+     * @param schemeId The scheme ID to retrieve NAV for
+     * @return Optional containing the latest scheme NAV if found, empty otherwise
+     */
     Optional<MFSchemeDTO> findTopBySchemeIdOrderByDateDesc(Long schemeId);
+
     /**
      * Process NAVs for a list of scheme codes asynchronously.
      * This method should handle parallel processing and transactional boundaries.
+     *
+     * @param schemeCodes List of scheme codes to process
      */
     void processNavsAsync(List<Long> schemeCodes);
 
