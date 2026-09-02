@@ -11,6 +11,10 @@ import org.springframework.jdbc.datasource.LazyConnectionDataSourceProxy;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+/**
+ * REST controller for exposing database connection pool metrics.
+ * Provides insights into HikariCP connection pool usage.
+ */
 @RestController
 public class DbMetricsController {
 
@@ -20,6 +24,12 @@ public class DbMetricsController {
         this.dataSource = dataSource;
     }
 
+    /**
+     * Retrieves metrics about the database connection pool.
+     * Returns active, idle, total connections, and threads awaiting connections.
+     *
+     * @return A map containing pool metrics
+     */
     @GetMapping("/metrics/db/pool")
     Map<String, Object> poolMetrics() {
         Object current = dataSource;
@@ -54,6 +64,13 @@ public class DbMetricsController {
                 "threadsAwaitingConnection", hikariPoolMXBean.getThreadsAwaitingConnection());
     }
 
+    /**
+     * Extracts the HikariPoolMXBean from a potentially wrapped DataSource.
+     * Handles both direct HikariDataSource and FlexyPoolDataSource wrappers.
+     *
+     * @param current The current datasource object to extract from
+     * @return The HikariPoolMXBean, or null if not found
+     */
     private static @Nullable HikariPoolMXBean getHikariPoolMXBean(@Nullable Object current) {
         HikariDataSource hikariDataSource = null;
         if (current instanceof HikariDataSource) {
