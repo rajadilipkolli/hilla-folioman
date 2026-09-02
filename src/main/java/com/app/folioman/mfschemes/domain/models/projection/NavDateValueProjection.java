@@ -18,11 +18,13 @@ public record NavDateValueProjection(BigDecimal nav, LocalDate navDate) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         NavDateValueProjection that = (NavDateValueProjection) o;
-        return Objects.equals(nav, that.nav) && Objects.equals(navDate, that.navDate);
+        boolean navEquals =
+                (nav == null && that.nav == null) || (nav != null && that.nav != null && nav.compareTo(that.nav) == 0);
+        return navEquals && Objects.equals(navDate, that.navDate);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(nav, navDate);
+        return Objects.hash(nav != null ? nav.stripTrailingZeros() : null, navDate);
     }
 }

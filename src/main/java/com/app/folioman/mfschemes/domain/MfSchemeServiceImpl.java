@@ -4,10 +4,15 @@ import com.app.folioman.mfschemes.MfSchemeService;
 import com.app.folioman.mfschemes.SchemeNotFoundException;
 import com.app.folioman.mfschemes.config.ApplicationProperties;
 import com.app.folioman.mfschemes.domain.models.projection.NavDateValueProjection;
+import com.app.folioman.mfschemes.domain.models.response.MetaDTO;
 import com.app.folioman.mfschemes.domain.models.response.NavResponse;
+import com.app.folioman.mfschemes.domain.models.response.SchemeNAVDataDTO;
 import com.app.folioman.mfschemes.rest.dtos.FundDetailProjection;
 import com.app.folioman.mfschemes.rest.dtos.MFSchemeDTO;
 import com.app.folioman.mfschemes.rest.dtos.MFSchemeProjection;
+import com.app.folioman.mfschemes.rest.dtos.MFSchemeTypeProjection;
+import com.github.rajadilipkolli.dailynav.model.Nav;
+import com.github.rajadilipkolli.dailynav.model.Scheme;
 import java.net.URI;
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -52,6 +57,7 @@ class MfSchemeServiceImpl implements MfSchemeService {
     private final ApplicationProperties applicationProperties;
     private final MfSchemeNavRepository MfSchemeNavRepository;
     private final MfAmcService mfAmcService;
+    private final MutualFundFallbackService mutualFundFallbackService;
 
     MfSchemeServiceImpl(
             RestClient restClient,
@@ -61,7 +67,8 @@ class MfSchemeServiceImpl implements MfSchemeService {
             PlatformTransactionManager transactionManager,
             ApplicationProperties applicationProperties,
             MfSchemeNavRepository MfSchemeNavRepository,
-            MfAmcService mfAmcService) {
+            MfAmcService mfAmcService,
+            MutualFundFallbackService mutualFundFallbackService) {
         this.restClient = restClient;
         this.mFSchemeRepository = mFSchemeRepository;
         this.mfSchemeEntityToDtoMapper = mfSchemeEntityToDtoMapper;
@@ -69,6 +76,7 @@ class MfSchemeServiceImpl implements MfSchemeService {
         // Create a new TransactionTemplate with the desired propagation behavior
         this.transactionTemplate = new TransactionTemplate(transactionManager);
         this.MfSchemeNavRepository = MfSchemeNavRepository;
+        this.mutualFundFallbackService = mutualFundFallbackService;
         this.transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
         this.applicationProperties = applicationProperties;
         this.mfAmcService = mfAmcService;
@@ -129,37 +137,33 @@ class MfSchemeServiceImpl implements MfSchemeService {
             }
 
             @Override
-            public @org.jspecify.annotations.Nullable String getIsin() {
+            public @Nullable String getIsin() {
                 return entity.getIsin();
             }
 
             @Override
-            public @org.jspecify.annotations.Nullable String getPlan() {
+            public String getPlan() {
                 return entity.getPlan();
             }
 
             @Override
-            public @org.jspecify.annotations.Nullable String getRta() {
+            public String getRta() {
                 return entity.getRta();
             }
 
             @Override
-            public com.app.folioman.mfschemes.rest.dtos.@org.jspecify.annotations.Nullable MFSchemeTypeProjection
-                    getMfSchemeTypeEntity() {
-                if (entity.getMfSchemeTypeEntity() != null) {
-                    return new com.app.folioman.mfschemes.rest.dtos.MFSchemeTypeProjection() {
-                        @Override
-                        public @org.jspecify.annotations.Nullable String getCategory() {
-                            return entity.getMfSchemeTypeEntity().getCategory();
-                        }
+            public MFSchemeTypeProjection getMfSchemeTypeEntity() {
+                return new MFSchemeTypeProjection() {
+                    @Override
+                    public String getCategory() {
+                        return entity.getMfSchemeTypeEntity().getCategory();
+                    }
 
-                        @Override
-                        public @org.jspecify.annotations.Nullable String getSubCategory() {
-                            return entity.getMfSchemeTypeEntity().getSubCategory();
-                        }
-                    };
-                }
-                return null;
+                    @Override
+                    public @Nullable String getSubCategory() {
+                        return entity.getMfSchemeTypeEntity().getSubCategory();
+                    }
+                };
             }
         };
     }
@@ -446,16 +450,36 @@ class MfSchemeServiceImpl implements MfSchemeService {
     }
 
     private @Nullable NavResponse getNavResponseResponseEntity(Long schemeCode) {
-        return this.restClient
-                .get()
-                .uri(getUri(schemeCode))
-                .retrieve()
-                .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {
-                    LOGGER.error(
-                            "Error fetching NAV response for schemeCode: {} with stack : {}", schemeCode, response);
-                    throw new SchemeNotFoundException("scheme with id %d not found".formatted(schemeCode));
-                })
-                .body(NavResponse.class);
+        try {
+            return this.restClient
+                    .get()
+                    .uri(getUri(schemeCode))
+                    .retrieve()
+                    .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {
+                        LOGGER.error(
+                                "Error fetching NAV response for schemeCode: {} with stack : {}", schemeCode, response);
+                        throw new SchemeNotFoundException("scheme with id %d not found".formatted(schemeCode));
+                    })
+                    .body(NavResponse.class);
+        } catch (Exception ex) {
+            LOGGER.error("Failed to fetch NAV from API, attempting fallback for schemeCode: {}", schemeCode, ex);
+            Scheme scheme = mutualFundFallbackService
+                    .getSchemeBySchemeCode(schemeCode.intValue())
+                    .orElse(null);
+            if (scheme == null) {
+                throw new SchemeNotFoundException(
+                        "scheme with id %d not found in fallback either".formatted(schemeCode));
+            }
+            List<Nav> navs = mutualFundFallbackService.getNavsBySchemeCode(schemeCode.intValue());
+
+            MetaDTO meta = new MetaDTO("", "", "", String.valueOf(schemeCode), scheme.schemeName());
+
+            List<SchemeNAVDataDTO> data = navs.stream()
+                    .map(n -> new SchemeNAVDataDTO(n.getDate(), String.valueOf(n.getNav()), schemeCode))
+                    .collect(Collectors.toList());
+
+            return new NavResponse("SUCCESS", meta, data);
+        }
     }
 
     private URI getUri(Long schemeCode) {

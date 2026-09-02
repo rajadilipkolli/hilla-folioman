@@ -9,6 +9,7 @@ import com.app.folioman.config.SQLContainersConfig;
 import com.app.folioman.mfschemes.config.ApplicationProperties;
 import com.app.folioman.mfschemes.domain.MfSchemeSyncService;
 import com.app.folioman.portfolio.config.PortfolioCacheProperties;
+import com.github.rajadilipkolli.dailynav.DailyNavHealthService;
 import jakarta.persistence.EntityManager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -72,6 +73,9 @@ public abstract class AbstractIntegrationTest {
 
     @Autowired
     protected EntityManager entityManager;
+
+    @Autowired
+    protected DailyNavHealthService dailyNavHealthService;
 
     @LocalServerPort
     protected int port;

@@ -1,5 +1,6 @@
 package com.app.folioman.config;
 
+import com.vaadin.flow.spring.annotation.VaadinTaskExecutor;
 import java.util.concurrent.Executor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +24,7 @@ public class AsyncConfig implements AsyncConfigurer {
     }
 
     @Bean("virtualThreadExecutor")
+    @VaadinTaskExecutor
     Executor virtualThreadExecutor() {
         // Create a custom virtual thread executor with naming and context propagation
         SimpleAsyncTaskExecutor executor = new SimpleAsyncTaskExecutor();

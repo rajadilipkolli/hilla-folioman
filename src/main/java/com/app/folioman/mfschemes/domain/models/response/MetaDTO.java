@@ -3,7 +3,7 @@ package com.app.folioman.mfschemes.domain.models.response;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
 
-record MetaDTO(
+public record MetaDTO(
         @JsonProperty("fund_house") String fundHouse,
         @JsonProperty("scheme_type") String schemeType,
         @JsonProperty("scheme_category") String schemeCategory,
