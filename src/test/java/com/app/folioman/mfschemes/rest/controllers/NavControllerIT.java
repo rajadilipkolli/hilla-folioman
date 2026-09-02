@@ -47,10 +47,10 @@ class NavControllerIT extends AbstractIntegrationTest {
                 .perform(get("/api/nav/{schemeCode}", 159999).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, is(MediaType.APPLICATION_PROBLEM_JSON_VALUE)))
-                .andExpect(jsonPath("$.type", is("https://api.hilla-folioman.com/errors/scheme-not-found")))
-                .andExpect(jsonPath("$.title", is("Scheme NotFound")))
+                .andExpect(jsonPath("$.type", is("https://api.hilla-folioman.com/errors/nav-not-found")))
+                .andExpect(jsonPath("$.title", is("NAV Not Found")))
                 .andExpect(jsonPath("$.status", is(404)))
-                .andExpect(jsonPath("$.detail", containsString("scheme with id 159999 not found")))
+                .andExpect(jsonPath("$.detail", containsString("Nav Not Found for schemeCode - 159999 on")))
                 .andExpect(jsonPath("$.instance", is("/api/nav/159999")));
     }
 
