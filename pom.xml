@@ -398,9 +398,6 @@
                     <checking>main</checking>
                     <outputDirectory>${project.basedir}/src/main/java</outputDirectory>
                     <testOutputDirectory>${project.basedir}/src/test/java</testOutputDirectory>
-                    <excludedPaths>
-                        .*[/\\]target[/\\]generated-sources[/\\].*
-                    </excludedPaths>
                 </configuration>
                 <executions>
                     <execution>
@@ -450,7 +447,7 @@
                 <configuration>
                     <java>
                         <palantirJavaFormat>
-                            <version>2.94.0</version>
+                            <version>2.96.0</version>
                         </palantirJavaFormat>
                         <importOrder/>
                         <removeUnusedImports/>
