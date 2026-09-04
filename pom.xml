@@ -399,7 +399,7 @@
                     <outputDirectory>${project.basedir}/src/main/java</outputDirectory>
                     <testOutputDirectory>${project.basedir}/src/test/java</testOutputDirectory>
                     <excludedPaths>
-                        .*/target/generated-sources/annotations/.*
+                        .*[/\\]target[/\\]generated-sources[/\\].*
                     </excludedPaths>
                 </configuration>
                 <executions>
