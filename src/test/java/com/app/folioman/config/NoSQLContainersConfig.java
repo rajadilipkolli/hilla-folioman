@@ -34,7 +34,7 @@ public class NoSQLContainersConfig {
     @Bean
     @ServiceConnection
     MongoDBContainer mongoDBContainer() {
-        return new MongoDBContainer(DockerImageName.parse("mongo").withTag("8.3.8"))
+        return new MongoDBContainer(DockerImageName.parse("mongo").withTag("8.3.9"))
                 .withStartupTimeout(Duration.ofMinutes(2));
     }
 
