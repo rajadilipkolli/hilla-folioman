@@ -1,8 +1,8 @@
 package com.app.folioman.mfschemes.domain;
 
-import com.github.rajadilipkolli.dailynav.MutualFundService;
-import com.github.rajadilipkolli.dailynav.model.Nav;
-import com.github.rajadilipkolli.dailynav.model.Scheme;
+import com.github.rajadilipkolli.dailynav.application.service.MutualFundService;
+import com.github.rajadilipkolli.dailynav.domain.model.Nav;
+import com.github.rajadilipkolli.dailynav.domain.model.Scheme;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
