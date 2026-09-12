@@ -148,7 +148,7 @@
         <dependency>
             <groupId>io.github.rajadilipkolli</groupId>
             <artifactId>historical-mf-nav-data</artifactId>
-            <version>1.0.20260910</version>
+            <version>1.0.20260911</version>
         </dependency>
 
         <dependency>
