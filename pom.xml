@@ -31,6 +31,7 @@
         <junit.utReportFolder>${project.testresult.directory}/test</junit.utReportFolder>
         <junit.itReportFolder>${project.testresult.directory}/integrationTest</junit.itReportFolder>
         <dockerImageName>rajadilipkolli/${project.artifactId}</dockerImageName>
+        <argLine/>
     </properties>
 
     <parent>
@@ -481,7 +482,7 @@
                 <configuration>
                     <forkCount>4</forkCount>
                     <reuseForks>true</reuseForks>
-                    <argLine>@{argLine} -Xmx1024m</argLine>
+                    <argLine>${argLine} -Xmx1024m</argLine>
                     <runOrder>alphabetical</runOrder>
                     <reportsDirectory>${junit.utReportFolder}</reportsDirectory>
                     <excludes>
@@ -636,16 +637,6 @@
                     <useClasspathJar>true</useClasspathJar>
                     <!-- Run single-threaded for the mutation/minion executor to reduce concurrency-related failures during analysis -->
                     <threads>1</threads>
-                    <!-- Workaround for strong encapsulation on Java 16+ / JDK 21 — open packages PIT uses reflectively to the minion process -->
-                    <jvmArgs>
-                        <jvmArg>--add-opens=java.base/java.lang=ALL-UNNAMED</jvmArg>
-                        <jvmArg>--add-opens=java.base/java.lang.invoke=ALL-UNNAMED</jvmArg>
-                        <jvmArg>--add-opens=java.base/java.io=ALL-UNNAMED</jvmArg>
-                        <jvmArg>--add-opens=java.base/java.util=ALL-UNNAMED</jvmArg>
-                        <jvmArg>--add-opens=java.base/java.util.concurrent=ALL-UNNAMED</jvmArg>
-                    </jvmArgs>
-                    <!-- Force PIT to launch the minion with an explicit java binary; if you want to use a different JDK, set JAVA_HOME before running Maven. -->
-                    <jvmPath>${java.home}/bin/java</jvmPath>
                     <!-- Enable verbose logging inside PIT (produces more minion output). -->
                     <verbose>false</verbose>
                     <excludedTestClasses>
