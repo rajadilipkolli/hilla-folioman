@@ -58,6 +58,7 @@ class Initializer {
         int attempt = 0;
         Exception lastException = null;
         long currentRetryDelay = properties.getRetryDelayMs(); // Keep original value intact for multiple retries
+        String csvProcessingPhase = "mutual fund data processing";
 
         // Retry loop
         while (attempt < properties.getRetryAttempts()) {
@@ -72,6 +73,7 @@ class Initializer {
                 String bseMasterData = bseStarMasterDataService.downloadBseMasterData();
 
                 if (bseMasterData != null) {
+                    csvProcessingPhase = "BSE master data processing";
                     BSEStarMasterDataService.BseMasterDataResult bseDataResult =
                             bseStarMasterDataService.parseBseMasterData(bseMasterData);
 
@@ -82,6 +84,7 @@ class Initializer {
                     // Download NAVAll once; this is otherwise re-downloaded on every AMFI batch
                     Map<String, Long> isinToAmfiCodeMap = mfNavService.getAmfiCodeIsinMap();
 
+                    csvProcessingPhase = "AMFI master data processing";
                     amfiService.fetchAmfiSchemeData(amfiDataMap -> {
                         if (!amfiDataMap.isEmpty()) {
                             try {
@@ -138,8 +141,10 @@ class Initializer {
                     }
                 }
             } catch (CsvException e) {
-                LOGGER.error("Failed to process CSV data, not retrying as this is likely a data format issue", e);
-                throw new MutualFundDataException("Failed to process CSV data for mutual funds", e);
+                String message = "Failed during %s; not retrying as this is likely a data format issue"
+                        .formatted(csvProcessingPhase);
+                LOGGER.error(message, e);
+                throw new MutualFundDataException(message, e);
             }
         }
 

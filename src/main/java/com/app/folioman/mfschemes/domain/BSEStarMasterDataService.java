@@ -1,6 +1,7 @@
 package com.app.folioman.mfschemes.domain;
 
 import com.app.folioman.mfschemes.config.ApplicationProperties;
+import com.app.folioman.mfschemes.exception.MutualFundDataException;
 import com.app.folioman.shared.CommonConstants;
 import com.app.folioman.shared.LocalDateUtility;
 import com.opencsv.CSVReader;
@@ -28,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -73,26 +75,68 @@ class BSEStarMasterDataService {
                 .uri(applicationProperties.getBseStar().getScheme().getDataUrl())
                 .header(HttpHeaders.USER_AGENT, "folioman-java-httpclient/0.0.1")
                 .retrieve()
+                .onStatus(HttpStatusCode::isError, (request, httpResponse) -> {
+                    String body = "";
+                    try {
+                        body = new String(httpResponse.getBody().readAllBytes(), StandardCharsets.UTF_8);
+                    } catch (IOException e) {
+                        LOGGER.warn("Unable to read BSE GET error body for URI {}", request.getURI(), e);
+                    }
+                    LOGGER.error(
+                            "BSE form page GET failed with status {} for URI {}. Response body: {}",
+                            httpResponse.getStatusCode(),
+                            request.getURI(),
+                            body);
+                    throw new MutualFundDataException("BSE form page GET failed with status "
+                            + httpResponse.getStatusCode().value()
+                            + " for URI "
+                            + request.getURI()
+                            + ". Details: "
+                            + body);
+                })
                 .body(String.class);
 
-        // Step 2: Parse the HTML response to extract hidden form fields
-        Map<String, String> formData = null;
-        if (response != null) {
-            formData = getExtractedFormData(response);
+        if (response == null || response.isBlank()) {
+            LOGGER.warn("BSE server returned no data while fetching the form page for scheme master data.");
+            throw new MutualFundDataException("BSE server returned no data while fetching the form page.");
         }
 
+        // Step 2: Parse the HTML response to extract hidden form fields
+        Map<String, String> formData = getExtractedFormData(response);
+
         // Step 4: POST request to submit the form and download the master data
-        String bseMasterData = null;
-        if (formData != null) {
-            bseMasterData = restClient
-                    .post()
-                    .uri("https://bsestarmf.in/RptSchemeMaster.aspx")
-                    .header(HttpHeaders.USER_AGENT, "folioman-java-httpclient/0.0.1")
-                    .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                    .accept(MediaType.ALL)
-                    .body(ofFormData(formData)) // Form data encoded and passed in the request bseMasterData
-                    .retrieve()
-                    .body(String.class);
+        String bseMasterData = restClient
+                .post()
+                .uri("https://bsestarmf.in/RptSchemeMaster.aspx")
+                .header(HttpHeaders.USER_AGENT, "folioman-java-httpclient/0.0.1")
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .accept(MediaType.ALL)
+                .body(ofFormData(formData)) // Form data encoded and passed in the request bseMasterData
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, (request, httpResponse) -> {
+                    String body = "";
+                    try {
+                        body = new String(httpResponse.getBody().readAllBytes(), StandardCharsets.UTF_8);
+                    } catch (IOException e) {
+                        LOGGER.warn("Unable to read BSE POST error body for URI {}", request.getURI(), e);
+                    }
+                    LOGGER.error(
+                            "BSE master data POST failed with status {} for URI {}. Response body: {}",
+                            httpResponse.getStatusCode(),
+                            request.getURI(),
+                            body);
+                    throw new MutualFundDataException("BSE master data POST failed with status "
+                            + httpResponse.getStatusCode().value()
+                            + " for URI "
+                            + request.getURI()
+                            + ". Details: "
+                            + body);
+                })
+                .body(String.class);
+
+        if (bseMasterData == null || bseMasterData.isBlank()) {
+            LOGGER.warn("BSE server returned no data after posting the master data form.");
+            throw new MutualFundDataException("BSE server returned no data after posting the master data form.");
         }
 
         LOGGER.info("BSE Master data downloaded successfully.");
