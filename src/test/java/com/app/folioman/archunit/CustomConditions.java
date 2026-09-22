@@ -136,11 +136,13 @@ public class CustomConditions {
     }
 
     public static ArchCondition<JavaField> notUseDateOrTimestamp() {
-        return new ArchCondition<>("not use java.util.Date or java.sql.Timestamp") {
+        return new ArchCondition<>("not use java.util.Date, java.sql.Date, or java.sql.Timestamp") {
             @Override
             public void check(JavaField field, ConditionEvents events) {
                 String typeName = field.getRawType().getName();
-                if ("java.util.Date".equals(typeName) || "java.sql.Timestamp".equals(typeName)) {
+                if ("java.util.Date".equals(typeName)
+                        || "java.sql.Date".equals(typeName)
+                        || "java.sql.Timestamp".equals(typeName)) {
                     events.add(SimpleConditionEvent.violated(
                             field,
                             "Field " + field.getName() + " in "
