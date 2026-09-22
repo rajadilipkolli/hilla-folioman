@@ -135,8 +135,10 @@ public class CustomConditions {
                 .findFirst();
     }
 
+    /** Creates a condition that rejects legacy date and timestamp field types. */
     public static ArchCondition<JavaField> notUseDateOrTimestamp() {
         return new ArchCondition<>("not use java.util.Date, java.sql.Date, or java.sql.Timestamp") {
+            /** Checks a field for legacy date and timestamp types. */
             @Override
             public void check(JavaField field, ConditionEvents events) {
                 String typeName = field.getRawType().getName();
@@ -152,8 +154,10 @@ public class CustomConditions {
         };
     }
 
+    /** Creates a condition that requires string persistence for enumerated fields. */
     public static ArchCondition<JavaField> useEnumTypeString() {
         return new ArchCondition<>("use EnumType.STRING for @Enumerated") {
+            /** Checks that an enumerated field uses {@code EnumType.STRING}. */
             @Override
             public void check(JavaField field, ConditionEvents events) {
                 if (field.isAnnotatedWith(jakarta.persistence.Enumerated.class)) {

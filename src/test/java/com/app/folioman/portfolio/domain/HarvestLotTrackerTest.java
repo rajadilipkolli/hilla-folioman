@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 
 class HarvestLotTrackerTest {
 
+    /** Verifies that a purchase creates an open FIFO lot. */
     @Test
     void shouldTrackBuyLots() {
         HarvestLotTracker tracker = new HarvestLotTracker();
@@ -29,6 +30,7 @@ class HarvestLotTrackerTest {
         assertThat(lots.get(0).acquisitionDate()).isEqualTo(LocalDate.of(2023, 1, 15));
     }
 
+    /** Verifies that redemptions consume open lots in FIFO order. */
     @Test
     void shouldConsumeLotsOnSellFifo() {
         HarvestLotTracker tracker = new HarvestLotTracker();

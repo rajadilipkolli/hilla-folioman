@@ -89,28 +89,34 @@ class UserTransactionDetailsEntity extends BaseEntity {
         return this;
     }
 
+    /** Returns the transaction units at database precision. */
     public @Nullable BigDecimal getUnits() {
         return units;
     }
 
+    /** Sets the transaction units at database precision. */
     public UserTransactionDetailsEntity setUnits(@Nullable BigDecimal units) {
         this.units = units;
         return this;
     }
 
+    /** Returns the net asset value at database precision. */
     public @Nullable BigDecimal getNav() {
         return nav;
     }
 
+    /** Sets the net asset value at database precision. */
     public UserTransactionDetailsEntity setNav(@Nullable BigDecimal nav) {
         this.nav = nav;
         return this;
     }
 
+    /** Returns the balance at database precision. */
     public @Nullable BigDecimal getBalance() {
         return balance;
     }
 
+    /** Sets the balance at database precision. */
     public UserTransactionDetailsEntity setBalance(@Nullable BigDecimal balance) {
         this.balance = balance;
         return this;

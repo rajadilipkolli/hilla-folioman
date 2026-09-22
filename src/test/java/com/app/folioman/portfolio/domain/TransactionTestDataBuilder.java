@@ -47,6 +47,7 @@ public class TransactionTestDataBuilder {
         return this;
     }
 
+    /** Adds a transaction to the current scheme, preserving nullable decimal inputs. */
     public TransactionTestDataBuilder addTransaction(
             LocalDate date, TransactionType type, BigDecimal amount, Double units, Double nav, Double balance) {
         if (currentScheme == null) {

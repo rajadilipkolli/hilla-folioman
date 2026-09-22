@@ -539,6 +539,7 @@ public class UserDetailService {
                     dto.balance());
         }
 
+        /** Creates a comparison key from a persisted transaction. */
         static TransactionKey from(UserTransactionDetailsEntity entity) {
             return new TransactionKey(
                     entity.getTransactionDate(),

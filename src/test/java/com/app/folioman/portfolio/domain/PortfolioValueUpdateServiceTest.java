@@ -369,6 +369,7 @@ class PortfolioValueUpdateServiceTest {
         assertThatCode(() -> UUID.fromString(uuid2)).doesNotThrowAnyException();
     }
 
+    /** Creates persisted-domain test data from the representative CAS fixture. */
     private UserCasDetailsEntity createUserCASDetailsFromTestData() {
         // Get CasDTO from TestData
         CasDTO casDTO = TestData.getCasDTO();

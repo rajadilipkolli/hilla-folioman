@@ -84,6 +84,7 @@ class UserTransactionDetailsTest {
         assertThat(result).isSameAs(UserTransactionDetailsEntity);
     }
 
+    /** Verifies that decimal units round-trip through the entity. */
     @Test
     void getAndSetUnits() {
         BigDecimal units = BigDecimal.valueOf(10.5);
@@ -101,6 +102,7 @@ class UserTransactionDetailsTest {
         assertThat(result).isSameAs(UserTransactionDetailsEntity);
     }
 
+    /** Verifies that decimal NAV values round-trip through the entity. */
     @Test
     void getAndSetNav() {
         BigDecimal nav = BigDecimal.valueOf(25.75);
@@ -118,6 +120,7 @@ class UserTransactionDetailsTest {
         assertThat(result).isSameAs(UserTransactionDetailsEntity);
     }
 
+    /** Verifies that decimal balances round-trip through the entity. */
     @Test
     void getAndSetBalance() {
         BigDecimal balance = BigDecimal.valueOf(1000.0);
@@ -240,6 +243,7 @@ class UserTransactionDetailsTest {
         assertThat(other).hasSameHashCodeAs(UserTransactionDetailsEntity);
     }
 
+    /** Verifies that fluent setters preserve the entity and its decimal values. */
     @Test
     void methodChaining() {
         LocalDate date = LocalDate.of(2023, 1, 1);

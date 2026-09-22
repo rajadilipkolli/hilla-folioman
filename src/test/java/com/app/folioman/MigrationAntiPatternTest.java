@@ -16,6 +16,7 @@ import org.w3c.dom.NodeList;
 
 public class MigrationAntiPatternTest {
 
+    /** Verifies that Liquibase migrations avoid unsupported database type patterns. */
     @Test
     void testMigrationFilesForAntiPatterns() throws Exception {
         Path migrationDir = Paths.get("src/main/resources/db/changelog/migration/");

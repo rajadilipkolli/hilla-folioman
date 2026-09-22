@@ -91,6 +91,7 @@ class CapitalGainsHarvestingServiceTest {
         };
     }
 
+    /** Creates a purchase transaction for harvesting scenarios. */
     private UserTransactionDetailsEntity createTxn(BigDecimal amount, Double units, Double nav, LocalDate date) {
         UserTransactionDetailsEntity txn = new UserTransactionDetailsEntity();
         txn.setAmount(amount);
@@ -129,6 +130,7 @@ class CapitalGainsHarvestingServiceTest {
                 return null;
             }
 
+            /** Returns the mocked scheme type. */
             @Override
             public MFSchemeTypeProjection getMfSchemeTypeEntity() {
                 return typeProj;
@@ -159,6 +161,7 @@ class CapitalGainsHarvestingServiceTest {
         assertThat(response.recommendations()).isEmpty();
     }
 
+    /** Verifies that available long-term gains use the exemption before incurring tax. */
     @Test
     void shouldPrioritizeLtcgExemptionFirst() {
         String pan = "ABCDE1234F";
@@ -193,6 +196,7 @@ class CapitalGainsHarvestingServiceTest {
         assertThat(rec.estimatedTax()).isEqualByComparingTo(BigDecimal.ZERO);
     }
 
+    /** Verifies short-term gains tax and exit-load calculations. */
     @Test
     void shouldCalculateStcgAndExitLoad() {
         String pan = "ABCDE1234F";
@@ -230,6 +234,7 @@ class CapitalGainsHarvestingServiceTest {
         assertThat(rec.exitLoad()).isEqualByComparingTo(new BigDecimal("500.00"));
     }
 
+    /** Verifies that harvesting is capped at the available holding value. */
     @Test
     void shouldHarvestAvailableWhenTargetAmountExceedsAvailable() {
         String pan = "ABCDE1234F";

@@ -167,6 +167,7 @@ class UserCASDetailsRepositoryTest {
     }
 
     // Helper methods to persist minimal entities for repository tests
+    /** Persists a minimal portfolio with the requested balance. */
     private void persistSamplePortfolio(
             String pan, Long amfi, String schemeName, LocalDate transactionDate, Double balance) {
         UserCasDetailsEntity userCasDetailsEntity = new UserCasDetailsEntity();
@@ -202,6 +203,7 @@ class UserCASDetailsRepositoryTest {
         entityManager.persistAndFlush(userCasDetailsEntity);
     }
 
+    /** Persists a portfolio containing both an eligible and an excluded transaction. */
     private void persistSamplePortfolioWithExcludedTransaction(
             String pan, Long amfi, String schemeName, LocalDate transactionDate) {
         persistSamplePortfolio(pan, amfi, schemeName, transactionDate);

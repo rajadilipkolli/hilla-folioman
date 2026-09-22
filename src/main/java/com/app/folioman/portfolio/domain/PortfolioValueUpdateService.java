@@ -797,6 +797,7 @@ public class PortfolioValueUpdateService {
         return Objects.requireNonNullElseGet(transactionAmount, () -> BigDecimal.valueOf(0.0001));
     }
 
+    /** Returns the transaction units, defaulting missing units to zero. */
     private BigDecimal getTransactionUnits(UserTransactionDetailsEntity transaction) {
         BigDecimal transactionUnits = transaction.getUnits();
         // happens when transaction type is dividend payout

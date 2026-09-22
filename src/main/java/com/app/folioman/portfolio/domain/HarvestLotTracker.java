@@ -14,6 +14,7 @@ public class HarvestLotTracker {
 
     HarvestLotTracker() {}
 
+    /** Adds an eligible purchase or redemption transaction to the tracked FIFO lots. */
     public void addTransaction(UserTransactionDetailsEntity txn) {
         if (txn.getAmount() == null || txn.getTransactionDate() == null) {
             return;
