@@ -14,6 +14,7 @@ public class HarvestLotTracker {
 
     HarvestLotTracker() {}
 
+    /** Adds an eligible purchase or redemption transaction to the tracked FIFO lots. */
     public void addTransaction(UserTransactionDetailsEntity txn) {
         if (txn.getAmount() == null || txn.getTransactionDate() == null) {
             return;
@@ -22,11 +23,11 @@ public class HarvestLotTracker {
             return;
         }
 
-        BigDecimal quantity = txn.getUnits() != null ? BigDecimal.valueOf(txn.getUnits()) : BigDecimal.ZERO;
+        BigDecimal quantity = txn.getUnits() != null ? txn.getUnits() : BigDecimal.ZERO;
         if (quantity.compareTo(BigDecimal.ZERO) == 0) {
             return;
         }
-        BigDecimal nav = txn.getNav() != null ? BigDecimal.valueOf(txn.getNav()) : BigDecimal.ZERO;
+        BigDecimal nav = txn.getNav() != null ? txn.getNav() : BigDecimal.ZERO;
 
         if (txn.getAmount().compareTo(BigDecimal.ZERO) > 0) {
             buy(txn.getTransactionDate(), quantity, nav);

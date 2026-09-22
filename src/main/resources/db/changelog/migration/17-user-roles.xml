@@ -7,6 +7,9 @@
     <property name="string.type" value="varchar(255)" dbms="!postgresql"/>
     <property name="string.type" value="text" dbms="postgresql"/>
 
+    <property name="timestamp.type" value="timestamp" dbms="!postgresql"/>
+    <property name="timestamp.type" value="timestamptz" dbms="postgresql"/>
+
     <changeSet id="1716400000000-2" author="appUser">
         <createSequence sequenceName="roles_seq" schemaName="portfolio" incrementBy="50" startValue="1"/>
 
@@ -17,11 +20,11 @@
             <column name="name" type="${string.type}">
                 <constraints nullable="false" unique="true"/>
             </column>
-            <column name="created_at" type="TIMESTAMP">
+            <column name="created_at" type="${timestamp.type}">
                 <constraints nullable="false"/>
             </column>
-            <column name="updated_at" type="TIMESTAMP"/>
-            <column name="version" type="BIGINT">
+            <column name="updated_at" type="${timestamp.type}"/>
+            <column name="version" type="smallint" defaultValueNumeric="0">
                 <constraints nullable="false"/>
             </column>
         </createTable>

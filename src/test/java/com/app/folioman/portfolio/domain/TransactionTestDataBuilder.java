@@ -47,6 +47,7 @@ public class TransactionTestDataBuilder {
         return this;
     }
 
+    /** Adds a transaction to the current scheme, preserving nullable decimal inputs. */
     public TransactionTestDataBuilder addTransaction(
             LocalDate date, TransactionType type, BigDecimal amount, Double units, Double nav, Double balance) {
         if (currentScheme == null) {
@@ -56,9 +57,9 @@ public class TransactionTestDataBuilder {
         transaction.setTransactionDate(date);
         transaction.setType(type);
         transaction.setAmount(amount);
-        transaction.setUnits(units);
-        transaction.setNav(nav);
-        transaction.setBalance(balance);
+        transaction.setUnits(units != null ? BigDecimal.valueOf(units) : null);
+        transaction.setNav(nav != null ? BigDecimal.valueOf(nav) : null);
+        transaction.setBalance(balance != null ? BigDecimal.valueOf(balance) : null);
         currentScheme.addTransaction(transaction);
         return this;
     }

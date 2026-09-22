@@ -84,10 +84,11 @@ class UserTransactionDetailsTest {
         assertThat(result).isSameAs(UserTransactionDetailsEntity);
     }
 
+    /** Verifies that decimal units round-trip through the entity. */
     @Test
     void getAndSetUnits() {
-        Double units = 10.5;
-        UserTransactionDetailsEntity result = UserTransactionDetailsEntity.setUnits(units);
+        BigDecimal units = BigDecimal.valueOf(10.5);
+        UserTransactionDetailsEntity result = UserTransactionDetailsEntity.setUnits(units != null ? units : null);
 
         assertThat(UserTransactionDetailsEntity.getUnits()).isEqualTo(units);
         assertThat(result).isSameAs(UserTransactionDetailsEntity);
@@ -101,10 +102,11 @@ class UserTransactionDetailsTest {
         assertThat(result).isSameAs(UserTransactionDetailsEntity);
     }
 
+    /** Verifies that decimal NAV values round-trip through the entity. */
     @Test
     void getAndSetNav() {
-        Double nav = 25.75;
-        UserTransactionDetailsEntity result = UserTransactionDetailsEntity.setNav(nav);
+        BigDecimal nav = BigDecimal.valueOf(25.75);
+        UserTransactionDetailsEntity result = UserTransactionDetailsEntity.setNav(nav != null ? nav : null);
 
         assertThat(UserTransactionDetailsEntity.getNav()).isEqualTo(nav);
         assertThat(result).isSameAs(UserTransactionDetailsEntity);
@@ -118,10 +120,11 @@ class UserTransactionDetailsTest {
         assertThat(result).isSameAs(UserTransactionDetailsEntity);
     }
 
+    /** Verifies that decimal balances round-trip through the entity. */
     @Test
     void getAndSetBalance() {
-        Double balance = 1000.0;
-        UserTransactionDetailsEntity result = UserTransactionDetailsEntity.setBalance(balance);
+        BigDecimal balance = BigDecimal.valueOf(1000.0);
+        UserTransactionDetailsEntity result = UserTransactionDetailsEntity.setBalance(balance != null ? balance : null);
 
         assertThat(UserTransactionDetailsEntity.getBalance()).isEqualTo(balance);
         assertThat(result).isSameAs(UserTransactionDetailsEntity);
@@ -240,6 +243,7 @@ class UserTransactionDetailsTest {
         assertThat(other).hasSameHashCodeAs(UserTransactionDetailsEntity);
     }
 
+    /** Verifies that fluent setters preserve the entity and its decimal values. */
     @Test
     void methodChaining() {
         LocalDate date = LocalDate.of(2023, 1, 1);
@@ -249,9 +253,9 @@ class UserTransactionDetailsTest {
                 .setTransactionDate(date)
                 .setDescription("Test")
                 .setAmount(amount)
-                .setUnits(10.0)
-                .setNav(10.0)
-                .setBalance(100.0)
+                .setUnits(BigDecimal.valueOf(10.0))
+                .setNav(BigDecimal.valueOf(10.0))
+                .setBalance(BigDecimal.valueOf(100.0))
                 .setType(TransactionType.PURCHASE)
                 .setDividendRate("5%");
 
@@ -260,9 +264,9 @@ class UserTransactionDetailsTest {
         assertThat(UserTransactionDetailsEntity.getTransactionDate()).isEqualTo(date);
         assertThat(UserTransactionDetailsEntity.getDescription()).isEqualTo("Test");
         assertThat(UserTransactionDetailsEntity.getAmount()).isEqualTo(amount);
-        assertThat(UserTransactionDetailsEntity.getUnits()).isEqualTo(10.0);
-        assertThat(UserTransactionDetailsEntity.getNav()).isEqualTo(10.0);
-        assertThat(UserTransactionDetailsEntity.getBalance()).isEqualTo(100.0);
+        assertThat(UserTransactionDetailsEntity.getUnits()).isEqualTo(BigDecimal.valueOf(10.0));
+        assertThat(UserTransactionDetailsEntity.getNav()).isEqualTo(BigDecimal.valueOf(10.0));
+        assertThat(UserTransactionDetailsEntity.getBalance()).isEqualTo(BigDecimal.valueOf(100.0));
         assertThat(UserTransactionDetailsEntity.getType()).isEqualTo(TransactionType.PURCHASE);
         assertThat(UserTransactionDetailsEntity.getDividendRate()).isEqualTo("5%");
     }

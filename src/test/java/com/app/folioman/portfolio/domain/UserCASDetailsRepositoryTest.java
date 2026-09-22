@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.app.folioman.config.SQLContainersConfig;
 import com.app.folioman.portfolio.domain.models.projection.PortfolioDetailsProjection;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -166,6 +167,7 @@ class UserCASDetailsRepositoryTest {
     }
 
     // Helper methods to persist minimal entities for repository tests
+    /** Persists a minimal portfolio with the requested balance. */
     private void persistSamplePortfolio(
             String pan, Long amfi, String schemeName, LocalDate transactionDate, Double balance) {
         UserCasDetailsEntity userCasDetailsEntity = new UserCasDetailsEntity();
@@ -192,15 +194,16 @@ class UserCASDetailsRepositoryTest {
         // transaction with non-zero balance
         UserTransactionDetailsEntity tx = new UserTransactionDetailsEntity();
         tx.setTransactionDate(transactionDate);
-        tx.setBalance(balance);
-        tx.setUnits(balance);
-        tx.setNav(1.0);
+        tx.setBalance(balance != null ? BigDecimal.valueOf(balance) : null);
+        tx.setUnits(balance != null ? BigDecimal.valueOf(balance) : null);
+        tx.setNav(BigDecimal.valueOf(1.0));
         tx.setType(TransactionType.PURCHASE);
         scheme.addTransaction(tx);
 
         entityManager.persistAndFlush(userCasDetailsEntity);
     }
 
+    /** Persists a portfolio containing both an eligible and an excluded transaction. */
     private void persistSamplePortfolioWithExcludedTransaction(
             String pan, Long amfi, String schemeName, LocalDate transactionDate) {
         persistSamplePortfolio(pan, amfi, schemeName, transactionDate);
@@ -216,9 +219,9 @@ class UserCASDetailsRepositoryTest {
 
         UserTransactionDetailsEntity excluded = new UserTransactionDetailsEntity();
         excluded.setTransactionDate(transactionDate);
-        excluded.setBalance(5.0);
-        excluded.setUnits(5.0);
-        excluded.setNav(1.0);
+        excluded.setBalance(BigDecimal.valueOf(5.0));
+        excluded.setUnits(BigDecimal.valueOf(5.0));
+        excluded.setNav(BigDecimal.valueOf(1.0));
         excluded.setType(TransactionType.STAMP_DUTY_TAX);
         scheme.addTransaction(excluded);
 

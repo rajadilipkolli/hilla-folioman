@@ -253,9 +253,9 @@ class PortfolioValueUpdateServiceTest {
         PortfolioValueUpdateService.PortfolioDataContainer dataContainer = createDataContainer();
 
         // Add existing data to test merge functionality
-        Map<Long, Double> cumulativeUnitsByScheme = dataContainer.cumulativeUnitsByScheme();
+        Map<Long, BigDecimal> cumulativeUnitsByScheme = dataContainer.cumulativeUnitsByScheme();
         Long schemeCode = 120503L; // Using AMFI code from TestData
-        cumulativeUnitsByScheme.put(schemeCode, 100.0);
+        cumulativeUnitsByScheme.put(schemeCode, BigDecimal.valueOf(100));
 
         Map<LocalDate, BigDecimal> allCashFlows = dataContainer.allCashFlows();
         LocalDate today = LocalDate.now();
@@ -369,6 +369,7 @@ class PortfolioValueUpdateServiceTest {
         assertThatCode(() -> UUID.fromString(uuid2)).doesNotThrowAnyException();
     }
 
+    /** Creates persisted-domain test data from the representative CAS fixture. */
     private UserCasDetailsEntity createUserCASDetailsFromTestData() {
         // Get CasDTO from TestData
         CasDTO casDTO = TestData.getCasDTO();
@@ -426,9 +427,12 @@ class PortfolioValueUpdateServiceTest {
                         if (transactionDTO.amount() != null) {
                             transaction.setAmount(BigDecimal.valueOf(transactionDTO.amount()));
                         }
-                        transaction.setUnits(transactionDTO.units());
-                        transaction.setNav(transactionDTO.nav());
-                        transaction.setBalance(transactionDTO.balance());
+                        transaction.setUnits(
+                                transactionDTO.units() != null ? BigDecimal.valueOf(transactionDTO.units()) : null);
+                        transaction.setNav(
+                                transactionDTO.nav() != null ? BigDecimal.valueOf(transactionDTO.nav()) : null);
+                        transaction.setBalance(
+                                transactionDTO.balance() != null ? BigDecimal.valueOf(transactionDTO.balance()) : null);
                         transaction.setType(com.app.folioman.portfolio.domain.TransactionType.valueOf(
                                 transactionDTO.type().name()));
                         transaction.setDividendRate(transactionDTO.dividendRate());

@@ -637,10 +637,18 @@
                     <useClasspathJar>true</useClasspathJar>
                     <!-- Run single-threaded for the mutation/minion executor to reduce concurrency-related failures during analysis -->
                     <threads>1</threads>
+                    <!-- Allow slower mutation executions -->
+                    <timeoutConstant>10000</timeoutConstant>
+                    <timeoutFactor>2.0</timeoutFactor>
                     <!-- Enable verbose logging inside PIT (produces more minion output). -->
                     <verbose>false</verbose>
+
+                    <!-- Don't use expensive integration/infrastructure tests -->
                     <excludedTestClasses>
-                        <param>none</param>
+                        <param>*SchemaValidationPostgresTest</param>
+                        <param>*IntegrationTest</param>
+                        <param>*RepositoryTest</param>
+                        <param>*IT</param>
                     </excludedTestClasses>
                 </configuration>
             </plugin>

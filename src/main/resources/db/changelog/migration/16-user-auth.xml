@@ -7,6 +7,9 @@
     <property name="string.type" value="varchar(255)" dbms="!postgresql"/>
     <property name="string.type" value="text" dbms="postgresql"/>
 
+    <property name="timestamp.type" value="timestamp" dbms="!postgresql"/>
+    <property name="timestamp.type" value="timestamptz" dbms="postgresql"/>
+
     <changeSet id="1716400000000-1" author="appUser">
         <createSequence sequenceName="users_seq" schemaName="portfolio" incrementBy="50" startValue="1"/>
 
@@ -34,12 +37,12 @@
             <column name="failed_login_attempts" type="INT" defaultValueNumeric="0">
                 <constraints nullable="false"/>
             </column>
-            <column name="lock_expires_at" type="TIMESTAMP"/>
-            <column name="created_at" type="TIMESTAMP">
+            <column name="lock_expires_at" type="${timestamp.type}"/>
+            <column name="created_at" type="${timestamp.type}">
                 <constraints nullable="false"/>
             </column>
-            <column name="updated_at" type="TIMESTAMP"/>
-            <column name="version" type="BIGINT">
+            <column name="updated_at" type="${timestamp.type}"/>
+            <column name="version" type="smallint" defaultValueNumeric="0">
                 <constraints nullable="false"/>
             </column>
         </createTable>
@@ -56,17 +59,17 @@
             <column name="user_id" type="BIGINT">
                 <constraints nullable="false" foreignKeyName="fk_refresh_token_user" references="portfolio.users(id)"/>
             </column>
-            <column name="expires_at" type="TIMESTAMP">
+            <column name="expires_at" type="${timestamp.type}">
                 <constraints nullable="false"/>
             </column>
             <column name="revoked" type="BOOLEAN">
                 <constraints nullable="false"/>
             </column>
-            <column name="created_at" type="TIMESTAMP">
+            <column name="created_at" type="${timestamp.type}">
                 <constraints nullable="false"/>
             </column>
-            <column name="updated_at" type="TIMESTAMP"/>
-            <column name="version" type="BIGINT">
+            <column name="updated_at" type="${timestamp.type}"/>
+            <column name="version" type="smallint" defaultValueNumeric="0">
                 <constraints nullable="false"/>
             </column>
         </createTable>
