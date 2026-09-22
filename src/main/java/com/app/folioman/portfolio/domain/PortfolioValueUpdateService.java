@@ -723,7 +723,7 @@ public class PortfolioValueUpdateService {
     // Container record to hold portfolio data during processing
     record PortfolioDataContainer(
             Map<Long, BigDecimal> cumulativeInvestedAmountByScheme,
-            Map<Long, Double> cumulativeUnitsByScheme,
+            Map<Long, BigDecimal> cumulativeUnitsByScheme,
             Map<LocalDate, BigDecimal> allCashFlows,
             Map<Long, Map<LocalDate, BigDecimal>> cashFlowsByScheme) {}
 
@@ -778,7 +778,7 @@ public class PortfolioValueUpdateService {
 
         Long amfiCode = getAmfiCodeSafe(transaction);
         BigDecimal transactionAmount = getTransactionAmount(transaction);
-        Double transactionUnits = getTransactionUnits(transaction);
+        BigDecimal transactionUnits = getTransactionUnits(transaction);
 
         // Initialize cash flow tracking for this scheme if needed
         if (amfiCode != null) {
@@ -787,7 +787,7 @@ public class PortfolioValueUpdateService {
 
             // Update cumulative invested amount and units for the scheme
             dataContainer.cumulativeInvestedAmountByScheme().merge(amfiCode, transactionAmount, BigDecimal::add);
-            dataContainer.cumulativeUnitsByScheme().merge(amfiCode, transactionUnits, Double::sum);
+            dataContainer.cumulativeUnitsByScheme().merge(amfiCode, transactionUnits, BigDecimal::add);
         }
     }
 
@@ -797,7 +797,7 @@ public class PortfolioValueUpdateService {
         return Objects.requireNonNullElseGet(transactionAmount, () -> BigDecimal.valueOf(0.0001));
     }
 
-    private Double getTransactionUnits(UserTransactionDetailsEntity transaction) {
+    private BigDecimal getTransactionUnits(UserTransactionDetailsEntity transaction) {
         BigDecimal transactionUnits = transaction.getUnits();
         // happens when transaction type is dividend payout
         return transactionUnits != null ? transactionUnits : BigDecimal.ZERO;
@@ -831,7 +831,7 @@ public class PortfolioValueUpdateService {
 
     private BigDecimal calculatePortfolioValueForDate(
             LocalDate currentDate,
-            Map<Long, Double> cumulativeUnitsByScheme,
+            Map<Long, BigDecimal> cumulativeUnitsByScheme,
             Map<Long, Map<LocalDate, MFSchemeNavProjection>> navsBySchemeAndDate) {
 
         BigDecimal totalPortfolioValue = BigDecimal.ZERO;
@@ -842,8 +842,8 @@ public class PortfolioValueUpdateService {
 
             if (navOnCurrentDate != null) {
                 BigDecimal navValue = navOnCurrentDate.nav();
-                double units = cumulativeUnitsByScheme.get(schemeCode);
-                totalPortfolioValue = totalPortfolioValue.add(navValue.multiply(BigDecimal.valueOf(units)));
+                BigDecimal units = cumulativeUnitsByScheme.get(schemeCode);
+                totalPortfolioValue = totalPortfolioValue.add(navValue.multiply(units));
             }
         }
 
@@ -905,8 +905,8 @@ public class PortfolioValueUpdateService {
 
         // Add current valuations for each scheme to the scheme-specific cash flows
         for (Long schemeCode : dataContainer.cumulativeUnitsByScheme().keySet()) {
-            Double units = dataContainer.cumulativeUnitsByScheme().get(schemeCode);
-            if (units <= 0) {
+            BigDecimal units = dataContainer.cumulativeUnitsByScheme().get(schemeCode);
+            if (units.compareTo(BigDecimal.ZERO) <= 0) {
                 continue;
             }
 
@@ -923,7 +923,7 @@ public class PortfolioValueUpdateService {
             MFSchemeNavProjection navOnCurrentDate = navMap.get(adjustedDate);
 
             if (navOnCurrentDate != null) {
-                BigDecimal schemeValueEntity = navOnCurrentDate.nav().multiply(BigDecimal.valueOf(units));
+                BigDecimal schemeValueEntity = navOnCurrentDate.nav().multiply(units);
 
                 // Add current valuation as positive cash flow for XIRR calculation
                 if (dataContainer.cashFlowsByScheme().containsKey(schemeCode)) {
@@ -963,8 +963,8 @@ public class PortfolioValueUpdateService {
             processedSchemeIds.add(schemeDetailId);
 
             // Filter to schemes with current value > 0 (Live XIRR Phase D)
-            Double finalUnits = dataContainer.cumulativeUnitsByScheme().getOrDefault(schemeCode, 0.0);
-            if (finalUnits <= 0) {
+            BigDecimal finalUnits = dataContainer.cumulativeUnitsByScheme().getOrDefault(schemeCode, BigDecimal.ZERO);
+            if (finalUnits.compareTo(BigDecimal.ZERO) <= 0) {
                 continue;
             }
 
@@ -1022,7 +1022,8 @@ public class PortfolioValueUpdateService {
             // Build live cash flows ONLY from schemes that have current active balance
             Map<LocalDate, BigDecimal> liveCashFlows = new HashMap<>();
             dataContainer.cumulativeUnitsByScheme().forEach((schemeCode, units) -> {
-                if (units > 0 && dataContainer.cashFlowsByScheme().containsKey(schemeCode)) {
+                if (units.compareTo(BigDecimal.ZERO) > 0
+                        && dataContainer.cashFlowsByScheme().containsKey(schemeCode)) {
                     dataContainer
                             .cashFlowsByScheme()
                             .get(schemeCode)

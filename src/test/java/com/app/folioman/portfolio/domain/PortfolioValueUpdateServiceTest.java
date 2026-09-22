@@ -253,9 +253,9 @@ class PortfolioValueUpdateServiceTest {
         PortfolioValueUpdateService.PortfolioDataContainer dataContainer = createDataContainer();
 
         // Add existing data to test merge functionality
-        Map<Long, Double> cumulativeUnitsByScheme = dataContainer.cumulativeUnitsByScheme();
+        Map<Long, BigDecimal> cumulativeUnitsByScheme = dataContainer.cumulativeUnitsByScheme();
         Long schemeCode = 120503L; // Using AMFI code from TestData
-        cumulativeUnitsByScheme.put(schemeCode, 100.0);
+        cumulativeUnitsByScheme.put(schemeCode, BigDecimal.valueOf(100));
 
         Map<LocalDate, BigDecimal> allCashFlows = dataContainer.allCashFlows();
         LocalDate today = LocalDate.now();
