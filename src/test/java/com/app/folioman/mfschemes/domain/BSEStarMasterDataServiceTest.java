@@ -112,6 +112,7 @@ class BSEStarMasterDataServiceTest {
         when(requestHeadersUriSpec.uri(anyString())).thenReturn(requestHeadersSpec);
         when(requestHeadersSpec.header(anyString(), anyString())).thenReturn(requestHeadersSpec);
         when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
+        when(responseSpec.onStatus(any(), any())).thenReturn(responseSpec);
         when(responseSpec.body(String.class)).thenReturn(invalidHtmlResponse);
 
         // When & Then
