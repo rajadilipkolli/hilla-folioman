@@ -547,8 +547,8 @@ public class UserDetailService {
                             ? entity.getAmount().setScale(4, RoundingMode.HALF_UP)
                             : BigDecimal.ZERO.setScale(4, RoundingMode.HALF_UP),
                     entity.getType(),
-                    entity.getUnits(),
-                    entity.getBalance());
+                    entity.getUnits() != null ? entity.getUnits().doubleValue() : null,
+                    entity.getBalance() != null ? entity.getBalance().doubleValue() : null);
         }
     }
 

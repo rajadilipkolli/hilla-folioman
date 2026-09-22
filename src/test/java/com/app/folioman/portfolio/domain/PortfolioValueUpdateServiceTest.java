@@ -426,9 +426,12 @@ class PortfolioValueUpdateServiceTest {
                         if (transactionDTO.amount() != null) {
                             transaction.setAmount(BigDecimal.valueOf(transactionDTO.amount()));
                         }
-                        transaction.setUnits(transactionDTO.units());
-                        transaction.setNav(transactionDTO.nav());
-                        transaction.setBalance(transactionDTO.balance());
+                        transaction.setUnits(
+                                transactionDTO.units() != null ? BigDecimal.valueOf(transactionDTO.units()) : null);
+                        transaction.setNav(
+                                transactionDTO.nav() != null ? BigDecimal.valueOf(transactionDTO.nav()) : null);
+                        transaction.setBalance(
+                                transactionDTO.balance() != null ? BigDecimal.valueOf(transactionDTO.balance()) : null);
                         transaction.setType(com.app.folioman.portfolio.domain.TransactionType.valueOf(
                                 transactionDTO.type().name()));
                         transaction.setDividendRate(transactionDTO.dividendRate());

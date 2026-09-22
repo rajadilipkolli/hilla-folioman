@@ -39,9 +39,9 @@ class UserTransactionDetailsEntity extends BaseEntity {
     @Column(precision = 19, scale = 4)
     private @Nullable BigDecimal amount;
 
-    private @Nullable Double units;
-    private @Nullable Double nav;
-    private @Nullable Double balance;
+    private @Nullable BigDecimal units;
+    private @Nullable BigDecimal nav;
+    private @Nullable BigDecimal balance;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false)
@@ -89,29 +89,29 @@ class UserTransactionDetailsEntity extends BaseEntity {
         return this;
     }
 
-    public @Nullable Double getUnits() {
+    public @Nullable BigDecimal getUnits() {
         return units;
     }
 
-    public UserTransactionDetailsEntity setUnits(Double units) {
+    public UserTransactionDetailsEntity setUnits(@Nullable BigDecimal units) {
         this.units = units;
         return this;
     }
 
-    public @Nullable Double getNav() {
+    public @Nullable BigDecimal getNav() {
         return nav;
     }
 
-    public UserTransactionDetailsEntity setNav(@Nullable Double nav) {
+    public UserTransactionDetailsEntity setNav(@Nullable BigDecimal nav) {
         this.nav = nav;
         return this;
     }
 
-    public @Nullable Double getBalance() {
+    public @Nullable BigDecimal getBalance() {
         return balance;
     }
 
-    public UserTransactionDetailsEntity setBalance(@Nullable Double balance) {
+    public UserTransactionDetailsEntity setBalance(@Nullable BigDecimal balance) {
         this.balance = balance;
         return this;
     }

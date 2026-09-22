@@ -134,4 +134,37 @@ public class CustomConditions {
                 .filter(m -> m.getModifiers().contains(JavaModifier.PUBLIC) && methodName.equals(m.getName()))
                 .findFirst();
     }
+
+    public static ArchCondition<JavaField> notUseDateOrTimestamp() {
+        return new ArchCondition<>("not use java.util.Date or java.sql.Timestamp") {
+            @Override
+            public void check(JavaField field, ConditionEvents events) {
+                String typeName = field.getRawType().getName();
+                if ("java.util.Date".equals(typeName) || "java.sql.Timestamp".equals(typeName)) {
+                    events.add(SimpleConditionEvent.violated(
+                            field,
+                            "Field " + field.getName() + " in "
+                                    + field.getOwner().getName() + " uses forbidden type " + typeName));
+                }
+            }
+        };
+    }
+
+    public static ArchCondition<JavaField> useEnumTypeString() {
+        return new ArchCondition<>("use EnumType.STRING for @Enumerated") {
+            @Override
+            public void check(JavaField field, ConditionEvents events) {
+                if (field.isAnnotatedWith(jakarta.persistence.Enumerated.class)) {
+                    jakarta.persistence.Enumerated annotation =
+                            field.getAnnotationOfType(jakarta.persistence.Enumerated.class);
+                    if (annotation.value() != jakarta.persistence.EnumType.STRING) {
+                        events.add(SimpleConditionEvent.violated(
+                                field,
+                                "Field " + field.getName() + " in "
+                                        + field.getOwner().getName() + " must use EnumType.STRING"));
+                    }
+                }
+            }
+        };
+    }
 }

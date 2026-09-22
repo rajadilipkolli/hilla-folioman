@@ -94,8 +94,8 @@ class CapitalGainsHarvestingServiceTest {
     private UserTransactionDetailsEntity createTxn(BigDecimal amount, Double units, Double nav, LocalDate date) {
         UserTransactionDetailsEntity txn = new UserTransactionDetailsEntity();
         txn.setAmount(amount);
-        txn.setUnits(units);
-        txn.setNav(nav);
+        txn.setUnits(BigDecimal.valueOf(units));
+        txn.setNav(BigDecimal.valueOf(nav));
         txn.setTransactionDate(date);
         txn.setType(TransactionType.PURCHASE_SIP);
 
@@ -130,7 +130,7 @@ class CapitalGainsHarvestingServiceTest {
             }
 
             @Override
-            public @Nullable MFSchemeTypeProjection getMfSchemeTypeEntity() {
+            public MFSchemeTypeProjection getMfSchemeTypeEntity() {
                 return typeProj;
             }
 
@@ -188,7 +188,7 @@ class CapitalGainsHarvestingServiceTest {
         CapitalGainsHarvestingResponse response = service.generateHarvestingPlan(request);
 
         assertThat(response.recommendations()).hasSize(1);
-        var rec = response.recommendations().get(0);
+        var rec = response.recommendations().getFirst();
         // Exemption covers 1L, since profit is 40k, estimated tax is 0.
         assertThat(rec.estimatedTax()).isEqualByComparingTo(BigDecimal.ZERO);
     }
@@ -221,7 +221,7 @@ class CapitalGainsHarvestingServiceTest {
         CapitalGainsHarvestingResponse response = service.generateHarvestingPlan(request);
 
         assertThat(response.recommendations()).hasSize(1);
-        var rec = response.recommendations().get(0);
+        var rec = response.recommendations().getFirst();
 
         // 40k profit STCG -> 15% tax = 6k
         assertThat(rec.stcg()).isEqualByComparingTo(new BigDecimal("40000"));
@@ -268,7 +268,7 @@ class CapitalGainsHarvestingServiceTest {
         CapitalGainsHarvestingResponse response = service.generateHarvestingPlan(request);
 
         assertThat(response.recommendations()).hasSize(1);
-        var rec = response.recommendations().get(0);
+        var rec = response.recommendations().getFirst();
         assertThat(rec.redemptionAmount()).isEqualByComparingTo(new BigDecimal("50000.00"));
     }
 }

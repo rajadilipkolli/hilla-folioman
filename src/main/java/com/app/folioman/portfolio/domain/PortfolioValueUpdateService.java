@@ -798,9 +798,9 @@ public class PortfolioValueUpdateService {
     }
 
     private Double getTransactionUnits(UserTransactionDetailsEntity transaction) {
-        Double transactionUnits = transaction.getUnits();
+        BigDecimal transactionUnits = transaction.getUnits();
         // happens when transaction type is dividend payout
-        return Objects.requireNonNullElse(transactionUnits, 0.0);
+        return transactionUnits != null ? transactionUnits.doubleValue() : 0.0;
     }
 
     private void recordCashFlows(

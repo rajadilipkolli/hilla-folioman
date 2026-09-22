@@ -19,4 +19,24 @@ class EntityRulesTest {
             .should()
             .beAssignableTo(BaseEntity.class)
             .because("All JPA entities should extend BaseEntity for JPA auditing");
+
+    @ArchTest
+    static final ArchRule entities_should_not_use_date_or_timestamp =
+            com.tngtech.archunit.lang.syntax.ArchRuleDefinition.fields()
+                    .that()
+                    .areDeclaredInClassesThat()
+                    .areAnnotatedWith(Entity.class)
+                    .should(CustomConditions.notUseDateOrTimestamp())
+                    .because("We should use modern Date/Time API like Instant or LocalDate");
+
+    @ArchTest
+    static final ArchRule enums_should_use_enum_type_string =
+            com.tngtech.archunit.lang.syntax.ArchRuleDefinition.fields()
+                    .that()
+                    .areDeclaredInClassesThat()
+                    .areAnnotatedWith(Entity.class)
+                    .and()
+                    .areAnnotatedWith(jakarta.persistence.Enumerated.class)
+                    .should(CustomConditions.useEnumTypeString())
+                    .because("Enums should be stored as string in the database");
 }

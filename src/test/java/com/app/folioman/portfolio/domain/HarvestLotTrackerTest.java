@@ -16,8 +16,8 @@ class HarvestLotTrackerTest {
 
         UserTransactionDetailsEntity txn = new UserTransactionDetailsEntity();
         txn.setAmount(new BigDecimal("1000"));
-        txn.setUnits(100.0);
-        txn.setNav(10.0);
+        txn.setUnits(BigDecimal.valueOf(100.0));
+        txn.setNav(BigDecimal.valueOf(10.0));
         txn.setTransactionDate(LocalDate.of(2023, 1, 15));
         txn.setType(TransactionType.PURCHASE_SIP);
 
@@ -36,8 +36,8 @@ class HarvestLotTrackerTest {
         // Buy 1
         UserTransactionDetailsEntity buy1 = new UserTransactionDetailsEntity();
         buy1.setAmount(new BigDecimal("1000"));
-        buy1.setUnits(100.0);
-        buy1.setNav(10.0);
+        buy1.setUnits(BigDecimal.valueOf(100.0));
+        buy1.setNav(BigDecimal.valueOf(10.0));
         buy1.setTransactionDate(LocalDate.of(2023, 1, 15));
         buy1.setType(TransactionType.PURCHASE_SIP);
         tracker.addTransaction(buy1);
@@ -45,8 +45,8 @@ class HarvestLotTrackerTest {
         // Buy 2
         UserTransactionDetailsEntity buy2 = new UserTransactionDetailsEntity();
         buy2.setAmount(new BigDecimal("500"));
-        buy2.setUnits(50.0);
-        buy2.setNav(10.0);
+        buy2.setUnits(BigDecimal.valueOf(50.0));
+        buy2.setNav(BigDecimal.valueOf(10.0));
         buy2.setTransactionDate(LocalDate.of(2023, 2, 15));
         buy2.setType(TransactionType.PURCHASE_SIP);
         tracker.addTransaction(buy2);
@@ -54,8 +54,8 @@ class HarvestLotTrackerTest {
         // Sell 120 units
         UserTransactionDetailsEntity sell = new UserTransactionDetailsEntity();
         sell.setAmount(new BigDecimal("-1200"));
-        sell.setUnits(-120.0);
-        sell.setNav(10.0);
+        sell.setUnits(BigDecimal.valueOf(-120.0));
+        sell.setNav(BigDecimal.valueOf(10.0));
         sell.setTransactionDate(LocalDate.of(2023, 3, 15));
         sell.setType(TransactionType.REVERSAL);
         tracker.addTransaction(sell);
