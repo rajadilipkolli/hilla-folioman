@@ -15,6 +15,7 @@ import static org.mockito.Mockito.verify;
 import com.app.folioman.mfschemes.MFNavService;
 import com.app.folioman.mfschemes.config.MfSchemesProperties;
 import com.app.folioman.mfschemes.exception.MutualFundDataException;
+import com.opencsv.exceptions.CsvException;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -163,6 +164,41 @@ class InitializerTest {
 
         // Verify
         verify(amfiService, times(2)).fetchAmfiSchemeData(any(Consumer.class));
+    }
+
+    @Test
+    void handleApplicationStartedEventWithCsvExceptionIncludesProcessingPhase() throws Exception {
+        given(properties.getRetryAttempts()).willReturn(1);
+        given(bseStarMasterDataService.downloadBseMasterData()).willReturn("bseData");
+        given(bseStarMasterDataService.parseBseMasterData("bseData")).willThrow(new CsvException("Malformed BSE data"));
+
+        MutualFundDataException exception =
+                assertThrows(MutualFundDataException.class, () -> initializer.handleApplicationStartedEvent(event));
+
+        assertThat(exception)
+                .hasMessage(
+                        "Failed during BSE master data processing; not retrying as this is likely a data format issue")
+                .hasCauseInstanceOf(CsvException.class);
+        verify(bseStarMasterDataService, times(1)).parseBseMasterData("bseData");
+        verify(amfiService, times(0)).fetchAmfiSchemeData(any(Consumer.class));
+    }
+
+    @Test
+    void handleApplicationStartedEventWithAmfiCsvExceptionIncludesProcessingPhase() throws Exception {
+        given(properties.getRetryAttempts()).willReturn(1);
+        given(bseStarMasterDataService.downloadBseMasterData()).willReturn("bseData");
+        given(bseStarMasterDataService.parseBseMasterData("bseData"))
+                .willReturn(new BSEStarMasterDataService.BseMasterDataResult(Map.of(), Map.of()));
+        doThrow(new CsvException("Malformed AMFI data")).when(amfiService).fetchAmfiSchemeData(any(Consumer.class));
+
+        MutualFundDataException exception =
+                assertThrows(MutualFundDataException.class, () -> initializer.handleApplicationStartedEvent(event));
+
+        assertThat(exception)
+                .hasMessage(
+                        "Failed during AMFI master data processing; not retrying as this is likely a data format issue")
+                .hasCauseInstanceOf(CsvException.class);
+        verify(amfiService, times(1)).fetchAmfiSchemeData(any(Consumer.class));
     }
 
     private Map<Long, Map<String, String>> createAmfiTestData(int count) {
