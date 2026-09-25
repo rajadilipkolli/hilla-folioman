@@ -5,6 +5,7 @@ import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.notNullValue;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -618,7 +619,7 @@ class ImportMutualFundIT extends AbstractIntegrationTest {
     void getPortfolio() throws Exception {
         this.mockMvc
                 .perform(get("/api/portfolio/{pan}", "ABCDE1234F")
-                        .with(testUser())
+                        .with(user("junit@email.com").roles("USER"))
                         .param("asOfDate", LocalDate.now().minusDays(2).toString())
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
@@ -631,7 +632,7 @@ class ImportMutualFundIT extends AbstractIntegrationTest {
     void getPortfolioWithOutDate() throws Exception {
         this.mockMvc
                 .perform(get("/api/portfolio/{pan}", "ABCDE1234F")
-                        .with(testUser())
+                        .with(user("junit@email.com").roles("USER"))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, is(MediaType.APPLICATION_JSON_VALUE)))
