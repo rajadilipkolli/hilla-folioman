@@ -1,6 +1,6 @@
 package com.app.folioman.portfolio.rest.dtos;
 
-import jakarta.validation.constraints.PastOrPresent;
+import com.app.folioman.portfolio.validation.ValidPastOrPresent;
 import jakarta.validation.constraints.PositiveOrZero;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -8,7 +8,7 @@ import java.util.List;
 import org.jspecify.annotations.Nullable;
 
 public record CapitalGainsHarvestingRequestDTO(
-        @PastOrPresent(message = "As-of date cannot be in the future")
+        @ValidPastOrPresent(message = "As-of date cannot be in the future")
         LocalDate asOfDate,
 
         @Nullable String financialYear,

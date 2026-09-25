@@ -2,6 +2,9 @@ package com.app.folioman.portfolio.rest.controllers;
 
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.matchesPattern;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -10,6 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.app.folioman.auth.domain.JwtService;
 import com.app.folioman.auth.domain.TokenBlacklistService;
 import com.app.folioman.portfolio.PortfolioAPI;
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -62,5 +66,18 @@ class UserTransactionsControllerTest {
                 .andExpect(jsonPath(
                         "$.detail", matchesPattern("getTotalInvestmentsByPanPerYear.pan: Invalid PAN number format")))
                 .andExpect(jsonPath("$.instance", is("/api/portfolio/investments/yearly/ABCD1234EF")));
+    }
+
+    @Test
+    void checksOwnershipAgainBeforeUsingPreviouslyRequestedPan() throws Exception {
+        String pan = "ABCDE1234F";
+        when(portfolioAPI.isPanOwnedByEmail(pan, "user")).thenReturn(true, false);
+        when(portfolioAPI.getTotalInvestmentsByPanPerMonth(pan, "user")).thenReturn(List.of());
+
+        mockMvc.perform(get("/api/portfolio/investments/{pan}", pan)).andExpect(status().isOk());
+        mockMvc.perform(get("/api/portfolio/investments/{pan}", pan)).andExpect(status().isForbidden());
+
+        verify(portfolioAPI, times(2)).isPanOwnedByEmail(pan, "user");
+        verify(portfolioAPI).getTotalInvestmentsByPanPerMonth(pan, "user");
     }
 }

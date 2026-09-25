@@ -23,7 +23,8 @@ interface UserSchemeDetailsRepository extends JpaRepository<UserSchemeDetailsEnt
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query("update UserSchemeDetailsEntity u set u.amfi = :amfi, u.isin = :isin where u.id = :id")
+    @Query(
+            "update UserSchemeDetailsEntity u set u.amfi = :amfi, u.isin = :isin, u.version = u.version + 1 where u.id = :id")
     void updateAmfiAndIsinById(
             @Nullable @Param("amfi") Long schemeId, @Nullable @Param("isin") String isin, @Param("id") Long id);
 }

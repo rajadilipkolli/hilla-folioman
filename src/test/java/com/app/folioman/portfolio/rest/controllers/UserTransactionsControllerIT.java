@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -22,22 +23,42 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @Execution(ExecutionMode.SAME_THREAD)
 class UserTransactionsControllerIT extends AbstractIntegrationTest {
 
     private static final String TEST_PAN = "ABCDE1234F";
+
+    @BeforeAll
+    void uploadOwnedPortfolio() throws Exception {
+        try (var input = new ClassPathResource("upload-03.json").getInputStream()) {
+            MockMultipartFile file =
+                    new MockMultipartFile("file", "upload-03.json", MediaType.APPLICATION_JSON_VALUE, input);
+            mockMvc.perform(multipart("/api/upload-handler").with(testUser()).file(file))
+                    .andExpect(status().isOk());
+        }
+    }
+
+    @Override
+    protected RequestPostProcessor testUser() {
+        return user("junit@email.com").roles("USER");
+    }
 
     @Test
     @Order(1)
@@ -199,29 +220,18 @@ class UserTransactionsControllerIT extends AbstractIntegrationTest {
 
     @Test
     @Order(7)
-    @DisplayName("Should have separate caches for different users")
-    void shouldHaveSeparateCachesForDifferentUsers() throws Exception {
-        // Use a different PAN to verify separate caching
-        final String otherPan = "XYZAB1234C";
-
-        // Clear any existing cache for this PAN
-        clearCacheForPan(otherPan);
-
-        // Fetch data for second PAN
+    @DisplayName("Should reject another user before reading a cached PAN")
+    void shouldRejectAnotherUserBeforeReadingCachedPan() throws Exception {
         this.mockMvc
-                .perform(get("/api/portfolio/investments/{pan}", otherPan)
-                        .with(testUser())
+                .perform(get("/api/portfolio/investments/{pan}", TEST_PAN)
+                        .with(user("other@example.com").roles("USER"))
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk());
+                .andExpect(status().isForbidden());
 
-        // Verify both cache entries exist
         Set<String> cacheKeys = redisTemplate.keys(CacheNames.TRANSACTION_CACHE + "::*");
         assertThat(cacheKeys).isNotNull();
-        boolean originalPanCached = cacheKeys.stream().anyMatch(key -> key.contains(TEST_PAN));
-        boolean newPanCached = cacheKeys.stream().anyMatch(key -> key.contains(otherPan));
-
-        assertThat(originalPanCached).isTrue();
-        assertThat(newPanCached).isTrue();
+        assertThat(cacheKeys).anyMatch(key -> key.contains("monthly_" + TEST_PAN + "_junit@email.com"));
+        assertThat(cacheKeys).noneMatch(key -> key.contains("other@example.com"));
     }
 
     @Test
@@ -373,13 +383,13 @@ class UserTransactionsControllerIT extends AbstractIntegrationTest {
 
         // 3. First request should hit the database and populate the cache
         MvcResult firstMonthlyResult = mockMvc.perform(get("/api/portfolio/investments/{pan}", testPan)
-                        .with(testUser())
+                        .with(user("cache.test@example.com").roles("USER"))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
 
         MvcResult firstYearlyResult = mockMvc.perform(get("/api/portfolio/investments/yearly/{pan}", testPan)
-                        .with(testUser())
+                        .with(user("cache.test@example.com").roles("USER"))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -398,13 +408,13 @@ class UserTransactionsControllerIT extends AbstractIntegrationTest {
 
         // 7. Second calls - should use cached data
         MvcResult secondMonthlyResult = mockMvc.perform(get("/api/portfolio/investments/{pan}", testPan)
-                        .with(testUser())
+                        .with(user("cache.test@example.com").roles("USER"))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();
 
         MvcResult secondYearlyResult = mockMvc.perform(get("/api/portfolio/investments/yearly/{pan}", testPan)
-                        .with(testUser())
+                        .with(user("cache.test@example.com").roles("USER"))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andReturn();

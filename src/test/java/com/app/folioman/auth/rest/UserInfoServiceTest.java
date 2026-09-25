@@ -10,6 +10,7 @@ import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -40,7 +41,7 @@ class UserInfoServiceTest {
 
     @Test
     void getUserInfo_authenticatedAsAnonymous_returnsNull() {
-        Authentication auth = mock(Authentication.class);
+        AnonymousAuthenticationToken auth = mock(AnonymousAuthenticationToken.class);
         when(auth.isAuthenticated()).thenReturn(true);
         when(auth.getPrincipal()).thenReturn("anonymousUser");
         SecurityContextHolder.getContext().setAuthentication(auth);

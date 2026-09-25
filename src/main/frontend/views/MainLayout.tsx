@@ -18,17 +18,8 @@ export default function MainLayout() {
 
   const handleLogout = async () => {
     try {
-      const accessToken = localStorage.getItem('accessToken');
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-      };
-      if (accessToken) {
-        headers['Authorization'] = `Bearer ${accessToken}`;
-      }
-
       const response = await fetch('/api/auth/logout', {
         method: 'POST',
-        headers,
         credentials: 'include',
       });
 

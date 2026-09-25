@@ -39,8 +39,13 @@ class UserTransactionDetailsEntity extends BaseEntity {
     @Column(precision = 19, scale = 4)
     private @Nullable BigDecimal amount;
 
+    @Column(precision = 20, scale = 4)
     private @Nullable BigDecimal units;
+
+    @Column(precision = 15, scale = 4)
     private @Nullable BigDecimal nav;
+
+    @Column(precision = 20, scale = 3)
     private @Nullable BigDecimal balance;
 
     @Enumerated(EnumType.STRING)

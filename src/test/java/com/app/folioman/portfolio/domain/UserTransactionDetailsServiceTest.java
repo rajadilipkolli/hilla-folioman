@@ -63,10 +63,13 @@ class UserTransactionDetailsServiceTest {
             }
         };
 
-        given(userPortfolioValueRepository.getLatestPortfolioValueByPan(pan)).willReturn(Optional.of(projection));
-        given(userTransactionDetailsRepository.findMinTransactionDateByPan(pan)).willReturn(Optional.of(firstDate));
+        given(userPortfolioValueRepository.getLatestPortfolioValueByPan(pan, "user@example.com"))
+                .willReturn(Optional.of(projection));
+        given(userTransactionDetailsRepository.findMinTransactionDateByPan(pan, "user@example.com"))
+                .willReturn(Optional.of(firstDate));
 
-        Optional<InvestmentReturnsDTO> result = userTransactionDetailsService.getInvestmentReturnsByPan(pan);
+        Optional<InvestmentReturnsDTO> result =
+                userTransactionDetailsService.getInvestmentReturnsByPan(pan, "user@example.com");
 
         assertThat(result).isPresent();
         assertThat(result.get().xirr()).isEqualTo(xirr);
@@ -81,9 +84,11 @@ class UserTransactionDetailsServiceTest {
     @Test
     void testGetInvestmentReturnsByPanNotFound() {
         String pan = "NONEXISTENT";
-        given(userPortfolioValueRepository.getLatestPortfolioValueByPan(pan)).willReturn(Optional.empty());
+        given(userPortfolioValueRepository.getLatestPortfolioValueByPan(pan, "user@example.com"))
+                .willReturn(Optional.empty());
 
-        Optional<InvestmentReturnsDTO> result = userTransactionDetailsService.getInvestmentReturnsByPan(pan);
+        Optional<InvestmentReturnsDTO> result =
+                userTransactionDetailsService.getInvestmentReturnsByPan(pan, "user@example.com");
 
         assertThat(result).isEmpty();
     }
@@ -118,10 +123,13 @@ class UserTransactionDetailsServiceTest {
             }
         };
 
-        given(userPortfolioValueRepository.getLatestPortfolioValueByPan(pan)).willReturn(Optional.of(projection));
-        given(userTransactionDetailsRepository.findMinTransactionDateByPan(pan)).willReturn(Optional.empty());
+        given(userPortfolioValueRepository.getLatestPortfolioValueByPan(pan, "user@example.com"))
+                .willReturn(Optional.of(projection));
+        given(userTransactionDetailsRepository.findMinTransactionDateByPan(pan, "user@example.com"))
+                .willReturn(Optional.empty());
 
-        Optional<InvestmentReturnsDTO> result = userTransactionDetailsService.getInvestmentReturnsByPan(pan);
+        Optional<InvestmentReturnsDTO> result =
+                userTransactionDetailsService.getInvestmentReturnsByPan(pan, "user@example.com");
 
         assertThat(result).isPresent();
         assertThat(result.get().cagr()).isEqualTo(BigDecimal.ZERO);

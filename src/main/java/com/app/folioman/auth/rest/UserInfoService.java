@@ -5,9 +5,11 @@ import com.vaadin.hilla.BrowserCallable;
 import jakarta.annotation.security.PermitAll;
 import java.util.List;
 import org.jspecify.annotations.Nullable;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.util.StringUtils;
 
 @BrowserCallable
 @PermitAll
@@ -15,13 +17,16 @@ public class UserInfoService {
 
     public @Nullable UserInfo getUserInfo() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if (auth == null || !auth.isAuthenticated() || "anonymousUser".equals(auth.getPrincipal())) {
+
+        if (auth == null || !auth.isAuthenticated() || auth instanceof AnonymousAuthenticationToken) {
             return null;
         }
 
         String username = auth.getName();
+
         List<String> roles = auth.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
+                .filter(StringUtils::hasText)
                 .map(role -> role.startsWith("ROLE_") ? role.substring(5) : role)
                 .toList();
 

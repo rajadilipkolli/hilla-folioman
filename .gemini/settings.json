@@ -1,0 +1,14 @@
+{
+  "mcpServers": {
+    "vaadin": {
+      "httpUrl": "https://mcp.vaadin.com/docs"
+    },
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@playwright/mcp@0.0.73"
+      ]
+    }
+  }
+}

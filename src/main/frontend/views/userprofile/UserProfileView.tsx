@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Avatar } from '@vaadin/react-components/Avatar.js';
 import { Button } from '@vaadin/react-components/Button.js';
 import { useNavigate } from 'react-router-dom';
+import { authenticatedFetch } from 'Frontend/auth';
 
 interface PortfolioSummaryItemDTO {
   name: string;
@@ -29,14 +30,11 @@ export default function UserProfileView() {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const token = localStorage.getItem('accessToken');
-        const headers: Record<string, string> = {
-          'Content-Type': 'application/json',
-        };
-        if (token) {
-          headers['Authorization'] = `Bearer ${token}`;
-        }
-        const response = await fetch('/api/user', { headers });
+        const response = await authenticatedFetch('/api/user', {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
         if (!response.ok) {
           throw new Error('Failed to fetch user profile');
         }

@@ -56,6 +56,7 @@ class ImportMutualFundControllerTest {
     @BeforeEach
     void setUp() {
         reset(portfolioAPI);
+        org.mockito.Mockito.doReturn(true).when(portfolioAPI).isPanOwnedByEmail(any(), any());
     }
 
     @Test
@@ -112,14 +113,14 @@ class ImportMutualFundControllerTest {
         String pan = "ABCDE1234F";
         PortfolioResponse response = new PortfolioResponse(new BigDecimal("15000"), List.of());
 
-        doReturn(response).when(portfolioAPI).getPortfolioByPAN(eq(pan), any());
+        doReturn(response).when(portfolioAPI).getPortfolioByPAN(eq(pan), any(), any());
 
         this.mockMvc
                 .perform(get("/api/portfolio/{pan}", pan).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalPortfolioValue", is(15000)));
 
-        verify(portfolioAPI).getPortfolioByPAN(eq(pan), any());
+        verify(portfolioAPI).getPortfolioByPAN(eq(pan), any(), any());
     }
 
     @Test

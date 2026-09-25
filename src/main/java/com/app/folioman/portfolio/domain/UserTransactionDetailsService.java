@@ -31,42 +31,45 @@ public class UserTransactionDetailsService {
      * Retrieves the latest investment returns (XIRR and CAGR) for a given PAN.
      *
      * @param pan The PAN to query
+     * @param email The authenticated account email
      * @return An Optional containing the InvestmentReturnsDTO, or empty if no data exists
      */
-    public Optional<InvestmentReturnsDTO> getInvestmentReturnsByPan(String pan) {
-        return userPortfolioValueRepository.getLatestPortfolioValueByPan(pan).map(projection -> {
-            BigDecimal cagr = null;
-            Optional<LocalDate> firstTransactionDate =
-                    userTransactionDetailsRepository.findMinTransactionDateByPan(pan);
+    public Optional<InvestmentReturnsDTO> getInvestmentReturnsByPan(String pan, String email) {
+        return userPortfolioValueRepository
+                .getLatestPortfolioValueByPan(pan, email)
+                .map(projection -> {
+                    BigDecimal cagr = null;
+                    Optional<LocalDate> firstTransactionDate =
+                            userTransactionDetailsRepository.findMinTransactionDateByPan(pan, email);
 
-            if (firstTransactionDate.isPresent()) {
-                long days = ChronoUnit.DAYS.between(firstTransactionDate.get(), projection.getDate());
-                if (days > 0) {
-                    cagr = XirrCalculator.cagr(projection.getInvested(), projection.getValue(), days);
-                }
-            }
+                    if (firstTransactionDate.isPresent()) {
+                        long days = ChronoUnit.DAYS.between(firstTransactionDate.get(), projection.getDate());
+                        if (days > 0) {
+                            cagr = XirrCalculator.cagr(projection.getInvested(), projection.getValue(), days);
+                        }
+                    }
 
-            return new InvestmentReturnsDTO(
-                    projection.getXirr(),
-                    cagr != null ? cagr : BigDecimal.ZERO,
-                    projection.getInvested(),
-                    projection.getValue(),
-                    projection.getDate());
-        });
+                    return new InvestmentReturnsDTO(
+                            projection.getXirr(),
+                            cagr != null ? cagr : BigDecimal.ZERO,
+                            projection.getInvested(),
+                            projection.getValue(),
+                            projection.getDate());
+                });
     }
 
     Long findAllTransactionsByEmailNameAndPeriod(String name, String email, LocalDate from, LocalDate to) {
         return userTransactionDetailsRepository.findAllTransactionByEmailAndNameAndInRange(email, name, from, to);
     }
 
-    public List<MonthlyInvestmentResponseDTO> getTotalInvestmentsByPanPerMonth(String pan) {
-        return userTransactionDetailsRepository.findMonthlyInvestmentsByPan(pan).stream()
+    public List<MonthlyInvestmentResponseDTO> getTotalInvestmentsByPanPerMonth(String pan, String email) {
+        return userTransactionDetailsRepository.findMonthlyInvestmentsByPan(pan, email).stream()
                 .map(MonthlyInvestmentResponseDTO::new)
                 .collect(Collectors.toList());
     }
 
-    public List<YearlyInvestmentResponseDTO> getTotalInvestmentsByPanPerYear(String pan) {
-        return userTransactionDetailsRepository.findYearlyInvestmentsByPan(pan).stream()
+    public List<YearlyInvestmentResponseDTO> getTotalInvestmentsByPanPerYear(String pan, String email) {
+        return userTransactionDetailsRepository.findYearlyInvestmentsByPan(pan, email).stream()
                 .map(YearlyInvestmentResponseDTO::new)
                 .collect(Collectors.toList());
     }

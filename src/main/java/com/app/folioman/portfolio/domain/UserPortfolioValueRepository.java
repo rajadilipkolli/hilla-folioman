@@ -21,11 +21,13 @@ interface UserPortfolioValueRepository extends JpaRepository<UserPortfolioValueE
             FROM portfolio.user_portfolio_value upv
             JOIN portfolio.user_cas_details ucd ON upv.user_cas_details_id = ucd.id
             JOIN portfolio.user_folio_details ufd ON ufd.user_cas_details_id = ucd.id
-            WHERE ufd.pan = :pan
+            JOIN portfolio.investor_info ii ON ii.user_cas_details_id = ucd.id
+            WHERE ufd.pan = :pan AND lower(ii.email) = lower(:email)
             ORDER BY upv.date DESC, upv.id DESC
             LIMIT 1
             """)
-    Optional<UserPortfolioValueProjection> getLatestPortfolioValueByPan(@Param("pan") String pan);
+    Optional<UserPortfolioValueProjection> getLatestPortfolioValueByPan(
+            @Param("pan") String pan, @Param("email") String email);
 
     @NativeQuery("""
             SELECT upv.value as value, upv.date as date, upv.xirr as xirr, upv.live_xirr as liveXirr

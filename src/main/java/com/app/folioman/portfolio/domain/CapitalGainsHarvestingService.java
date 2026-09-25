@@ -58,12 +58,12 @@ public class CapitalGainsHarvestingService {
         this.exitLoadProperties = exitLoadProperties;
     }
 
-    public CapitalGainsHarvestingResponse generateHarvestingPlan(CapitalGainsHarvestingRequest request) {
+    public CapitalGainsHarvestingResponse generateHarvestingPlan(CapitalGainsHarvestingRequest request, String email) {
         LOGGER.info("Generating capital gains harvesting plan for PAN: {}", request.pan());
 
         LocalDate evaluationDate = request.asOfDate() != null ? request.asOfDate() : LocalDate.now();
         List<PortfolioDetailsProjection> holdings =
-                userCASDetailsRepository.getPortfolioDetails(request.pan(), evaluationDate);
+                userCASDetailsRepository.getPortfolioDetails(request.pan(), email, evaluationDate);
         if (holdings == null || holdings.isEmpty()) {
             LOGGER.warn("No portfolio holdings found for PAN: {}", request.pan());
             return emptyResponse("No active portfolio holdings found for the given PAN.");

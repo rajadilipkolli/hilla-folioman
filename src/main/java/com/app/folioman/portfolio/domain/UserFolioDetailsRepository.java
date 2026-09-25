@@ -24,6 +24,17 @@ interface UserFolioDetailsRepository extends JpaRepository<UserFolioDetailsEntit
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    @Query("update UserFolioDetailsEntity set pan = :pan where panKyc = 'NOT OK' and userCasDetailsEntity.id = :casId")
+    @Query("""
+        UPDATE UserFolioDetailsEntity u
+        SET u.pan = :pan, u.version = u.version + 1
+        WHERE u.panKyc = 'NOT OK' AND u.userCasDetailsEntity.id = :casId
+        """)
     int updatePanByCasId(@Param("pan") String pan, @Param("casId") Long casId);
+
+    @Query("""
+            select count(u) > 0 from UserFolioDetailsEntity u
+            where upper(u.pan) = upper(:pan)
+              and upper(u.userCasDetailsEntity.investorInfoEntity.email) = upper(:email)
+            """)
+    boolean existsByPanAndEmailIgnoreCase(@Param("pan") String pan, @Param("email") String email);
 }
