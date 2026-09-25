@@ -4,9 +4,10 @@ import com.app.folioman.config.redis.CacheNames;
 import com.app.folioman.portfolio.PortfolioAPI;
 import com.app.folioman.portfolio.rest.dtos.PortfolioResponse;
 import com.app.folioman.portfolio.rest.dtos.UploadFileResponse;
+import com.app.folioman.portfolio.validation.ValidPastOrPresent;
+import com.app.folioman.shared.PrincipalUtil;
 import com.vaadin.hilla.Endpoint;
 import jakarta.annotation.security.RolesAllowed;
-import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Pattern;
 import java.io.IOException;
 import java.time.LocalDate;
@@ -17,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,6 +28,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 @RolesAllowed("USER")
 @Endpoint
@@ -95,9 +98,12 @@ public class ImportMutualFundController {
                     String panNumber,
             @RequestParam(required = false)
                     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-                    @PastOrPresent(message = "Date should be past or today")
+                    @ValidPastOrPresent(message = "Date should be past or today")
                     @Nullable
                     LocalDate asOfDate) {
+        if (!portfolioAPI.isPanOwnedByEmail(panNumber, PrincipalUtil.getEmailFromContext())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
         return portfolioAPI.getPortfolioByPAN(
                 panNumber, asOfDate != null ? asOfDate : LocalDate.now(ZoneId.systemDefault()));
     }

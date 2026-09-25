@@ -56,6 +56,7 @@ class ImportMutualFundControllerTest {
     @BeforeEach
     void setUp() {
         reset(portfolioAPI);
+        org.mockito.Mockito.doReturn(true).when(portfolioAPI).isPanOwnedByEmail(any(), any());
     }
 
     @Test

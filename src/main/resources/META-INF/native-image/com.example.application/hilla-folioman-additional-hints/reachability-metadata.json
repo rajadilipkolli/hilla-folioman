@@ -1,0 +1,657 @@
+{
+  "reflection": [
+    {
+      "condition": {"typeReached": "com.app.folioman.Application"},
+      "type": "com.app.folioman.Application",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.auth.CustomUserDetails"},
+      "type": "com.app.folioman.auth.CustomUserDetails",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.auth.domain.RefreshTokenEntity"},
+      "type": "com.app.folioman.auth.domain.RefreshTokenEntity",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.auth.domain.RoleEntity"},
+      "type": "com.app.folioman.auth.domain.RoleEntity",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.auth.domain.UserEntity"},
+      "type": "com.app.folioman.auth.domain.UserEntity",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.auth.rest.dtos.PortfolioSummaryItemDTO"},
+      "type": "com.app.folioman.auth.rest.dtos.PortfolioSummaryItemDTO",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.auth.rest.dtos.PortfoliosDTO"},
+      "type": "com.app.folioman.auth.rest.dtos.PortfoliosDTO",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.auth.rest.dtos.UserInfo"},
+      "type": "com.app.folioman.auth.rest.dtos.UserInfo",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.auth.rest.dtos.UserProfileDTO"},
+      "type": "com.app.folioman.auth.rest.dtos.UserProfileDTO",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.config.GlobalExceptionHandler$ApiValidationError"},
+      "type": "com.app.folioman.config.GlobalExceptionHandler$ApiValidationError",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.config.db.FlexyPoolDataSourceConfig$FlexyPoolDataSourceBeanPostProcessor"},
+      "type": "com.app.folioman.config.db.FlexyPoolDataSourceConfig$FlexyPoolDataSourceBeanPostProcessor",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.config.redis.ReduceCacheSizePolicy$KeyMetadata"},
+      "type": "com.app.folioman.config.redis.ReduceCacheSizePolicy$KeyMetadata",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.mfschemes.NavNotFoundException"},
+      "type": "com.app.folioman.mfschemes.NavNotFoundException",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.mfschemes.SchemeNotFoundException"},
+      "type": "com.app.folioman.mfschemes.SchemeNotFoundException",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.mfschemes.domain.BSEStarMasterDataService$BseMasterDataResult"},
+      "type": "com.app.folioman.mfschemes.domain.BSEStarMasterDataService$BseMasterDataResult",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.mfschemes.domain.MFNavServiceImpl$NavHolder"},
+      "type": "com.app.folioman.mfschemes.domain.MFNavServiceImpl$NavHolder",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.mfschemes.domain.MFSchemeNavEntity"},
+      "type": "com.app.folioman.mfschemes.domain.MFSchemeNavEntity",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.mfschemes.domain.MFSchemeTypeEntity"},
+      "type": "com.app.folioman.mfschemes.domain.MFSchemeTypeEntity",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.mfschemes.domain.MfAmcEntity"},
+      "type": "com.app.folioman.mfschemes.domain.MfAmcEntity",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.mfschemes.domain.MfFundSchemeEntity"},
+      "type": "com.app.folioman.mfschemes.domain.MfFundSchemeEntity",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.mfschemes.domain.MfSchemeSyncService$SyncStatistics"},
+      "type": "com.app.folioman.mfschemes.domain.MfSchemeSyncService$SyncStatistics",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.mfschemes.domain.models.projection.NavDateValueProjection"},
+      "type": "com.app.folioman.mfschemes.domain.models.projection.NavDateValueProjection",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.mfschemes.domain.models.response.MetaDTO"},
+      "type": "com.app.folioman.mfschemes.domain.models.response.MetaDTO",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.mfschemes.domain.models.response.NavResponse"},
+      "type": "com.app.folioman.mfschemes.domain.models.response.NavResponse",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.mfschemes.domain.models.response.SchemeNAVDataDTO"},
+      "type": "com.app.folioman.mfschemes.domain.models.response.SchemeNAVDataDTO",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.mfschemes.exception.MutualFundDataException"},
+      "type": "com.app.folioman.mfschemes.exception.MutualFundDataException",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.mfschemes.rest.dtos.MFSchemeDTO"},
+      "type": "com.app.folioman.mfschemes.rest.dtos.MFSchemeDTO",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.mfschemes.rest.dtos.MFSchemeNavProjection"},
+      "type": "com.app.folioman.mfschemes.rest.dtos.MFSchemeNavProjection",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.portfolio.domain.FolioSchemeEntity"},
+      "type": "com.app.folioman.portfolio.domain.FolioSchemeEntity",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.portfolio.domain.InvestorInfoEntity"},
+      "type": "com.app.folioman.portfolio.domain.InvestorInfoEntity",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.portfolio.domain.PortfolioSummaryService$FolioData"},
+      "type": "com.app.folioman.portfolio.domain.PortfolioSummaryService$FolioData",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.portfolio.domain.PortfolioValueUpdateService$PortfolioDataContainer"},
+      "type": "com.app.folioman.portfolio.domain.PortfolioValueUpdateService$PortfolioDataContainer",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.portfolio.domain.SchemeValueEntity"},
+      "type": "com.app.folioman.portfolio.domain.SchemeValueEntity",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.portfolio.domain.UserCasDetailsEntity"},
+      "type": "com.app.folioman.portfolio.domain.UserCasDetailsEntity",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.portfolio.domain.UserDetailService$TransactionKey"},
+      "type": "com.app.folioman.portfolio.domain.UserDetailService$TransactionKey",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.portfolio.domain.UserFolioDetailsEntity"},
+      "type": "com.app.folioman.portfolio.domain.UserFolioDetailsEntity",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.portfolio.domain.UserFolioValueEntity"},
+      "type": "com.app.folioman.portfolio.domain.UserFolioValueEntity",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.portfolio.domain.UserPortfolioValueEntity"},
+      "type": "com.app.folioman.portfolio.domain.UserPortfolioValueEntity",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.portfolio.domain.UserSchemeDetailsEntity"},
+      "type": "com.app.folioman.portfolio.domain.UserSchemeDetailsEntity",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.portfolio.domain.UserTransactionDetailsEntity"},
+      "type": "com.app.folioman.portfolio.domain.UserTransactionDetailsEntity",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.portfolio.domain.models.CapitalGainsHarvestingRequest"},
+      "type": "com.app.folioman.portfolio.domain.models.CapitalGainsHarvestingRequest",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.portfolio.domain.models.CapitalGainsHarvestingResponse"},
+      "type": "com.app.folioman.portfolio.domain.models.CapitalGainsHarvestingResponse",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.portfolio.domain.models.HarvestLot"},
+      "type": "com.app.folioman.portfolio.domain.models.HarvestLot",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.portfolio.domain.models.HarvestRecommendation"},
+      "type": "com.app.folioman.portfolio.domain.models.HarvestRecommendation",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.portfolio.domain.models.HarvestSummary"},
+      "type": "com.app.folioman.portfolio.domain.models.HarvestSummary",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.portfolio.domain.models.ProcessedTransaction"},
+      "type": "com.app.folioman.portfolio.domain.models.ProcessedTransaction",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.portfolio.domain.models.TransactionRecord"},
+      "type": "com.app.folioman.portfolio.domain.models.TransactionRecord",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.portfolio.exception.CapitalGainsHarvestingException"},
+      "type": "com.app.folioman.portfolio.exception.CapitalGainsHarvestingException",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.portfolio.rest.dtos.CapitalGainsHarvestingRequestDTO"},
+      "type": "com.app.folioman.portfolio.rest.dtos.CapitalGainsHarvestingRequestDTO",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.portfolio.rest.dtos.CapitalGainsHarvestingResponseDTO"},
+      "type": "com.app.folioman.portfolio.rest.dtos.CapitalGainsHarvestingResponseDTO",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.portfolio.rest.dtos.CasDTO"},
+      "type": "com.app.folioman.portfolio.rest.dtos.CasDTO",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.portfolio.rest.dtos.CategoryDTO"},
+      "type": "com.app.folioman.portfolio.rest.dtos.CategoryDTO",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.portfolio.rest.dtos.ChangeDTO"},
+      "type": "com.app.folioman.portfolio.rest.dtos.ChangeDTO",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.portfolio.rest.dtos.FolioSummaryDTO"},
+      "type": "com.app.folioman.portfolio.rest.dtos.FolioSummaryDTO",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.portfolio.rest.dtos.Fund"},
+      "type": "com.app.folioman.portfolio.rest.dtos.Fund",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.portfolio.rest.dtos.HarvestRecommendationDTO"},
+      "type": "com.app.folioman.portfolio.rest.dtos.HarvestRecommendationDTO",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.portfolio.rest.dtos.HarvestSummaryDTO"},
+      "type": "com.app.folioman.portfolio.rest.dtos.HarvestSummaryDTO",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.portfolio.rest.dtos.InvestmentRequest"},
+      "type": "com.app.folioman.portfolio.rest.dtos.InvestmentRequest",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.portfolio.rest.dtos.InvestmentResponse"},
+      "type": "com.app.folioman.portfolio.rest.dtos.InvestmentResponse",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.portfolio.rest.dtos.InvestmentReturnsDTO"},
+      "type": "com.app.folioman.portfolio.rest.dtos.InvestmentReturnsDTO",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.portfolio.rest.dtos.InvestorInfoDTO"},
+      "type": "com.app.folioman.portfolio.rest.dtos.InvestorInfoDTO",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.portfolio.rest.dtos.MonthlyInvestmentResponseDTO"},
+      "type": "com.app.folioman.portfolio.rest.dtos.MonthlyInvestmentResponseDTO",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.portfolio.rest.dtos.PortfolioDetailsDTO"},
+      "type": "com.app.folioman.portfolio.rest.dtos.PortfolioDetailsDTO",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.portfolio.rest.dtos.PortfolioHistoryDTO"},
+      "type": "com.app.folioman.portfolio.rest.dtos.PortfolioHistoryDTO",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.portfolio.rest.dtos.PortfolioResponse"},
+      "type": "com.app.folioman.portfolio.rest.dtos.PortfolioResponse",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.portfolio.rest.dtos.PortfolioSummaryDTO"},
+      "type": "com.app.folioman.portfolio.rest.dtos.PortfolioSummaryDTO",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.portfolio.rest.dtos.SchemeSummaryDTO"},
+      "type": "com.app.folioman.portfolio.rest.dtos.SchemeSummaryDTO",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.portfolio.rest.dtos.StatementPeriodDTO"},
+      "type": "com.app.folioman.portfolio.rest.dtos.StatementPeriodDTO",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.portfolio.rest.dtos.UploadFileResponse"},
+      "type": "com.app.folioman.portfolio.rest.dtos.UploadFileResponse",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.portfolio.rest.dtos.UserFolioDTO"},
+      "type": "com.app.folioman.portfolio.rest.dtos.UserFolioDTO",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.portfolio.rest.dtos.UserSchemeDTO"},
+      "type": "com.app.folioman.portfolio.rest.dtos.UserSchemeDTO",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.portfolio.rest.dtos.UserTransactionDTO"},
+      "type": "com.app.folioman.portfolio.rest.dtos.UserTransactionDTO",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.portfolio.rest.dtos.ValuationDTO"},
+      "type": "com.app.folioman.portfolio.rest.dtos.ValuationDTO",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.portfolio.rest.dtos.XirrDTO"},
+      "type": "com.app.folioman.portfolio.rest.dtos.XirrDTO",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.portfolio.rest.dtos.YearlyInvestmentResponseDTO"},
+      "type": "com.app.folioman.portfolio.rest.dtos.YearlyInvestmentResponseDTO",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.portfolio.util.FinancialYearUtility$FinancialYear"},
+      "type": "com.app.folioman.portfolio.util.FinancialYearUtility$FinancialYear",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.pythonbridge.PythonBridgeProperties"},
+      "type": "com.app.folioman.pythonbridge.PythonBridgeProperties",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.pythonbridge.PythonBridgeProperties$CasparserConfig"},
+      "type": "com.app.folioman.pythonbridge.PythonBridgeProperties$CasparserConfig",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.pythonbridge.PythonCommand"},
+      "type": "com.app.folioman.pythonbridge.PythonCommand",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.pythonbridge.PythonExecutionException"},
+      "type": "com.app.folioman.pythonbridge.PythonExecutionException",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.pythonbridge.PythonNotFoundException"},
+      "type": "com.app.folioman.pythonbridge.PythonNotFoundException",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.pythonbridge.PythonResult"},
+      "type": "com.app.folioman.pythonbridge.PythonResult",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.pythonbridge.PythonTimeoutException"},
+      "type": "com.app.folioman.pythonbridge.PythonTimeoutException",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true,
+      "serializable": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.shared.BaseEntity"},
+      "type": "com.app.folioman.shared.BaseEntity",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    },
+    {
+      "condition": {"typeReached": "com.app.folioman.shared.UploadedSchemesList"},
+      "type": "com.app.folioman.shared.UploadedSchemesList",
+      "allDeclaredConstructors": true,
+      "allDeclaredMethods": true,
+      "allDeclaredFields": true
+    }
+  ],
+  "resources": [
+    {"glob": "application*.properties"},
+    {"glob": "application*.yml"},
+    {"glob": "application*.yaml"},
+    {"glob": "logback-spring.xml"},
+    {"glob": "log4j2-spring.xml"}
+  ]
+}

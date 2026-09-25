@@ -15,6 +15,7 @@ import com.app.folioman.portfolio.rest.dtos.InvestmentReturnsDTO;
 import com.app.folioman.portfolio.rest.dtos.MonthlyInvestmentResponseDTO;
 import com.app.folioman.portfolio.rest.dtos.PortfolioHistoryDTO;
 import com.app.folioman.portfolio.rest.dtos.PortfolioResponse;
+import com.app.folioman.portfolio.rest.dtos.PortfolioSummaryDTO;
 import com.app.folioman.portfolio.rest.dtos.UploadFileResponse;
 import com.app.folioman.portfolio.rest.dtos.YearlyInvestmentResponseDTO;
 import com.app.folioman.shared.LocalDateUtility;
@@ -40,6 +41,7 @@ public class PortfolioAPIImpl implements PortfolioAPI {
     private final UserPortfolioValueRepository userPortfolioValueRepository;
     private final CapitalGainsHarvestingService capitalGainsHarvestingService;
     private final PortfolioSummaryService portfolioSummaryService;
+    private final UserFolioDetailsRepository userFolioDetailsRepository;
 
     PortfolioAPIImpl(
             UserTransactionDetailsService userTransactionDetailsService,
@@ -48,7 +50,8 @@ public class PortfolioAPIImpl implements PortfolioAPI {
             UserCASDetailsRepository userCASDetailsRepository,
             UserPortfolioValueRepository userPortfolioValueRepository,
             CapitalGainsHarvestingService capitalGainsHarvestingService,
-            PortfolioSummaryService portfolioSummaryService) {
+            PortfolioSummaryService portfolioSummaryService,
+            UserFolioDetailsRepository userFolioDetailsRepository) {
         this.userTransactionDetailsService = userTransactionDetailsService;
         this.userDetailService = userDetailService;
         this.pdfProcessingService = pdfProcessingService;
@@ -56,6 +59,13 @@ public class PortfolioAPIImpl implements PortfolioAPI {
         this.userPortfolioValueRepository = userPortfolioValueRepository;
         this.capitalGainsHarvestingService = capitalGainsHarvestingService;
         this.portfolioSummaryService = portfolioSummaryService;
+        this.userFolioDetailsRepository = userFolioDetailsRepository;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean isPanOwnedByEmail(String pan, String email) {
+        return userFolioDetailsRepository.existsByPanAndEmailIgnoreCase(pan, email);
     }
 
     public Optional<InvestmentReturnsDTO> getInvestmentReturnsByPan(String pan) {
@@ -157,8 +167,7 @@ public class PortfolioAPIImpl implements PortfolioAPI {
 
     @Override
     @Cacheable(cacheNames = CacheNames.SUMMARY_CACHE, key = "'summary_' + #casId + '_' + #userEmail")
-    public Optional<com.app.folioman.portfolio.rest.dtos.PortfolioSummaryDTO> getPortfolioSummary(
-            Long casId, String userEmail) {
+    public Optional<PortfolioSummaryDTO> getPortfolioSummary(Long casId, String userEmail) {
         return portfolioSummaryService.getPortfolioSummary(casId, userEmail);
     }
 

@@ -18,7 +18,7 @@ interface MfAmcRepository extends JpaRepository<MfAmcEntity, Long> {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query("update MfAmcEntity m set m.name = :name where m.code = :code")
+    @Query("update MfAmcEntity m set m.name = :name, m.version = m.version+1 where m.code = :code")
     void updateMfAmcBy(@Param("name") String name, @Param("code") String code);
 
     Optional<MfAmcEntity> findByNameIgnoreCase(String amcName);

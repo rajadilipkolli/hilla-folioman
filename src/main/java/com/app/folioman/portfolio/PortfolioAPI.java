@@ -7,6 +7,7 @@ import com.app.folioman.portfolio.rest.dtos.InvestmentReturnsDTO;
 import com.app.folioman.portfolio.rest.dtos.MonthlyInvestmentResponseDTO;
 import com.app.folioman.portfolio.rest.dtos.PortfolioHistoryDTO;
 import com.app.folioman.portfolio.rest.dtos.PortfolioResponse;
+import com.app.folioman.portfolio.rest.dtos.PortfolioSummaryDTO;
 import com.app.folioman.portfolio.rest.dtos.UploadFileResponse;
 import com.app.folioman.portfolio.rest.dtos.YearlyInvestmentResponseDTO;
 import java.io.IOException;
@@ -31,12 +32,13 @@ public interface PortfolioAPI {
 
     Optional<PortfolioHistoryDTO> getPortfolioHistory(Long casId, String userEmail, LocalDate from, LocalDate to);
 
-    Optional<com.app.folioman.portfolio.rest.dtos.PortfolioSummaryDTO> getPortfolioSummary(
-            Long casId, String userEmail);
+    Optional<PortfolioSummaryDTO> getPortfolioSummary(Long casId, String userEmail);
 
     CasDTO convertPdfCasToJson(MultipartFile pdfFile, String password) throws IOException;
 
     List<PortfolioSummaryProjection> getPortfolioSummariesByEmail(String email);
 
     CapitalGainsHarvestingResponseDTO getCapitalGainsHarvesting(String pan, CapitalGainsHarvestingRequestDTO request);
+
+    boolean isPanOwnedByEmail(String pan, String email);
 }

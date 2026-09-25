@@ -5,17 +5,20 @@ import com.app.folioman.portfolio.PortfolioAPI;
 import com.app.folioman.portfolio.rest.dtos.InvestmentReturnsDTO;
 import com.app.folioman.portfolio.rest.dtos.MonthlyInvestmentResponseDTO;
 import com.app.folioman.portfolio.rest.dtos.YearlyInvestmentResponseDTO;
+import com.app.folioman.shared.PrincipalUtil;
 import com.vaadin.hilla.Endpoint;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.constraints.Pattern;
 import java.util.List;
 import org.jspecify.annotations.Nullable;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 @Endpoint
 @RestController
@@ -35,6 +38,9 @@ public class UserTransactionsController {
     public @Nullable InvestmentReturnsDTO getInvestmentReturns(
             @PathVariable @Pattern(regexp = "[A-Z]{5}[0-9]{4}[A-Z]", message = "Invalid PAN number format")
                     String pan) {
+        if (!portfolioAPI.isPanOwnedByEmail(pan, PrincipalUtil.getEmailFromContext())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
         return portfolioAPI.getInvestmentReturnsByPan(pan).orElse(null);
     }
 
@@ -43,6 +49,9 @@ public class UserTransactionsController {
     public List<MonthlyInvestmentResponseDTO> getTotalInvestmentsByPanPerMonth(
             @PathVariable @Pattern(regexp = "[A-Z]{5}[0-9]{4}[A-Z]", message = "Invalid PAN number format")
                     String pan) {
+        if (!portfolioAPI.isPanOwnedByEmail(pan, PrincipalUtil.getEmailFromContext())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
         return portfolioAPI.getTotalInvestmentsByPanPerMonth(pan);
     }
 
@@ -51,6 +60,9 @@ public class UserTransactionsController {
     public List<YearlyInvestmentResponseDTO> getTotalInvestmentsByPanPerYear(
             @PathVariable @Pattern(regexp = "[A-Z]{5}[0-9]{4}[A-Z]", message = "Invalid PAN number format")
                     String pan) {
+        if (!portfolioAPI.isPanOwnedByEmail(pan, PrincipalUtil.getEmailFromContext())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+        }
         return portfolioAPI.getTotalInvestmentsByPanPerYear(pan);
     }
 }
