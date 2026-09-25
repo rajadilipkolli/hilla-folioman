@@ -27,7 +27,8 @@ class UserCASDetailsService {
         return userCasDetailsRepository.findByInvestorEmailAndName(email, name);
     }
 
-    public List<PortfolioDetailsProjection> getPortfolioDetailsByPanAndAsOfDate(String panNumber, LocalDate asOfDate) {
-        return userCasDetailsRepository.getPortfolioDetails(panNumber, asOfDate);
+    public List<PortfolioDetailsProjection> getPortfolioDetailsByPanAndAsOfDate(
+            String panNumber, String email, LocalDate asOfDate) {
+        return userCasDetailsRepository.getPortfolioDetails(panNumber, email, asOfDate);
     }
 }

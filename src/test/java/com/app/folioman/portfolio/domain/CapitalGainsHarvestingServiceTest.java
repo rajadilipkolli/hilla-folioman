@@ -154,10 +154,10 @@ class CapitalGainsHarvestingServiceTest {
         CapitalGainsHarvestingRequest request = new CapitalGainsHarvestingRequest(
                 "ABCDE1234F", null, null, null, null, true, true, false, null, null, null, null, null);
 
-        when(userCASDetailsRepository.getPortfolioDetails(eq("ABCDE1234F"), any()))
+        when(userCASDetailsRepository.getPortfolioDetails(eq("ABCDE1234F"), eq("user@example.com"), any()))
                 .thenReturn(List.of());
 
-        CapitalGainsHarvestingResponse response = service.generateHarvestingPlan(request);
+        CapitalGainsHarvestingResponse response = service.generateHarvestingPlan(request, "user@example.com");
         assertThat(response.recommendations()).isEmpty();
     }
 
@@ -171,7 +171,8 @@ class CapitalGainsHarvestingServiceTest {
         LocalDate buyDate = LocalDate.now().minusMonths(14);
         UserTransactionDetailsEntity buy = createTxn(new BigDecimal("10000"), 1000.0, 10.0, buyDate);
 
-        when(userCASDetailsRepository.getPortfolioDetails(eq(pan), any())).thenReturn(List.of(holding));
+        when(userCASDetailsRepository.getPortfolioDetails(eq(pan), eq("user@example.com"), any()))
+                .thenReturn(List.of(holding));
         when(userTransactionDetailsRepository.findByUserSchemeDetails_IdInOrderByTransactionDateAscIdAsc(List.of(1L)))
                 .thenReturn(List.of(buy));
 
@@ -188,7 +189,7 @@ class CapitalGainsHarvestingServiceTest {
         CapitalGainsHarvestingRequest request = new CapitalGainsHarvestingRequest(
                 pan, null, null, null, null, true, true, false, null, null, null, null, null);
 
-        CapitalGainsHarvestingResponse response = service.generateHarvestingPlan(request);
+        CapitalGainsHarvestingResponse response = service.generateHarvestingPlan(request, "user@example.com");
 
         assertThat(response.recommendations()).hasSize(1);
         var rec = response.recommendations().getFirst();
@@ -206,7 +207,8 @@ class CapitalGainsHarvestingServiceTest {
         LocalDate buyDate = LocalDate.now().minusMonths(3);
         UserTransactionDetailsEntity buy = createTxn(new BigDecimal("10000"), 1000.0, 10.0, buyDate);
 
-        when(userCASDetailsRepository.getPortfolioDetails(eq(pan), any())).thenReturn(List.of(holding));
+        when(userCASDetailsRepository.getPortfolioDetails(eq(pan), eq("user@example.com"), any()))
+                .thenReturn(List.of(holding));
         when(userTransactionDetailsRepository.findByUserSchemeDetails_IdInOrderByTransactionDateAscIdAsc(List.of(1L)))
                 .thenReturn(List.of(buy));
 
@@ -222,7 +224,7 @@ class CapitalGainsHarvestingServiceTest {
         CapitalGainsHarvestingRequest request = new CapitalGainsHarvestingRequest(
                 pan, null, null, null, null, true, true, true, null, null, null, null, null);
 
-        CapitalGainsHarvestingResponse response = service.generateHarvestingPlan(request);
+        CapitalGainsHarvestingResponse response = service.generateHarvestingPlan(request, "user@example.com");
 
         assertThat(response.recommendations()).hasSize(1);
         var rec = response.recommendations().getFirst();
@@ -244,7 +246,8 @@ class CapitalGainsHarvestingServiceTest {
         LocalDate buyDate = LocalDate.now().minusMonths(14);
         UserTransactionDetailsEntity buy = createTxn(new BigDecimal("10000"), 1000.0, 10.0, buyDate);
 
-        when(userCASDetailsRepository.getPortfolioDetails(eq(pan), any())).thenReturn(List.of(holding));
+        when(userCASDetailsRepository.getPortfolioDetails(eq(pan), eq("user@example.com"), any()))
+                .thenReturn(List.of(holding));
         when(userTransactionDetailsRepository.findByUserSchemeDetails_IdInOrderByTransactionDateAscIdAsc(List.of(1L)))
                 .thenReturn(List.of(buy));
 
@@ -270,7 +273,7 @@ class CapitalGainsHarvestingServiceTest {
                 null,
                 null); // target amount 100k, available is 50k
 
-        CapitalGainsHarvestingResponse response = service.generateHarvestingPlan(request);
+        CapitalGainsHarvestingResponse response = service.generateHarvestingPlan(request, "user@example.com");
 
         assertThat(response.recommendations()).hasSize(1);
         var rec = response.recommendations().getFirst();

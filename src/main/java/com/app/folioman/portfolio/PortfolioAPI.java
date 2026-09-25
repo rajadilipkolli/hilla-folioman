@@ -18,17 +18,17 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface PortfolioAPI {
 
-    Optional<InvestmentReturnsDTO> getInvestmentReturnsByPan(String pan);
+    Optional<InvestmentReturnsDTO> getInvestmentReturnsByPan(String pan, String email);
 
-    List<MonthlyInvestmentResponseDTO> getTotalInvestmentsByPanPerMonth(String pan);
+    List<MonthlyInvestmentResponseDTO> getTotalInvestmentsByPanPerMonth(String pan, String email);
 
-    List<YearlyInvestmentResponseDTO> getTotalInvestmentsByPanPerYear(String pan);
+    List<YearlyInvestmentResponseDTO> getTotalInvestmentsByPanPerYear(String pan, String email);
 
     UploadFileResponse upload(MultipartFile multipartFile) throws IOException;
 
     UploadFileResponse uploadFromDto(CasDTO casDTO);
 
-    PortfolioResponse getPortfolioByPAN(String panNumber, LocalDate asOfDate);
+    PortfolioResponse getPortfolioByPAN(String panNumber, String email, LocalDate asOfDate);
 
     Optional<PortfolioHistoryDTO> getPortfolioHistory(Long casId, String userEmail, LocalDate from, LocalDate to);
 
@@ -38,7 +38,8 @@ public interface PortfolioAPI {
 
     List<PortfolioSummaryProjection> getPortfolioSummariesByEmail(String email);
 
-    CapitalGainsHarvestingResponseDTO getCapitalGainsHarvesting(String pan, CapitalGainsHarvestingRequestDTO request);
+    CapitalGainsHarvestingResponseDTO getCapitalGainsHarvesting(
+            String pan, String email, CapitalGainsHarvestingRequestDTO request);
 
     boolean isPanOwnedByEmail(String pan, String email);
 }

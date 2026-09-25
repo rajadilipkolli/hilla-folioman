@@ -53,9 +53,9 @@ class PortfolioServiceHelper {
         return futures.stream().map(CompletableFuture::join).toList();
     }
 
-    List<PortfolioDetailsDTO> getPortfolioDetailsByPANAndAsOfDate(String panNumber, LocalDate asOfDate) {
+    List<PortfolioDetailsDTO> getPortfolioDetailsByPANAndAsOfDate(String panNumber, String email, LocalDate asOfDate) {
         List<CompletableFuture<PortfolioDetailsDTO>> completableFutureList =
-                userCASDetailsService.getPortfolioDetailsByPanAndAsOfDate(panNumber, asOfDate).stream()
+                userCASDetailsService.getPortfolioDetailsByPanAndAsOfDate(panNumber, email, asOfDate).stream()
                         .map(portfolioDetails -> CompletableFuture.supplyAsync(
                                 () -> createPortfolioDetailsDTO(portfolioDetails, asOfDate), virtualThreadExecutor))
                         .toList();

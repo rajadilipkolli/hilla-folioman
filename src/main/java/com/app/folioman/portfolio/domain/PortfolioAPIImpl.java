@@ -68,16 +68,22 @@ public class PortfolioAPIImpl implements PortfolioAPI {
         return userFolioDetailsRepository.existsByPanAndEmailIgnoreCase(pan, email);
     }
 
-    public Optional<InvestmentReturnsDTO> getInvestmentReturnsByPan(String pan) {
-        return userTransactionDetailsService.getInvestmentReturnsByPan(pan);
+    @Cacheable(
+            cacheNames = CacheNames.RETURNS_CACHE,
+            key = "'returns_' + #pan + '_' + #email",
+            unless = "#result == null")
+    public Optional<InvestmentReturnsDTO> getInvestmentReturnsByPan(String pan, String email) {
+        return userTransactionDetailsService.getInvestmentReturnsByPan(pan, email);
     }
 
-    public List<MonthlyInvestmentResponseDTO> getTotalInvestmentsByPanPerMonth(String pan) {
-        return userTransactionDetailsService.getTotalInvestmentsByPanPerMonth(pan);
+    @Cacheable(cacheNames = CacheNames.TRANSACTION_CACHE, key = "'monthly_' + #pan + '_' + #email")
+    public List<MonthlyInvestmentResponseDTO> getTotalInvestmentsByPanPerMonth(String pan, String email) {
+        return userTransactionDetailsService.getTotalInvestmentsByPanPerMonth(pan, email);
     }
 
-    public List<YearlyInvestmentResponseDTO> getTotalInvestmentsByPanPerYear(String pan) {
-        return userTransactionDetailsService.getTotalInvestmentsByPanPerYear(pan);
+    @Cacheable(cacheNames = CacheNames.TRANSACTION_CACHE, key = "'yearly_' + #pan + '_' + #email")
+    public List<YearlyInvestmentResponseDTO> getTotalInvestmentsByPanPerYear(String pan, String email) {
+        return userTransactionDetailsService.getTotalInvestmentsByPanPerYear(pan, email);
     }
 
     public UploadFileResponse upload(MultipartFile multipartFile) throws IOException {
@@ -88,8 +94,8 @@ public class PortfolioAPIImpl implements PortfolioAPI {
         return userDetailService.uploadFromDto(casDTO);
     }
 
-    public PortfolioResponse getPortfolioByPAN(String panNumber, LocalDate asOfDate) {
-        return userDetailService.getPortfolioByPAN(panNumber, asOfDate);
+    public PortfolioResponse getPortfolioByPAN(String panNumber, String email, LocalDate asOfDate) {
+        return userDetailService.getPortfolioByPAN(panNumber, email, asOfDate);
     }
 
     public CasDTO convertPdfCasToJson(MultipartFile pdfFile, String password) throws IOException {
@@ -172,7 +178,7 @@ public class PortfolioAPIImpl implements PortfolioAPI {
     }
 
     public CapitalGainsHarvestingResponseDTO getCapitalGainsHarvesting(
-            String pan, CapitalGainsHarvestingRequestDTO request) {
+            String pan, String email, CapitalGainsHarvestingRequestDTO request) {
         CapitalGainsHarvestingRequest domainRequest = new CapitalGainsHarvestingRequest(
                 pan,
                 request.asOfDate(),
@@ -188,7 +194,8 @@ public class PortfolioAPIImpl implements PortfolioAPI {
                 request.schemeFilters(),
                 request.amcFilters());
 
-        CapitalGainsHarvestingResponse response = capitalGainsHarvestingService.generateHarvestingPlan(domainRequest);
+        CapitalGainsHarvestingResponse response =
+                capitalGainsHarvestingService.generateHarvestingPlan(domainRequest, email);
 
         List<HarvestRecommendationDTO> recommendationDTOs = response.recommendations().stream()
                 .map(r -> new HarvestRecommendationDTO(

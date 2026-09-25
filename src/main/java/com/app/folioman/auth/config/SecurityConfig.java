@@ -50,6 +50,8 @@ public class SecurityConfig {
                         .permitAll()
                         .requestMatchers("/api/**")
                         .authenticated()
+                        .requestMatchers("/", "/index.html", "/login")
+                        .permitAll()
                         .requestMatchers(
                                 "/VAADIN/**",
                                 "/HILLA/**",

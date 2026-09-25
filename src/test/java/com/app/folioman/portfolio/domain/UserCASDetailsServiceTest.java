@@ -108,53 +108,57 @@ class UserCASDetailsServiceTest {
         String panNumber = "ABCDE1234F";
         LocalDate asOfDate = LocalDate.now();
         List<PortfolioDetailsProjection> expectedList = Collections.singletonList(portfolioDetailsProjection);
-        when(UserCasDetailsRepository.getPortfolioDetails(panNumber, asOfDate)).thenReturn(expectedList);
+        when(UserCasDetailsRepository.getPortfolioDetails(panNumber, "user@example.com", asOfDate))
+                .thenReturn(expectedList);
 
         List<PortfolioDetailsProjection> result =
-                userCASDetailsService.getPortfolioDetailsByPanAndAsOfDate(panNumber, asOfDate);
+                userCASDetailsService.getPortfolioDetailsByPanAndAsOfDate(panNumber, "user@example.com", asOfDate);
 
         assertThat(result).isNotNull();
         assertThat(result).hasSize(1);
         assertThat(result).isEqualTo(expectedList);
-        verify(UserCasDetailsRepository).getPortfolioDetails(panNumber, asOfDate);
+        verify(UserCasDetailsRepository).getPortfolioDetails(panNumber, "user@example.com", asOfDate);
     }
 
     @Test
     void getPortfolioDetailsByPanAndAsOfDate_WithNullPanNumber_ShouldReturnEmptyList() {
         LocalDate asOfDate = LocalDate.now();
-        when(UserCasDetailsRepository.getPortfolioDetails(null, asOfDate)).thenReturn(Collections.emptyList());
+        when(UserCasDetailsRepository.getPortfolioDetails(null, "user@example.com", asOfDate))
+                .thenReturn(Collections.emptyList());
 
         List<PortfolioDetailsProjection> result =
-                userCASDetailsService.getPortfolioDetailsByPanAndAsOfDate(null, asOfDate);
+                userCASDetailsService.getPortfolioDetailsByPanAndAsOfDate(null, "user@example.com", asOfDate);
 
         assertThat(result).isNotNull();
         assertThat(result).hasSize(0);
-        verify(UserCasDetailsRepository).getPortfolioDetails(null, asOfDate);
+        verify(UserCasDetailsRepository).getPortfolioDetails(null, "user@example.com", asOfDate);
     }
 
     @Test
     void getPortfolioDetailsByPanAndAsOfDate_WithNullAsOfDate_ShouldReturnEmptyList() {
         String panNumber = "ABCDE1234F";
-        when(UserCasDetailsRepository.getPortfolioDetails(panNumber, null)).thenReturn(Collections.emptyList());
+        when(UserCasDetailsRepository.getPortfolioDetails(panNumber, "user@example.com", null))
+                .thenReturn(Collections.emptyList());
 
         List<PortfolioDetailsProjection> result =
-                userCASDetailsService.getPortfolioDetailsByPanAndAsOfDate(panNumber, null);
+                userCASDetailsService.getPortfolioDetailsByPanAndAsOfDate(panNumber, "user@example.com", null);
 
         assertThat(result).isNotNull();
         assertThat(result).hasSize(0);
-        verify(UserCasDetailsRepository).getPortfolioDetails(panNumber, null);
+        verify(UserCasDetailsRepository).getPortfolioDetails(panNumber, "user@example.com", null);
     }
 
     @Test
     void getPortfolioDetailsByPanAndAsOfDate_WithEmptyPanNumber_ShouldReturnEmptyList() {
         LocalDate asOfDate = LocalDate.now();
-        when(UserCasDetailsRepository.getPortfolioDetails("", asOfDate)).thenReturn(Collections.emptyList());
+        when(UserCasDetailsRepository.getPortfolioDetails("", "user@example.com", asOfDate))
+                .thenReturn(Collections.emptyList());
 
         List<PortfolioDetailsProjection> result =
-                userCASDetailsService.getPortfolioDetailsByPanAndAsOfDate("", asOfDate);
+                userCASDetailsService.getPortfolioDetailsByPanAndAsOfDate("", "user@example.com", asOfDate);
 
         assertThat(result).isNotNull();
         assertThat(result).hasSize(0);
-        verify(UserCasDetailsRepository).getPortfolioDetails("", asOfDate);
+        verify(UserCasDetailsRepository).getPortfolioDetails("", "user@example.com", asOfDate);
     }
 }

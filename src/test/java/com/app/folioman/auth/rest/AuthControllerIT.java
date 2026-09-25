@@ -22,6 +22,15 @@ import org.springframework.test.web.servlet.MvcResult;
 @Execution(ExecutionMode.SAME_THREAD)
 class AuthControllerIT extends AbstractIntegrationTest {
 
+    @Test
+    void anonymousUsersCanLoadSpaEntryAndLoginButNotProtectedRoutes() throws Exception {
+        mockMvc.perform(get("/")).andExpect(status().isOk());
+        mockMvc.perform(get("/index.html")).andExpect(status().isOk());
+        mockMvc.perform(get("/login")).andExpect(status().isOk());
+        mockMvc.perform(get("/api/portfolio/investments/ABCDE1234F")).andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/userPortfolio")).andExpect(status().isUnauthorized());
+    }
+
     @BeforeEach
     void setUp() {
         transactionTemplate.execute(status -> {

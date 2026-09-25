@@ -43,8 +43,11 @@ interface UserCASDetailsRepository extends JpaRepository<UserCasDetailsEntity, L
                     ON utd.user_scheme_detail_id = usd.id
                 JOIN portfolio.user_folio_details ufd
                     ON usd.user_folio_id = ufd.id
+                JOIN portfolio.investor_info ii
+                    ON ii.user_cas_details_id = ufd.user_cas_details_id
                 WHERE utd.type NOT IN ('STAMP_DUTY_TAX', '*** Stamp Duty ***', 'STT_TAX')
                   AND ufd.pan = :pan
+                  AND lower(ii.email) = lower(:email)
                   AND utd.transaction_date <= :asOfDate
             )
             SELECT SUM(balance) AS balanceUnits,
@@ -58,7 +61,7 @@ interface UserCASDetailsRepository extends JpaRepository<UserCasDetailsEntity, L
             GROUP BY schemeName, schemeId, folioNumber, schemeDetailId
             """)
     List<PortfolioDetailsProjection> getPortfolioDetails(
-            @Param("pan") String panNumber, @Param("asOfDate") LocalDate asOfDate);
+            @Param("pan") String panNumber, @Param("email") String email, @Param("asOfDate") LocalDate asOfDate);
 
     List<UserCasDetailsEntity> findAllByInvestorInfoEntityEmail(String email);
 }

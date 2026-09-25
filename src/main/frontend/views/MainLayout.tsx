@@ -5,7 +5,7 @@ import { useRouteMetadata } from 'Frontend/util/routing.js';
 import { Suspense } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { Button } from '@vaadin/react-components/Button.js';
-import { useAuth, authenticatedFetch } from 'Frontend/auth';
+import { useAuth } from 'Frontend/auth';
 
 const navLinkClasses = ({ isActive }: any) => {
   return `block rounded-m p-s ${isActive ? 'bg-primary-10 text-primary' : 'text-body'}`;
@@ -18,8 +18,9 @@ export default function MainLayout() {
 
   const handleLogout = async () => {
     try {
-      const response = await authenticatedFetch('/api/auth/logout', {
+      const response = await fetch('/api/auth/logout', {
         method: 'POST',
+        credentials: 'include',
       });
 
       if (response.ok) {

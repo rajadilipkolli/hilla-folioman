@@ -105,14 +105,14 @@ class PortfolioServiceHelperTest {
     void getPortfolioDetailsByPANAndAsOfDate_ShouldReturnEmptyList_WhenNoPortfolioDetails() {
         String panNumber = "PAN123";
         LocalDate asOfDate = LocalDate.of(2023, 12, 1);
-        when(userCASDetailsService.getPortfolioDetailsByPanAndAsOfDate(panNumber, asOfDate))
+        when(userCASDetailsService.getPortfolioDetailsByPanAndAsOfDate(panNumber, "user@example.com", asOfDate))
                 .thenReturn(Collections.emptyList());
 
         List<PortfolioDetailsDTO> result =
-                portfolioServiceHelper.getPortfolioDetailsByPANAndAsOfDate(panNumber, asOfDate);
+                portfolioServiceHelper.getPortfolioDetailsByPANAndAsOfDate(panNumber, "user@example.com", asOfDate);
 
         assertThat(result).isEmpty();
-        verify(userCASDetailsService).getPortfolioDetailsByPanAndAsOfDate(panNumber, asOfDate);
+        verify(userCASDetailsService).getPortfolioDetailsByPanAndAsOfDate(panNumber, "user@example.com", asOfDate);
     }
 
     @Test
@@ -127,12 +127,12 @@ class PortfolioServiceHelperTest {
 
         MFSchemeDTO mfSchemeDTO = new MFSchemeDTO(null, 0L, "SCHEME123", "Test Scheme", "15.5", "2023-12-01", null);
 
-        when(userCASDetailsService.getPortfolioDetailsByPanAndAsOfDate(panNumber, asOfDate))
+        when(userCASDetailsService.getPortfolioDetailsByPanAndAsOfDate(panNumber, "user@example.com", asOfDate))
                 .thenReturn(Collections.singletonList(portfolioDetailsProjection));
         when(mfNavService.getNavByDateWithRetry(123L, asOfDate)).thenReturn(mfSchemeDTO);
 
         List<PortfolioDetailsDTO> result =
-                portfolioServiceHelper.getPortfolioDetailsByPANAndAsOfDate(panNumber, asOfDate);
+                portfolioServiceHelper.getPortfolioDetailsByPANAndAsOfDate(panNumber, "user@example.com", asOfDate);
 
         assertThat(result).hasSize(1);
         PortfolioDetailsDTO dto = result.getFirst();
@@ -155,13 +155,13 @@ class PortfolioServiceHelperTest {
         when(portfolioDetailsProjection.getSchemeName()).thenReturn("Test Scheme");
         when(portfolioDetailsProjection.getFolioNumber()).thenReturn("FOLIO123");
 
-        when(userCASDetailsService.getPortfolioDetailsByPanAndAsOfDate(panNumber, asOfDate))
+        when(userCASDetailsService.getPortfolioDetailsByPanAndAsOfDate(panNumber, "user@example.com", asOfDate))
                 .thenReturn(List.of(portfolioDetailsProjection));
         when(mfNavService.getNavByDateWithRetry(123L, asOfDate))
                 .thenThrow(new NavNotFoundException("Nav not found", asOfDate));
 
         List<PortfolioDetailsDTO> result =
-                portfolioServiceHelper.getPortfolioDetailsByPANAndAsOfDate(panNumber, asOfDate);
+                portfolioServiceHelper.getPortfolioDetailsByPANAndAsOfDate(panNumber, "user@example.com", asOfDate);
 
         assertThat(result).hasSize(1);
         PortfolioDetailsDTO dto = result.getFirst();

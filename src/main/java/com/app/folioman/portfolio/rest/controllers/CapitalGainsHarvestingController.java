@@ -35,9 +35,10 @@ public class CapitalGainsHarvestingController {
             @PathVariable("pan") @Pattern(regexp = "[A-Z]{5}[0-9]{4}[A-Z]{1}", message = "Invalid PAN format")
                     String pan,
             @RequestBody @Valid CapitalGainsHarvestingRequestDTO request) {
-        if (!portfolioAPI.isPanOwnedByEmail(pan, PrincipalUtil.getEmailFromContext())) {
+        String email = PrincipalUtil.getEmailFromContext();
+        if (!portfolioAPI.isPanOwnedByEmail(pan, email)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
-        return portfolioAPI.getCapitalGainsHarvesting(pan, request);
+        return portfolioAPI.getCapitalGainsHarvesting(pan, email, request);
     }
 }

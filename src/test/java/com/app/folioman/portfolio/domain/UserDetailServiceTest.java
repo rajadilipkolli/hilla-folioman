@@ -164,10 +164,11 @@ class UserDetailServiceTest {
         LocalDate date = LocalDate.of(2023, 10, 10);
         PortfolioDetailsDTO portfolioDetailsDTO =
                 new PortfolioDetailsDTO(new BigDecimal("1000"), "Scheme1", "Folio1", "2023-10-10", 10.0);
-        when(portfolioServiceHelper.getPortfolioDetailsByPANAndAsOfDate(eq(pan), any(LocalDate.class)))
+        when(portfolioServiceHelper.getPortfolioDetailsByPANAndAsOfDate(
+                        eq(pan), eq("user@example.com"), any(LocalDate.class)))
                 .thenReturn(List.of(portfolioDetailsDTO));
 
-        PortfolioResponse response = userDetailService.getPortfolioByPAN(pan, date);
+        PortfolioResponse response = userDetailService.getPortfolioByPAN(pan, "user@example.com", date);
 
         assertThat(response).isNotNull();
         assertThat(response.portfolioDetailsDTOS()).hasSize(1);

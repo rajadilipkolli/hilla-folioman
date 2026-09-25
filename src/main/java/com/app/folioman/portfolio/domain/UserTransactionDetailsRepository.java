@@ -15,8 +15,8 @@ import org.springframework.stereotype.Repository;
 interface UserTransactionDetailsRepository extends JpaRepository<UserTransactionDetailsEntity, Long> {
 
     @Query(
-            "select min(u.transactionDate) from UserTransactionDetailsEntity u where u.userSchemeDetails.userFolioDetails.pan = :pan")
-    Optional<LocalDate> findMinTransactionDateByPan(@Param("pan") String pan);
+            "select min(u.transactionDate) from UserTransactionDetailsEntity u where u.userSchemeDetails.userFolioDetails.pan = :pan and upper(u.userSchemeDetails.userFolioDetails.userCasDetailsEntity.investorInfoEntity.email) = upper(:email)")
+    Optional<LocalDate> findMinTransactionDateByPan(@Param("pan") String pan, @Param("email") String email);
 
     @Query("""
             select count (u.id) from UserTransactionDetailsEntity u
@@ -50,7 +50,8 @@ interface UserTransactionDetailsRepository extends JpaRepository<UserTransaction
                         FROM portfolio.user_transaction_details utd
                         JOIN portfolio.user_scheme_details usd ON utd.user_scheme_detail_id = usd.id
                         JOIN portfolio.user_folio_details ufd ON ufd.id = usd.user_folio_id
-                        WHERE ufd.pan = ?1
+                        JOIN portfolio.investor_info ii ON ii.user_cas_details_id = ufd.user_cas_details_id
+                        WHERE ufd.pan = :pan AND lower(ii.email) = lower(:email)
                         GROUP BY DATE_TRUNC('month', transaction_date),
                                  EXTRACT(YEAR FROM transaction_date),
                                  EXTRACT(MONTH FROM transaction_date)
@@ -62,7 +63,7 @@ interface UserTransactionDetailsRepository extends JpaRepository<UserTransaction
                     FROM monthly_totals
                     ORDER BY year, month_number
                     """)
-    List<MonthlyInvestmentResponse> findMonthlyInvestmentsByPan(String pan);
+    List<MonthlyInvestmentResponse> findMonthlyInvestmentsByPan(@Param("pan") String pan, @Param("email") String email);
 
     @NativeQuery("""
                     SELECT EXTRACT(YEAR FROM transaction_date) AS year,
@@ -70,9 +71,10 @@ interface UserTransactionDetailsRepository extends JpaRepository<UserTransaction
                     FROM portfolio.user_transaction_details utd
                     JOIN portfolio.user_scheme_details usd ON utd.user_scheme_detail_id = usd.id
                     JOIN portfolio.user_folio_details ufd ON ufd.id = usd.user_folio_id
-                    WHERE ufd.pan = ?1
+                    JOIN portfolio.investor_info ii ON ii.user_cas_details_id = ufd.user_cas_details_id
+                    WHERE ufd.pan = :pan AND lower(ii.email) = lower(:email)
                     GROUP BY EXTRACT(YEAR FROM transaction_date)
                     ORDER BY year
                     """)
-    List<YearlyInvestmentResponse> findYearlyInvestmentsByPan(String pan);
+    List<YearlyInvestmentResponse> findYearlyInvestmentsByPan(@Param("pan") String pan, @Param("email") String email);
 }

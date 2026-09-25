@@ -101,10 +101,11 @@ public class ImportMutualFundController {
                     @ValidPastOrPresent(message = "Date should be past or today")
                     @Nullable
                     LocalDate asOfDate) {
-        if (!portfolioAPI.isPanOwnedByEmail(panNumber, PrincipalUtil.getEmailFromContext())) {
+        String email = PrincipalUtil.getEmailFromContext();
+        if (!portfolioAPI.isPanOwnedByEmail(panNumber, email)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
         return portfolioAPI.getPortfolioByPAN(
-                panNumber, asOfDate != null ? asOfDate : LocalDate.now(ZoneId.systemDefault()));
+                panNumber, email, asOfDate != null ? asOfDate : LocalDate.now(ZoneId.systemDefault()));
     }
 }
