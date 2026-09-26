@@ -149,7 +149,7 @@
         <dependency>
             <groupId>io.github.rajadilipkolli</groupId>
             <artifactId>historical-mf-nav-data</artifactId>
-            <version>1.0.20260918</version>
+            <version>1.0.20260926</version>
         </dependency>
 
         <dependency>
