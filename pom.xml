@@ -399,6 +399,9 @@
                     <checking>main</checking>
                     <outputDirectory>${project.basedir}/src/main/java</outputDirectory>
                     <testOutputDirectory>${project.basedir}/src/test/java</testOutputDirectory>
+                    <excludedPaths>
+                        <excludedPath>**/generated/**</excludedPath>
+                    </excludedPaths>
                 </configuration>
                 <executions>
                     <execution>
