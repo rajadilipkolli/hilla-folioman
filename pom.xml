@@ -149,7 +149,7 @@
         <dependency>
             <groupId>io.github.rajadilipkolli</groupId>
             <artifactId>historical-mf-nav-data</artifactId>
-            <version>1.0.20260929</version>
+            <version>1.0.20261004</version>
         </dependency>
 
         <dependency>
@@ -399,9 +399,7 @@
                     <checking>main</checking>
                     <outputDirectory>${project.basedir}/src/main/java</outputDirectory>
                     <testOutputDirectory>${project.basedir}/src/test/java</testOutputDirectory>
-                    <excludedPaths>
-                        <excludedPath>**/generated/**</excludedPath>
-                    </excludedPaths>
+                    <excludedPaths>.*generated.*</excludedPaths>
                 </configuration>
                 <executions>
                     <execution>
