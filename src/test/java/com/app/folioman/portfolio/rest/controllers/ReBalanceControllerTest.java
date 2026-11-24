@@ -110,7 +110,7 @@ class ReBalanceControllerTest {
                 .andExpect(jsonPath("$.title", is("Constraint Violation")))
                 .andExpect(jsonPath("$.status", is(400)))
                 .andExpect(jsonPath("$.detail", is("Invalid request content.")))
-                .andExpect(jsonPath("$.instance", is("/api/portfolio/rebalance")))
+                .andExpect(jsonPath("$.instance").doesNotHaveJsonPath())
                 .andExpect(jsonPath("$.violations", hasSize(2)))
                 .andExpect(jsonPath("$.violations[0].field", is("amountToInvest")))
                 .andExpect(jsonPath("$.violations[0].message", is("Amount to invest cannot be null")))
@@ -135,7 +135,7 @@ class ReBalanceControllerTest {
                 .andExpect(jsonPath("$.title", is("Constraint Violation")))
                 .andExpect(jsonPath("$.status", is(400)))
                 .andExpect(jsonPath("$.detail", is("Invalid request content.")))
-                .andExpect(jsonPath("$.instance", is("/api/portfolio/rebalance")))
+                .andExpect(jsonPath("$.instance").doesNotHaveJsonPath())
                 .andExpect(jsonPath("$.violations", hasSize(1)))
                 .andExpect(jsonPath("$.violations[0].field", is("funds")))
                 .andExpect(jsonPath(
@@ -157,7 +157,7 @@ class ReBalanceControllerTest {
                 .andExpect(jsonPath("$.title", is("Constraint Violation")))
                 .andExpect(jsonPath("$.status", is(400)))
                 .andExpect(jsonPath("$.detail", is("Invalid request content.")))
-                .andExpect(jsonPath("$.instance", is("/api/portfolio/rebalance")))
+                .andExpect(jsonPath("$.instance").doesNotHaveJsonPath())
                 .andExpect(jsonPath("$.violations", hasSize(2)))
                 .andExpect(jsonPath("$.violations[0].field", is("amountToInvest")))
                 .andExpect(jsonPath("$.violations[0].message", is("Amount to invest cannot be negative")))
@@ -185,7 +185,7 @@ class ReBalanceControllerTest {
                 .andExpect(jsonPath("$.title", is("Constraint Violation")))
                 .andExpect(jsonPath("$.status", is(400)))
                 .andExpect(jsonPath("$.detail", is("Invalid request content.")))
-                .andExpect(jsonPath("$.instance", is("/api/portfolio/rebalance")))
+                .andExpect(jsonPath("$.instance").doesNotHaveJsonPath())
                 .andExpect(jsonPath("$.violations", hasSize(1)))
                 .andExpect(jsonPath("$.violations[0].field", is("funds")))
                 .andExpect(jsonPath(
@@ -208,7 +208,7 @@ class ReBalanceControllerTest {
                 .andExpect(jsonPath("$.title", is("Constraint Violation")))
                 .andExpect(jsonPath("$.status", is(400)))
                 .andExpect(jsonPath("$.detail", is("Invalid request content.")))
-                .andExpect(jsonPath("$.instance", is("/api/portfolio/rebalance")))
+                .andExpect(jsonPath("$.instance").doesNotHaveJsonPath())
                 .andExpect(jsonPath("$.violations", hasSize(2)))
                 .andExpect(jsonPath("$.violations[0].field", is("funds")))
                 .andExpect(
@@ -233,7 +233,7 @@ class ReBalanceControllerTest {
                 .andExpect(jsonPath("$.title", is("Constraint Violation")))
                 .andExpect(jsonPath("$.status", is(400)))
                 .andExpect(jsonPath("$.detail", is("Invalid request content.")))
-                .andExpect(jsonPath("$.instance", is("/api/portfolio/rebalance")))
+                .andExpect(jsonPath("$.instance").doesNotHaveJsonPath())
                 .andExpect(jsonPath("$.violations", hasSize(2)))
                 .andExpect(jsonPath("$.violations[0].field", is("funds")))
                 .andExpect(
