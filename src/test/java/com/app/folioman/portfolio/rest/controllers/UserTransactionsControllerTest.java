@@ -50,7 +50,7 @@ class UserTransactionsControllerTest {
                 .andExpect(jsonPath("$.status", is(400)))
                 .andExpect(jsonPath(
                         "$.detail", matchesPattern("getTotalInvestmentsByPanPerMonth.pan: Invalid PAN number format")))
-                .andExpect(jsonPath("$.instance", is("/api/portfolio/investments/ABCD1234EF")));
+                .andExpect(jsonPath("$.instance").doesNotHaveJsonPath());
     }
 
     @Test
@@ -65,7 +65,7 @@ class UserTransactionsControllerTest {
                 .andExpect(jsonPath("$.status", is(400)))
                 .andExpect(jsonPath(
                         "$.detail", matchesPattern("getTotalInvestmentsByPanPerYear.pan: Invalid PAN number format")))
-                .andExpect(jsonPath("$.instance", is("/api/portfolio/investments/yearly/ABCD1234EF")));
+                .andExpect(jsonPath("$.instance").doesNotHaveJsonPath());
     }
 
     @Test

@@ -47,7 +47,7 @@ class NavControllerTest {
                 .andExpect(jsonPath(
                         "$.detail",
                         is("getSchemeNavOnDate.schemeCode: Max value of schemeCode should be less than 160000")))
-                .andExpect(jsonPath("$.instance", is("/api/nav/170000/2023-12-31")));
+                .andExpect(jsonPath("$.instance").doesNotHaveJsonPath());
     }
 
     @Test
@@ -61,6 +61,6 @@ class NavControllerTest {
                 .andExpect(jsonPath("$.status", is(400)))
                 .andExpect(jsonPath(
                         "$.detail", is("getScheme.schemeCode: Min value of schemeCode should be greater than 100000")))
-                .andExpect(jsonPath("$.instance", is("/api/nav/10000")));
+                .andExpect(jsonPath("$.instance").doesNotHaveJsonPath());
     }
 }
