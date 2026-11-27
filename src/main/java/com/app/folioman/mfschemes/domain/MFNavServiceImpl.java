@@ -5,9 +5,18 @@ import com.app.folioman.mfschemes.NavNotFoundException;
 import com.app.folioman.mfschemes.config.ApplicationProperties;
 import com.app.folioman.mfschemes.rest.dtos.MFSchemeDTO;
 import com.app.folioman.mfschemes.rest.dtos.MFSchemeNavProjection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDate;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.ParameterizedTypeReference;
@@ -114,11 +123,46 @@ class MFNavServiceImpl implements MFNavService {
     @Override
     public Map<Long, Map<LocalDate, MFSchemeNavProjection>> getNavsForSchemesAndDates(
             Set<Long> schemeCodes, LocalDate startDate, LocalDate endDate) {
-        return new HashMap<>();
+        if (schemeCodes.isEmpty()) return Map.of();
+
+        String placeholders = String.join(",", Collections.nCopies(schemeCodes.size(), "?"));
+        List<Object> args = new ArrayList<>(schemeCodes);
+        args.add(startDate);
+        args.add(endDate);
+        return jdbcTemplate
+                .query(
+                        "SELECT scheme_code, date, nav FROM nav WHERE scheme_code IN (" + placeholders
+                                + ") AND date BETWEEN ? AND ?",
+                        this::mapNav,
+                        args.toArray())
+                .stream()
+                .collect(Collectors.groupingBy(
+                        MFSchemeNavProjection::amfiCode,
+                        Collectors.toMap(MFSchemeNavProjection::navDate, Function.identity())));
     }
 
     @Override
     public Map<Long, List<MFSchemeNavProjection>> getLastTwoNavsForSchemes(Set<Long> amfiCodes) {
-        return new HashMap<>();
+        if (amfiCodes == null || amfiCodes.isEmpty()) return Map.of();
+
+        String placeholders = String.join(",", Collections.nCopies(amfiCodes.size(), "?"));
+        return jdbcTemplate.query("""
+                        SELECT scheme_code, date, nav FROM (
+                            SELECT scheme_code, date, nav,
+                                   ROW_NUMBER() OVER (PARTITION BY scheme_code ORDER BY date DESC) AS nav_rank
+                            FROM nav WHERE scheme_code IN (%s) AND date IS NOT NULL
+                        ) ranked
+                        WHERE nav_rank <= 2
+                        ORDER BY scheme_code, date DESC
+                        """.formatted(placeholders), this::mapNav, amfiCodes.toArray()).stream()
+                .collect(Collectors.groupingBy(MFSchemeNavProjection::amfiCode));
+    }
+
+    private MFSchemeNavProjection mapNav(ResultSet rs, int rowNum) throws SQLException {
+        // The seed database stores NAVs as integers scaled by 10,000.
+        return new MFSchemeNavProjection(
+                rs.getBigDecimal("nav").movePointLeft(4),
+                rs.getObject("date", LocalDate.class),
+                rs.getLong("scheme_code"));
     }
 }

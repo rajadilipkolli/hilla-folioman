@@ -63,6 +63,15 @@ class UserSchemeDetailServiceImpl implements UserSchemeDetailService {
     private void handleEmptyMfSchemeList(UserSchemeDetailsEntity userSchemeDetailsEntity) {
         String scheme = userSchemeDetailsEntity.getScheme();
         LOGGER.info("AMFI is null for scheme: {}", scheme);
+        String storedIsin = userSchemeDetailsEntity.getIsin();
+        if (StringUtils.hasText(storedIsin)) {
+            Optional<MFSchemeProjection> match = mfSchemeService.findByPayOut(storedIsin);
+            if (match.isPresent()) {
+                updateUserSchemeDetails(
+                        userSchemeDetailsEntity.getId(), match.get().getAmfiCode(), storedIsin);
+                return;
+            }
+        }
         if (scheme.contains("ISIN:")) {
             extractAndProcessIsin(userSchemeDetailsEntity, scheme);
         } else {

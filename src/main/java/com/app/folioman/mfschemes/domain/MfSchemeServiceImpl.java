@@ -4,14 +4,28 @@ import com.app.folioman.mfschemes.MfSchemeService;
 import com.app.folioman.mfschemes.rest.dtos.FundDetailProjection;
 import com.app.folioman.mfschemes.rest.dtos.MFSchemeProjection;
 import com.app.folioman.mfschemes.rest.dtos.MFSchemeTypeProjection;
+import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 
 @Service
 class MfSchemeServiceImpl implements MfSchemeService {
+
+    // Use the lowest ISIN as a stable representative without preferring a security type.
+    private static final String SELECT_SCHEME = """
+            SELECT s.scheme_code, s.plan, s.category, sec.isin
+            FROM schemes s
+            LEFT JOIN LATERAL (
+                SELECT isin FROM securities WHERE scheme_code = s.scheme_code ORDER BY isin LIMIT 1
+            ) sec ON TRUE
+            """;
+
+    private static final RowMapper<FundDetailProjection> FUND_DETAIL_MAPPER = (rs, rowNum) ->
+            new FundDetailRec(rs.getString("scheme_name"), rs.getLong("scheme_code"), rs.getString("amc"));
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -114,7 +128,7 @@ class MfSchemeServiceImpl implements MfSchemeService {
     @Override
     public Optional<MFSchemeProjection> findByAmfiCode(Long amfiCode) {
         List<MFSchemeProjection> results = jdbcTemplate.query(
-                "SELECT s.scheme_code, s.plan, s.category, sec.isin FROM schemes s LEFT JOIN securities sec ON s.scheme_code = sec.scheme_code WHERE s.scheme_code = ?",
+                SELECT_SCHEME + "WHERE s.scheme_code = ?",
                 (rs, rowNum) -> new MFSchemeRec(
                         rs.getLong("scheme_code"),
                         rs.getString("isin"),
@@ -128,35 +142,42 @@ class MfSchemeServiceImpl implements MfSchemeService {
     @Override
     public List<MFSchemeProjection> findByAmfiCodeIn(List<Long> amfiCodes) {
         if (amfiCodes == null || amfiCodes.isEmpty()) return List.of();
-        String inSql = amfiCodes.stream().map(String::valueOf).collect(Collectors.joining(","));
+        String placeholders = String.join(",", Collections.nCopies(amfiCodes.size(), "?"));
         return jdbcTemplate.query(
-                "SELECT s.scheme_code, s.plan, s.category, sec.isin FROM schemes s LEFT JOIN securities sec ON s.scheme_code = sec.scheme_code WHERE s.scheme_code IN ("
-                        + inSql + ")",
+                SELECT_SCHEME + "WHERE s.scheme_code IN (" + placeholders + ")",
                 (rs, rowNum) -> new MFSchemeRec(
                         rs.getLong("scheme_code"),
                         rs.getString("isin"),
                         rs.getString("plan"),
                         "UNKNOWN",
-                        new MFSchemeTypeRec(rs.getString("category"), "")));
+                        new MFSchemeTypeRec(rs.getString("category"), "")),
+                amfiCodes.toArray());
     }
 
     @Override
     public List<FundDetailProjection> fetchSchemes(String scheme) {
-        String query = scheme != null ? scheme.trim() : "";
-        String cleanQuery =
-                query.toLowerCase().startsWith("amc ") ? query.substring(4).trim() : query;
-        // Check if query is seeking AMC matching like 'amc SBI Fondes Managemnt' or 'amc sbi'
-        String[] words = cleanQuery.split("\\s+");
-        String firstWord = words.length > 0 ? words[0] : cleanQuery;
+        String query = scheme != null ? scheme.strip() : "";
+        if (query.isBlank()) return List.of();
 
-        return jdbcTemplate.query(
-                "SELECT scheme_code, scheme_name, amc FROM schemes WHERE LOWER(scheme_name) LIKE LOWER(?) OR LOWER(amc) LIKE LOWER(?) OR LOWER(amc) LIKE LOWER(?) OR CAST(scheme_code AS TEXT) = ?",
-                (rs, rowNum) ->
-                        new FundDetailRec(rs.getString("scheme_name"), rs.getLong("scheme_code"), rs.getString("amc")),
-                "%" + cleanQuery + "%",
-                "%" + cleanQuery + "%",
-                "%" + firstWord + "%",
-                query);
+        String select = "SELECT scheme_code, scheme_name, amc FROM schemes WHERE ";
+        if (query.matches("\\d{6}")) {
+            return jdbcTemplate.query(select + "scheme_code = ?", FUND_DETAIL_MAPPER, Long.parseLong(query));
+        }
+
+        boolean amcSearch = query.toLowerCase(Locale.ROOT).startsWith("amc ");
+        String cleanQuery = amcSearch ? query.substring(4).strip() : query;
+        String pattern = "%" + cleanQuery + "%";
+        String textPredicates = "LOWER(scheme_name) LIKE LOWER(?) OR LOWER(amc) LIKE LOWER(?)";
+        if (amcSearch) {
+            String firstWord = cleanQuery.split("\\s+", 2)[0];
+            return jdbcTemplate.query(
+                    select + textPredicates + " OR LOWER(amc) LIKE LOWER(?)",
+                    FUND_DETAIL_MAPPER,
+                    pattern,
+                    pattern,
+                    "%" + firstWord + "%");
+        }
+        return jdbcTemplate.query(select + textPredicates, FUND_DETAIL_MAPPER, pattern, pattern);
     }
 
     @Override

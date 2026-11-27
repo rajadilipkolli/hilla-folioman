@@ -1,5 +1,6 @@
 package com.app.folioman.mfschemes.rest.controllers;
 
+import static org.hamcrest.Matchers.containsStringIgnoringCase;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.greaterThan;
@@ -29,6 +30,7 @@ class SchemeControllerIntTest extends AbstractIntegrationTest {
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, is(MediaType.APPLICATION_JSON_VALUE)))
                 .andExpect(jsonPath("$.size()", greaterThan(0)))
                 .andExpect(jsonPath("$[*].amfiCode", hasItems(125494, 125495, 125496, 125497)))
+                .andExpect(jsonPath("$[*].schemeName", everyItem(containsStringIgnoringCase("sbi small cap"))))
                 .andExpect(jsonPath("$[*].amcName", everyItem(equalTo("SBI Mutual Fund"))));
     }
 
@@ -48,6 +50,7 @@ class SchemeControllerIntTest extends AbstractIntegrationTest {
                 .perform(get("/api/scheme/{schemeName}", "SBI Mutual Fund").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, is(MediaType.APPLICATION_JSON_VALUE)))
+                .andExpect(jsonPath("$", hasSize(greaterThan(0))))
                 .andExpect(jsonPath("$[*].amcName", everyItem(equalTo("SBI Mutual Fund"))));
     }
 

@@ -28,6 +28,7 @@ class AuthControllerIT extends AbstractIntegrationTest {
         mockMvc.perform(get("/index.html")).andExpect(status().isOk());
         mockMvc.perform(get("/login")).andExpect(status().isOk());
         mockMvc.perform(get("/api/portfolio/investments/ABCDE1234F")).andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/@fs/example.js")).andExpect(status().isUnauthorized());
         mockMvc.perform(get("/userPortfolio")).andExpect(status().isUnauthorized());
     }
 

@@ -163,6 +163,18 @@ class UserSchemeDetailServiceImplTest {
     }
 
     @Test
+    void resolvesStoredIsinWhenRtaLookupIsEmpty() {
+        when(userSchemeDetailsRepository.findByAmfiIsNull()).thenReturn(List.of(userSchemeDetailsEntity));
+        when(mfSchemeService.fetchSchemesByRtaCode("ABC12")).thenReturn(List.of());
+        when(mfSchemeService.findByPayOut("INE123456789")).thenReturn(Optional.of(mfSchemeProjection));
+
+        userSchemeDetailService.setUserSchemeAMFIIfNull();
+
+        verify(userSchemeDetailsRepository).updateAmfiAndIsinById(123L, "INE123456789", 1L);
+        verify(mfSchemeService, never()).fetchSchemes(anyString());
+    }
+
+    @Test
     void setUserSchemeAMFIIfNull_WithEmptyMfSchemeListAndSchemeWithIsin_ShouldExtractIsin() {
         UserSchemeDetailsEntity schemeWithIsin = new UserSchemeDetailsEntity();
         schemeWithIsin.setId(5L);

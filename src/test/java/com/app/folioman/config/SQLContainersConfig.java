@@ -6,8 +6,7 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.context.DynamicPropertyRegistrar;
 import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
@@ -38,7 +37,8 @@ public class SQLContainersConfig {
         String jdbcUrl = postgreSQLContainer.getJdbcUrl().replace("localhost", "host.testcontainers.internal");
 
         mfNavDataContainer = new GenericContainer<>(
-                        DockerImageName.parse("ghcr.io/rajadilipkolli/historical-mf-nav-data:latest"))
+                        DockerImageName.parse(
+                                "ghcr.io/rajadilipkolli/historical-mf-nav-data@sha256:6761892e2a3ec131dc90030c85b894a4e95893e120401f9112db8676bcccebde"))
                 .withNetwork(network)
                 .withExposedPorts(8080)
                 .withEnv("SPRING_PROFILES_ACTIVE", "docker")
@@ -69,10 +69,12 @@ public class SQLContainersConfig {
         return postgreSQLContainer;
     }
 
-    @DynamicPropertySource
-    static void dynamicProperties(DynamicPropertyRegistry registry) {
-        registry.add(
-                "app.nav.mfapi.data-url",
-                () -> "http://localhost:" + mfNavDataContainer.getMappedPort(8080) + "/api/v1");
+    @Bean
+    DynamicPropertyRegistrar dynamicProperties() {
+        return registry -> registry.add("app.nav.mfapi.data-url", SQLContainersConfig::mfNavDataUrl);
+    }
+
+    public static String mfNavDataUrl() {
+        return "http://" + mfNavDataContainer.getHost() + ":" + mfNavDataContainer.getMappedPort(8080) + "/api/v1";
     }
 }
