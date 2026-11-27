@@ -27,6 +27,6 @@ class ApplicationPropertiesIT extends AbstractIntegrationTest {
         assertThat(applicationProperties.getNav().getMfApi()).isNotNull();
         assertThat(applicationProperties.getNav().getMfApi().getDataUrl())
                 .isNotNull()
-                .isEqualTo("https://api.mfapi.in/mf/{schemeCode}");
+                .isEqualTo("http://localhost:8082/api/v1");
     }
 }
