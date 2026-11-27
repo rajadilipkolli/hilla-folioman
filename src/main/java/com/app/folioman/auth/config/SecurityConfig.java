@@ -59,7 +59,20 @@ public class SecurityConfig {
                                 "/icons/**",
                                 "/manifest.webmanifest",
                                 "/sw.js",
-                                "/offline.html")
+                                "/offline.html",
+                                "/**/*.css",
+                                "/**/*.js",
+                                "/**/*.png",
+                                "/**/*.svg",
+                                "/**/*.woff2",
+                                "/**/*.ttf",
+                                "/@vite/**",
+                                "/@fs/**",
+                                "/src/**",
+                                "/node_modules/**",
+                                "/assets/**",
+                                "/line-awesome/**",
+                                "/themes/**")
                         .permitAll()
                         .requestMatchers("/actuator/health", "/actuator/info")
                         .permitAll()
