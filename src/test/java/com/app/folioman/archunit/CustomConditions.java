@@ -8,6 +8,8 @@ import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.lang.ArchCondition;
 import com.tngtech.archunit.lang.ConditionEvents;
 import com.tngtech.archunit.lang.SimpleConditionEvent;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -160,10 +162,9 @@ public class CustomConditions {
             /** Checks that an enumerated field uses {@code EnumType.STRING}. */
             @Override
             public void check(JavaField field, ConditionEvents events) {
-                if (field.isAnnotatedWith(jakarta.persistence.Enumerated.class)) {
-                    jakarta.persistence.Enumerated annotation =
-                            field.getAnnotationOfType(jakarta.persistence.Enumerated.class);
-                    if (annotation.value() != jakarta.persistence.EnumType.STRING) {
+                if (field.isAnnotatedWith(Enumerated.class)) {
+                    Enumerated annotation = field.getAnnotationOfType(Enumerated.class);
+                    if (annotation.value() != EnumType.STRING) {
                         events.add(SimpleConditionEvent.violated(
                                 field,
                                 "Field " + field.getName() + " in "

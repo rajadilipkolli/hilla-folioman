@@ -63,7 +63,7 @@ class CustomRedisCacheTest {
 
         doAnswer(invocation -> {
                     // CacheCircuitBreaker.execute accepts a Supplier<T>, so invoke its get()
-                    invocation.getArgument(0, java.util.function.Supplier.class).get();
+                    invocation.getArgument(0, Supplier.class).get();
                     return null;
                 })
                 .when(circuitBreaker)
@@ -94,7 +94,7 @@ class CustomRedisCacheTest {
         Object value = "testValue";
 
         doAnswer(invocation -> {
-                    invocation.getArgument(0, java.util.function.Supplier.class).get();
+                    invocation.getArgument(0, Supplier.class).get();
                     return null;
                 })
                 .when(circuitBreaker)
@@ -175,7 +175,7 @@ class CustomRedisCacheTest {
         Object key = "testKey";
 
         doAnswer(invocation -> {
-                    invocation.getArgument(0, java.util.function.Supplier.class).get();
+                    invocation.getArgument(0, Supplier.class).get();
                     return null;
                 })
                 .when(circuitBreaker)

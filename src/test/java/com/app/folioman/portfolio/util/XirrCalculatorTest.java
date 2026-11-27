@@ -9,9 +9,11 @@ import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 import org.assertj.core.api.InstanceOfAssertFactories;
+import org.assertj.core.data.Offset;
 import org.assertj.core.data.Percentage;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -705,7 +707,7 @@ class XirrCalculatorTest {
 
         // (1.1)^(365.2425/365) - 1 = (1.1)^1.000664... - 1 approx 0.100063
         assertThat(result).isNotNull();
-        assertThat(result.doubleValue()).isCloseTo(0.1000, org.assertj.core.data.Offset.offset(0.01));
+        assertThat(result.doubleValue()).isCloseTo(0.1000, Offset.offset(0.01));
     }
 
     @Test
@@ -784,8 +786,8 @@ class XirrCalculatorTest {
     @Test
     @DisplayName("Should test listsXirr method")
     void testListsXirr() {
-        java.util.List<LocalDate> dates = java.util.List.of(LocalDate.of(2020, 1, 1), LocalDate.of(2021, 1, 1));
-        java.util.List<BigDecimal> values = java.util.List.of(new BigDecimal("-1000"), new BigDecimal("1100"));
+        List<LocalDate> dates = List.of(LocalDate.of(2020, 1, 1), LocalDate.of(2021, 1, 1));
+        List<BigDecimal> values = List.of(new BigDecimal("-1000"), new BigDecimal("1100"));
         BigDecimal result = XirrCalculator.listsXirr(dates, values, XirrCalculator::xirr);
         assertThat(result).isNotNull();
         assertThat(result).isCloseTo(new BigDecimal("0.1"), within(TOLERANCE));

@@ -126,14 +126,12 @@ class UserTransactionsControllerIT extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn();
 
-        // 3. Verify cache keys were created
-        Set<String> cacheKeys = redisTemplate.keys(CacheNames.TRANSACTION_CACHE + "::*");
-        assertThat(cacheKeys).isNotNull();
-        boolean monthlyKeyExists = cacheKeys.stream().anyMatch(key -> key.contains("monthly_" + TEST_PAN));
-        boolean yearlyKeyExists = cacheKeys.stream().anyMatch(key -> key.contains("yearly_" + TEST_PAN));
-
-        assertThat(monthlyKeyExists).isTrue();
-        assertThat(yearlyKeyExists).isTrue();
+        // 3. Wait for the asynchronous Redis writes to finish.
+        await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+            Set<String> cacheKeys = redisTemplate.keys(CacheNames.TRANSACTION_CACHE + "::*");
+            assertThat(cacheKeys).anyMatch(key -> key.contains("monthly_" + TEST_PAN));
+            assertThat(cacheKeys).anyMatch(key -> key.contains("yearly_" + TEST_PAN));
+        });
 
         // 4. Second request should use cached data
         MvcResult secondMonthlyResult = this.mockMvc
@@ -207,12 +205,11 @@ class UserTransactionsControllerIT extends AbstractIntegrationTest {
                 afterEvictionMonthly.getResponse().getContentAsString(),
                 jsonMapper.getTypeFactory().constructCollectionType(List.class, MonthlyInvestmentResponseDTO.class));
 
-        // 6. Verify cache was repopulated
-        Set<String> cacheKeysNew = redisTemplate.keys(CacheNames.TRANSACTION_CACHE + "::*");
-        assertThat(cacheKeysNew).isNotNull();
-        boolean newMonthlyKeyExists = cacheKeysNew.stream().anyMatch(key -> key.contains("monthly_" + TEST_PAN));
-
-        assertThat(newMonthlyKeyExists).isTrue();
+        // 6. Wait for the cache to be repopulated.
+        await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
+            Set<String> cacheKeysNew = redisTemplate.keys(CacheNames.TRANSACTION_CACHE + "::*");
+            assertThat(cacheKeysNew).anyMatch(key -> key.contains("monthly_" + TEST_PAN));
+        });
 
         // 7. Verify data was correctly loaded again (ensure same size, even if it's empty)
         assertThat(monthlyAfter).hasSize(monthlyBefore.size());

@@ -3,10 +3,12 @@ package com.app.folioman.auth.domain;
 import static org.junit.jupiter.api.Assertions.*;
 
 import com.app.folioman.auth.config.JwtProperties;
+import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Date;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -98,9 +100,9 @@ class JwtServiceTest {
 
     @Test
     void extractEmailReturnsNullWhenClaimIsMissing() {
-        String token = io.jsonwebtoken.Jwts.builder()
+        String token = Jwts.builder()
                 .subject(userDetails.getUsername())
-                .id(java.util.UUID.randomUUID().toString())
+                .id(UUID.randomUUID().toString())
                 .claim("token_type", "access")
                 .issuedAt(new Date(System.currentTimeMillis()))
                 .expiration(new Date(System.currentTimeMillis() + 1800000L))

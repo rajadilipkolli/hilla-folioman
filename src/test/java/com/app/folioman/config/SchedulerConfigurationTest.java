@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 import com.app.folioman.config.redis.AdaptiveStrategyScheduler;
 import com.app.folioman.mfschemes.MFNavService;
 import com.app.folioman.portfolio.UserSchemeDetailService;
+import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.scheduling.BackgroundJob;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -62,18 +63,16 @@ class SchedulerConfigurationTest {
             schedulerConfiguration.scheduleAllJobs(applicationStartedEvent);
 
             backgroundJobMock.verify(() -> BackgroundJob.scheduleRecurrently(
-                    eq("user-scheme-amfi-update"), eq(amfiCron), any(org.jobrunr.jobs.lambdas.JobLambda.class)));
+                    eq("user-scheme-amfi-update"), eq(amfiCron), any(JobLambda.class)));
 
             backgroundJobMock.verify(() -> BackgroundJob.scheduleRecurrently(
-                    eq("historical-nav-load"), eq(historicalNavCron), any(org.jobrunr.jobs.lambdas.JobLambda.class)));
+                    eq("historical-nav-load"), eq(historicalNavCron), any(JobLambda.class)));
+
+            backgroundJobMock.verify(() ->
+                    BackgroundJob.scheduleRecurrently(eq("daily-nav-load"), eq(dailyDataCron), any(JobLambda.class)));
 
             backgroundJobMock.verify(() -> BackgroundJob.scheduleRecurrently(
-                    eq("daily-nav-load"), eq(dailyDataCron), any(org.jobrunr.jobs.lambdas.JobLambda.class)));
-
-            backgroundJobMock.verify(() -> BackgroundJob.scheduleRecurrently(
-                    eq("adaptive-cache-strategy"),
-                    eq(adaptiveStrategyCron),
-                    any(org.jobrunr.jobs.lambdas.JobLambda.class)));
+                    eq("adaptive-cache-strategy"), eq(adaptiveStrategyCron), any(JobLambda.class)));
         }
 
         // Each getter is invoked once for logging and once when passed to BackgroundJob.scheduleRecurrently
@@ -94,9 +93,7 @@ class SchedulerConfigurationTest {
             schedulerConfiguration.scheduleAllJobs(applicationStartedEvent);
 
             backgroundJobMock.verify(
-                    () -> BackgroundJob.scheduleRecurrently(
-                            anyString(), anyString(), any(org.jobrunr.jobs.lambdas.JobLambda.class)),
-                    times(4));
+                    () -> BackgroundJob.scheduleRecurrently(anyString(), anyString(), any(JobLambda.class)), times(4));
         }
     }
 
@@ -111,16 +108,16 @@ class SchedulerConfigurationTest {
             schedulerConfiguration.scheduleAllJobs(applicationStartedEvent);
 
             backgroundJobMock.verify(() -> BackgroundJob.scheduleRecurrently(
-                    eq("user-scheme-amfi-update"), anyString(), any(org.jobrunr.jobs.lambdas.JobLambda.class)));
+                    eq("user-scheme-amfi-update"), anyString(), any(JobLambda.class)));
+
+            backgroundJobMock.verify(() ->
+                    BackgroundJob.scheduleRecurrently(eq("historical-nav-load"), anyString(), any(JobLambda.class)));
+
+            backgroundJobMock.verify(
+                    () -> BackgroundJob.scheduleRecurrently(eq("daily-nav-load"), anyString(), any(JobLambda.class)));
 
             backgroundJobMock.verify(() -> BackgroundJob.scheduleRecurrently(
-                    eq("historical-nav-load"), anyString(), any(org.jobrunr.jobs.lambdas.JobLambda.class)));
-
-            backgroundJobMock.verify(() -> BackgroundJob.scheduleRecurrently(
-                    eq("daily-nav-load"), anyString(), any(org.jobrunr.jobs.lambdas.JobLambda.class)));
-
-            backgroundJobMock.verify(() -> BackgroundJob.scheduleRecurrently(
-                    eq("adaptive-cache-strategy"), anyString(), any(org.jobrunr.jobs.lambdas.JobLambda.class)));
+                    eq("adaptive-cache-strategy"), anyString(), any(JobLambda.class)));
         }
     }
 }

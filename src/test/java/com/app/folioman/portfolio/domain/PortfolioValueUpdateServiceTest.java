@@ -34,6 +34,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Consumer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -45,6 +46,8 @@ import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.TransactionCallback;
 import org.springframework.transaction.support.TransactionTemplate;
 
 @ExtendWith(MockitoExtension.class)
@@ -155,16 +158,15 @@ class PortfolioValueUpdateServiceTest {
 
         Mockito.lenient()
                 .doAnswer(invocation -> {
-                    org.springframework.transaction.support.TransactionCallback<?> action = invocation.getArgument(0);
+                    TransactionCallback<?> action = invocation.getArgument(0);
                     return action.doInTransaction(null);
                 })
                 .when(transactionTemplate)
-                .execute(any(org.springframework.transaction.support.TransactionCallback.class));
+                .execute(any(TransactionCallback.class));
 
         Mockito.lenient()
                 .doAnswer(invocation -> {
-                    java.util.function.Consumer<org.springframework.transaction.TransactionStatus> action =
-                            invocation.getArgument(0);
+                    Consumer<TransactionStatus> action = invocation.getArgument(0);
                     action.accept(null);
                     return null;
                 })
