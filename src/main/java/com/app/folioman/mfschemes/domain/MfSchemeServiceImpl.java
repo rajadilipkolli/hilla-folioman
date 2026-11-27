@@ -1,492 +1,197 @@
 package com.app.folioman.mfschemes.domain;
 
 import com.app.folioman.mfschemes.MfSchemeService;
-import com.app.folioman.mfschemes.SchemeNotFoundException;
-import com.app.folioman.mfschemes.config.ApplicationProperties;
-import com.app.folioman.mfschemes.domain.models.projection.NavDateValueProjection;
-import com.app.folioman.mfschemes.domain.models.response.MetaDTO;
-import com.app.folioman.mfschemes.domain.models.response.NavResponse;
-import com.app.folioman.mfschemes.domain.models.response.SchemeNAVDataDTO;
 import com.app.folioman.mfschemes.rest.dtos.FundDetailProjection;
-import com.app.folioman.mfschemes.rest.dtos.MFSchemeDTO;
 import com.app.folioman.mfschemes.rest.dtos.MFSchemeProjection;
 import com.app.folioman.mfschemes.rest.dtos.MFSchemeTypeProjection;
-import com.github.rajadilipkolli.dailynav.domain.model.Nav;
-import com.github.rajadilipkolli.dailynav.domain.model.Scheme;
-import java.net.URI;
-import java.time.LocalDate;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.Locale;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.HttpStatusCode;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionTemplate;
-import org.springframework.util.StringUtils;
-import org.springframework.web.client.RestClient;
-import org.springframework.web.util.UriComponentsBuilder;
 
-@Transactional(readOnly = true)
 @Service
 class MfSchemeServiceImpl implements MfSchemeService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(MfSchemeServiceImpl.class);
+    // Use the lowest ISIN as a stable representative without preferring a security type.
+    private static final String SELECT_SCHEME = """
+            SELECT s.scheme_code, s.plan, s.category, sec.isin
+            FROM schemes s
+            LEFT JOIN LATERAL (
+                SELECT isin FROM securities WHERE scheme_code = s.scheme_code ORDER BY isin LIMIT 1
+            ) sec ON TRUE
+            """;
 
-    // Improved concurrent processing: Use a concurrent map of scheme IDs to monitor
-    // objects for synchronization
-    private static final Map<Long, Object> SCHEME_LOCKS = new ConcurrentHashMap<>();
+    private static final RowMapper<FundDetailProjection> FUND_DETAIL_MAPPER = (rs, rowNum) ->
+            new FundDetailRec(rs.getString("scheme_name"), rs.getLong("scheme_code"), rs.getString("amc"));
 
-    private final RestClient restClient;
-    private final MfFundSchemeRepository mFSchemeRepository;
-    private final MfSchemeEntityToDtoMapper mfSchemeEntityToDtoMapper;
-    private final SchemeNAVDataDtoToEntityMapper schemeNAVDataDtoToEntityMapper;
-    private final TransactionTemplate transactionTemplate;
-    private final ApplicationProperties applicationProperties;
-    private final MfSchemeNavRepository MfSchemeNavRepository;
-    private final MfAmcService mfAmcService;
-    private final MutualFundFallbackService mutualFundFallbackService;
+    private final JdbcTemplate jdbcTemplate;
 
-    MfSchemeServiceImpl(
-            RestClient restClient,
-            MfFundSchemeRepository mFSchemeRepository,
-            MfSchemeEntityToDtoMapper mfSchemeEntityToDtoMapper,
-            SchemeNAVDataDtoToEntityMapper schemeNAVDataDtoToEntityMapper,
-            PlatformTransactionManager transactionManager,
-            ApplicationProperties applicationProperties,
-            MfSchemeNavRepository MfSchemeNavRepository,
-            MfAmcService mfAmcService,
-            MutualFundFallbackService mutualFundFallbackService) {
-        this.restClient = restClient;
-        this.mFSchemeRepository = mFSchemeRepository;
-        this.mfSchemeEntityToDtoMapper = mfSchemeEntityToDtoMapper;
-        this.schemeNAVDataDtoToEntityMapper = schemeNAVDataDtoToEntityMapper;
-        // Create a new TransactionTemplate with the desired propagation behavior
-        this.transactionTemplate = new TransactionTemplate(transactionManager);
-        this.MfSchemeNavRepository = MfSchemeNavRepository;
-        this.mutualFundFallbackService = mutualFundFallbackService;
-        this.transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
-        this.applicationProperties = applicationProperties;
-        this.mfAmcService = mfAmcService;
+    MfSchemeServiceImpl(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
     }
 
-    public long count() {
-        return mFSchemeRepository.count();
+    record FundDetailRec(String schemeName, Long amfiCode, String amcName) implements FundDetailProjection {
+        @Override
+        public String getSchemeName() {
+            return schemeName;
+        }
+
+        @Override
+        public Long getAmfiCode() {
+            return amfiCode;
+        }
+
+        @Override
+        public String getAmcName() {
+            return amcName;
+        }
     }
 
-    public List<Long> findAllSchemeIds() {
-        return mFSchemeRepository.findAllSchemeIds();
+    record MFSchemeTypeRec(String category, String subCategory) implements MFSchemeTypeProjection {
+        @Override
+        public String getCategory() {
+            return category;
+        }
+
+        @Override
+        public String getSubCategory() {
+            return subCategory;
+        }
     }
 
-    @Transactional
-    public List<MfFundSchemeEntity> saveAllEntities(List<MfFundSchemeEntity> list) {
-        return mFSchemeRepository.saveAll(list);
+    record MFSchemeRec(Long amfiCode, String isin, String plan, String rta, MFSchemeTypeProjection type)
+            implements MFSchemeProjection {
+        @Override
+        public Long getAmfiCode() {
+            return amfiCode;
+        }
+
+        @Override
+        public String getIsin() {
+            return isin;
+        }
+
+        @Override
+        public String getPlan() {
+            return plan;
+        }
+
+        @Override
+        public String getRta() {
+            return rta;
+        }
+
+        @Override
+        public MFSchemeTypeProjection getMfSchemeTypeEntity() {
+            return type;
+        }
     }
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public MfFundSchemeEntity saveEntity(MfFundSchemeEntity mfScheme) {
-        return mFSchemeRepository.save(mfScheme);
-    }
-
-    public Optional<MfFundSchemeEntity> findBySchemeCode(Long schemeCode) {
-        return this.mFSchemeRepository.findByAmfiCode(schemeCode);
-    }
-
-    @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW, isolation = Isolation.REPEATABLE_READ)
-    public Optional<MFSchemeDTO> getMfSchemeDTO(Long schemeCode, LocalDate navDate) {
-        Optional<MfFundSchemeEntity> bySchemeIdAndMfSchemeNavsNavDate =
-                this.mFSchemeRepository.findBySchemeIdAndMfSchemeNavs_NavDate(schemeCode, navDate);
-
-        return bySchemeIdAndMfSchemeNavsNavDate.map(mfSchemeEntityToDtoMapper::convertEntityToDto);
+    public Optional<com.app.folioman.mfschemes.rest.dtos.MFSchemeDTO> getMfSchemeDTO(
+            Long schemeCode, java.time.LocalDate navDate) {
+        java.util.List<com.app.folioman.mfschemes.rest.dtos.MFSchemeDTO> results = jdbcTemplate.query(
+                "SELECT s.amc, s.scheme_code, sec.isin, s.scheme_name, n.nav, n.nav_date, s.category "
+                        + "FROM schemes s LEFT JOIN securities sec ON s.scheme_code = sec.scheme_code "
+                        + "LEFT JOIN nav n ON sec.isin = n.isin AND n.nav_date <= ? "
+                        + "WHERE s.scheme_code = ? "
+                        + "ORDER BY n.nav_date DESC LIMIT 1",
+                (rs, rowNum) -> new com.app.folioman.mfschemes.rest.dtos.MFSchemeDTO(
+                        rs.getString("amc"),
+                        rs.getLong("scheme_code"),
+                        rs.getString("isin"),
+                        rs.getString("scheme_name"),
+                        rs.getString("nav"),
+                        rs.getString("nav_date"),
+                        rs.getString("category")),
+                java.sql.Date.valueOf(navDate),
+                schemeCode);
+        return results.isEmpty() ? Optional.empty() : Optional.of(results.get(0));
     }
 
     @Override
     public Optional<MFSchemeProjection> findByPayOut(String isin) {
-        return mFSchemeRepository.findByIsin(isin);
+        List<MFSchemeProjection> results = jdbcTemplate.query(
+                "SELECT s.scheme_code, s.plan, s.category, sec.isin FROM schemes s JOIN securities sec ON s.scheme_code = sec.scheme_code WHERE sec.isin = ?",
+                (rs, rowNum) -> new MFSchemeRec(
+                        rs.getLong("scheme_code"),
+                        rs.getString("isin"),
+                        rs.getString("plan"),
+                        "UNKNOWN",
+                        new MFSchemeTypeRec(rs.getString("category"), "")),
+                isin);
+        return results.isEmpty() ? Optional.empty() : Optional.of(results.get(0));
     }
 
     @Override
     public Optional<MFSchemeProjection> findByAmfiCode(Long amfiCode) {
-        return mFSchemeRepository.findByAmfiCode(amfiCode).map(this::mapToProjection);
+        List<MFSchemeProjection> results = jdbcTemplate.query(
+                SELECT_SCHEME + "WHERE s.scheme_code = ?",
+                (rs, rowNum) -> new MFSchemeRec(
+                        rs.getLong("scheme_code"),
+                        rs.getString("isin"),
+                        rs.getString("plan"),
+                        "UNKNOWN",
+                        new MFSchemeTypeRec(rs.getString("category"), "")),
+                amfiCode);
+        return results.isEmpty() ? Optional.empty() : Optional.of(results.get(0));
     }
 
     @Override
     public List<MFSchemeProjection> findByAmfiCodeIn(List<Long> amfiCodes) {
-        return mFSchemeRepository.findByAmfiCodeIn(amfiCodes).stream()
-                .map(this::mapToProjection)
-                .collect(Collectors.toList());
-    }
-
-    private MFSchemeProjection mapToProjection(MfFundSchemeEntity entity) {
-        return new MFSchemeProjection() {
-            @Override
-            public Long getAmfiCode() {
-                return entity.getAmfiCode();
-            }
-
-            @Override
-            public @Nullable String getIsin() {
-                return entity.getIsin();
-            }
-
-            @Override
-            public String getPlan() {
-                return entity.getPlan();
-            }
-
-            @Override
-            public String getRta() {
-                return entity.getRta();
-            }
-
-            @Override
-            public MFSchemeTypeProjection getMfSchemeTypeEntity() {
-                return new MFSchemeTypeProjection() {
-                    @Override
-                    public String getCategory() {
-                        return entity.getMfSchemeTypeEntity().getCategory();
-                    }
-
-                    @Override
-                    public @Nullable String getSubCategory() {
-                        return entity.getMfSchemeTypeEntity().getSubCategory();
-                    }
-                };
-            }
-        };
+        if (amfiCodes == null || amfiCodes.isEmpty()) return List.of();
+        String placeholders = String.join(",", Collections.nCopies(amfiCodes.size(), "?"));
+        return jdbcTemplate.query(
+                SELECT_SCHEME + "WHERE s.scheme_code IN (" + placeholders + ")",
+                (rs, rowNum) -> new MFSchemeRec(
+                        rs.getLong("scheme_code"),
+                        rs.getString("isin"),
+                        rs.getString("plan"),
+                        "UNKNOWN",
+                        new MFSchemeTypeRec(rs.getString("category"), "")),
+                amfiCodes.toArray());
     }
 
     @Override
-    public List<FundDetailProjection> fetchSchemes(String query) {
-        query = query.strip();
+    public List<FundDetailProjection> fetchSchemes(String scheme) {
+        String query = scheme != null ? scheme.strip() : "";
+        if (query.isBlank()) return List.of();
 
-        // If query is numeric and 6 digits, it might be an AMFI code
+        String select = "SELECT scheme_code, scheme_name, amc FROM schemes WHERE ";
         if (query.matches("\\d{6}")) {
-            LOGGER.info("Fetching scheme by AMFI code: {}", query);
-            Long amfiCode = Long.parseLong(query);
-            Optional<MfFundSchemeEntity> scheme = this.mFSchemeRepository.findByAmfiCode(amfiCode);
-            return scheme.map(MfFundSchemeEntity -> List.of(createFundDetailProjection(MfFundSchemeEntity)))
-                    .orElseGet(List::of);
+            return jdbcTemplate.query(select + "scheme_code = ?", FUND_DETAIL_MAPPER, Long.parseLong(query));
         }
 
-        String[] keywords = query.split("\\s+");
-
-        // Default full-text search for scheme name
-        String sName;
-        if (keywords.length < 2) {
-            sName = query;
-        } else {
-            // Create a proper full-text search query with all terms required
-            sName = formatTsQueryTerms(query);
-            LOGGER.info("Using formatted search terms: {}", sName);
+        boolean amcSearch = query.toLowerCase(Locale.ROOT).startsWith("amc ");
+        String cleanQuery = amcSearch ? query.substring(4).strip() : query;
+        String pattern = "%" + cleanQuery + "%";
+        String textPredicates = "LOWER(scheme_name) LIKE LOWER(?) OR LOWER(amc) LIKE LOWER(?)";
+        if (amcSearch) {
+            String firstWord = cleanQuery.split("\\s+", 2)[0];
+            return jdbcTemplate.query(
+                    select + textPredicates + " OR LOWER(amc) LIKE LOWER(?)",
+                    FUND_DETAIL_MAPPER,
+                    pattern,
+                    pattern,
+                    "%" + firstWord + "%");
         }
-
-        // Get full-text search results
-        List<FundDetailProjection> results = this.mFSchemeRepository.searchByFullText(sName);
-        LOGGER.info("Returning {} search results for query: {}", results.size(), query);
-        if (!results.isEmpty()) {
-            return results;
-        }
-
-        // If no results, try searching by AMC name
-        String queryLower = query.toLowerCase();
-
-        // Check if query might specifically be searching for an AMC
-        boolean containsAmcKeyword =
-                queryLower.contains("amc") || queryLower.contains("asset") || queryLower.contains("management");
-
-        // Try AMC search if it contains AMC keywords
-        if (containsAmcKeyword) {
-            List<FundDetailProjection> amcResults = searchByAmc(query, queryLower);
-            if (!amcResults.isEmpty()) {
-                return amcResults;
-            }
-        }
-
-        // Return empty list when no results found
-        return List.of();
-    }
-
-    private FundDetailProjection createFundDetailProjection(MfFundSchemeEntity scheme) {
-        return new FundDetailProjection() {
-            @Override
-            public String getSchemeName() {
-                return scheme.getName();
-            }
-
-            @Override
-            public Long getAmfiCode() {
-                return scheme.getAmfiCode();
-            }
-
-            @Override
-            public String getAmcName() {
-                return scheme.getAmc() != null ? scheme.getAmc().getName() : "Unknown";
-            }
-        };
-    }
-
-    private List<FundDetailProjection> searchByAmc(String query, String queryLower) {
-        LOGGER.info("Fetching schemes by AMC name: {}", query);
-
-        // First try direct AMC search with the original query
-        List<FundDetailProjection> amcResults = this.mFSchemeRepository.searchByAmc(query);
-        if (!amcResults.isEmpty()) {
-            return amcResults;
-        }
-
-        // Extract search terms for AMC search, removing AMC-specific keywords
-        String amcSearchTerms = queryLower
-                .replaceAll("\\s*(amc|asset|management)\\s*", " ")
-                .replaceAll("\\s+", " ")
-                .strip();
-
-        if (StringUtils.hasText(amcSearchTerms)) {
-            // Try with AMC text search using the formatted query
-            String tsQuery = formatTsQueryTerms(amcSearchTerms);
-            if (StringUtils.hasText(tsQuery)) {
-                LOGGER.info("Trying AMC text search with: {}", tsQuery);
-                amcResults = this.mFSchemeRepository.searchByAmcTextSearch(tsQuery);
-                if (!amcResults.isEmpty()) {
-                    return amcResults;
-                }
-            }
-
-            // If no match yet, try fuzzy search through the AMC service
-            List<MfAmcEntity> matchingAmcs = mfAmcService.findBySearchTerms(amcSearchTerms);
-            if (!matchingAmcs.isEmpty()) {
-                LOGGER.info(
-                        "Found AMC match using fuzzy search: {}",
-                        matchingAmcs.getFirst().getName());
-
-                // Use the AMC name directly for searching schemes
-                amcResults = this.mFSchemeRepository.searchByAmc(
-                        matchingAmcs.getFirst().getName());
-                if (!amcResults.isEmpty()) {
-                    return amcResults;
-                }
-            }
-        }
-
-        return List.of();
-    }
-
-    /**
-     * Format search terms for PostgreSQL ts_query
-     *
-     * @param terms Space-separated search terms
-     * @return Formatted terms in format: term1 & term2 & term3
-     */
-    private String formatTsQueryTerms(String terms) {
-        if (terms.isEmpty()) {
-            return "";
-        }
-
-        return Arrays.stream(terms.split("\\s+"))
-                .map(term -> term.replaceAll("[^a-zA-Z0-9]", "")) // Remove special characters
-                .filter(term -> !term.isEmpty())
-                .collect(Collectors.joining(" & "));
+        return jdbcTemplate.query(select + textPredicates, FUND_DETAIL_MAPPER, pattern, pattern);
     }
 
     @Override
     public void fetchSchemeDetails(Long schemeId) {
-        NavResponse navResponse = getNavResponseResponseEntity(schemeId);
-        if (navResponse != null) {
-            processResponseEntity(schemeId, navResponse);
-        }
-    }
-
-    @Override
-    public List<MFSchemeProjection> fetchSchemesByRtaCode(String rtaCode) {
-        return this.mFSchemeRepository.findByRtaCodeStartsWith(rtaCode);
+        // Handled by external microservice syncing
     }
 
     @Override
     public void fetchSchemeDetails(String oldSchemeCode, Long newSchemeCode) {
-        NavResponse navResponse = getNavResponseResponseEntity(Long.valueOf(oldSchemeCode));
-        if (navResponse != null) {
-            processResponseEntity(newSchemeCode, navResponse);
-        }
+        // Handled by external microservice syncing
     }
 
-    private void processResponseEntity(Long schemeCode, NavResponse navResponse) {
-        this.mFSchemeRepository
-                .findByAmfiCode(schemeCode)
-                .ifPresentOrElse(
-                        scheme -> mergeList(navResponse, scheme, schemeCode),
-                        // Scenario where scheme is discontinued or merged with other scheme, log and skip processing
-                        () -> LOGGER.error("Found Discontinued SchemeCode : {}", schemeCode));
-    }
-
-    /**
-     * Execute an operation with scheme-specific synchronization to ensure thread
-     * safety
-     * while minimizing contention between different schemes.
-     *
-     * @param schemeCode The scheme code to synchronize on
-     * @param operation  The operation to execute
-     * @param <T>        The return type of the operation
-     * @return The result of the operation
-     */
-    private <T> T withSchemeLock(Long schemeCode, Supplier<T> operation) {
-        // Get or create a lock object for this specific scheme
-        Object lock = SCHEME_LOCKS.computeIfAbsent(schemeCode, k -> new Object());
-
-        synchronized (lock) {
-            try {
-                return operation.get();
-            } finally {
-                // Remove the lock if no more operations are pending for this scheme
-                // This prevents memory leaks from accumulating lock objects
-                if (SCHEME_LOCKS.size() > 100) { // Only clean up when the map gets large
-                    SCHEME_LOCKS.remove(schemeCode);
-                }
-            }
-        }
-    }
-
-    private void mergeList(NavResponse navResponse, MfFundSchemeEntity mfFundSchemeEntity, Long schemeCode) {
-        // Skip processing if there's no new data to merge
-        if (navResponse.data().isEmpty()) {
-            LOGGER.info("No NAV data received for scheme {}", schemeCode);
-            return;
-        }
-
-        // Execute the merge operation with scheme-specific synchronization
-        this.<Boolean>withSchemeLock(schemeCode, () -> {
-            // Check if NAV data is already up to date to avoid unnecessary processing
-            if (navResponse.data().size()
-                    == mfFundSchemeEntity.getMfSchemeNavs().size()) {
-                LOGGER.info("Data in DB and from api is same, no updates needed for scheme {}", schemeCode);
-                return true;
-            }
-
-            // Data from 3rd Party API
-            List<MFSchemeNavEntity> newNavEntries = navResponse.data().stream()
-                    .map(navDataDTO -> navDataDTO.withSchemeId(schemeCode))
-                    .map(schemeNAVDataDtoToEntityMapper::schemeNAVDataDTOToEntity)
-                    .toList();
-            LOGGER.info("No of entries from API Server: {} for schemeCode/amfi: {}", newNavEntries.size(), schemeCode);
-
-            // Fetch all existing NAV dates for this scheme in a single query
-            // This avoids loading full entity objects when we only need dates for
-            // comparison
-            List<NavDateValueProjection> existingNavs =
-                    MfSchemeNavRepository.findAllNavDateValuesBySchemeId(mfFundSchemeEntity.getId());
-
-            // Filter out NAVs that already exist in the database
-            List<MFSchemeNavEntity> navsToSave = newNavEntries.stream()
-                    .filter(newNav -> !existingNavs.contains(new NavDateValueProjection(
-                            Objects.requireNonNull(newNav.getNav()), Objects.requireNonNull(newNav.getNavDate()))))
-                    .peek(newNav -> newNav.setMfFundSchemeEntity(mfFundSchemeEntity))
-                    .toList();
-
-            if (navsToSave.isEmpty()) {
-                LOGGER.info("All NAVs already exist in database for scheme {}", schemeCode);
-                return true;
-            }
-
-            // Use transaction to ensure database consistency
-            transactionTemplate.execute(status -> {
-                try {
-                    LOGGER.info("Saving {} new NAVs for scheme {}", navsToSave.size(), schemeCode);
-
-                    // Try batch save first - most efficient approach
-                    try {
-                        MfSchemeNavRepository.saveAll(navsToSave);
-                    } catch (DataIntegrityViolationException ex) {
-                        // When batch insert fails, use a more efficient partitioning approach
-                        LOGGER.warn("Batch insert failed, switching to partitioned approach: {}", ex.getMessage());
-                        saveNavsInBatches(navsToSave, 50); // Save in smaller batches of 50
-                    }
-                } catch (Exception e) {
-                    LOGGER.error("Error saving NAVs for scheme {}", schemeCode, e);
-                    throw e;
-                }
-                return true;
-            });
-            return true;
-        });
-    }
-
-    /**
-     * Save NAVs in batches of specified size to handle potential constraint
-     * violations more efficiently.
-     *
-     * @param navs      The list of NAVs to save
-     * @param batchSize The size of each batch
-     */
-    private void saveNavsInBatches(List<MFSchemeNavEntity> navs, int batchSize) {
-        // Process in smaller batches instead of recursive partitioning
-        for (int i = 0; i < navs.size(); i += batchSize) {
-            List<MFSchemeNavEntity> batch = navs.subList(i, Math.min(i + batchSize, navs.size()));
-            try {
-                MfSchemeNavRepository.saveAll(batch);
-                LOGGER.debug("Successfully saved batch of {} NAVs", batch.size());
-            } catch (DataIntegrityViolationException ex) {
-                // If a smaller batch still fails, save items individually
-                LOGGER.warn("Batch of size {} failed, falling back to individual saves", batch.size());
-                batch.forEach(nav -> {
-                    try {
-                        MfSchemeNavRepository.save(nav);
-                    } catch (DataIntegrityViolationException e) {
-                        LOGGER.debug("Skipped duplicate NAV entry for date: {}", nav.getNavDate());
-                    }
-                });
-            }
-        }
-    }
-
-    private @Nullable NavResponse getNavResponseResponseEntity(Long schemeCode) {
-        try {
-            return this.restClient
-                    .get()
-                    .uri(getUri(schemeCode))
-                    .retrieve()
-                    .onStatus(HttpStatusCode::is4xxClientError, (request, response) -> {
-                        LOGGER.error(
-                                "Error fetching NAV response for schemeCode: {} with stack : {}", schemeCode, response);
-                        throw new SchemeNotFoundException("scheme with id %d not found".formatted(schemeCode));
-                    })
-                    .body(NavResponse.class);
-        } catch (Exception ex) {
-            LOGGER.error("Failed to fetch NAV from API, attempting fallback for schemeCode: {}", schemeCode, ex);
-            Scheme scheme = mutualFundFallbackService
-                    .getSchemeBySchemeCode(schemeCode.intValue())
-                    .orElse(null);
-            if (scheme == null) {
-                throw new SchemeNotFoundException(
-                        "scheme with id %d not found in fallback either".formatted(schemeCode));
-            }
-            List<Nav> navs = mutualFundFallbackService.getNavsBySchemeCode(schemeCode.intValue());
-
-            MetaDTO meta = new MetaDTO("", "", "", String.valueOf(schemeCode), scheme.schemeName());
-
-            List<SchemeNAVDataDTO> data = navs.stream()
-                    .map(n -> new SchemeNAVDataDTO(n.getDate(), String.valueOf(n.getNav()), schemeCode))
-                    .collect(Collectors.toList());
-
-            return new NavResponse("SUCCESS", meta, data);
-        }
-    }
-
-    private URI getUri(Long schemeCode) {
-        LOGGER.info("Fetching SchemeDetails for AMFISchemeCode: {}", schemeCode);
-        return UriComponentsBuilder.fromUriString(
-                        applicationProperties.getNav().getMfApi().getDataUrl())
-                .buildAndExpand(schemeCode)
-                .toUri();
+    @Override
+    public List<MFSchemeProjection> fetchSchemesByRtaCode(String rtaCode) {
+        return List.of(); // RTA logic deprecated
     }
 }

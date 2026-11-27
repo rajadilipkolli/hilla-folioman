@@ -147,12 +147,6 @@
             <artifactId>hibernate-community-dialects</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.github.rajadilipkolli</groupId>
-            <artifactId>historical-mf-nav-data</artifactId>
-            <version>1.0.20261122</version>
-        </dependency>
-
-        <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-pool2</artifactId>
         </dependency>
@@ -198,7 +192,7 @@
         <dependency>
             <groupId>io.opentelemetry.instrumentation</groupId>
             <artifactId>opentelemetry-logback-appender-1.0</artifactId>
-            <version>2.26.1-alpha</version>
+            <version>2.34.0-alpha</version>
         </dependency>
         <!-- Observability Ends -->
 
@@ -393,7 +387,7 @@
             <plugin>
                 <groupId>am.ik.maven</groupId>
                 <artifactId>nullability-maven-plugin</artifactId>
-                <version>0.5.3</version>
+                <version>0.5.4</version>
                 <extensions>true</extensions>
                 <configuration>
                     <checking>main</checking>
@@ -448,8 +442,9 @@
                 <version>${spotless.version}</version>
                 <configuration>
                     <java>
+                        <shortenFullyQualifiedTypes/>
                         <palantirJavaFormat>
-                            <version>2.96.0</version>
+                            <version>2.103.0</version>
                         </palantirJavaFormat>
                         <importOrder/>
                         <removeUnusedImports/>

@@ -3,6 +3,8 @@ package com.app.folioman.auth.config;
 import com.app.folioman.auth.filter.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ProblemDetail;
@@ -18,6 +20,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.util.matcher.RegexRequestMatcher;
 import org.springframework.web.cors.CorsConfigurationSource;
 import tools.jackson.databind.json.JsonMapper;
 
@@ -36,37 +39,55 @@ public class SecurityConfig {
 
     @Bean
     SecurityFilterChain securityFilterChain(
-            HttpSecurity http, CorsConfigurationSource corsConfigurationSource, AccessDeniedHandler accessDeniedHandler)
+            HttpSecurity http,
+            CorsConfigurationSource corsConfigurationSource,
+            AccessDeniedHandler accessDeniedHandler,
+            Environment environment)
             throws Exception {
         // CORS is configured to allow only the application's own origin (or configured origins)
         http.cors(cors -> cors.configurationSource(corsConfigurationSource))
                 // JWT access tokens are sent via Authorization header (not cookies), making CSRF attacks inapplicable;
                 // refresh tokens use httpOnly cookies protected by same-origin policy.
                 .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/auth/**")
-                        .permitAll()
-                        // Hilla BrowserCallable endpoints
-                        .requestMatchers("/connect/**")
-                        .permitAll()
-                        .requestMatchers("/api/**")
-                        .authenticated()
-                        .requestMatchers("/", "/index.html", "/login")
-                        .permitAll()
-                        .requestMatchers(
-                                "/VAADIN/**",
-                                "/HILLA/**",
-                                "/images/**",
-                                "/icons/**",
-                                "/manifest.webmanifest",
-                                "/sw.js",
-                                "/offline.html")
-                        .permitAll()
-                        .requestMatchers("/actuator/health", "/actuator/info")
-                        .permitAll()
-                        .requestMatchers("/actuator/prometheus", "/metrics/db/pool")
-                        .authenticated()
-                        .anyRequest()
-                        .authenticated())
+                .authorizeHttpRequests(auth -> {
+                    var vitePaths = auth.requestMatchers("/@vite/**", "/@fs/**", "/src/**", "/node_modules/**");
+                    if (environment.acceptsProfiles(Profiles.of("local & !prod & !production"))
+                            && !environment.getProperty("vaadin.productionMode", Boolean.class, false)) {
+                        vitePaths.permitAll();
+                    } else {
+                        vitePaths.authenticated();
+                    }
+                    auth.requestMatchers("/api/auth/**")
+                            .permitAll()
+                            // Hilla BrowserCallable endpoints
+                            .requestMatchers("/connect/**")
+                            .permitAll()
+                            .requestMatchers("/api/**")
+                            .authenticated()
+                            .requestMatchers("/", "/index.html", "/login")
+                            .permitAll()
+                            .requestMatchers(
+                                    "/VAADIN/**",
+                                    "/HILLA/**",
+                                    "/images/**",
+                                    "/icons/**",
+                                    "/manifest.webmanifest",
+                                    "/sw.js",
+                                    "/offline.html",
+                                    "/assets/**",
+                                    "/line-awesome/**",
+                                    "/themes/**")
+                            .permitAll()
+                            .requestMatchers(
+                                    RegexRequestMatcher.regexMatcher("^/[^?]*\\.(css|js|png|svg|woff2|ttf)(\\?.*)?$"))
+                            .permitAll()
+                            .requestMatchers("/actuator/health", "/actuator/info")
+                            .permitAll()
+                            .requestMatchers("/actuator/prometheus", "/metrics/db/pool")
+                            .authenticated()
+                            .anyRequest()
+                            .authenticated();
+                })
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
                 .exceptionHandling(exceptions -> exceptions

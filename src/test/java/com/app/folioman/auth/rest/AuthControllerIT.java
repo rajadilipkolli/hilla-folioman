@@ -28,6 +28,7 @@ class AuthControllerIT extends AbstractIntegrationTest {
         mockMvc.perform(get("/index.html")).andExpect(status().isOk());
         mockMvc.perform(get("/login")).andExpect(status().isOk());
         mockMvc.perform(get("/api/portfolio/investments/ABCDE1234F")).andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/@fs/example.js")).andExpect(status().isUnauthorized());
         mockMvc.perform(get("/userPortfolio")).andExpect(status().isUnauthorized());
     }
 
@@ -164,7 +165,7 @@ class AuthControllerIT extends AbstractIntegrationTest {
         Map<?, ?> responseMap = jsonMapper.readValue(responseStr, Map.class);
         String accessToken = (String) responseMap.get("accessToken");
 
-        mockMvc.perform(get("/api/nav/122639").header("Authorization", "Bearer " + accessToken))
+        mockMvc.perform(get("/api/nav/120503").header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isOk());
     }
 
@@ -211,7 +212,7 @@ class AuthControllerIT extends AbstractIntegrationTest {
         String accessToken = (String) responseMap.get("accessToken");
 
         // Authenticated request works
-        mockMvc.perform(get("/api/nav/122639").header("Authorization", "Bearer " + accessToken))
+        mockMvc.perform(get("/api/nav/120503").header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isOk());
 
         // Logout
@@ -219,7 +220,7 @@ class AuthControllerIT extends AbstractIntegrationTest {
                 .andExpect(status().isOk());
 
         // Same request should now fail with 401
-        mockMvc.perform(get("/api/nav/122639").header("Authorization", "Bearer " + accessToken))
+        mockMvc.perform(get("/api/nav/120503").header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isUnauthorized());
     }
 

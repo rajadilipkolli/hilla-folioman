@@ -74,7 +74,7 @@ public class UserTransactionDetailsService {
                 .collect(Collectors.toList());
     }
 
-    @org.springframework.transaction.annotation.Transactional(readOnly = false)
+    @Transactional(readOnly = false)
     List<UserTransactionDetailsEntity> saveTransactions(List<UserTransactionDetailsEntity> transactions) {
         return userTransactionDetailsRepository.saveAll(transactions);
     }

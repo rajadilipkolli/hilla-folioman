@@ -26,6 +26,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.hibernate.Hibernate;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -104,7 +105,7 @@ public class PortfolioValueUpdateService {
             if (entity != null) {
                 // Eagerly initialize folios, schemes, and transactions before leaving the transaction
                 entity.getFolios().forEach(folio -> {
-                    folio.getSchemes().forEach(scheme -> org.hibernate.Hibernate.initialize(scheme.getTransactions()));
+                    folio.getSchemes().forEach(scheme -> Hibernate.initialize(scheme.getTransactions()));
                 });
             }
             return entity;
@@ -317,7 +318,7 @@ public class PortfolioValueUpdateService {
                 .map(SchemeValueEntity::getDate)
                 .max(LocalDate::compareTo)
                 .orElse(null);
-        java.util.Set<Long> folioIds = groupedByFolioAndDate.keySet();
+        Set<Long> folioIds = groupedByFolioAndDate.keySet();
 
         if (globalMinDate != null && globalMaxDate != null) {
             // Fetch existing values for ALL folios in the date range with a SINGLE query

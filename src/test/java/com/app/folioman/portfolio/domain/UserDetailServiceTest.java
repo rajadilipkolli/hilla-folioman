@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.web.multipart.MultipartFile;
@@ -153,8 +154,7 @@ class UserDetailServiceTest {
 
         assertThat(response).isNotNull();
         assertThat(response.userCASDetailsId()).isEqualTo(1L);
-        org.mockito.Mockito.verify(portfolioValueUpdateService, org.mockito.Mockito.timeout(1000))
-                .updatePortfolioValue(mockEntity.getId());
+        Mockito.verify(portfolioValueUpdateService, Mockito.timeout(1000)).updatePortfolioValue(mockEntity.getId());
         verify(userFolioDetailService).setPANIfNotSet(1L);
     }
 

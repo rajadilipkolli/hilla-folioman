@@ -3,12 +3,17 @@ package com.app.folioman.config.redis;
 import io.github.resilience4j.circuitbreaker.CircuitBreaker;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry;
+import java.net.ConnectException;
 import java.time.Duration;
 import java.util.function.Supplier;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataAccessResourceFailureException;
+import org.springframework.dao.QueryTimeoutException;
+import org.springframework.data.redis.RedisConnectionFailureException;
+import org.springframework.data.redis.RedisSystemException;
 import org.springframework.stereotype.Component;
 
 /**
@@ -34,11 +39,11 @@ public class CacheCircuitBreaker {
                 .slidingWindowSize(slidingWindowSize)
                 .permittedNumberOfCallsInHalfOpenState(10)
                 .recordExceptions(
-                        org.springframework.dao.QueryTimeoutException.class,
-                        org.springframework.dao.DataAccessResourceFailureException.class,
-                        org.springframework.data.redis.RedisConnectionFailureException.class,
-                        org.springframework.data.redis.RedisSystemException.class,
-                        java.net.ConnectException.class)
+                        QueryTimeoutException.class,
+                        DataAccessResourceFailureException.class,
+                        RedisConnectionFailureException.class,
+                        RedisSystemException.class,
+                        ConnectException.class)
                 .build();
 
         CircuitBreakerRegistry registry = CircuitBreakerRegistry.of(config);

@@ -8,6 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.redis.core.RedisTemplate;
 
@@ -55,7 +56,7 @@ class CacheAdapterTest {
 
     @Test
     void setPolicy_CalledTwice_ShouldApplyBothPolicies() {
-        CachePolicy secondPolicy = org.mockito.Mockito.mock(CachePolicy.class);
+        CachePolicy secondPolicy = Mockito.mock(CachePolicy.class);
 
         cacheAdapter.setPolicy(cachePolicy);
         cacheAdapter.setPolicy(secondPolicy);

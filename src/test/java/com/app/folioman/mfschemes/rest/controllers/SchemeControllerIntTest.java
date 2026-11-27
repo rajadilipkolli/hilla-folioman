@@ -1,9 +1,11 @@
 package com.app.folioman.mfschemes.rest.controllers;
 
-import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.containsStringIgnoringCase;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.everyItem;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
+import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -26,9 +28,10 @@ class SchemeControllerIntTest extends AbstractIntegrationTest {
                 .perform(get("/api/scheme/{schemeName}", "sbi small cap").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, is(MediaType.APPLICATION_JSON_VALUE)))
-                .andExpect(jsonPath("$.size()", is(4)))
-                .andExpect(jsonPath("$[*].amfiCode", contains(125494, 125495, 125496, 125497)))
-                .andExpect(jsonPath("$[*].amcName", everyItem(equalTo("SBI Funds Management Limited"))));
+                .andExpect(jsonPath("$.size()", greaterThan(0)))
+                .andExpect(jsonPath("$[*].amfiCode", hasItems(125494, 125495, 125496, 125497)))
+                .andExpect(jsonPath("$[*].schemeName", everyItem(containsStringIgnoringCase("sbi small cap"))))
+                .andExpect(jsonPath("$[*].amcName", everyItem(equalTo("SBI Mutual Fund"))));
     }
 
     @Test
@@ -37,18 +40,18 @@ class SchemeControllerIntTest extends AbstractIntegrationTest {
                 .perform(get("/api/scheme/{schemeName}", "amc sbi").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, is(MediaType.APPLICATION_JSON_VALUE)))
-                .andExpect(jsonPath("$[0].amcName", equalTo("SBI Funds Management Limited")))
-                .andExpect(jsonPath("$[*].amcName", everyItem(equalTo("SBI Funds Management Limited"))));
+                .andExpect(jsonPath("$[0].amcName", equalTo("SBI Mutual Fund")))
+                .andExpect(jsonPath("$[*].amcName", everyItem(equalTo("SBI Mutual Fund"))));
     }
 
     @Test
     void fetchSchemes_byAmcFullName() throws Exception {
         this.mockMvc
-                .perform(get("/api/scheme/{schemeName}", "SBI Funds Management Limited")
-                        .accept(MediaType.APPLICATION_JSON))
+                .perform(get("/api/scheme/{schemeName}", "SBI Mutual Fund").accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, is(MediaType.APPLICATION_JSON_VALUE)))
-                .andExpect(jsonPath("$[*].amcName", everyItem(equalTo("SBI Funds Management Limited"))));
+                .andExpect(jsonPath("$", hasSize(greaterThan(0))))
+                .andExpect(jsonPath("$[*].amcName", everyItem(equalTo("SBI Mutual Fund"))));
     }
 
     @Test
@@ -59,7 +62,7 @@ class SchemeControllerIntTest extends AbstractIntegrationTest {
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, is(MediaType.APPLICATION_JSON_VALUE)))
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andExpect(jsonPath("$[0].amfiCode", is(125494)))
-                .andExpect(jsonPath("$[0].amcName", equalTo("SBI Funds Management Limited")));
+                .andExpect(jsonPath("$[0].amcName", equalTo("SBI Mutual Fund")));
     }
 
     @Test
@@ -90,7 +93,7 @@ class SchemeControllerIntTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, is(MediaType.APPLICATION_JSON_VALUE)))
                 .andExpect(jsonPath("$", hasSize(greaterThanOrEqualTo(1))))
-                .andExpect(jsonPath("$[0].amcName", equalTo("SBI Funds Management Limited")))
-                .andExpect(jsonPath("$[*].amcName", everyItem(equalTo("SBI Funds Management Limited"))));
+                .andExpect(jsonPath("$[0].amcName", equalTo("SBI Mutual Fund")))
+                .andExpect(jsonPath("$[*].amcName", everyItem(equalTo("SBI Mutual Fund"))));
     }
 }

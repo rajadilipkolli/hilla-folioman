@@ -2,6 +2,7 @@ package com.app.folioman.mfschemes.config;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.app.folioman.config.SQLContainersConfig;
 import com.app.folioman.shared.AbstractIntegrationTest;
 import org.junit.jupiter.api.Test;
 
@@ -27,6 +28,6 @@ class ApplicationPropertiesIT extends AbstractIntegrationTest {
         assertThat(applicationProperties.getNav().getMfApi()).isNotNull();
         assertThat(applicationProperties.getNav().getMfApi().getDataUrl())
                 .isNotNull()
-                .isEqualTo("https://api.mfapi.in/mf/{schemeCode}");
+                .isEqualTo(SQLContainersConfig.mfNavDataUrl());
     }
 }

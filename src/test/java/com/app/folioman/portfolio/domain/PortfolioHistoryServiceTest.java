@@ -8,6 +8,7 @@ import static org.mockito.Mockito.when;
 import com.app.folioman.portfolio.rest.dtos.PortfolioHistoryDTO;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
@@ -94,13 +95,13 @@ class PortfolioHistoryServiceTest {
 
         assertThat(historyDTO.invested().get(0)[0])
                 .isEqualTo(LocalDate.of(2024, 10, 1)
-                        .atStartOfDay(java.time.ZoneOffset.UTC)
+                        .atStartOfDay(ZoneOffset.UTC)
                         .toInstant()
                         .toEpochMilli());
         assertThat(historyDTO.invested().get(0)[1]).isEqualTo(BigDecimal.valueOf(1000L));
         assertThat(historyDTO.invested().get(1)[0])
                 .isEqualTo(LocalDate.of(2024, 11, 1)
-                        .atStartOfDay(java.time.ZoneOffset.UTC)
+                        .atStartOfDay(ZoneOffset.UTC)
                         .toInstant()
                         .toEpochMilli());
         assertThat(historyDTO.invested().get(1)[1]).isEqualTo(BigDecimal.valueOf(1200L));

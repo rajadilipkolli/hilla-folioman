@@ -9,37 +9,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.app.folioman.shared.AbstractIntegrationTest;
-import java.util.concurrent.TimeUnit;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 
 @WithMockUser(roles = "USER")
 class NavControllerIT extends AbstractIntegrationTest {
-
-    private static final Logger log = LoggerFactory.getLogger(NavControllerIT.class);
-
-    @BeforeEach
-    void setUp() throws InterruptedException {
-        int retries = 30;
-        while (retries-- > 0) {
-            try {
-                if (dailyNavHealthService.checkHealth().isHealthy()
-                        && dailyNavHealthService.checkHealth().isDatabaseAccessible()) {
-                    String databasePath = dailyNavHealthService.checkHealth().getDatabasePath();
-                    log.info("DailyNavHealthService is healthy and database is accessible at: {}", databasePath);
-                    break;
-                }
-                TimeUnit.SECONDS.sleep(1); // wait 1 sec
-            } catch (Exception e) {
-                TimeUnit.SECONDS.sleep(1); // wait 1 sec
-            }
-        }
-    }
 
     @Test
     void shouldThrowExceptionWhenSchemeNotFound() throws Exception {
@@ -62,13 +38,13 @@ class NavControllerIT extends AbstractIntegrationTest {
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, is(MediaType.APPLICATION_JSON_VALUE)))
                 .andExpect(jsonPath("$.schemeCode", is(120503L), Long.class))
                 .andExpect(jsonPath("$.isin", is("INF846K01EW2")))
-                .andExpect(jsonPath("$.schemeName", is("AXIS ELSS- TAX SAVER FUND - DIRECT GROWTH")))
+                .andExpect(jsonPath("$.schemeName", is("Axis ELSS Tax Saver Fund - Direct Plan - Growth Option")))
                 .andExpect(jsonPath("$.nav", notNullValue(String.class)))
                 .andExpect(jsonPath("$.date", notNullValue(String.class)));
     }
 
     @Test
-    void shouldLoadDataWhenSchemeFoundAndLoadHistoricalData() throws Exception {
+    void shouldReturnStoredHistoricalNavAsDecimal() throws Exception {
         this.mockMvc
                 .perform(get("/api/nav/{schemeCode}/{date}", 120503L, "2022-12-20")
                         .accept(MediaType.APPLICATION_JSON))
@@ -76,15 +52,15 @@ class NavControllerIT extends AbstractIntegrationTest {
                 .andExpect(header().string(HttpHeaders.CONTENT_TYPE, is(MediaType.APPLICATION_JSON_VALUE)))
                 .andExpect(jsonPath("$.schemeCode", is(120503L), Long.class))
                 .andExpect(jsonPath("$.isin", is("INF846K01EW2")))
-                .andExpect(jsonPath("$.schemeName", is("AXIS ELSS- TAX SAVER FUND - DIRECT GROWTH")))
+                .andExpect(jsonPath("$.schemeName", is("Axis ELSS Tax Saver Fund - Direct Plan - Growth Option")))
                 .andExpect(jsonPath("$.nav", is("73.60850")))
                 .andExpect(jsonPath("$.date", is("2022-12-20")))
-                .andExpect(jsonPath("$.schemeType", is("Open Ended(Equity Schemes - ELSS- Tax Saver Fund)")));
+                .andExpect(
+                        jsonPath("$.schemeType", is("Open Ended Schemes ( Equity Schemes - ELSS- Tax Saver Fund )")));
     }
 
     @Test
-    void shouldLoadDataWhenSchemeNotFoundAndLoadHistoricalData() throws Exception {
-
+    void shouldFallBackWhenHistoricalNavIsNotStored() throws Exception {
         this.mockMvc
                 .perform(get("/api/nav/{schemeCode}/{date}", 119578L, "2018-12-20")
                         .accept(MediaType.APPLICATION_JSON))
@@ -93,28 +69,25 @@ class NavControllerIT extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.schemeCode", is(119578L), Long.class))
                 .andExpect(jsonPath("$.isin", is("INF903J01MV8")))
                 .andExpect(jsonPath("$.schemeName", is("Sundaram Select Focus Direct Plan - Growth")))
-                .andExpect(jsonPath("$.nav", is("176.60910")))
-                .andExpect(jsonPath("$.amc", is("Sundaram Asset Management Company Ltd")))
+                .andExpect(jsonPath("$.nav", is("176.6091")))
+                .andExpect(jsonPath("$.amc", is("Sundaram Mutual Fund")))
                 .andExpect(jsonPath("$.date", is("2018-12-20")))
-                .andExpect(jsonPath("$.schemeType", is("Open Ended(Equity Scheme - Focused Fund)")));
+                .andExpect(jsonPath("$.schemeType", is("Open Ended Schemes ( Equity Scheme - Focused Fund )")));
     }
 
     @Test
-    void shouldNotLoadHistoricalDataWhenSchemeNotFound() throws Exception {
+    void shouldReturnFallbackNavOnOrBeforeRequestedDate() throws Exception {
         this.mockMvc
                 .perform(get("/api/nav/{schemeCode}/{date}", 144610L, "2023-07-12")
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound())
-                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, is(MediaType.APPLICATION_PROBLEM_JSON_VALUE)))
-                .andExpect(jsonPath("$.type", is("https://api.hilla-folioman.com/errors/nav-not-found")))
-                .andExpect(jsonPath("$.title", is("NAV Not Found")))
-                .andExpect(jsonPath("$.status", is(404)))
-                .andExpect(jsonPath("$.detail", is("Nav Not Found for schemeCode - 144610 on 2023-07-06")))
-                .andExpect(jsonPath("$.instance").doesNotHaveJsonPath());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.schemeCode", is(144610L), Long.class))
+                .andExpect(jsonPath("$.nav", is("12.7142")))
+                .andExpect(jsonPath("$.date", is("2021-08-26")));
     }
 
     @Test
-    void shouldNotLoadDataWhenSchemeFoundAndLoadHistoricalDataNotFound() throws Exception {
+    void shouldReportMissingHistoricalNavForRequestedDate() throws Exception {
         this.mockMvc
                 .perform(get("/api/nav/{schemeCode}/{date}", 141565, "2017-10-01")
                         .accept(MediaType.APPLICATION_JSON))
@@ -123,22 +96,18 @@ class NavControllerIT extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.type", is("https://api.hilla-folioman.com/errors/nav-not-found")))
                 .andExpect(jsonPath("$.title", is("NAV Not Found")))
                 .andExpect(jsonPath("$.status", is(404)))
-                .andExpect(jsonPath("$.detail", is("Nav Not Found for schemeCode - 141565 on 2017-09-25")))
+                .andExpect(jsonPath("$.detail", is("Nav Not Found for schemeCode - 141565 on 2017-10-01")))
                 .andExpect(jsonPath("$.instance").doesNotHaveJsonPath());
     }
 
     @Test
-    void shouldLoadDataWhenSchemeMergedWithOtherFundHouse() throws Exception {
+    void shouldReportMissingNavForRetiredSchemeCode() throws Exception {
         this.mockMvc
                 .perform(get("/api/nav/{schemeCode}/{date}", 151113, "2022-10-20")
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, is(MediaType.APPLICATION_JSON_VALUE)))
-                .andExpect(jsonPath("$.schemeCode", is(151113L), Long.class))
-                .andExpect(jsonPath("$.isin", is("INF917K01HD4")))
-                .andExpect(jsonPath("$.schemeName", is("HSBC VALUE FUND DIRECT PLAN - GROWTH")))
-                .andExpect(jsonPath("$.nav", is("63.16200")))
-                .andExpect(jsonPath("$.date", is("2022-10-20")))
-                .andExpect(jsonPath("$.schemeType", is("Open Ended(Equity Schemes - Value Fund)")));
+                .andExpect(status().isNotFound())
+                .andExpect(header().string(HttpHeaders.CONTENT_TYPE, is(MediaType.APPLICATION_PROBLEM_JSON_VALUE)))
+                .andExpect(jsonPath("$.type", is("https://api.hilla-folioman.com/errors/nav-not-found")))
+                .andExpect(jsonPath("$.detail", is("Nav Not Found for schemeCode - 151113 on 2022-10-20")));
     }
 }

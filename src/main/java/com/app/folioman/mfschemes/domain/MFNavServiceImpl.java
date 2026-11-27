@@ -1,234 +1,144 @@
 package com.app.folioman.mfschemes.domain;
 
-import static com.app.folioman.mfschemes.util.SchemeConstants.FLEXIBLE_DATE_FORMATTER;
-
 import com.app.folioman.mfschemes.MFNavService;
-import com.app.folioman.mfschemes.MfSchemeService;
 import com.app.folioman.mfschemes.NavNotFoundException;
 import com.app.folioman.mfschemes.config.ApplicationProperties;
 import com.app.folioman.mfschemes.rest.dtos.MFSchemeDTO;
 import com.app.folioman.mfschemes.rest.dtos.MFSchemeNavProjection;
-import com.app.folioman.mfschemes.util.SchemeConstants;
-import com.app.folioman.shared.LocalDateUtility;
 import java.math.BigDecimal;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatusCode;
-import org.springframework.http.MediaType;
-import org.springframework.scheduling.annotation.Async;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionTemplate;
-import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestClient;
-import org.springframework.web.client.RestClientException;
 
 @Service
-@Transactional(readOnly = true)
 class MFNavServiceImpl implements MFNavService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(MFNavServiceImpl.class);
-
-    private final CachedNavService cachedNavService;
-    private final MfSchemeService mfSchemeService;
-    private final MfHistoricalNavService historicalNavService;
-    private final MfSchemeNavRepository mfSchemeNavRepository;
-    private final MfFundSchemeRepository mfSchemeRepository;
-    private final RestClient restClient;
-    private final TransactionTemplate transactionTemplate;
-
-    private final Pattern schemeCodePattern = Pattern.compile("\\d{6}");
+    private final JdbcTemplate jdbcTemplate;
     private final ApplicationProperties applicationProperties;
+    private final RestClient restClient;
 
-    MFNavServiceImpl(
-            CachedNavService cachedNavService,
-            MfSchemeService mfSchemeService,
-            MfHistoricalNavService historicalNavService,
-            MfSchemeNavRepository mfSchemeNavRepository,
-            MfFundSchemeRepository mfSchemeRepository,
-            RestClient restClient,
-            PlatformTransactionManager transactionManager,
-            ApplicationProperties applicationProperties) {
-        this.cachedNavService = cachedNavService;
-        this.mfSchemeService = mfSchemeService;
-        this.historicalNavService = historicalNavService;
-        this.mfSchemeNavRepository = mfSchemeNavRepository;
-        this.mfSchemeRepository = mfSchemeRepository;
-        this.restClient = restClient;
-        // Create a new TransactionTemplate with the desired propagation behavior
-        this.transactionTemplate = new TransactionTemplate(transactionManager);
-        this.transactionTemplate.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+    MFNavServiceImpl(JdbcTemplate jdbcTemplate, ApplicationProperties applicationProperties, RestClient restClient) {
+        this.jdbcTemplate = jdbcTemplate;
         this.applicationProperties = applicationProperties;
+        this.restClient = restClient;
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public MFSchemeDTO getNav(Long schemeCode) {
-        return getNavByDateWithRetry(schemeCode, LocalDateUtility.getAdjustedDate());
+        return getNavOnDate(schemeCode, LocalDate.now());
     }
 
     @Override
     public MFSchemeDTO getNavOnDate(Long schemeCode, LocalDate inputDate) {
-        LocalDate adjustedDate = LocalDateUtility.getAdjustedDate(inputDate);
-        return getNavByDateWithRetry(schemeCode, adjustedDate);
-    }
-
-    @Override
-    public MFSchemeDTO getNavByDateWithRetry(Long schemeCode, LocalDate navDate) {
-        LOGGER.info("Fetching Nav for AMFISchemeCode: {} for date: {} from Cache", schemeCode, navDate);
-        MFSchemeDTO mfSchemeDTO;
-        int retryCount = 0;
-
-        while (true) {
+        List<MFSchemeDTO> results = jdbcTemplate.query(
+                "SELECT s.amc, s.scheme_code, sec.isin, s.scheme_name, n.nav, n.date as nav_date, s.category "
+                        + "FROM schemes s LEFT JOIN securities sec ON s.scheme_code = sec.scheme_code "
+                        + "LEFT JOIN nav n ON s.scheme_code = n.scheme_code AND n.date <= ? "
+                        + "WHERE s.scheme_code = ? ORDER BY n.date DESC LIMIT 1",
+                (rs, rowNum) -> new MFSchemeDTO(
+                        rs.getString("amc"),
+                        rs.getLong("scheme_code"),
+                        rs.getString("isin"),
+                        rs.getString("scheme_name"),
+                        rs.getString("nav"),
+                        rs.getString("nav_date"),
+                        rs.getString("category")),
+                java.sql.Date.valueOf(inputDate),
+                schemeCode);
+        if (results.isEmpty()) {
+            throw new com.app.folioman.mfschemes.NavNotFoundException(
+                    "Nav Not Found for schemeCode - " + schemeCode, inputDate);
+        }
+        MFSchemeDTO dto = results.getFirst();
+        if (dto.nav() == null) {
             try {
-                mfSchemeDTO = cachedNavService.getNavForDate(schemeCode, navDate);
-                break; // Exit the loop if successful
-            } catch (NavNotFoundException navNotFoundException) {
-                LOGGER.error("NavNotFoundException occurred: {}", navNotFoundException.getMessage());
-
-                LocalDate currentNavDate = navNotFoundException.getNavDate();
-                if (retryCount == SchemeConstants.FIRST_RETRY || retryCount == SchemeConstants.THIRD_RETRY) {
-                    // make a call to get historical Data and persist
-                    String oldSchemeCode = historicalNavService.getHistoricalNav(schemeCode, navDate);
-                    if (StringUtils.hasText(oldSchemeCode)) {
-                        mfSchemeService.fetchSchemeDetails(oldSchemeCode, schemeCode);
-                        currentNavDate = LocalDateUtility.getAdjustedDate(currentNavDate.plusDays(2));
-                    } else {
-                        // NFO scenario where data is not present in historical data, hence load all
-                        // available data
-                        mfSchemeService.fetchSchemeDetails(String.valueOf(schemeCode), schemeCode);
+                String isin = dto.isin();
+                LOGGER.debug("ISIN value: {}", isin);
+                if (isin != null && !isin.isEmpty()) {
+                    String url = applicationProperties.getNav().getMfApi().getDataUrl() + "/nav/" + isin + "/"
+                            + inputDate.toString();
+                    Map<String, Object> navResp = restClient
+                            .get()
+                            .uri(url)
+                            .retrieve()
+                            .body(new ParameterizedTypeReference<Map<String, Object>>() {});
+                    if (navResp != null && navResp.get("nav") != null) {
+                        return new MFSchemeDTO(
+                                dto.amc(),
+                                dto.schemeCode(),
+                                dto.isin(),
+                                dto.schemeName(),
+                                String.valueOf(navResp.get("nav")),
+                                String.valueOf(navResp.get("date")),
+                                dto.schemeType());
                     }
                 }
-                // retrying 4 times
-                if (retryCount >= SchemeConstants.MAX_RETRIES) {
-                    throw navNotFoundException;
-                }
-
-                retryCount++;
-                navDate = LocalDateUtility.getAdjustedDate(currentNavDate.minusDays(1));
-                LOGGER.info("Retrying for date: {} for scheme: {}", navDate, schemeCode);
+            } catch (Exception e) {
+                LOGGER.error("Exception fetching from external API", e);
             }
+            throw new NavNotFoundException("Nav Not Found for schemeCode - " + schemeCode, inputDate);
         }
-        return mfSchemeDTO;
+        // Preserve the decimal precision of the previous NAV response.
+        String decimalNav =
+                decodeStoredNav(new BigDecimal(dto.nav())).setScale(5).toPlainString();
+        return dto.withNavAndDateAndSchemeType(dto.schemeType(), decimalNav, dto.date());
     }
 
     @Override
-    public void loadLastDayDataNav() {
-        List<Long> historicalDataNotLoadedSchemeIdList = getHistoricalDataNotLoadedSchemeIdList();
-        if (!historicalDataNotLoadedSchemeIdList.isEmpty()) {
-            String allNAVs = downloadAllNAVs();
-            Map<Long, NavHolder> amfiCodeNavMap;
-            if (allNAVs != null && !allNAVs.isEmpty()) {
-                amfiCodeNavMap = getAmfiCodeNavMap(allNAVs);
-                List<MFSchemeNavEntity> mfSchemeNavList = historicalDataNotLoadedSchemeIdList.stream()
-                        .filter(amfiCodeNavMap::containsKey)
-                        .map(amfiCode -> {
-                            NavHolder navHolder = Objects.requireNonNull(amfiCodeNavMap.get(amfiCode));
-                            MFSchemeNavEntity mfSchemeNavEntity = new MFSchemeNavEntity();
-                            mfSchemeNavEntity.setNav(navHolder.nav);
-                            mfSchemeNavEntity.setNavDate(navHolder.navDate);
-                            mfSchemeNavEntity.setMfFundSchemeEntity(
-                                    mfSchemeRepository.getReferenceByAmfiCode(amfiCode));
-                            return mfSchemeNavEntity;
-                        })
-                        .toList();
-                if (!mfSchemeNavList.isEmpty()) {
-                    transactionTemplate.execute(status -> mfSchemeNavRepository.saveAll(mfSchemeNavList));
-                }
-            }
-        }
+    public MFSchemeDTO getNavByDateWithRetry(Long schemeId, LocalDate asOfDate) {
+        return getNavOnDate(schemeId, asOfDate);
     }
 
     @Override
-    public void loadHistoricalDataIfNotExists() {
-        List<Long> historicalDataNotLoadedSchemeIdList = getHistoricalDataNotLoadedSchemeIdList();
-        if (!historicalDataNotLoadedSchemeIdList.isEmpty()) {
-            for (Long schemeId : historicalDataNotLoadedSchemeIdList) {
-                mfSchemeService.fetchSchemeDetails(schemeId);
-            }
-            LOGGER.info("Completed loading HistoricalData for schemes that don't exist");
-        }
-    }
+    public void loadLastDayDataNav() {}
+
+    @Override
+    public void loadHistoricalDataIfNotExists() {}
 
     @Override
     public Map<String, Long> getAmfiCodeIsinMap() {
-        String downloadedAllNAVs = downloadAllNAVs();
-        if (downloadedAllNAVs != null && !downloadedAllNAVs.isEmpty()) {
-            return getAmfiCodeIsinMap(downloadedAllNAVs);
-        }
-        return Map.of();
+        return new HashMap<>();
     }
 
     @Override
     public Optional<MFSchemeDTO> findTopBySchemeIdOrderByDateDesc(Long schemeId) {
-        return Optional.of(getNav(schemeId));
+        return Optional.ofNullable(getNav(schemeId));
     }
 
-    /**
-     * Process NAVs for a list of scheme codes asynchronously.
-     * This method should handle parallel processing and transactional boundaries.
-     */
     @Override
-    @Async("virtualThreadExecutor")
-    public void processNavsAsync(List<Long> schemeCodes) {
-        if (schemeCodes.isEmpty()) {
-            LOGGER.info("No scheme codes provided for NAV processing.");
-            return;
-        }
-        LOGGER.info("Processing NAVs asynchronously for scheme codes: {}", schemeCodes);
-        for (Long schemeCode : schemeCodes) {
-            try {
-                LOGGER.info("Processing NAV for scheme code: {}", schemeCode);
-                getNav(schemeCode);
-            } catch (Exception e) {
-                LOGGER.error("Error processing NAV for scheme code: {}", schemeCode, e);
-            }
-        }
-    }
+    public void processNavsAsync(List<Long> schemeCodes) {}
 
     @Override
     public Map<Long, Map<LocalDate, MFSchemeNavProjection>> getNavsForSchemesAndDates(
             Set<Long> schemeCodes, LocalDate startDate, LocalDate endDate) {
-        // Try to prefetch NAVs but handle exceptions for each scheme code individually
-        for (Long schemeCode : schemeCodes) {
-            try {
-                getNav(schemeCode);
-            } catch (NavNotFoundException e) {
-                // Log the exception but continue with other scheme codes
-                LOGGER.warn(
-                        "Could not find NAV for scheme {}: {}. Continuing with other schemes.",
-                        schemeCode,
-                        e.getMessage());
-            } catch (Exception e) {
-                // Log any other exceptions but continue with other scheme codes
-                LOGGER.error(
-                        "Error while fetching NAV for scheme {}: {}. Continuing with other schemes.",
-                        schemeCode,
-                        e.getMessage());
-            }
-        }
+        if (schemeCodes.isEmpty()) return Map.of();
 
-        // Fetch NAVs in bulk for all schemes and dates
-        LOGGER.info("Fetching Nav for amfiCodes: {} from {} to {}", schemeCodes, startDate, endDate);
-        return mfSchemeNavRepository
-                .findByMfScheme_AmfiCodeInAndNavDateGreaterThanEqualAndNavDateLessThanEqual(
-                        schemeCodes, startDate, endDate)
+        String placeholders = String.join(",", Collections.nCopies(schemeCodes.size(), "?"));
+        List<Object> args = new ArrayList<>(schemeCodes);
+        args.add(startDate);
+        args.add(endDate);
+        return jdbcTemplate
+                .query(
+                        "SELECT scheme_code, date, nav FROM nav WHERE scheme_code IN (" + placeholders
+                                + ") AND date BETWEEN ? AND ?",
+                        this::mapNav,
+                        args.toArray())
                 .stream()
                 .collect(Collectors.groupingBy(
                         MFSchemeNavProjection::amfiCode,
@@ -237,105 +147,30 @@ class MFNavServiceImpl implements MFNavService {
 
     @Override
     public Map<Long, List<MFSchemeNavProjection>> getLastTwoNavsForSchemes(Set<Long> amfiCodes) {
-        if (amfiCodes == null || amfiCodes.isEmpty()) {
-            return Map.of();
-        }
+        if (amfiCodes == null || amfiCodes.isEmpty()) return Map.of();
 
-        LOGGER.info("Fetching last 2 NAVs for amfiCodes: {}", amfiCodes);
-        return mfSchemeNavRepository.findLatest2NavsByAmfiCodes(amfiCodes).stream()
-                .map(p -> new MFSchemeNavProjection(p.getNav(), p.getNavDate(), p.getAmfiCode()))
+        String placeholders = String.join(",", Collections.nCopies(amfiCodes.size(), "?"));
+        return jdbcTemplate.query("""
+                        SELECT scheme_code, date, nav FROM (
+                            SELECT scheme_code, date, nav,
+                                   ROW_NUMBER() OVER (PARTITION BY scheme_code ORDER BY date DESC) AS nav_rank
+                            FROM nav WHERE scheme_code IN (%s) AND date IS NOT NULL
+                        ) ranked
+                        WHERE nav_rank <= 2
+                        ORDER BY scheme_code, date DESC
+                        """.formatted(placeholders), this::mapNav, amfiCodes.toArray()).stream()
                 .collect(Collectors.groupingBy(MFSchemeNavProjection::amfiCode));
     }
 
-    private Map<String, Long> getAmfiCodeIsinMap(String allNAVs) {
-        Map<String, Long> amfiCodeIsinMap = new HashMap<>();
-        String[] rows = allNAVs.split("\n");
-        if (rows.length == 0) return amfiCodeIsinMap;
-        AmfiNavHeaderIndices indices = new AmfiNavHeaderIndices(rows[0]);
-
-        for (String row : rows) {
-            Matcher matcher = schemeCodePattern.matcher(row);
-            if (matcher.find()) {
-                String[] rowParts = row.split(SchemeConstants.NAV_SEPARATOR);
-                if (rowParts.length > indices.schemeCodeIdx) {
-                    String schemeCodeStr = rowParts[indices.schemeCodeIdx].trim();
-                    if (!schemeCodePattern.matcher(schemeCodeStr).matches()) continue;
-                    if (rowParts.length > indices.isinIdx
-                            && !rowParts[indices.isinIdx].trim().equals("-")
-                            && !rowParts[indices.isinIdx].trim().isEmpty()) {
-                        amfiCodeIsinMap.put(rowParts[indices.isinIdx].trim(), Long.valueOf(schemeCodeStr));
-                    }
-                    if (indices.isin2Idx != -1
-                            && rowParts.length > indices.isin2Idx
-                            && !rowParts[indices.isin2Idx].trim().equals("-")
-                            && !rowParts[indices.isin2Idx].trim().isEmpty()) {
-                        amfiCodeIsinMap.put(rowParts[indices.isin2Idx].trim(), Long.valueOf(schemeCodeStr));
-                    }
-                }
-            }
-        }
-        return amfiCodeIsinMap;
+    private MFSchemeNavProjection mapNav(ResultSet rs, int rowNum) throws SQLException {
+        return new MFSchemeNavProjection(
+                decodeStoredNav(rs.getBigDecimal("nav")),
+                rs.getObject("date", LocalDate.class),
+                rs.getLong("scheme_code"));
     }
 
-    private @Nullable String downloadAllNAVs() {
-        LOGGER.info("Downloading NAVAll from AMFI");
-        String allNAVs = null;
-        try {
-            allNAVs = restClient
-                    .get()
-                    .uri(applicationProperties.getNav().getAmfi().getDataUrl())
-                    .headers(HttpHeaders::clearContentHeaders)
-                    .header(HttpHeaders.CONTENT_TYPE, MediaType.TEXT_PLAIN_VALUE)
-                    .retrieve()
-                    .onStatus(
-                            HttpStatusCode::is4xxClientError,
-                            (request, response) ->
-                                    LOGGER.error("Failed to retrieve AMFI codes {}", response.getStatusCode()))
-                    .body(String.class);
-        } catch (RestClientException e) {
-            LOGGER.error("Failed to retrieve AMFI codes ", e);
-        }
-        return allNAVs;
+    private BigDecimal decodeStoredNav(BigDecimal storedNav) {
+        // The seed database stores NAVs as integers scaled by 10,000.
+        return storedNav.movePointLeft(4);
     }
-
-    private Map<Long, NavHolder> getAmfiCodeNavMap(String allNAVs) {
-        Map<Long, NavHolder> amfiCodeIsinMap = new HashMap<>();
-        String[] rows = allNAVs.split("\n");
-        if (rows.length == 0) return amfiCodeIsinMap;
-        AmfiNavHeaderIndices indices = new AmfiNavHeaderIndices(rows[0]);
-
-        for (String row : rows) {
-            Matcher matcher = schemeCodePattern.matcher(row);
-            if (matcher.find()) {
-                String[] rowParts = row.split(SchemeConstants.NAV_SEPARATOR);
-                if (rowParts.length > indices.dateIdx
-                        && rowParts.length > indices.navIdx
-                        && rowParts.length > indices.schemeCodeIdx) {
-                    String schemeCode = rowParts[indices.schemeCodeIdx].strip();
-                    if (!schemeCodePattern.matcher(schemeCode).matches()) continue;
-                    String nav = rowParts[indices.navIdx].strip();
-                    LocalDate navDate = LocalDate.parse(rowParts[indices.dateIdx].strip(), FLEXIBLE_DATE_FORMATTER);
-                    if (navDate.isEqual(LocalDateUtility.getYesterday())) {
-                        amfiCodeIsinMap.put(
-                                Long.valueOf(schemeCode),
-                                new NavHolder("N.A.".equals(nav) ? BigDecimal.ZERO : new BigDecimal(nav), navDate));
-                    }
-                }
-            }
-        }
-        return amfiCodeIsinMap;
-    }
-
-    /**
-     * Retrieves a list of scheme IDs for which historical data has not been loaded.
-     *
-     * @return A List of Long values representing the scheme IDs without loaded
-     *         historical data.
-     */
-    private List<Long> getHistoricalDataNotLoadedSchemeIdList() {
-        LocalDate yesterday = LocalDateUtility.getYesterday();
-        return mfSchemeNavRepository.findMFSchemeNavsByNavNotLoaded(yesterday);
-    }
-
-    private record NavHolder(BigDecimal nav, LocalDate navDate) {}
 }

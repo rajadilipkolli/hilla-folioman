@@ -14,11 +14,22 @@ public class MfApiProperties {
     @Pattern(regexp = "^https?://.*", message = "Data URL must be a valid HTTP(S) URL")
     private String dataUrl;
 
+    @Pattern(regexp = "^https?://.*", message = "Fallback URL must be a valid HTTP(S) URL")
+    private String fallbackUrl;
+
     public String getDataUrl() {
         return dataUrl;
     }
 
     public void setDataUrl(String dataUrl) {
         this.dataUrl = dataUrl;
+    }
+
+    public String getFallbackUrl() {
+        return fallbackUrl;
+    }
+
+    public void setFallbackUrl(String fallbackUrl) {
+        this.fallbackUrl = fallbackUrl;
     }
 }

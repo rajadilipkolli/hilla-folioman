@@ -13,7 +13,9 @@ services:
     ports:
       - "5432:5432"
     networks:
-      - folioman-network
+      folioman-network:
+        aliases:
+          - postgres
 
   pgadmin:
     image: dpage/pgadmin4
@@ -107,6 +109,26 @@ services:
     depends_on:
       mongodb:
         condition: service_healthy
+
+  mf-nav-data:
+    image: ghcr.io/rajadilipkolli/historical-mf-nav-data:latest
+    container_name: mf-nav-data
+    depends_on:
+      postgresqldb:
+        condition: service_started
+    ports:
+      - "8082:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgresqldb:5432/appdb
+      - SPRING_DATASOURCE_USERNAME=appuser
+      - SPRING_DATASOURCE_PASSWORD=secret
+      - DAILY_NAV_DATABASE_TYPE=postgres
+      - DAILY_NAV_URL=jdbc:postgresql://postgresqldb:5432/appdb
+      - DAILY_NAV_USERNAME=appuser
+      - DAILY_NAV_PASSWORD=secret
+    restart: unless-stopped
+    networks:
+      - folioman-network
 
 networks:
   folioman-network:

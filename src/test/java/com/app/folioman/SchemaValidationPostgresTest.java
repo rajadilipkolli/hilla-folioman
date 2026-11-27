@@ -36,7 +36,7 @@ class SchemaValidationPostgresTest {
         // Expected entities: MfAmcEntity, MfFundSchemeEntity, MFSchemeNavEntity, UserCasDetailsEntity,
         // UserFolioDetailsEntity, UserSchemeDetailsEntity, UserTransactionDetailsEntity,
         // UserPortfolioValueEntity, etc. (16 total)
-        assertThat(entities).hasSize(16);
+        assertThat(entities).hasSize(12);
 
         for (EntityType<?> entity : entities) {
             String entityName = entity.getName();
