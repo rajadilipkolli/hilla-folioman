@@ -37,8 +37,7 @@ public class SQLContainersConfig {
         String jdbcUrl = postgreSQLContainer.getJdbcUrl().replace("localhost", "host.testcontainers.internal");
 
         mfNavDataContainer = new GenericContainer<>(
-                        DockerImageName.parse(
-                                "ghcr.io/rajadilipkolli/historical-mf-nav-data@sha256:6761892e2a3ec131dc90030c85b894a4e95893e120401f9112db8676bcccebde"))
+                        DockerImageName.parse("ghcr.io/rajadilipkolli/historical-mf-nav-data:latest"))
                 .withNetwork(network)
                 .withExposedPorts(8080)
                 .withEnv("SPRING_PROFILES_ACTIVE", "docker")

@@ -1,6 +1,6 @@
 import MainLayout from 'Frontend/views/MainLayout.js';
 import { lazy } from 'react';
-import { createBrowserRouter, RouteObject } from 'react-router-dom';
+import { createBrowserRouter, RouteObject } from 'react-router';
 import UserPortfolioView from 'Frontend/views/userPortfolio/UserPortfolioView';
 import ReBalanceView from 'Frontend/views/rebalance/ReBalanceView';
 import MfSchemesView from 'Frontend/views/mfschemes/MfSchemesView';

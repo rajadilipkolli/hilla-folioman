@@ -3,7 +3,7 @@ import { DrawerToggle } from '@vaadin/react-components/DrawerToggle.js';
 import Placeholder from 'Frontend/components/placeholder/Placeholder.js';
 import { useRouteMetadata } from 'Frontend/util/routing.js';
 import { Suspense } from 'react';
-import { NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { NavLink, Outlet, useNavigate } from 'react-router';
 import { Button } from '@vaadin/react-components/Button.js';
 import { useAuth } from 'Frontend/auth';
 
