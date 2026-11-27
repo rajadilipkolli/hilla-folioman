@@ -194,6 +194,12 @@ class PortfolioValueUpdateServiceIntTest extends AbstractIntegrationTest {
     @Order(4)
     void shouldHandleSchemeWithZeroBalanceAfterFullRedemption() {
         Long amfiCode = 120684L;
+        jdbcTemplate.update("""
+                INSERT INTO nav (scheme_code, date, nav) VALUES
+                    (?, DATE '2023-01-02', 100000),
+                    (?, DATE '2023-02-01', 150000)
+                ON CONFLICT DO NOTHING
+                """, amfiCode, amfiCode);
 
         UserCasDetailsEntity casDetails = TransactionTestDataBuilder.builder()
                 .withInvestor("zero@example.com", "Zero User")

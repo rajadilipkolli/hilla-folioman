@@ -14,6 +14,7 @@ import static org.mockito.Mockito.when;
 import com.app.folioman.config.redis.CacheNames;
 import java.util.Collections;
 import java.util.Set;
+import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.scheduling.BackgroundJob;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -59,9 +60,7 @@ class PortfolioCacheConfigTest {
             portfolioCacheConfig.scheduleTransactionCacheEvictionJob(applicationStartedEvent);
 
             backgroundJobMock.verify(() -> BackgroundJob.scheduleRecurrently(
-                    eq("transaction-cache-eviction"),
-                    eq(cronExpression),
-                    any(org.jobrunr.jobs.lambdas.JobLambda.class)));
+                    eq("transaction-cache-eviction"), eq(cronExpression), any(JobLambda.class)));
         }
 
         verify(eviction, atLeastOnce()).getTransactionCron();

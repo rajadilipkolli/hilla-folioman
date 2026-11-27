@@ -5,6 +5,7 @@ import com.app.folioman.mfschemes.NavNotFoundException;
 import com.app.folioman.mfschemes.config.ApplicationProperties;
 import com.app.folioman.mfschemes.rest.dtos.MFSchemeDTO;
 import com.app.folioman.mfschemes.rest.dtos.MFSchemeNavProjection;
+import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -93,7 +94,10 @@ class MFNavServiceImpl implements MFNavService {
             }
             throw new NavNotFoundException("Nav Not Found for schemeCode - " + schemeCode, inputDate);
         }
-        return dto;
+        // Preserve the decimal precision of the previous NAV response.
+        String decimalNav =
+                decodeStoredNav(new BigDecimal(dto.nav())).setScale(5).toPlainString();
+        return dto.withNavAndDateAndSchemeType(dto.schemeType(), decimalNav, dto.date());
     }
 
     @Override
@@ -159,10 +163,14 @@ class MFNavServiceImpl implements MFNavService {
     }
 
     private MFSchemeNavProjection mapNav(ResultSet rs, int rowNum) throws SQLException {
-        // The seed database stores NAVs as integers scaled by 10,000.
         return new MFSchemeNavProjection(
-                rs.getBigDecimal("nav").movePointLeft(4),
+                decodeStoredNav(rs.getBigDecimal("nav")),
                 rs.getObject("date", LocalDate.class),
                 rs.getLong("scheme_code"));
+    }
+
+    private BigDecimal decodeStoredNav(BigDecimal storedNav) {
+        // The seed database stores NAVs as integers scaled by 10,000.
+        return storedNav.movePointLeft(4);
     }
 }

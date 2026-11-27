@@ -26,6 +26,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.parallel.Execution;
 import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.HttpHeaders;
@@ -56,7 +57,7 @@ class ImportMutualFundControllerTest {
     @BeforeEach
     void setUp() {
         reset(portfolioAPI);
-        org.mockito.Mockito.doReturn(true).when(portfolioAPI).isPanOwnedByEmail(any(), any());
+        Mockito.doReturn(true).when(portfolioAPI).isPanOwnedByEmail(any(), any());
     }
 
     @Test

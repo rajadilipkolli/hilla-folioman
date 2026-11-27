@@ -43,7 +43,7 @@ class MFNavServiceImplTest {
     @Test
     void usesStoredNavWithoutCallingExternalApi() {
         LocalDate date = LocalDate.of(2024, 4, 12);
-        MFSchemeDTO stored = new MFSchemeDTO("AMC", 123456L, "ISIN", "Fund", "43.21", "2024-04-11", "Equity");
+        MFSchemeDTO stored = new MFSchemeDTO("AMC", 123456L, "ISIN", "Fund", "432100", "2024-04-11", "Equity");
         when(jdbcTemplate.query(
                         anyString(),
                         ArgumentMatchers.<RowMapper<MFSchemeDTO>>any(),
@@ -51,7 +51,8 @@ class MFNavServiceImplTest {
                         eq(123456L)))
                 .thenReturn(List.of(stored));
 
-        assertThat(mfNavService.getNavOnDate(123456L, date)).isEqualTo(stored);
+        assertThat(mfNavService.getNavOnDate(123456L, date))
+                .isEqualTo(new MFSchemeDTO("AMC", 123456L, "ISIN", "Fund", "43.21000", "2024-04-11", "Equity"));
         verifyNoInteractions(restClient);
     }
 

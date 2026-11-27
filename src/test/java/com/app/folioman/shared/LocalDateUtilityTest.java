@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mockStatic;
 
 import java.time.DayOfWeek;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -166,8 +167,7 @@ class LocalDateUtilityTest {
         LocalDate date = LocalDate.of(2024, 1, 1);
         long epochMillis = LocalDateUtility.toEpochMillis(date);
 
-        assertThat(epochMillis)
-                .isEqualTo(java.time.Instant.parse("2024-01-01T00:00:00Z").toEpochMilli());
+        assertThat(epochMillis).isEqualTo(Instant.parse("2024-01-01T00:00:00Z").toEpochMilli());
     }
 
     @Test
@@ -183,7 +183,6 @@ class LocalDateUtilityTest {
         LocalDate date = LocalDate.of(2025, 12, 31);
         long epochMillis = LocalDateUtility.toEpochMillis(date);
 
-        assertThat(epochMillis)
-                .isEqualTo(java.time.Instant.parse("2025-12-31T00:00:00Z").toEpochMilli());
+        assertThat(epochMillis).isEqualTo(Instant.parse("2025-12-31T00:00:00Z").toEpochMilli());
     }
 }
