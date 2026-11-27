@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Avatar } from '@vaadin/react-components/Avatar.js';
 import { Button } from '@vaadin/react-components/Button.js';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import { authenticatedFetch } from 'Frontend/auth';
 
 interface PortfolioSummaryItemDTO {
