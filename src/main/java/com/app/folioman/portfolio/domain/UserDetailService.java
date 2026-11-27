@@ -24,11 +24,9 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
-import org.jobrunr.scheduling.JobScheduler;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -51,10 +49,8 @@ class UserDetailService {
     private final UserFolioDetailService userFolioDetailService;
     private final UserSchemeDetailService userSchemeDetailService;
     private final PortfolioValueUpdateService portfolioValueUpdateService;
-    private final @Nullable ObjectProvider<JobScheduler> jobSchedulerProvider;
-    private final @Nullable PortfolioPostUploadService portfolioPostUploadService;
+    private final @Nullable CasPostUploadQueue casPostUploadQueue;
     private final @Nullable JdbcTemplate jdbcTemplate;
-    private final @Nullable UserPortfolioValueRepository userPortfolioValueRepository;
 
     UserDetailService(
             PortfolioServiceHelper portfolioServiceHelper,
@@ -75,8 +71,6 @@ class UserDetailService {
                 userSchemeDetailService,
                 portfolioValueUpdateService,
                 null,
-                null,
-                null,
                 null);
     }
 
@@ -90,10 +84,8 @@ class UserDetailService {
             UserFolioDetailService userFolioDetailService,
             UserSchemeDetailService userSchemeDetailService,
             PortfolioValueUpdateService portfolioValueUpdateService,
-            @Nullable ObjectProvider<JobScheduler> jobSchedulerProvider,
-            @Nullable PortfolioPostUploadService portfolioPostUploadService,
-            @Nullable JdbcTemplate jdbcTemplate,
-            @Nullable UserPortfolioValueRepository userPortfolioValueRepository) {
+            @Nullable CasPostUploadQueue casPostUploadQueue,
+            @Nullable JdbcTemplate jdbcTemplate) {
         this.portfolioServiceHelper = portfolioServiceHelper;
         this.casDetailsMapper = casDetailsMapper;
         this.userCASDetailsService = userCASDetailsService;
@@ -102,10 +94,8 @@ class UserDetailService {
         this.userFolioDetailService = userFolioDetailService;
         this.userSchemeDetailService = userSchemeDetailService;
         this.portfolioValueUpdateService = portfolioValueUpdateService;
-        this.jobSchedulerProvider = jobSchedulerProvider;
-        this.portfolioPostUploadService = portfolioPostUploadService;
+        this.casPostUploadQueue = casPostUploadQueue;
         this.jdbcTemplate = jdbcTemplate;
-        this.userPortfolioValueRepository = userPortfolioValueRepository;
     }
 
     @Transactional
@@ -166,14 +156,8 @@ class UserDetailService {
         // We do not call getUserCASDetails to avoid a massive merge on the entire tree.
 
         userFolioDetailService.setPANIfNotSet(userCasDetailsEntity.getId());
-        boolean hasChanges = newFolios.get() > 0 || newSchemes.get() > 0 || newTransactions.get() > 0;
-        boolean valuationsMissing = userPortfolioValueRepository != null
-                && userPortfolioValueRepository
-                        .getLatestPortfolioValueByCasId(userCasDetailsEntity.getId())
-                        .isEmpty();
-        if (hasChanges || valuationsMissing) {
-            schedulePostUploadProcessing(userCasDetailsEntity.getId());
-        }
+        // Reprocessing also repairs older uploads whose transactions committed without a valuation job.
+        schedulePostUploadProcessing(userCasDetailsEntity.getId());
 
         return new UploadFileResponse(
                 newFolios.get(), newSchemes.get(), newTransactions.get(), userCasDetailsEntity.getId());
@@ -496,15 +480,14 @@ class UserDetailService {
     }
 
     private void schedulePostUploadProcessing(Long casId) {
-        Runnable trigger = () -> {
-            JobScheduler scheduler = jobSchedulerProvider != null ? jobSchedulerProvider.getIfAvailable() : null;
-            if (scheduler != null && portfolioPostUploadService != null) {
-                scheduler.enqueue(() -> portfolioPostUploadService.processCasPostUpload(casId));
-            } else {
-                CompletableFuture.runAsync(() -> userSchemeDetailService.setUserSchemeAMFIIfNull(casId))
+        if (casPostUploadQueue != null) {
+            casPostUploadQueue.request(casId);
+            return;
+        }
+
+        Runnable trigger =
+                () -> CompletableFuture.runAsync(() -> userSchemeDetailService.setUserSchemeAMFIIfNull(casId))
                         .thenRun(() -> portfolioValueUpdateService.updatePortfolioValue(casId));
-            }
-        };
 
         if (TransactionSynchronizationManager.isSynchronizationActive()) {
             TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {

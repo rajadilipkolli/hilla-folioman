@@ -80,7 +80,8 @@ class PortfolioSummaryQueryImpl implements PortfolioSummaryQuery {
         return userCASDetailsRepository
                 .findById(casId)
                 .filter(cas -> cas.getInvestorInfoEntity() != null)
-                .filter(cas -> userEmail.equals(cas.getInvestorInfoEntity().getEmail()))
+                .filter(cas ->
+                        userEmail.equalsIgnoreCase(cas.getInvestorInfoEntity().getEmail()))
                 .map(_ -> {
                     List<UserPortfolioValueEntity> portfolioValues =
                             userPortfolioValueRepository.findByUserCasDetailsEntity_IdAndDateBetween(casId, from, to);

@@ -179,6 +179,8 @@ class UserDetailServiceTest {
 
         assertThat(response).isNotNull();
         assertThat(response.userCASDetailsId()).isEqualTo(1L);
+        assertThat(response.newTransactions()).isZero();
+        verify(portfolioValueUpdateService, Mockito.timeout(1000)).updatePortfolioValue(mockEntity.getId());
     }
 
     @Test

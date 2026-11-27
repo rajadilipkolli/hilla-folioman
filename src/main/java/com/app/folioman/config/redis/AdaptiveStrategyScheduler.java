@@ -20,8 +20,8 @@ import org.springframework.stereotype.Component;
 public class AdaptiveStrategyScheduler {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AdaptiveStrategyScheduler.class);
-    static final String LAST_STRATEGY_KEY = "folioman:cache:adaptive:last_strategy";
-    static final String CONSECUTIVE_MATCHES_KEY = "folioman:cache:adaptive:consecutive_matches";
+    static final String LAST_STRATEGY_KEY = "folioman:adaptive:last_strategy";
+    static final String CONSECUTIVE_MATCHES_KEY = "folioman:adaptive:consecutive_matches";
 
     private final CacheAdapter cacheAdapter;
     private final Monitor monitor;

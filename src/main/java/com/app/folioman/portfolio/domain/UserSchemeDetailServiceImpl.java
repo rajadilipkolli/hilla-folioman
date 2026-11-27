@@ -4,6 +4,7 @@ import com.app.folioman.mfschemes.MfSchemeService;
 import com.app.folioman.mfschemes.rest.dtos.FundDetailProjection;
 import com.app.folioman.mfschemes.rest.dtos.MFSchemeProjection;
 import com.app.folioman.portfolio.UserSchemeDetailService;
+import jakarta.persistence.EntityManager;
 import java.util.List;
 import java.util.Optional;
 import org.jspecify.annotations.Nullable;
@@ -21,11 +22,15 @@ public class UserSchemeDetailServiceImpl implements UserSchemeDetailService {
 
     private final UserSchemeDetailsRepository userSchemeDetailsRepository;
     private final MfSchemeService mfSchemeService;
+    private final EntityManager entityManager;
 
     UserSchemeDetailServiceImpl(
-            UserSchemeDetailsRepository userSchemeDetailsRepository, MfSchemeService mfSchemeService) {
+            UserSchemeDetailsRepository userSchemeDetailsRepository,
+            MfSchemeService mfSchemeService,
+            EntityManager entityManager) {
         this.userSchemeDetailsRepository = userSchemeDetailsRepository;
         this.mfSchemeService = mfSchemeService;
+        this.entityManager = entityManager;
     }
 
     @Override
@@ -70,8 +75,7 @@ public class UserSchemeDetailServiceImpl implements UserSchemeDetailService {
         if (StringUtils.hasText(storedIsin)) {
             Optional<MFSchemeProjection> match = mfSchemeService.findByPayOut(storedIsin);
             if (match.isPresent()) {
-                updateUserSchemeDetails(
-                        userSchemeDetailsEntity.getId(), match.get().getAmfiCode(), storedIsin);
+                updateUserSchemeDetails(userSchemeDetailsEntity, match.get().getAmfiCode(), storedIsin);
                 return;
             }
         }
@@ -87,7 +91,7 @@ public class UserSchemeDetailServiceImpl implements UserSchemeDetailService {
         if (!fundDetailProjections.isEmpty()) {
             Long schemeId = getSchemeId(fundDetailProjections, scheme);
             if (schemeId != null) {
-                updateUserSchemeDetails(userSchemeDetails.getId(), schemeId, null);
+                updateUserSchemeDetails(userSchemeDetails, schemeId, null);
             }
         }
     }
@@ -96,15 +100,17 @@ public class UserSchemeDetailServiceImpl implements UserSchemeDetailService {
         String isin = scheme.substring(scheme.lastIndexOf("ISIN:") + 5).strip();
         if (StringUtils.hasText(isin)) {
             Optional<MFSchemeProjection> mfSchemeEntity = mfSchemeService.findByPayOut(isin);
-            mfSchemeEntity.ifPresent(schemeEntity ->
-                    updateUserSchemeDetails(userSchemeDetails.getId(), schemeEntity.getAmfiCode(), isin));
+            mfSchemeEntity.ifPresent(
+                    schemeEntity -> updateUserSchemeDetails(userSchemeDetails, schemeEntity.getAmfiCode(), isin));
         } else {
             LOGGER.warn("ISIN is null after extraction for scheme: {}", scheme);
         }
     }
 
-    private void updateUserSchemeDetails(Long userSchemeId, Long schemeId, @Nullable String isin) {
-        userSchemeDetailsRepository.updateAmfiAndIsinById(schemeId, isin, userSchemeId);
+    private void updateUserSchemeDetails(UserSchemeDetailsEntity scheme, Long schemeId, @Nullable String isin) {
+        userSchemeDetailsRepository.updateAmfiAndIsinById(schemeId, isin, scheme.getId());
+        // The bulk update commits in a separate transaction; refresh the entity loaded by this one.
+        entityManager.refresh(scheme);
     }
 
     private @Nullable Long getSchemeId(List<FundDetailProjection> fundDetailProjections, String scheme) {

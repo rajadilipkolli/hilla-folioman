@@ -59,13 +59,14 @@ public class ReduceCacheSizePolicy implements CachePolicy {
         List<KeyMetadata> keyMetadataList = new ArrayList<>(allKeys.size());
 
         for (String key : allKeys) {
-            // Skip protected keys and auth token blacklist keys
-            if (key.startsWith(PROTECTED_KEY_PREFIX) || key.startsWith(TOKEN_BLACKLIST_PREFIX)) {
+            String logicalKey =
+                    key.startsWith(Monitor.CACHE_KEY_PREFIX) ? key.substring(Monitor.CACHE_KEY_PREFIX.length()) : key;
+            if (logicalKey.startsWith(PROTECTED_KEY_PREFIX) || logicalKey.startsWith(TOKEN_BLACKLIST_PREFIX)) {
                 continue;
             }
 
             // Get access count from metrics using low-cardinality cache tag
-            double accessCount = getAccessCountForKey(meterRegistry, key);
+            double accessCount = getAccessCountForKey(meterRegistry, logicalKey);
 
             // Get remaining TTL
             Long ttl = redisTemplate.getExpire(key);
@@ -120,11 +121,9 @@ public class ReduceCacheSizePolicy implements CachePolicy {
         }
     }
 
-    private double getAccessCountForKey(MeterRegistry meterRegistry, String key) {
-        String stripped =
-                key.startsWith(Monitor.CACHE_KEY_PREFIX) ? key.substring(Monitor.CACHE_KEY_PREFIX.length()) : key;
-        int separatorIdx = stripped.indexOf("::");
-        String cacheName = separatorIdx > 0 ? stripped.substring(0, separatorIdx) : stripped;
+    private double getAccessCountForKey(MeterRegistry meterRegistry, String logicalKey) {
+        int separatorIdx = logicalKey.indexOf("::");
+        String cacheName = separatorIdx > 0 ? logicalKey.substring(0, separatorIdx) : logicalKey;
         return meterRegistry.counter("cache.access", "cache", cacheName).count();
     }
 

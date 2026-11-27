@@ -16,6 +16,18 @@
                              constraintName="uc_investor_info_email_name"/>
     </changeSet>
 
+    <changeSet id="1764288000000-repair-scheme-values" author="appUser">
+        <comment>Keep the newest row for each valuation date and scheme. No schema tables reference scheme_value.</comment>
+        <sql>
+            DELETE FROM portfolio.scheme_value AS duplicate
+            USING (
+                SELECT id, ROW_NUMBER() OVER (PARTITION BY date, user_scheme_detail_id ORDER BY id DESC) AS row_num
+                FROM portfolio.scheme_value
+            ) AS ranked
+            WHERE duplicate.id = ranked.id AND ranked.row_num > 1;
+        </sql>
+    </changeSet>
+
     <changeSet id="1764288000000-2" author="appUser">
         <preConditions onFail="MARK_RAN">
             <not>

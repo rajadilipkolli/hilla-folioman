@@ -23,47 +23,47 @@ class InvestorInfoServiceTest {
     void existsByEmailAndName_ShouldReturnTrue_WhenRepositoryReturnsTrue() {
         String email = "test@example.com";
         String name = "John Doe";
-        when(investorInfoRepository.existsByEmailAndName(email, name)).thenReturn(true);
+        when(investorInfoRepository.existsByEmailIgnoreCaseAndName(email, name)).thenReturn(true);
 
         boolean result = investorInfoService.existsByEmailAndName(email, name);
 
         assertThat(result).isTrue();
-        verify(investorInfoRepository).existsByEmailAndName(email, name);
+        verify(investorInfoRepository).existsByEmailIgnoreCaseAndName(email, name);
     }
 
     @Test
     void existsByEmailAndName_ShouldReturnFalse_WhenRepositoryReturnsFalse() {
         String email = "test@example.com";
         String name = "John Doe";
-        when(investorInfoRepository.existsByEmailAndName(email, name)).thenReturn(false);
+        when(investorInfoRepository.existsByEmailIgnoreCaseAndName(email, name)).thenReturn(false);
 
         boolean result = investorInfoService.existsByEmailAndName(email, name);
 
         assertThat(result).isFalse();
-        verify(investorInfoRepository).existsByEmailAndName(email, name);
+        verify(investorInfoRepository).existsByEmailIgnoreCaseAndName(email, name);
     }
 
     @Test
     void existsByEmailAndName_ShouldDelegateToRepository_WhenEmailIsEmpty() {
         String email = "";
         String name = "John Doe";
-        when(investorInfoRepository.existsByEmailAndName(email, name)).thenReturn(false);
+        when(investorInfoRepository.existsByEmailIgnoreCaseAndName(email, name)).thenReturn(false);
 
         boolean result = investorInfoService.existsByEmailAndName(email, name);
 
         assertThat(result).isFalse();
-        verify(investorInfoRepository).existsByEmailAndName(email, name);
+        verify(investorInfoRepository).existsByEmailIgnoreCaseAndName(email, name);
     }
 
     @Test
     void existsByEmailAndName_ShouldDelegateToRepository_WhenNameIsEmpty() {
         String email = "test@example.com";
         String name = "";
-        when(investorInfoRepository.existsByEmailAndName(email, name)).thenReturn(false);
+        when(investorInfoRepository.existsByEmailIgnoreCaseAndName(email, name)).thenReturn(false);
 
         boolean result = investorInfoService.existsByEmailAndName(email, name);
 
         assertThat(result).isFalse();
-        verify(investorInfoRepository).existsByEmailAndName(email, name);
+        verify(investorInfoRepository).existsByEmailIgnoreCaseAndName(email, name);
     }
 }

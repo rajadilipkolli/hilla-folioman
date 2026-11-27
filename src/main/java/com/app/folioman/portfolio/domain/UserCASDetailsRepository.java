@@ -15,7 +15,7 @@ interface UserCASDetailsRepository extends JpaRepository<UserCasDetailsEntity, L
 
     @Query("""
             select u from UserCasDetailsEntity u join fetch u.folios join fetch u.investorInfoEntity as i
-            where i.email = :email and i.name = :name
+            where upper(i.email) = upper(:email) and i.name = :name
             """)
     Optional<UserCasDetailsEntity> findByInvestorEmailAndName(@Param("email") String email, @Param("name") String name);
 

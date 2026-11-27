@@ -19,7 +19,7 @@ class UserCASDetailsService {
 
     @Transactional
     public UserCasDetailsEntity saveEntity(UserCasDetailsEntity userCasDetailsEntity) {
-        return userCasDetailsRepository.save(userCasDetailsEntity);
+        return userCasDetailsRepository.saveAndFlush(userCasDetailsEntity);
     }
 
     public Optional<UserCasDetailsEntity> findByInvestorEmailAndName(String email, String name) {

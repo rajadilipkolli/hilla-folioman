@@ -81,8 +81,10 @@ public class ImportMutualFundController {
         LOGGER.info("Received password-protected PDF file: {} for processing", pdfFile.getOriginalFilename());
 
         // First convert the PDF to CasDTO
-        var casDTO = portfolioImportUseCase.convertPdfCasToJson(
-                pdfFile.getInputStream(), pdfFile.getOriginalFilename(), password);
+        CasDTO casDTO;
+        try (var pdfStream = pdfFile.getInputStream()) {
+            casDTO = portfolioImportUseCase.convertPdfCasToJson(pdfStream, pdfFile.getOriginalFilename(), password);
+        }
         verifyInvestorEmailOwnership(casDTO);
 
         // Then process the CasDTO using the existing flow

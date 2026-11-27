@@ -1,5 +1,6 @@
 package com.app.folioman.portfolio.rest.controllers;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.matchesPattern;
 import static org.mockito.ArgumentMatchers.any;
@@ -23,6 +24,8 @@ import com.app.folioman.portfolio.rest.dtos.CasDTO;
 import com.app.folioman.portfolio.rest.dtos.InvestorInfoDTO;
 import com.app.folioman.portfolio.rest.dtos.PortfolioResponse;
 import com.app.folioman.portfolio.rest.dtos.UploadFileResponse;
+import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,6 +41,7 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.web.multipart.MultipartFile;
 
 @WebMvcTest(controllers = ImportMutualFundController.class)
 @WithMockUser(roles = "USER")
@@ -46,6 +50,9 @@ class ImportMutualFundControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
+
+    @Autowired
+    private ImportMutualFundController importMutualFundController;
 
     @MockitoBean
     private PortfolioImportUseCase portfolioImportUseCase;
@@ -172,6 +179,21 @@ class ImportMutualFundControllerTest {
 
         verify(portfolioImportUseCase).convertPdfCasToJson(any(), eq("test.pdf"), eq("pass123"));
         verify(portfolioImportUseCase).uploadFromDto(mockCasDto);
+    }
+
+    @Test
+    void uploadPasswordProtectedCasPdf_ClosesStreamWhenConversionFails() throws Exception {
+        var file = Mockito.mock(MultipartFile.class);
+        var stream = Mockito.mock(InputStream.class);
+        Mockito.when(file.getInputStream()).thenReturn(stream);
+        Mockito.when(file.getOriginalFilename()).thenReturn("test.pdf");
+        Mockito.when(portfolioImportUseCase.convertPdfCasToJson(stream, "test.pdf", "pass123"))
+                .thenThrow(new IOException("Preflight failed"));
+
+        assertThatThrownBy(() -> importMutualFundController.uploadPasswordProtectedCasPdf(file, "pass123"))
+                .isInstanceOf(IOException.class)
+                .hasMessage("Preflight failed");
+        verify(stream).close();
     }
 
     @Test

@@ -43,7 +43,7 @@ class PortfolioHistoryControllerIT extends AbstractIntegrationTest {
     @Test
     @DisplayName("Should return portfolio history for owned portfolio and populate cache")
     void shouldReturnHistoryForOwnedPortfolioAndPopulateCache() throws Exception {
-        Long casId = insertTestPortfolioHistory("user", LocalDate.now().minusDays(30));
+        Long casId = insertTestPortfolioHistory("User", LocalDate.now().minusDays(30));
 
         MvcResult firstResult = this.mockMvc
                 .perform(get("/api/mutualfunds/portfolio/{id}/history", casId)

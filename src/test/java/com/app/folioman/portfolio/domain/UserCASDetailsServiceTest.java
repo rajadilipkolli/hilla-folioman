@@ -70,13 +70,14 @@ class UserCASDetailsServiceTest {
 
     @Test
     void saveEntity_ShouldReturnSavedEntity() {
-        when(UserCasDetailsRepository.save(any(UserCasDetailsEntity.class))).thenReturn(userCasDetailsEntity);
+        when(UserCasDetailsRepository.saveAndFlush(any(UserCasDetailsEntity.class)))
+                .thenReturn(userCasDetailsEntity);
 
         UserCasDetailsEntity result = userCASDetailsService.saveEntity(userCasDetailsEntity);
 
         assertThat(result).isNotNull();
         assertThat(result).isEqualTo(userCasDetailsEntity);
-        verify(UserCasDetailsRepository).save(userCasDetailsEntity);
+        verify(UserCasDetailsRepository).saveAndFlush(userCasDetailsEntity);
     }
 
     @Test

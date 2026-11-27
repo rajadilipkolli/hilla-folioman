@@ -17,6 +17,6 @@ class InvestorInfoService {
 
     @Cacheable(value = CacheNames.EMAIL_AND_NAME_CACHE, unless = "#result == false")
     public boolean existsByEmailAndName(String email, String name) {
-        return this.investorInfoRepository.existsByEmailAndName(email, name);
+        return this.investorInfoRepository.existsByEmailIgnoreCaseAndName(email, name);
     }
 }
