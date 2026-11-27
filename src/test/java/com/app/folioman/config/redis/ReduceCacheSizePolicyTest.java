@@ -59,11 +59,11 @@ class ReduceCacheSizePolicyTest {
     @Test
     void apply_WithEmptyKeys_LogsAndReturns() {
         try (MockedConstruction<Monitor> mocked = mockConstruction(Monitor.class, (mock, ctx) -> {
-            when(mock.scanKeys("*")).thenReturn(new HashSet<>());
+            when(mock.scanKeys(Monitor.CACHE_KEY_PREFIX + "*")).thenReturn(new HashSet<>());
         })) {
             reduceCacheSizePolicy.apply(redisTemplate, meterRegistry);
 
-            verify(mocked.constructed().get(0)).scanKeys("*");
+            verify(mocked.constructed().get(0)).scanKeys(Monitor.CACHE_KEY_PREFIX + "*");
             verify(redisTemplate, never()).delete(anyString());
         }
     }
@@ -71,11 +71,11 @@ class ReduceCacheSizePolicyTest {
     @Test
     void apply_WithNullKeys_LogsAndReturns() {
         try (MockedConstruction<Monitor> mocked = mockConstruction(Monitor.class, (mock, ctx) -> {
-            when(mock.scanKeys("*")).thenReturn(null);
+            when(mock.scanKeys(Monitor.CACHE_KEY_PREFIX + "*")).thenReturn(null);
         })) {
             reduceCacheSizePolicy.apply(redisTemplate, meterRegistry);
 
-            verify(mocked.constructed().get(0)).scanKeys("*");
+            verify(mocked.constructed().get(0)).scanKeys(Monitor.CACHE_KEY_PREFIX + "*");
             verify(redisTemplate, never()).delete(anyString());
         }
     }
@@ -84,7 +84,7 @@ class ReduceCacheSizePolicyTest {
     void apply_WithRegularKeys_EvictsKeysAndAppliesTTL() {
         Set<String> keys = new LinkedHashSet<>(List.of("key1", "key2", "key3", "key4", "key5"));
         try (MockedConstruction<Monitor> mocked = mockConstruction(Monitor.class, (mock, ctx) -> {
-            when(mock.scanKeys("*")).thenReturn(keys);
+            when(mock.scanKeys(Monitor.CACHE_KEY_PREFIX + "*")).thenReturn(keys);
         })) {
             when(counter.count()).thenReturn(2.0, 1.0, 3.0, 0.5, 4.0);
             when(redisTemplate.getExpire(anyString())).thenReturn(3600L);
@@ -108,7 +108,7 @@ class ReduceCacheSizePolicyTest {
         keys.add("regular:key4"); // will be the lowest-access key in this test
 
         try (MockedConstruction<Monitor> mocked = mockConstruction(Monitor.class, (mock, ctx) -> {
-            when(mock.scanKeys("*")).thenReturn(keys);
+            when(mock.scanKeys(Monitor.CACHE_KEY_PREFIX + "*")).thenReturn(keys);
         })) {
             // For 5 keys, 30% -> floor(1.5) == 1 keyToRemove. Provide counts in
             // the same order as the keys so that the lowest-access key is
@@ -130,7 +130,7 @@ class ReduceCacheSizePolicyTest {
     void apply_WithHighAccessKeys_DoesNotEvictHighAccessKeys() {
         Set<String> keys = new LinkedHashSet<>(List.of("key1", "key2", "key3", "key4", "key5", "key6", "key7"));
         try (MockedConstruction<Monitor> mocked = mockConstruction(Monitor.class, (mock, ctx) -> {
-            when(mock.scanKeys("*")).thenReturn(keys);
+            when(mock.scanKeys(Monitor.CACHE_KEY_PREFIX + "*")).thenReturn(keys);
         })) {
             when(counter.count()).thenReturn(50.0, 60.0, 1.0, 2.0, 3.0, 4.0, 5.0);
             when(redisTemplate.getExpire(anyString())).thenReturn(3600L);
@@ -153,7 +153,7 @@ class ReduceCacheSizePolicyTest {
         keys.add("key4");
 
         try (MockedConstruction<Monitor> mocked = mockConstruction(Monitor.class, (mock, ctx) -> {
-            when(mock.scanKeys("*")).thenReturn(keys);
+            when(mock.scanKeys(Monitor.CACHE_KEY_PREFIX + "*")).thenReturn(keys);
         })) {
             // For 4 keys, 30% -> floor(1.2) == 1 keyToRemove. Provide counts in
             // the same order as the keys so that the lowest-access key is
@@ -184,34 +184,33 @@ class ReduceCacheSizePolicyTest {
 
     @Test
     void apply_WithSimpleKeyInKeyName_ProcessesKeyCorrectly() {
-        Set<String> keys = Set.of("cache::SimpleKey[param1]");
+        Set<String> keys = Set.of("folioman:cache:cache::SimpleKey[param1]");
         try (MockedConstruction<Monitor> mocked = mockConstruction(Monitor.class, (mock, ctx) -> {
-            when(mock.scanKeys("*")).thenReturn(keys);
+            when(mock.scanKeys(Monitor.CACHE_KEY_PREFIX + "*")).thenReturn(keys);
         })) {
-            when(meterRegistry.counter("cache.access", "key", "SimpleKey[param1]"))
-                    .thenReturn(counter);
+            when(meterRegistry.counter("cache.access", "cache", "cache")).thenReturn(counter);
             when(counter.count()).thenReturn(1.0);
             when(redisTemplate.getExpire(anyString())).thenReturn(3600L);
 
             reduceCacheSizePolicy.apply(redisTemplate, meterRegistry);
 
-            verify(meterRegistry).counter("cache.access", "key", "SimpleKey[param1]");
+            verify(meterRegistry).counter("cache.access", "cache", "cache");
         }
     }
 
     @Test
     void apply_WithDoubleColonInKeyName_ProcessesKeyCorrectly() {
-        Set<String> keys = Set.of("cache::methodName");
+        Set<String> keys = Set.of("folioman:cache:cache::methodName");
         try (MockedConstruction<Monitor> mocked = mockConstruction(Monitor.class, (mock, ctx) -> {
-            when(mock.scanKeys("*")).thenReturn(keys);
+            when(mock.scanKeys(Monitor.CACHE_KEY_PREFIX + "*")).thenReturn(keys);
         })) {
-            when(meterRegistry.counter("cache.access", "key", "methodName")).thenReturn(counter);
+            when(meterRegistry.counter("cache.access", "cache", "cache")).thenReturn(counter);
             when(counter.count()).thenReturn(1.0);
             when(redisTemplate.getExpire(anyString())).thenReturn(3600L);
 
             reduceCacheSizePolicy.apply(redisTemplate, meterRegistry);
 
-            verify(meterRegistry).counter("cache.access", "key", "methodName");
+            verify(meterRegistry).counter("cache.access", "cache", "cache");
         }
     }
 
@@ -219,7 +218,7 @@ class ReduceCacheSizePolicyTest {
     void apply_WithLowAccessCountKeys_AppliesShortTTL() {
         Set<String> keys = new LinkedHashSet<>(List.of("key1", "key2", "key3", "key4", "key5", "key6"));
         try (MockedConstruction<Monitor> mocked = mockConstruction(Monitor.class, (mock, ctx) -> {
-            when(mock.scanKeys("*")).thenReturn(keys);
+            when(mock.scanKeys(Monitor.CACHE_KEY_PREFIX + "*")).thenReturn(keys);
         })) {
             when(counter.count()).thenReturn(1.0, 2.0, 3.0, 4.0, 6.0, 7.0);
             when(redisTemplate.getExpire(anyString())).thenReturn(3600L);
@@ -238,7 +237,7 @@ class ReduceCacheSizePolicyTest {
             keys.add("key" + i);
         }
         try (MockedConstruction<Monitor> mocked = mockConstruction(Monitor.class, (mock, ctx) -> {
-            when(mock.scanKeys("*")).thenReturn(keys);
+            when(mock.scanKeys(Monitor.CACHE_KEY_PREFIX + "*")).thenReturn(keys);
         })) {
             when(counter.count()).thenReturn(1.0);
             when(redisTemplate.getExpire(anyString())).thenReturn(3600L);

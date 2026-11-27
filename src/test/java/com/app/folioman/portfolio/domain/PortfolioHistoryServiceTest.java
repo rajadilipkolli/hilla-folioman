@@ -21,22 +21,16 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class PortfolioHistoryServiceTest {
 
     @Mock
-    private UserTransactionDetailsService userTransactionDetailsService;
-
-    @Mock
-    private UserDetailService userDetailService;
-
-    @Mock
-    private PdfProcessingService pdfProcessingService;
-
-    @Mock
     private UserCASDetailsRepository userCASDetailsRepository;
 
     @Mock
     private UserPortfolioValueRepository userPortfolioValueRepository;
 
+    @Mock
+    private PortfolioSummaryService portfolioSummaryService;
+
     @InjectMocks
-    private PortfolioAPIImpl portfolioAPI;
+    private PortfolioSummaryQueryImpl portfolioAPI;
 
     @Test
     void shouldReturnEmptyWhenCasDoesNotExist() {

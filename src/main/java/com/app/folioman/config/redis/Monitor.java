@@ -1,13 +1,16 @@
 package com.app.folioman.config.redis;
 
+import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.Cursor;
@@ -18,92 +21,73 @@ import org.springframework.stereotype.Component;
 @Component
 public class Monitor {
 
+    static final String CACHE_KEY_PREFIX = "folioman:cache:";
     private static final Logger LOGGER = LoggerFactory.getLogger(Monitor.class);
-    private static final int SCAN_COUNT = 100; // Process keys in batches of 100
+    private static final int SCAN_COUNT = 100;
 
     private final RedisTemplate<String, Object> redisTemplate;
     private final MeterRegistry meterRegistry;
+    private final @Nullable CacheCircuitBreaker cacheCircuitBreaker;
 
     public Monitor(RedisTemplate<String, Object> redisTemplate, MeterRegistry meterRegistry) {
+        this(redisTemplate, meterRegistry, null);
+    }
+
+    @Autowired
+    public Monitor(
+            RedisTemplate<String, Object> redisTemplate,
+            MeterRegistry meterRegistry,
+            @Nullable CacheCircuitBreaker cacheCircuitBreaker) {
         this.redisTemplate = redisTemplate;
         this.meterRegistry = meterRegistry;
+        this.cacheCircuitBreaker = cacheCircuitBreaker;
     }
 
-    /**
-     * Record access to the cache, incrementing the counter for cache access.
-     */
-    public void recordAccess(String key) {
-        meterRegistry.counter("cache.access", "key", key).increment();
+    public void recordAccess(String cacheName) {
+        meterRegistry.counter("cache.access", "cache", cacheName).increment();
     }
 
-    /**
-     * Record update to the cache, incrementing the counter for cache updates.
-     */
-    public void recordUpdate(String key) {
-        meterRegistry.counter("cache.update", "key", key).increment();
+    public void recordUpdate(String cacheName) {
+        meterRegistry.counter("cache.update", "cache", cacheName).increment();
     }
 
-    /**
-     * Record a cache hit, incrementing the counter for cache hits.
-     */
-    public void recordHit(String key) {
-        meterRegistry.counter("cache.hit", "key", key).increment();
+    public void recordHit(String cacheName) {
+        meterRegistry.counter("cache.hit", "cache", cacheName).increment();
     }
 
-    /**
-     * Record a cache miss, incrementing the counter for cache misses.
-     */
-    public void recordMiss(String key) {
-        meterRegistry.counter("cache.miss", "key", key).increment();
+    public void recordMiss(String cacheName) {
+        meterRegistry.counter("cache.miss", "cache", cacheName).increment();
     }
 
-    /**
-     * Get key metrics including cache size, hit rate, and Redis memory usage.
-     */
     public Map<String, Object> getMetrics() {
         Map<String, Object> metrics = new HashMap<>();
         metrics.put("cacheSize", countKeys());
         metrics.put("hitRate", calculateHitRate());
         metrics.put("memoryUsage", getRedisMemoryUsage());
 
-        // Add additional metrics for better monitoring
-        metrics.put("localCacheEnabled", getCircuitBreakerState().equals("OPEN"));
-        metrics.put("circuitBreakerState", getCircuitBreakerState());
+        String circuitBreakerState = getCircuitBreakerState();
+        metrics.put("localCacheEnabled", false);
+        metrics.put("circuitBreakerState", circuitBreakerState);
 
         return metrics;
     }
 
-    /**
-     * Get the current state of the circuit breaker
-     */
     private String getCircuitBreakerState() {
-        try {
-            // This is a simplistic approach; in production, you would inject the actual CircuitBreaker
-            return "CLOSED"; // Default to closed if we can't determine
-        } catch (Exception e) {
-            LOGGER.warn("Error getting circuit breaker state", e);
-            return "UNKNOWN";
+        if (cacheCircuitBreaker != null) {
+            return cacheCircuitBreaker.getState().name();
         }
+        return "CLOSED";
     }
 
-    /**
-     * Count the number of keys in Redis without using KEYS command
-     * @return the number of keys in Redis
-     */
     private long countKeys() {
         try {
-            return scanKeys("*").size();
+            return scanKeys(CACHE_KEY_PREFIX + "*").size();
         } catch (Exception e) {
             LOGGER.error("Error counting Redis keys", e);
             return 0;
         }
     }
 
-    /**
-     * Scan keys in Redis using the more efficient SCAN operation
-     * @param pattern the key pattern to match
-     * @return a set of keys matching the pattern
-     */
     public Set<String> scanKeys(String pattern) {
         Set<String> keys = new HashSet<>();
         RedisConnectionFactory factory = redisTemplate.getConnectionFactory();
@@ -136,12 +120,16 @@ public class Monitor {
     }
 
     /**
-     * Calculate the cache hit rate using counters from Micrometer.
-     * Hit rate is calculated as (cacheHits / (cacheHits + cacheMisses)).
+     * Computes hit rate from pod-local Micrometer counters (`cache.hit` / `cache.miss`).
+     * In multi-pod deployments this reflects only the current pod's traffic.
      */
     private double calculateHitRate() {
-        double hits = meterRegistry.counter("cache.hit").count();
-        double misses = meterRegistry.counter("cache.miss").count();
+        double hits = meterRegistry.find("cache.hit").counters().stream()
+                .mapToDouble(Counter::count)
+                .sum();
+        double misses = meterRegistry.find("cache.miss").counters().stream()
+                .mapToDouble(Counter::count)
+                .sum();
         double totalRequests = hits + misses;
 
         if (totalRequests == 0) {
@@ -151,9 +139,6 @@ public class Monitor {
         return hits / totalRequests;
     }
 
-    /**
-     * Retrieve Redis memory usage using the INFO MEMORY command.
-     */
     private long getRedisMemoryUsage() {
         RedisConnectionFactory factory = redisTemplate.getConnectionFactory();
         if (factory == null) {
@@ -161,7 +146,6 @@ public class Monitor {
         }
 
         try (RedisConnection connection = factory.getConnection()) {
-            // Execute the Redis INFO MEMORY command
             Properties memoryInfo = connection.serverCommands().info("memory");
             String usedMemory = (String) memoryInfo.get("used_memory");
 

@@ -5,8 +5,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.app.folioman.config.SQLContainersConfig;
 import com.app.folioman.shared.AbstractIntegrationTest;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.testcontainers.containers.GenericContainer;
 
 class ApplicationPropertiesIT extends AbstractIntegrationTest {
+
+    @Autowired
+    private GenericContainer<?> mfNavDataContainer;
 
     @Test
     void whenValidPropertiesProvided_thenBindingSucceeds() {
@@ -28,6 +33,6 @@ class ApplicationPropertiesIT extends AbstractIntegrationTest {
         assertThat(applicationProperties.getNav().getMfApi()).isNotNull();
         assertThat(applicationProperties.getNav().getMfApi().getDataUrl())
                 .isNotNull()
-                .isEqualTo(SQLContainersConfig.mfNavDataUrl());
+                .isEqualTo(SQLContainersConfig.mfNavDataUrl(mfNavDataContainer));
     }
 }

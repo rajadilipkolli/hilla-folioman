@@ -14,10 +14,4 @@ public interface MfSchemeService {
     List<MFSchemeProjection> findByAmfiCodeIn(List<Long> amfiCodes);
 
     List<FundDetailProjection> fetchSchemes(String scheme);
-
-    void fetchSchemeDetails(Long schemeId);
-
-    void fetchSchemeDetails(String oldSchemeCode, Long newSchemeCode);
-
-    List<MFSchemeProjection> fetchSchemesByRtaCode(String rtaCode);
 }

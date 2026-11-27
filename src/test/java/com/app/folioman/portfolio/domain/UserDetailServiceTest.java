@@ -32,8 +32,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.web.multipart.MultipartFile;
 
 @ExtendWith(MockitoExtension.class)
 class UserDetailServiceTest {
@@ -60,13 +58,7 @@ class UserDetailServiceTest {
     private UserSchemeDetailService userSchemeDetailService;
 
     @Mock
-    private ApplicationEventPublisher applicationEventPublisher;
-
-    @Mock
     private PortfolioValueUpdateService portfolioValueUpdateService;
-
-    @Mock
-    private MultipartFile multipartFile;
 
     @InjectMocks
     private UserDetailService userDetailService;
@@ -93,7 +85,6 @@ class UserDetailServiceTest {
 
     @Test
     void upload_invalidInvestorEmail_throwsException() throws IOException {
-        when(multipartFile.getBytes()).thenReturn(new byte[0]);
         CasDTO invalidCas = new CasDTO(
                 new StatementPeriodDTO("01-Jan-2023", "31-Dec-2023"),
                 "FileType",
@@ -102,14 +93,13 @@ class UserDetailServiceTest {
                 List.of(mockFolioDTO));
         when(portfolioServiceHelper.readValue(any(), eq(CasDTO.class))).thenReturn(invalidCas);
 
-        assertThatThrownBy(() -> userDetailService.upload(multipartFile))
+        assertThatThrownBy(() -> userDetailService.upload(new byte[0]))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Email or Name invalid!");
     }
 
     @Test
     void upload_invalidInvestorName_throwsException() throws IOException {
-        when(multipartFile.getBytes()).thenReturn(new byte[0]);
         CasDTO invalidCas = new CasDTO(
                 new StatementPeriodDTO("01-Jan-2023", "31-Dec-2023"),
                 "FileType",
@@ -118,14 +108,13 @@ class UserDetailServiceTest {
                 List.of(mockFolioDTO));
         when(portfolioServiceHelper.readValue(any(), eq(CasDTO.class))).thenReturn(invalidCas);
 
-        assertThatThrownBy(() -> userDetailService.upload(multipartFile))
+        assertThatThrownBy(() -> userDetailService.upload(new byte[0]))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Email or Name invalid!");
     }
 
     @Test
     void upload_noFolios_throwsException() throws IOException {
-        when(multipartFile.getBytes()).thenReturn(new byte[0]);
         CasDTO invalidCas = new CasDTO(
                 new StatementPeriodDTO("01-Jan-2023", "31-Dec-2023"),
                 "FileType",
@@ -134,14 +123,13 @@ class UserDetailServiceTest {
                 Collections.emptyList());
         when(portfolioServiceHelper.readValue(any(), eq(CasDTO.class))).thenReturn(invalidCas);
 
-        assertThatThrownBy(() -> userDetailService.upload(multipartFile))
+        assertThatThrownBy(() -> userDetailService.upload(new byte[0]))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("No folios found!");
     }
 
     @Test
     void upload_newUser_processesAndReturnsResponse() throws IOException {
-        when(multipartFile.getBytes()).thenReturn(new byte[0]);
         when(portfolioServiceHelper.readValue(any(), eq(CasDTO.class))).thenReturn(mockCasDTO);
         when(investorInfoService.existsByEmailAndName("test@example.com", "Test User"))
                 .thenReturn(false);
@@ -150,7 +138,7 @@ class UserDetailServiceTest {
                 .thenReturn(mockEntity);
         when(userCASDetailsService.saveEntity(mockEntity)).thenReturn(mockEntity);
 
-        UploadFileResponse response = userDetailService.upload(multipartFile);
+        UploadFileResponse response = userDetailService.upload(new byte[0]);
 
         assertThat(response).isNotNull();
         assertThat(response.userCASDetailsId()).isEqualTo(1L);
@@ -220,5 +208,30 @@ class UserDetailServiceTest {
         assertThat(response.userCASDetailsId()).isEqualTo(1L);
         // It should have found 1 new folio because the db mockEntity has no folios
         assertThat(response.newFolios()).isEqualTo(1);
+    }
+
+    @Test
+    void uploadFromDto_canonicalizesEmailBeforeLookup() {
+        CasDTO mixedCaseCas = new CasDTO(
+                new StatementPeriodDTO("01-Jan-2023", "31-Dec-2023"),
+                "FileType",
+                "CasType",
+                new InvestorInfoDTO("  Test@Example.COM ", "Test User", "1234567890", "Address"),
+                List.of(mockFolioDTO));
+        when(investorInfoService.existsByEmailAndName("test@example.com", "Test User"))
+                .thenReturn(true);
+        when(userCASDetailsService.findByInvestorEmailAndName("test@example.com", "Test User"))
+                .thenReturn(Optional.of(mockEntity));
+        when(portfolioServiceHelper.countTransactionsByUserFolioDTOList(anyList()))
+                .thenReturn(0L);
+        when(userTransactionDetailsService.findAllTransactionsByEmailNameAndPeriod(
+                        eq("Test User"), eq("test@example.com"), any(), any()))
+                .thenReturn(0L);
+
+        UploadFileResponse response = userDetailService.uploadFromDto(mixedCaseCas);
+
+        assertThat(response.userCASDetailsId()).isEqualTo(1L);
+        verify(investorInfoService).existsByEmailAndName("test@example.com", "Test User");
+        verify(userCASDetailsService).findByInvestorEmailAndName("test@example.com", "Test User");
     }
 }

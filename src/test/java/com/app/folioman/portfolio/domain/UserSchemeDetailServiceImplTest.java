@@ -98,7 +98,6 @@ class UserSchemeDetailServiceImplTest {
         userSchemeDetailService.setUserSchemeAMFIIfNull();
 
         verify(userSchemeDetailsRepository).findByAmfiIsNull();
-        verify(mfSchemeService, never()).fetchSchemesByRtaCode(anyString());
         verify(userSchemeDetailsRepository, never()).updateAmfiAndIsinById(anyLong(), anyString(), anyLong());
     }
 
@@ -113,7 +112,6 @@ class UserSchemeDetailServiceImplTest {
         userSchemeDetailService.setUserSchemeAMFIIfNull();
 
         verify(userSchemeDetailsRepository).findByAmfiIsNull();
-        verify(mfSchemeService, never()).fetchSchemesByRtaCode(anyString());
         verify(userSchemeDetailsRepository, never()).updateAmfiAndIsinById(anyLong(), anyString(), anyLong());
     }
 
@@ -128,44 +126,12 @@ class UserSchemeDetailServiceImplTest {
         userSchemeDetailService.setUserSchemeAMFIIfNull();
 
         verify(userSchemeDetailsRepository).findByAmfiIsNull();
-        verify(mfSchemeService, never()).fetchSchemesByRtaCode(anyString());
         verify(userSchemeDetailsRepository, never()).updateAmfiAndIsinById(anyLong(), anyString(), anyLong());
-    }
-
-    @Test
-    void setUserSchemeAMFIIfNull_WithValidRtaCodeAndMatchingSchemes_ShouldUpdateSchemeDetails() {
-        when(userSchemeDetailsRepository.findByAmfiIsNull())
-                .thenReturn(Collections.singletonList(userSchemeDetailsEntity));
-        when(mfSchemeService.fetchSchemesByRtaCode("ABC12")).thenReturn(Collections.singletonList(mfSchemeProjection));
-
-        userSchemeDetailService.setUserSchemeAMFIIfNull();
-
-        verify(userSchemeDetailsRepository).findByAmfiIsNull();
-        verify(mfSchemeService).fetchSchemesByRtaCode("ABC12");
-        verify(userSchemeDetailsRepository).updateAmfiAndIsinById(123L, "INE123456789", 1L);
-    }
-
-    @Test
-    void setUserSchemeAMFIIfNull_WithValidRtaCodeAndNoMatchingIsin_ShouldUseFirstScheme() {
-        UserSchemeDetailsEntity differentIsinScheme = new UserSchemeDetailsEntity();
-        differentIsinScheme.setId(4L);
-        differentIsinScheme.setRtaCode("XYZ456");
-        differentIsinScheme.setIsin("INE987654321");
-
-        when(userSchemeDetailsRepository.findByAmfiIsNull()).thenReturn(Arrays.asList(differentIsinScheme));
-        when(mfSchemeService.fetchSchemesByRtaCode("XYZ45")).thenReturn(Arrays.asList(mfSchemeProjection));
-
-        userSchemeDetailService.setUserSchemeAMFIIfNull();
-
-        verify(userSchemeDetailsRepository).findByAmfiIsNull();
-        verify(mfSchemeService).fetchSchemesByRtaCode("XYZ45");
-        verify(userSchemeDetailsRepository).updateAmfiAndIsinById(123L, "INE123456789", 4L);
     }
 
     @Test
     void resolvesStoredIsinWhenRtaLookupIsEmpty() {
         when(userSchemeDetailsRepository.findByAmfiIsNull()).thenReturn(List.of(userSchemeDetailsEntity));
-        when(mfSchemeService.fetchSchemesByRtaCode("ABC12")).thenReturn(List.of());
         when(mfSchemeService.findByPayOut("INE123456789")).thenReturn(Optional.of(mfSchemeProjection));
 
         userSchemeDetailService.setUserSchemeAMFIIfNull();
@@ -182,13 +148,11 @@ class UserSchemeDetailServiceImplTest {
         schemeWithIsin.setScheme("Test Scheme ISIN:INE111222333");
 
         when(userSchemeDetailsRepository.findByAmfiIsNull()).thenReturn(Arrays.asList(schemeWithIsin));
-        when(mfSchemeService.fetchSchemesByRtaCode("DEF78")).thenReturn(Collections.emptyList());
         when(mfSchemeService.findByPayOut("INE111222333")).thenReturn(Optional.of(mfSchemeProjection));
 
         userSchemeDetailService.setUserSchemeAMFIIfNull();
 
         verify(userSchemeDetailsRepository).findByAmfiIsNull();
-        verify(mfSchemeService).fetchSchemesByRtaCode("DEF78");
         verify(mfSchemeService).findByPayOut("INE111222333");
         verify(userSchemeDetailsRepository).updateAmfiAndIsinById(123L, "INE111222333", 5L);
     }
@@ -201,14 +165,12 @@ class UserSchemeDetailServiceImplTest {
         schemeWithoutIsin.setScheme("Test Income Scheme");
 
         when(userSchemeDetailsRepository.findByAmfiIsNull()).thenReturn(List.of(schemeWithoutIsin));
-        when(mfSchemeService.fetchSchemesByRtaCode("GHI01")).thenReturn(Collections.emptyList());
         when(mfSchemeService.fetchSchemes("Test Income Scheme"))
                 .thenReturn(Collections.singletonList(fundDetailProjection));
 
         userSchemeDetailService.setUserSchemeAMFIIfNull();
 
         verify(userSchemeDetailsRepository).findByAmfiIsNull();
-        verify(mfSchemeService).fetchSchemesByRtaCode("GHI01");
         verify(mfSchemeService).fetchSchemes("Test Income Scheme");
         verify(userSchemeDetailsRepository).updateAmfiAndIsinById(456L, null, 6L);
     }
@@ -221,13 +183,11 @@ class UserSchemeDetailServiceImplTest {
         schemeWithoutIsin.setScheme("Test Scheme Without ISIN");
 
         when(userSchemeDetailsRepository.findByAmfiIsNull()).thenReturn(Arrays.asList(schemeWithoutIsin));
-        when(mfSchemeService.fetchSchemesByRtaCode("MNO67")).thenReturn(Collections.emptyList());
         when(mfSchemeService.fetchSchemes("Test Scheme Without ISIN")).thenReturn(Collections.emptyList());
 
         userSchemeDetailService.setUserSchemeAMFIIfNull();
 
         verify(userSchemeDetailsRepository).findByAmfiIsNull();
-        verify(mfSchemeService).fetchSchemesByRtaCode("MNO67");
         verify(mfSchemeService).fetchSchemes("Test Scheme Without ISIN");
         verify(userSchemeDetailsRepository, never()).updateAmfiAndIsinById(anyLong(), anyString(), anyLong());
     }
@@ -257,13 +217,11 @@ class UserSchemeDetailServiceImplTest {
         };
 
         when(userSchemeDetailsRepository.findByAmfiIsNull()).thenReturn(Arrays.asList(nonMatchingScheme));
-        when(mfSchemeService.fetchSchemesByRtaCode("PQR90")).thenReturn(Collections.emptyList());
         when(mfSchemeService.fetchSchemes("Test Growth Scheme")).thenReturn(Arrays.asList(nonMatchingFund));
 
         userSchemeDetailService.setUserSchemeAMFIIfNull();
 
         verify(userSchemeDetailsRepository).findByAmfiIsNull();
-        verify(mfSchemeService).fetchSchemesByRtaCode("PQR90");
         verify(mfSchemeService).fetchSchemes("Test Growth Scheme");
         verify(userSchemeDetailsRepository, never()).updateAmfiAndIsinById(anyLong(), anyString(), anyLong());
     }
@@ -276,13 +234,11 @@ class UserSchemeDetailServiceImplTest {
         schemeWithIsinNotFound.setScheme("Test Scheme ISIN:INE999888777");
 
         when(userSchemeDetailsRepository.findByAmfiIsNull()).thenReturn(Arrays.asList(schemeWithIsinNotFound));
-        when(mfSchemeService.fetchSchemesByRtaCode("STU23")).thenReturn(Collections.emptyList());
         when(mfSchemeService.findByPayOut("INE999888777")).thenReturn(Optional.empty());
 
         userSchemeDetailService.setUserSchemeAMFIIfNull();
 
         verify(userSchemeDetailsRepository).findByAmfiIsNull();
-        verify(mfSchemeService).fetchSchemesByRtaCode("STU23");
         verify(mfSchemeService).findByPayOut("INE999888777");
         verify(userSchemeDetailsRepository, never()).updateAmfiAndIsinById(anyLong(), anyString(), anyLong());
     }
@@ -295,12 +251,10 @@ class UserSchemeDetailServiceImplTest {
         schemeWithEmptyIsin.setScheme("Test Scheme ISIN:");
 
         when(userSchemeDetailsRepository.findByAmfiIsNull()).thenReturn(Arrays.asList(schemeWithEmptyIsin));
-        when(mfSchemeService.fetchSchemesByRtaCode("VWX56")).thenReturn(Collections.emptyList());
 
         userSchemeDetailService.setUserSchemeAMFIIfNull();
 
         verify(userSchemeDetailsRepository).findByAmfiIsNull();
-        verify(mfSchemeService).fetchSchemesByRtaCode("VWX56");
         verify(mfSchemeService, never()).findByPayOut(anyString());
         verify(userSchemeDetailsRepository, never()).updateAmfiAndIsinById(anyLong(), anyString(), anyLong());
     }

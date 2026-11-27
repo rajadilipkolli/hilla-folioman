@@ -5,7 +5,6 @@ import com.app.folioman.mfschemes.rest.dtos.FundDetailProjection;
 import com.app.folioman.mfschemes.rest.dtos.MFSchemeProjection;
 import com.app.folioman.portfolio.UserSchemeDetailService;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -16,7 +15,7 @@ import org.springframework.util.StringUtils;
 
 @Service
 @Transactional(readOnly = true)
-class UserSchemeDetailServiceImpl implements UserSchemeDetailService {
+public class UserSchemeDetailServiceImpl implements UserSchemeDetailService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UserSchemeDetailServiceImpl.class);
 
@@ -30,8 +29,17 @@ class UserSchemeDetailServiceImpl implements UserSchemeDetailService {
     }
 
     @Override
+    @Transactional
     public void setUserSchemeAMFIIfNull() {
         List<UserSchemeDetailsEntity> userSchemeDetailsEntities = userSchemeDetailsRepository.findByAmfiIsNull();
+        userSchemeDetailsEntities.forEach(this::processUserSchemeDetails);
+    }
+
+    @Override
+    @Transactional
+    public void setUserSchemeAMFIIfNull(Long casId) {
+        List<UserSchemeDetailsEntity> userSchemeDetailsEntities =
+                userSchemeDetailsRepository.findByUserFolioDetails_UserCasDetailsEntity_IdAndAmfiIsNull(casId);
         userSchemeDetailsEntities.forEach(this::processUserSchemeDetails);
     }
 
@@ -52,12 +60,7 @@ class UserSchemeDetailServiceImpl implements UserSchemeDetailService {
     private void processRtaCode(UserSchemeDetailsEntity userSchemeDetailsEntity, String rtaCode) {
         LOGGER.debug(
                 "RTA code for userSchemeDetailsEntity with id: {} is {}", userSchemeDetailsEntity.getId(), rtaCode);
-        List<MFSchemeProjection> mfSchemeEntityList = mfSchemeService.fetchSchemesByRtaCode(rtaCode);
-        if (!mfSchemeEntityList.isEmpty()) {
-            handleNonEmptyMfSchemeList(userSchemeDetailsEntity, mfSchemeEntityList);
-        } else {
-            handleEmptyMfSchemeList(userSchemeDetailsEntity);
-        }
+        handleEmptyMfSchemeList(userSchemeDetailsEntity);
     }
 
     private void handleEmptyMfSchemeList(UserSchemeDetailsEntity userSchemeDetailsEntity) {
@@ -98,23 +101,6 @@ class UserSchemeDetailServiceImpl implements UserSchemeDetailService {
         } else {
             LOGGER.warn("ISIN is null after extraction for scheme: {}", scheme);
         }
-    }
-
-    private void handleNonEmptyMfSchemeList(
-            UserSchemeDetailsEntity userSchemeDetails, List<MFSchemeProjection> mfSchemeEntityList) {
-        Optional<MFSchemeProjection> matchingScheme = mfSchemeEntityList.stream()
-                .filter(scheme -> Objects.equals(scheme.getIsin(), userSchemeDetails.getIsin()))
-                .findFirst();
-
-        matchingScheme.ifPresentOrElse(
-                mfSchemeProjection -> updateUserSchemeDetails(
-                        userSchemeDetails.getId(), mfSchemeProjection.getAmfiCode(), mfSchemeProjection.getIsin()),
-                () -> {
-                    LOGGER.debug("ISIN not found in the list of schemes");
-                    MFSchemeProjection firstScheme = mfSchemeEntityList.getFirst();
-                    updateUserSchemeDetails(
-                            userSchemeDetails.getId(), firstScheme.getAmfiCode(), firstScheme.getIsin());
-                });
     }
 
     private void updateUserSchemeDetails(Long userSchemeId, Long schemeId, @Nullable String isin) {

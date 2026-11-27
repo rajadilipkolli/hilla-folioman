@@ -9,7 +9,6 @@ import com.app.folioman.portfolio.rest.dtos.UserFolioDTO;
 import com.app.folioman.portfolio.rest.dtos.UserSchemeDTO;
 import com.app.folioman.portfolio.rest.dtos.UserTransactionDTO;
 import com.app.folioman.shared.LocalDateUtility;
-import com.app.folioman.shared.UploadedSchemesList;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -17,6 +16,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -24,20 +24,22 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import org.jobrunr.scheduling.JobScheduler;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.beans.factory.ObjectProvider;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.util.CollectionUtils;
-import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @Transactional(readOnly = true)
-public class UserDetailService {
+class UserDetailService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UserDetailService.class);
 
@@ -48,8 +50,11 @@ public class UserDetailService {
     private final UserTransactionDetailsService userTransactionDetailsService;
     private final UserFolioDetailService userFolioDetailService;
     private final UserSchemeDetailService userSchemeDetailService;
-    private final ApplicationEventPublisher applicationEventPublisher;
     private final PortfolioValueUpdateService portfolioValueUpdateService;
+    private final @Nullable ObjectProvider<JobScheduler> jobSchedulerProvider;
+    private final @Nullable PortfolioPostUploadService portfolioPostUploadService;
+    private final @Nullable JdbcTemplate jdbcTemplate;
+    private final @Nullable UserPortfolioValueRepository userPortfolioValueRepository;
 
     UserDetailService(
             PortfolioServiceHelper portfolioServiceHelper,
@@ -59,8 +64,36 @@ public class UserDetailService {
             UserTransactionDetailsService userTransactionDetailsService,
             UserFolioDetailService userFolioDetailService,
             UserSchemeDetailService userSchemeDetailService,
-            ApplicationEventPublisher applicationEventPublisher,
             PortfolioValueUpdateService portfolioValueUpdateService) {
+        this(
+                portfolioServiceHelper,
+                casDetailsMapper,
+                userCASDetailsService,
+                investorInfoService,
+                userTransactionDetailsService,
+                userFolioDetailService,
+                userSchemeDetailService,
+                portfolioValueUpdateService,
+                null,
+                null,
+                null,
+                null);
+    }
+
+    @Autowired
+    UserDetailService(
+            PortfolioServiceHelper portfolioServiceHelper,
+            CasDetailsMapper casDetailsMapper,
+            UserCASDetailsService userCASDetailsService,
+            InvestorInfoService investorInfoService,
+            UserTransactionDetailsService userTransactionDetailsService,
+            UserFolioDetailService userFolioDetailService,
+            UserSchemeDetailService userSchemeDetailService,
+            PortfolioValueUpdateService portfolioValueUpdateService,
+            @Nullable ObjectProvider<JobScheduler> jobSchedulerProvider,
+            @Nullable PortfolioPostUploadService portfolioPostUploadService,
+            @Nullable JdbcTemplate jdbcTemplate,
+            @Nullable UserPortfolioValueRepository userPortfolioValueRepository) {
         this.portfolioServiceHelper = portfolioServiceHelper;
         this.casDetailsMapper = casDetailsMapper;
         this.userCASDetailsService = userCASDetailsService;
@@ -68,13 +101,16 @@ public class UserDetailService {
         this.userTransactionDetailsService = userTransactionDetailsService;
         this.userFolioDetailService = userFolioDetailService;
         this.userSchemeDetailService = userSchemeDetailService;
-        this.applicationEventPublisher = applicationEventPublisher;
         this.portfolioValueUpdateService = portfolioValueUpdateService;
+        this.jobSchedulerProvider = jobSchedulerProvider;
+        this.portfolioPostUploadService = portfolioPostUploadService;
+        this.jdbcTemplate = jdbcTemplate;
+        this.userPortfolioValueRepository = userPortfolioValueRepository;
     }
 
     @Transactional
-    public UploadFileResponse upload(MultipartFile multipartFile) throws IOException {
-        CasDTO casDTO = parseCasDTO(multipartFile);
+    public UploadFileResponse upload(byte[] casJsonBytes) throws IOException {
+        CasDTO casDTO = portfolioServiceHelper.readValue(casJsonBytes, CasDTO.class);
         boolean existingUser = validateCasDTO(casDTO);
         return existingUser ? processExistingUser(casDTO) : processNewUser(casDTO);
     }
@@ -100,17 +136,16 @@ public class UserDetailService {
         LocalDate from = LocalDateUtility.parse(casDTO.statementPeriod().from());
         LocalDate to = LocalDateUtility.parse(casDTO.statementPeriod().myto());
 
+        String canonicalEmail =
+                canonicalizeEmail(Objects.requireNonNull(casDTO.investorInfo().email()));
+        String name = Objects.requireNonNull(casDTO.investorInfo().name());
+
         long userTransactionFromReqCount = portfolioServiceHelper.countTransactionsByUserFolioDTOList(casDTO.folios());
-        Long userTransactionFromDBCount = userTransactionDetailsService.findAllTransactionsByEmailNameAndPeriod(
-                Objects.requireNonNull(casDTO.investorInfo().name()),
-                Objects.requireNonNull(casDTO.investorInfo().email()),
-                from,
-                to);
+        Long userTransactionFromDBCount =
+                userTransactionDetailsService.findAllTransactionsByEmailNameAndPeriod(name, canonicalEmail, from, to);
 
         UserCasDetailsEntity userCasDetailsEntity = userCASDetailsService
-                .findByInvestorEmailAndName(
-                        Objects.requireNonNull(casDTO.investorInfo().email()),
-                        Objects.requireNonNull(casDTO.investorInfo().name()))
+                .findByInvestorEmailAndName(canonicalEmail, name)
                 .orElseThrow(() -> new IllegalStateException("User should exist"));
 
         if (userTransactionFromReqCount == userTransactionFromDBCount) {
@@ -130,32 +165,14 @@ public class UserDetailService {
         // New transactions were explicitly saved in processNewTransactions.
         // We do not call getUserCASDetails to avoid a massive merge on the entire tree.
 
-        // Extract AMFI codes for event publishing
-        List<Long> schemesList = userCasDetailsEntity.getFolios().stream()
-                .map(UserFolioDetailsEntity::getSchemes)
-                .flatMap(List::stream)
-                .map(UserSchemeDetailsEntity::getAmfi)
-                .filter(Objects::nonNull)
-                .distinct()
-                .collect(Collectors.toList());
-
         userFolioDetailService.setPANIfNotSet(userCasDetailsEntity.getId());
-        if (TransactionSynchronizationManager.isSynchronizationActive()) {
-            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                @Override
-                public void afterCommit() {
-                    CompletableFuture.runAsync(userSchemeDetailService::setUserSchemeAMFIIfNull)
-                            .thenRun(() ->
-                                    portfolioValueUpdateService.updatePortfolioValue(userCasDetailsEntity.getId()));
-                }
-            });
-        } else {
-            CompletableFuture.runAsync(userSchemeDetailService::setUserSchemeAMFIIfNull)
-                    .thenRun(() -> portfolioValueUpdateService.updatePortfolioValue(userCasDetailsEntity.getId()));
-        }
-
-        if (!schemesList.isEmpty()) {
-            applicationEventPublisher.publishEvent(new UploadedSchemesList(schemesList));
+        boolean hasChanges = newFolios.get() > 0 || newSchemes.get() > 0 || newTransactions.get() > 0;
+        boolean valuationsMissing = userPortfolioValueRepository != null
+                && userPortfolioValueRepository
+                        .getLatestPortfolioValueByCasId(userCasDetailsEntity.getId())
+                        .isEmpty();
+        if (hasChanges || valuationsMissing) {
+            schedulePostUploadProcessing(userCasDetailsEntity.getId());
         }
 
         return new UploadFileResponse(
@@ -225,9 +242,9 @@ public class UserDetailService {
         // Create a map to collect new transactions by their scheme
         Map<UserSchemeDetailsEntity, List<UserTransactionDetailsEntity>> transactionsByScheme = new HashMap<>();
 
-        userSchemaTransactionMap.forEach((rtaCodeFromRequest, requestTransactions) -> {
+        userSchemaTransactionMap.forEach((folioSchemeKeyFromRequest, requestTransactions) -> {
             List<UserTransactionDetailsEntity> dbTransactions =
-                    userSchemaTransactionMapFromDB.getOrDefault(rtaCodeFromRequest, List.of());
+                    userSchemaTransactionMapFromDB.getOrDefault(folioSchemeKeyFromRequest, List.of());
 
             if (requestTransactions.size() != dbTransactions.size()) {
                 // For efficient lookup, create a frequency map of existing transactions
@@ -236,7 +253,11 @@ public class UserDetailService {
 
                 // Find matching scheme once outside the inner loop
                 UserSchemeDetailsEntity matchingScheme = existingUserSchemeDetailsList.stream()
-                        .filter(scheme -> rtaCodeFromRequest.equals(scheme.getRtaCode()))
+                        .filter(scheme -> folioSchemeKeyFromRequest.equals(folioSchemeKey(
+                                scheme.getUserFolioDetails() != null
+                                        ? scheme.getUserFolioDetails().getFolio()
+                                        : "",
+                                scheme.getRtaCode())))
                         .findFirst()
                         .orElse(null);
 
@@ -254,10 +275,10 @@ public class UserDetailService {
                         } else {
                             // If it doesn't exist or we've run out of matches, it's new
                             LOGGER.info(
-                                    "New transaction on date: {} with description: {} created for rtaCode {} that is not present in the database",
+                                    "New transaction on date: {} with description: {} created for {} that is not present in the database",
                                     dto.date(),
                                     dto.description(),
-                                    rtaCodeFromRequest);
+                                    folioSchemeKeyFromRequest);
                             UserTransactionDetailsEntity entity =
                                     casDetailsMapper.transactionDTOToTransactionEntity(dto);
                             entity.setUserSchemeDetails(matchingScheme);
@@ -299,7 +320,11 @@ public class UserDetailService {
             List<UserSchemeDetailsEntity> existingUserSchemeDetailsList) {
         return existingUserSchemeDetailsList.stream()
                 .collect(Collectors.groupingBy(
-                        UserSchemeDetailsEntity::getRtaCode,
+                        scheme -> folioSchemeKey(
+                                scheme.getUserFolioDetails() != null
+                                        ? scheme.getUserFolioDetails().getFolio()
+                                        : "",
+                                scheme.getRtaCode()),
                         Collectors.flatMapping(
                                 userSchemeDetailsEntity -> userSchemeDetailsEntity.getTransactions().stream(),
                                 Collectors.toList())));
@@ -307,10 +332,20 @@ public class UserDetailService {
 
     private Map<String, List<UserTransactionDTO>> groupTransactionBySchemes(List<UserFolioDTO> folios) {
         return folios.stream()
-                .flatMap(userFolioDTO -> userFolioDTO.schemes().stream())
+                .flatMap(userFolioDTO -> userFolioDTO.schemes().stream()
+                        .map(schemeDTO -> Map.entry(
+                                folioSchemeKey(userFolioDTO.folio(), schemeDTO.rtaCode()), schemeDTO.transactions())))
                 .collect(Collectors.groupingBy(
-                        UserSchemeDTO::rtaCode,
-                        Collectors.flatMapping(schemeDTO -> schemeDTO.transactions().stream(), Collectors.toList())));
+                        Map.Entry::getKey,
+                        Collectors.flatMapping(entry -> entry.getValue().stream(), Collectors.toList())));
+    }
+
+    private String folioSchemeKey(@Nullable String folio, @Nullable String rtaCode) {
+        return Objects.toString(folio, "") + "::" + Objects.toString(rtaCode, "");
+    }
+
+    private String canonicalizeEmail(String email) {
+        return email.trim().toLowerCase(Locale.ROOT);
     }
 
     private void processNewSchemesAndTransactions(
@@ -448,58 +483,56 @@ public class UserDetailService {
     }
 
     private UserCasDetailsEntity getUserCASDetails(UserCasDetailsEntity userCasDetailsEntity) {
-        // Extract AMFI codes before saving to avoid extra database fetches later
-        List<Long> schemesList = userCasDetailsEntity.getFolios().stream()
-                .map(UserFolioDetailsEntity::getSchemes)
-                .flatMap(List::stream)
-                .map(UserSchemeDetailsEntity::getAmfi)
-                .filter(Objects::nonNull)
-                .distinct()
-                .collect(Collectors.toList()); // Using collect instead of toList() for thread safety
-
         // Save entity in a single transaction
         UserCasDetailsEntity savedCasDetailsEntity = userCASDetailsService.saveEntity(userCasDetailsEntity);
 
         // Run critical post-processing tasks synchronously
         userFolioDetailService.setPANIfNotSet(savedCasDetailsEntity.getId());
 
-        // Run non-critical post-processing tasks asynchronously
-        if (TransactionSynchronizationManager.isSynchronizationActive()) {
-            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-                @Override
-                public void afterCommit() {
-                    CompletableFuture.runAsync(userSchemeDetailService::setUserSchemeAMFIIfNull)
-                            .thenRun(() ->
-                                    portfolioValueUpdateService.updatePortfolioValue(savedCasDetailsEntity.getId()));
-                }
-            });
-        } else {
-            CompletableFuture.runAsync(userSchemeDetailService::setUserSchemeAMFIIfNull)
-                    .thenRun(() -> portfolioValueUpdateService.updatePortfolioValue(savedCasDetailsEntity.getId()));
-        }
-
-        // Publish event with pre-collected schemes list
-        if (!schemesList.isEmpty()) {
-            applicationEventPublisher.publishEvent(new UploadedSchemesList(schemesList));
-        }
+        // Run non-critical post-processing tasks durably via JobRunr
+        schedulePostUploadProcessing(savedCasDetailsEntity.getId());
 
         return savedCasDetailsEntity;
     }
 
-    private CasDTO parseCasDTO(MultipartFile multipartFile) throws IOException {
-        return portfolioServiceHelper.readValue(multipartFile.getBytes(), CasDTO.class);
+    private void schedulePostUploadProcessing(Long casId) {
+        Runnable trigger = () -> {
+            JobScheduler scheduler = jobSchedulerProvider != null ? jobSchedulerProvider.getIfAvailable() : null;
+            if (scheduler != null && portfolioPostUploadService != null) {
+                scheduler.enqueue(() -> portfolioPostUploadService.processCasPostUpload(casId));
+            } else {
+                CompletableFuture.runAsync(() -> userSchemeDetailService.setUserSchemeAMFIIfNull(casId))
+                        .thenRun(() -> portfolioValueUpdateService.updatePortfolioValue(casId));
+            }
+        };
+
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    trigger.run();
+                }
+            });
+        } else {
+            trigger.run();
+        }
     }
 
     private boolean validateCasDTO(CasDTO casDTO) {
-        String email = casDTO.investorInfo().email();
+        String rawEmail = casDTO.investorInfo().email();
         String name = casDTO.investorInfo().name();
-        if (email == null || email.isEmpty() || name == null || name.isEmpty()) {
+        if (rawEmail == null || rawEmail.isBlank() || name == null || name.isBlank()) {
             throw new IllegalArgumentException("Email or Name invalid!");
         }
         if (CollectionUtils.isEmpty(casDTO.folios())) {
             throw new IllegalArgumentException("No folios found!");
         }
-        return investorInfoService.existsByEmailAndName(email, name);
+        String canonicalEmail = canonicalizeEmail(rawEmail);
+        if (jdbcTemplate != null && TransactionSynchronizationManager.isSynchronizationActive()) {
+            jdbcTemplate.queryForObject(
+                    "SELECT pg_advisory_xact_lock(hashtext(?))", Object.class, canonicalEmail + ":" + name);
+        }
+        return investorInfoService.existsByEmailAndName(canonicalEmail, name);
     }
 
     private UploadFileResponse processNewUser(CasDTO casDTO) {
@@ -513,6 +546,13 @@ public class UserDetailService {
         if (userCasDetailsEntity.getInvestorInfoEntity() == null) {
             userCasDetailsEntity.setInvestorInfoEntity(
                     casDetailsMapper.mapInvestorInfoDTOToInvestorInfoEntity(casDTO.investorInfo()));
+        }
+        if (userCasDetailsEntity.getInvestorInfoEntity() != null
+                && userCasDetailsEntity.getInvestorInfoEntity().getEmail() != null) {
+            userCasDetailsEntity
+                    .getInvestorInfoEntity()
+                    .setEmail(canonicalizeEmail(
+                            userCasDetailsEntity.getInvestorInfoEntity().getEmail()));
         }
 
         UserCasDetailsEntity savedCasDetailsEntity = getUserCASDetails(userCasDetailsEntity);

@@ -1,8 +1,9 @@
 package com.app.folioman.portfolio.config;
 
-import com.app.folioman.config.redis.CacheNames;
+import com.app.folioman.shared.CacheNames;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.HashSet;
 import java.util.Set;
 import org.jobrunr.scheduling.BackgroundJob;
 import org.slf4j.Logger;
@@ -11,7 +12,10 @@ import org.springframework.boot.context.event.ApplicationStartedEvent;
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.EventListener;
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.util.StopWatch;
 
 /**
@@ -64,11 +68,10 @@ public class PortfolioCacheConfig {
             LocalDateTime now = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
             LOGGER.info("Executing scheduled transaction cache eviction at {}", now);
 
-            // Evict all entries with "monthly_" and "yearly_" patterns in the TRANSACTION_CACHE
-            String cacheKeyPattern = CacheNames.TRANSACTION_CACHE + "::*";
+            // Evict all entries with "monthly_" and "yearly_" patterns in the TRANSACTION_CACHE using SCAN
+            String cacheKeyPattern = "folioman:cache:" + CacheNames.TRANSACTION_CACHE + "::*";
 
-            // Find all keys matching our pattern
-            Set<String> keys = redisTemplate.keys(cacheKeyPattern);
+            Set<String> keys = scanKeys(cacheKeyPattern);
 
             if (keys.isEmpty()) {
                 LOGGER.info("No transaction cache entries found to evict");
@@ -104,5 +107,22 @@ public class PortfolioCacheConfig {
         } catch (Exception e) {
             LOGGER.error("Error during transaction cache eviction", e);
         }
+    }
+
+    Set<String> scanKeys(String pattern) {
+        Set<String> keys = new HashSet<>();
+        redisTemplate.execute((RedisConnection connection) -> {
+            try (Cursor<byte[]> cursor = connection
+                    .keyCommands()
+                    .scan(ScanOptions.scanOptions().match(pattern).count(100).build())) {
+                while (cursor.hasNext()) {
+                    keys.add(new String(cursor.next()));
+                }
+            } catch (Exception e) {
+                LOGGER.error("Error scanning transaction cache keys", e);
+            }
+            return null;
+        });
+        return keys;
     }
 }

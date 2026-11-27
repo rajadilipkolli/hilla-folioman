@@ -6,17 +6,18 @@ import com.app.folioman.pythonbridge.PythonCommands;
 import com.app.folioman.pythonbridge.PythonExecutor;
 import com.app.folioman.pythonbridge.PythonResult;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 @Service
-public class PdfProcessingService {
+class PdfProcessingService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PdfProcessingService.class);
 
@@ -82,10 +83,11 @@ public class PdfProcessingService {
      * @return A CasDTO object containing the parsed data
      * @throws IOException If there is an error reading or parsing the PDF
      */
-    public CasDTO convertPdfCasToJson(MultipartFile pdfFile, String password) throws IOException {
+    public CasDTO convertPdfCasToJson(InputStream pdfStream, @Nullable String originalFilename, String password)
+            throws IOException {
         LOGGER.info(
                 "Converting password-protected PDF CAS file to CasDTO Object using python casparser cli: {}",
-                pdfFile.getOriginalFilename());
+                originalFilename);
 
         // Check if casparser is installed and try to install it if not
         if (!ensureCasparserInstalled()) {
@@ -98,7 +100,7 @@ public class PdfProcessingService {
 
         try {
             // Save the uploaded file to a temporary location
-            Files.copy(pdfFile.getInputStream(), tempPdfPath, StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(pdfStream, tempPdfPath, StandardCopyOption.REPLACE_EXISTING);
 
             // Execute casparser via the centralized Python executor framework
             pythonExecutor

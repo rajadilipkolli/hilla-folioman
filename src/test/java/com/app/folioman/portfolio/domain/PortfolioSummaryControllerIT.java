@@ -6,11 +6,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.app.folioman.config.redis.CacheNames;
 import com.app.folioman.shared.AbstractIntegrationTest;
+import com.app.folioman.shared.CacheNames;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Set;
+import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -70,7 +71,7 @@ class PortfolioSummaryControllerIT extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.schemes[0].nav1").isNumber())
                 .andExpect(jsonPath("$.schemes[0].folios").isArray());
 
-        Set<String> cacheKeys = redisTemplate.keys(CacheNames.SUMMARY_CACHE + "::*");
+        Set<String> cacheKeys = redisTemplate.keys("folioman:cache:" + CacheNames.SUMMARY_CACHE + "::*");
         assertThat(cacheKeys).isNotNull();
         assertThat(cacheKeys.stream().anyMatch(key -> key.contains("summary_" + casId + "_")))
                 .isTrue();
@@ -84,7 +85,7 @@ class PortfolioSummaryControllerIT extends AbstractIntegrationTest {
 
             InvestorInfoEntity investorInfo = new InvestorInfoEntity()
                     .setEmail(email)
-                    .setName("Integration Test User")
+                    .setName("Integration Test User " + UUID.randomUUID())
                     .setMobile("9999999999")
                     .setAddress("Test Address")
                     .setUserCasDetailsEntity(casDetails);

@@ -179,19 +179,4 @@ class MfSchemeServiceImpl implements MfSchemeService {
         }
         return jdbcTemplate.query(select + textPredicates, FUND_DETAIL_MAPPER, pattern, pattern);
     }
-
-    @Override
-    public void fetchSchemeDetails(Long schemeId) {
-        // Handled by external microservice syncing
-    }
-
-    @Override
-    public void fetchSchemeDetails(String oldSchemeCode, Long newSchemeCode) {
-        // Handled by external microservice syncing
-    }
-
-    @Override
-    public List<MFSchemeProjection> fetchSchemesByRtaCode(String rtaCode) {
-        return List.of(); // RTA logic deprecated
-    }
 }

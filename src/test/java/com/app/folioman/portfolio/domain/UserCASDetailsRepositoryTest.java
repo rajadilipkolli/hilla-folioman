@@ -164,9 +164,24 @@ class UserCASDetailsRepositoryTest {
         String panNumber = "ABCDE1234F";
         LocalDate asOfDate = LocalDate.of(2023, 12, 31);
 
-        // persist a scheme with non-zero balance and one with zero balance
-        persistSamplePortfolio(panNumber, 11111L, "NONZERO SCHEME", asOfDate.minusDays(7));
-        persistSamplePortfolio(panNumber, 22222L, "ZERO SCHEME", asOfDate.minusDays(7), 0.0);
+        // persist a scheme with non-zero balance and one with zero balance under the same investor
+        UserCasDetailsEntity cas = persistSamplePortfolio(
+                panNumber, 11111L, "NONZERO SCHEME", asOfDate.minusDays(7), 10.0, "persisted@example.com");
+        UserFolioDetailsEntity folio = cas.getFolios().getFirst();
+        UserSchemeDetailsEntity zeroScheme = new UserSchemeDetailsEntity();
+        zeroScheme.setScheme("ZERO SCHEME");
+        zeroScheme.setAmfi(22222L);
+        zeroScheme.setRta("RTA");
+        UserTransactionDetailsEntity zeroTxn = new UserTransactionDetailsEntity();
+        zeroTxn.setBalance(BigDecimal.ZERO);
+        zeroTxn.setTransactionDate(asOfDate.minusDays(7));
+        zeroTxn.setType(TransactionType.PURCHASE);
+        zeroTxn.setAmount(BigDecimal.ZERO);
+        zeroTxn.setNav(BigDecimal.TEN);
+        zeroTxn.setUnits(BigDecimal.ZERO);
+        zeroScheme.addTransaction(zeroTxn);
+        folio.addScheme(zeroScheme);
+        entityManager.flush();
 
         List<PortfolioDetailsProjection> result =
                 UserCasDetailsRepository.getPortfolioDetails(panNumber, "persisted@example.com", asOfDate);

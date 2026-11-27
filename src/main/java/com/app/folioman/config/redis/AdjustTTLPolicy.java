@@ -24,28 +24,31 @@ public class AdjustTTLPolicy implements CachePolicy {
 
     @Override
     public void apply(RedisTemplate<String, Object> redisTemplate, MeterRegistry meterRegistry) {
-
-        Set<String> allKeys = redisTemplate.keys("*");
+        Monitor monitor = new Monitor(redisTemplate, meterRegistry);
+        Set<String> allKeys = monitor.scanKeys(Monitor.CACHE_KEY_PREFIX + "*");
         if (allKeys == null || allKeys.isEmpty()) {
             LOGGER.info("Cache is empty. No TTL adjustments needed.");
             return;
         }
 
         for (String key : allKeys) {
-            double accessCount = getAccessCountForKey(meterRegistry, key);
+            double accessCount = getAccessCountForCache(meterRegistry, key);
             Duration newTTL = determineNewTTL(accessCount);
             redisTemplate.expire(key, newTTL);
             LOGGER.debug("Adjusted TTL for key: {} to {} minutes.", key, newTTL.toMinutes());
         }
     }
 
-    private double getAccessCountForKey(MeterRegistry meterRegistry, String key) {
-        if (key.indexOf("SimpleKey") > 0) {
-            key = key.substring(key.indexOf("SimpleKey"));
-        } else if (key.indexOf("::") > 0) {
-            key = key.substring(key.indexOf("::") + 2);
-        }
-        return meterRegistry.counter("cache.access", "key", key).count();
+    private double getAccessCountForCache(MeterRegistry meterRegistry, String key) {
+        String cacheName = extractCacheName(key);
+        return meterRegistry.counter("cache.access", "cache", cacheName).count();
+    }
+
+    private String extractCacheName(String key) {
+        String stripped =
+                key.startsWith(Monitor.CACHE_KEY_PREFIX) ? key.substring(Monitor.CACHE_KEY_PREFIX.length()) : key;
+        int separatorIdx = stripped.indexOf("::");
+        return separatorIdx > 0 ? stripped.substring(0, separatorIdx) : stripped;
     }
 
     private Duration determineNewTTL(double accessCount) {

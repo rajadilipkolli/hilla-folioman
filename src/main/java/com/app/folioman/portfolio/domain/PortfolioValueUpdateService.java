@@ -97,6 +97,10 @@ public class PortfolioValueUpdateService {
 
     @Async
     public void updatePortfolioValue(Long userCasDetailsId) {
+        updatePortfolioValueSync(userCasDetailsId);
+    }
+
+    public void updatePortfolioValueSync(Long userCasDetailsId) {
         LOGGER.info("updatePortfolioValue called for CAS ID: {}", userCasDetailsId);
         UserCasDetailsEntity userCasDetailsEntity = transactionTemplate.execute(status -> {
             UserCasDetailsEntity entity = userCASDetailsRepository
@@ -140,46 +144,29 @@ public class PortfolioValueUpdateService {
 
             LocalDate startDateMin = fromDate1.isBefore(fromDate2) ? fromDate1 : fromDate2;
 
-            List<FolioSchemeEntity> schemes = folioSchemeRepository.findByUserFolioDetails_Id(portfolioId);
-
             LOGGER.info("Computing daily scheme values...");
             List<Map<String, Object>> schemeResults = new ArrayList<>();
-            List<Long> schemeListFromDB = userFolioDetailsEntity.getSchemes().stream()
-                    .map(UserSchemeDetailsEntity::getId)
-                    .toList();
-            for (FolioSchemeEntity folioSchemeEntity : schemes) {
+            for (UserSchemeDetailsEntity userSchemeDetailsEntity : userFolioDetailsEntity.getSchemes()) {
 
                 // Protect per-scheme processing so one failing scheme doesn't abort the whole async job
                 try {
 
-                    LocalDate schemeFromDate = schemeListFromDB.contains(
-                                    folioSchemeEntity.getUserSchemeDetails().getId())
-                            ? Objects.requireNonNullElse(
-                                            folioSchemeEntity
-                                                    .getUserSchemeDetails()
-                                                    .getCreatedAt(),
-                                            Instant.now())
-                                    .atZone(ZoneOffset.UTC)
-                                    .toLocalDate()
-                            : startDateMin;
+                    LocalDate schemeFromDate = Objects.requireNonNullElse(
+                                    userSchemeDetailsEntity.getCreatedAt(), Instant.now())
+                            .atZone(ZoneOffset.UTC)
+                            .toLocalDate();
 
                     Optional<SchemeValueEntity> schemeValueOpt =
                             schemeValueRepository.findFirstByUserSchemeDetailsEntity_IdAndDateBeforeOrderByDateDesc(
-                                    folioSchemeEntity.getUserSchemeDetails().getId(), schemeFromDate);
+                                    userSchemeDetailsEntity.getId(), schemeFromDate);
                     List<UserTransactionDetailsEntity> oldTransactions =
                             userTransactionDetailsRepository
                                     .findByUserSchemeDetails_IdAndTransactionDateBeforeOrderByTransactionDateAscIdAsc(
-                                            folioSchemeEntity
-                                                    .getUserSchemeDetails()
-                                                    .getId(),
-                                            schemeFromDate);
+                                            userSchemeDetailsEntity.getId(), schemeFromDate);
                     List<UserTransactionDetailsEntity> newTransactions =
                             userTransactionDetailsRepository
                                     .findByUserSchemeDetails_IdAndTransactionDateGreaterThanEqualOrderByTransactionDateAscIdAsc(
-                                            folioSchemeEntity
-                                                    .getUserSchemeDetails()
-                                                    .getId(),
-                                            schemeFromDate);
+                                            userSchemeDetailsEntity.getId(), schemeFromDate);
                     FIFOUnits fifo = new FIFOUnits();
 
                     List<ProcessedTransaction> transactionsProcessed;
@@ -194,24 +181,20 @@ public class PortfolioValueUpdateService {
                         transactionsProcessed = processTransactions(fifo, allTxns);
                     }
                     Map<String, Object> schemeData = calculateSchemeData(
-                            fifo,
-                            schemeValueOpt,
-                            folioSchemeEntity.getUserSchemeDetails(),
-                            transactionsProcessed,
-                            today);
+                            fifo, schemeValueOpt, userSchemeDetailsEntity, transactionsProcessed, today);
                     if (schemeData != null) {
                         schemeResults.add(schemeData);
                     }
                 } catch (NavNotFoundException nne) {
                     LOGGER.warn(
                             "NAV not found for scheme {} (AMFI: {}) on requested dates - skipping scheme. Reason: {}",
-                            folioSchemeEntity.getUserSchemeDetails().getId(),
-                            folioSchemeEntity.getUserSchemeDetails().getAmfi(),
+                            userSchemeDetailsEntity.getId(),
+                            userSchemeDetailsEntity.getAmfi(),
                             nne.getMessage());
                 } catch (Exception ex) {
                     LOGGER.error(
                             "Unexpected error while processing scheme {} - skipping scheme",
-                            folioSchemeEntity.getUserSchemeDetails().getId(),
+                            userSchemeDetailsEntity.getId(),
                             ex);
                 }
             }
@@ -269,21 +252,24 @@ public class PortfolioValueUpdateService {
             }
         }
 
-        // Step 2: Bulk save SchemeValueEntity entities
-        if (!allSchemeValues.isEmpty()) {
-            LOGGER.info("Saving {} SchemeValueEntity records", allSchemeValues.size());
-            schemeValueRepository.saveAll(allSchemeValues);
-            LOGGER.info("SchemeValueEntity data imported successfully");
+        // Step 2 & 3: Persist SchemeValues, FolioValues, and FolioScheme updates atomically in one transaction
+        if (!allSchemeValues.isEmpty() || !folioSchemeUpdates.isEmpty()) {
+            transactionTemplate.executeWithoutResult(status -> {
+                if (!allSchemeValues.isEmpty()) {
+                    LOGGER.info("Saving {} SchemeValueEntity records", allSchemeValues.size());
+                    List<SchemeValueEntity> savedSchemeValues = schemeValueRepository.saveAll(allSchemeValues);
+                    LOGGER.info("SchemeValueEntity data imported successfully");
 
-            // Phase B: Aggregate and save Folio-Level Daily Values
-            aggregateAndSaveFolioValues(allSchemeValues);
-        }
+                    // Phase B: Aggregate and save Folio-Level Daily Values
+                    aggregateAndSaveFolioValues(savedSchemeValues);
+                }
 
-        // Step 3: Update FolioSchemeEntity entities
-        if (!folioSchemeUpdates.isEmpty()) {
-            LOGGER.info("Updating {} FolioSchemeEntity records", folioSchemeUpdates.size());
-            folioSchemeRepository.saveAll(folioSchemeUpdates.values());
-            LOGGER.info("FolioSchemeEntity updated successfully");
+                if (!folioSchemeUpdates.isEmpty()) {
+                    LOGGER.info("Updating {} FolioSchemeEntity records", folioSchemeUpdates.size());
+                    folioSchemeRepository.saveAll(folioSchemeUpdates.values());
+                    LOGGER.info("FolioSchemeEntity updated successfully");
+                }
+            });
         }
 
         // Note: UserPortfolioValueEntity is already handled in the main handleDailyPortFolioValueUpdate flow
@@ -387,6 +373,16 @@ public class PortfolioValueUpdateService {
 
         List<SchemeValueEntity> schemeValues = new ArrayList<>();
 
+        // Fetch existing records for this scheme and date range to upsert instead of inserting duplicates
+        Map<LocalDate, SchemeValueEntity> existingByDate = schemeValueRepository
+                .findByUserSchemeDetailsEntity_IdAndDateBetween(userSchemeDetailsEntity.getId(), fromDate, toDate)
+                .stream()
+                .collect(Collectors.toMap(
+                        SchemeValueEntity::getDate,
+                        sv -> sv,
+                        (existing, replacement) ->
+                                existing.getId().compareTo(replacement.getId()) > 0 ? existing : replacement));
+
         // Create a map of transactions by date for quick lookup
         Map<LocalDate, ProcessedTransaction> transactionsByDate = processedTransactions.stream()
                 .collect(Collectors.toMap(
@@ -429,17 +425,20 @@ public class PortfolioValueUpdateService {
             // Calculate current value: balance * NAV
             BigDecimal currentValue = currentBalance.multiply(nav).setScale(2, RoundingMode.HALF_UP);
 
-            // Create SchemeValueEntity entity
-            SchemeValueEntity schemeValueEntity = new SchemeValueEntity();
-            schemeValueEntity.setDate(date);
+            // Reuse existing SchemeValueEntity for this date if present, otherwise create a new one
+            SchemeValueEntity schemeValueEntity = existingByDate.get(date);
+            if (schemeValueEntity == null) {
+                schemeValueEntity = new SchemeValueEntity();
+                schemeValueEntity.setDate(date);
+                UserSchemeDetailsEntity schemeProxy =
+                        userSchemeDetailsRepository.getReferenceById(userSchemeDetailsEntity.getId());
+                schemeValueEntity.setUserSchemeDetails(schemeProxy);
+            }
             schemeValueEntity.setInvested(currentInvested);
             schemeValueEntity.setValue(currentValue);
             schemeValueEntity.setAvgNav(currentAverage);
             schemeValueEntity.setNav(nav);
             schemeValueEntity.setBalance(currentBalance);
-            UserSchemeDetailsEntity schemeProxy =
-                    userSchemeDetailsRepository.getReferenceById(userSchemeDetailsEntity.getId());
-            schemeValueEntity.setUserSchemeDetails(schemeProxy);
 
             schemeValues.add(schemeValueEntity);
         }

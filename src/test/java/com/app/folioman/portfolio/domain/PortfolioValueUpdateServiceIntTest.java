@@ -2,16 +2,19 @@ package com.app.folioman.portfolio.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.data.Offset.offset;
+import static org.awaitility.Awaitility.await;
 
 import com.app.folioman.mfschemes.MFNavService;
 import com.app.folioman.shared.AbstractIntegrationTest;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -70,6 +73,21 @@ class PortfolioValueUpdateServiceIntTest extends AbstractIntegrationTest {
 
         casDetails = testEntityManager.persistFlushFind(casDetails);
         persistFolioSchemes(casDetails);
+
+        // Trigger and wait for on-demand seeding of scheme 120684 in mfNavDataContainer
+        await().atMost(Duration.ofSeconds(30))
+                .pollInterval(Duration.ofSeconds(1))
+                .until(() -> {
+                    try {
+                        mfNavService.getNavOnDate(amfiCode, LocalDate.of(2023, 4, 3));
+                    } catch (Exception ignored) {
+                        // On-demand seeding may still be populating the nav table
+                    }
+                    return !mfNavService
+                            .getNavsForSchemesAndDates(
+                                    Set.of(amfiCode), LocalDate.of(2023, 1, 2), LocalDate.of(2023, 4, 3))
+                            .isEmpty();
+                });
 
         ((PortfolioValueUpdateService) AopTestUtils.getTargetObject(portfolioValueUpdateService))
                 .updatePortfolioValue(casDetails.getId());
@@ -176,6 +194,21 @@ class PortfolioValueUpdateServiceIntTest extends AbstractIntegrationTest {
         casDetails = testEntityManager.persistFlushFind(casDetails);
         persistFolioSchemes(casDetails);
 
+        // Trigger and wait for on-demand seeding of scheme 120684 in mfNavDataContainer
+        await().atMost(Duration.ofSeconds(30))
+                .pollInterval(Duration.ofSeconds(1))
+                .until(() -> {
+                    try {
+                        mfNavService.getNavOnDate(amfiCode, LocalDate.of(2023, 4, 3));
+                    } catch (Exception ignored) {
+                        // On-demand seeding may still be populating the nav table
+                    }
+                    return !mfNavService
+                            .getNavsForSchemesAndDates(
+                                    Set.of(amfiCode), LocalDate.of(2023, 1, 2), LocalDate.of(2023, 4, 3))
+                            .isEmpty();
+                });
+
         ((PortfolioValueUpdateService) AopTestUtils.getTargetObject(portfolioValueUpdateService))
                 .updatePortfolioValue(casDetails.getId());
         assertThat(userPortfolioValueRepository.count()).isGreaterThanOrEqualTo(1);
@@ -213,6 +246,21 @@ class PortfolioValueUpdateServiceIntTest extends AbstractIntegrationTest {
 
         casDetails = testEntityManager.persistFlushFind(casDetails);
         persistFolioSchemes(casDetails);
+
+        // Trigger and wait for on-demand seeding of scheme 120684 in mfNavDataContainer
+        await().atMost(Duration.ofSeconds(30))
+                .pollInterval(Duration.ofSeconds(1))
+                .until(() -> {
+                    try {
+                        mfNavService.getNavOnDate(amfiCode, LocalDate.of(2023, 4, 3));
+                    } catch (Exception ignored) {
+                        // On-demand seeding may still be populating the nav table
+                    }
+                    return !mfNavService
+                            .getNavsForSchemesAndDates(
+                                    Set.of(amfiCode), LocalDate.of(2023, 1, 2), LocalDate.of(2023, 4, 3))
+                            .isEmpty();
+                });
 
         ((PortfolioValueUpdateService) AopTestUtils.getTargetObject(portfolioValueUpdateService))
                 .updatePortfolioValue(casDetails.getId());

@@ -5,8 +5,6 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -18,7 +16,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.cache.Cache;
-import org.springframework.cache.interceptor.SimpleKey;
 import org.springframework.cache.support.SimpleValueWrapper;
 import org.springframework.data.redis.cache.RedisCacheWriter;
 import org.springframework.data.redis.serializer.RedisSerializer;
@@ -37,9 +34,6 @@ class CustomRedisCacheTest {
 
     @Mock
     private CacheCircuitBreaker circuitBreaker;
-
-    @Mock
-    private Cache.ValueWrapper valueWrapper;
 
     private CustomRedisCache customRedisCache;
     private static final String CACHE_NAME = "testCache";
@@ -62,7 +56,6 @@ class CustomRedisCacheTest {
         Object value = "testValue";
 
         doAnswer(invocation -> {
-                    // CacheCircuitBreaker.execute accepts a Supplier<T>, so invoke its get()
                     invocation.getArgument(0, Supplier.class).get();
                     return null;
                 })
@@ -72,7 +65,7 @@ class CustomRedisCacheTest {
         customRedisCache.put(key, value);
 
         verify(circuitBreaker).execute(any());
-        verify(monitor).recordUpdate(key.toString());
+        verify(monitor).recordUpdate(CACHE_NAME);
     }
 
     @Test
@@ -89,85 +82,59 @@ class CustomRedisCacheTest {
     }
 
     @Test
-    void put_ShouldNotExceedLocalCacheLimit_WhenMaxSizeReached() {
-        Object key = "testKey";
-        Object value = "testValue";
-
-        doAnswer(invocation -> {
-                    invocation.getArgument(0, Supplier.class).get();
-                    return null;
-                })
-                .when(circuitBreaker)
-                .execute(any());
-
-        for (int i = 0; i < 1001; i++) {
-            customRedisCache.put("key" + i, "value" + i);
-        }
-
-        verify(circuitBreaker, times(1001)).execute(any());
-    }
-
-    @Test
     void get_ShouldReturnValue_WhenRedisHasValue() {
         Object key = "testKey";
         Object value = "testValue";
 
-        // Simulate Redis returning a value
         when(circuitBreaker.executeWithFallback(any(), any())).thenReturn(new SimpleValueWrapper(value));
 
         Cache.ValueWrapper result = customRedisCache.get(key);
 
+        assertThat(result).isNotNull();
+        assertThat(result.get()).isEqualTo(value);
         verify(circuitBreaker).executeWithFallback(any(), any());
-        verify(monitor).recordAccess(key.toString());
-        verify(monitor).recordHit(key.toString());
+        verify(monitor).recordAccess(CACHE_NAME);
+        verify(monitor).recordHit(CACHE_NAME);
     }
 
     @Test
     void get_ShouldReturnNull_WhenRedisHasNoValue() {
         Object key = "testKey";
 
-        // Simulate Redis returning null
         when(circuitBreaker.executeWithFallback(any(), any())).thenReturn(null);
 
-        customRedisCache.get(key);
+        Cache.ValueWrapper result = customRedisCache.get(key);
 
-        verify(circuitBreaker).executeWithFallback(any(), any());
-        verify(monitor).recordAccess(key.toString());
-        verify(monitor).recordMiss(key.toString());
+        assertThat(result).isNull();
+        verify(monitor).recordAccess(CACHE_NAME);
+        verify(monitor).recordMiss(CACHE_NAME);
     }
 
     @Test
-    void get_ShouldUseFallback_WhenCircuitBreakerActivated() {
+    void get_ShouldReturnNull_WhenCircuitBreakerFallsBack() {
         Object key = "testKey";
-        Object value = "fallbackValue";
 
         when(circuitBreaker.executeWithFallback(any(), any())).thenAnswer(invocation -> {
-            Supplier<Cache.ValueWrapper> fallback = invocation.getArgument(1);
+            Supplier<?> fallback = invocation.getArgument(1, Supplier.class);
             return fallback.get();
         });
 
-        customRedisCache.put(key, value);
-        reset(circuitBreaker);
-        when(circuitBreaker.executeWithFallback(any(), any())).thenAnswer(invocation -> {
-            Supplier<Cache.ValueWrapper> fallback = invocation.getArgument(1);
-            return fallback.get();
-        });
+        Cache.ValueWrapper result = customRedisCache.get(key);
 
-        customRedisCache.get(key);
-
-        verify(circuitBreaker).executeWithFallback(any(), any());
+        assertThat(result).isNull();
+        verify(monitor).recordAccess(CACHE_NAME);
+        verify(monitor).recordMiss(CACHE_NAME);
     }
 
     @Test
     void get_ShouldHandleException_WhenUnexpectedErrorOccurs() {
         Object key = "testKey";
 
-        when(circuitBreaker.executeWithFallback(any(), any())).thenThrow(new RuntimeException("Unexpected error"));
+        when(circuitBreaker.executeWithFallback(any(), any())).thenThrow(new RuntimeException("Unexpected"));
 
-        Cache.ValueWrapper res = customRedisCache.get(key);
+        Cache.ValueWrapper result = customRedisCache.get(key);
 
-        assertThat(res).isNull();
-        verify(circuitBreaker).executeWithFallback(any(), any());
+        assertThat(result).isNull();
     }
 
     @Test
@@ -190,12 +157,9 @@ class CustomRedisCacheTest {
     void evict_ShouldHandleException_WhenRedisThrowsException() {
         Object key = "testKey";
 
-        doThrow(new RuntimeException("Redis connection failed"))
-                .when(circuitBreaker)
-                .execute(any());
+        doThrow(new RuntimeException("Redis error")).when(circuitBreaker).execute(any());
 
         assertThatCode(() -> customRedisCache.evict(key)).doesNotThrowAnyException();
-        verify(circuitBreaker).execute(any());
     }
 
     @Test
@@ -214,74 +178,8 @@ class CustomRedisCacheTest {
 
     @Test
     void clear_ShouldHandleException_WhenRedisThrowsException() {
-        doThrow(new RuntimeException("Redis connection failed"))
-                .when(circuitBreaker)
-                .execute(any());
+        doThrow(new RuntimeException("Redis error")).when(circuitBreaker).execute(any());
 
         assertThatCode(() -> customRedisCache.clear()).doesNotThrowAnyException();
-        verify(circuitBreaker).execute(any());
-    }
-
-    @Test
-    void getNormalizedKey_ShouldHandleSimpleKey() {
-        SimpleKey simpleKey = new SimpleKey("param1", "param2");
-
-        doAnswer(invocation -> {
-                    invocation.getArgument(0, Supplier.class).get();
-                    return null;
-                })
-                .when(circuitBreaker)
-                .execute(any());
-
-        customRedisCache.put(simpleKey, "value");
-
-        verify(monitor).recordUpdate(simpleKey.toString());
-    }
-
-    @Test
-    void getNormalizedKey_ShouldHandleRegularKey() {
-        String regularKey = "regularKey";
-
-        doAnswer(invocation -> {
-                    invocation.getArgument(0, Supplier.class).get();
-                    return null;
-                })
-                .when(circuitBreaker)
-                .execute(any());
-
-        customRedisCache.put(regularKey, "value");
-
-        verify(monitor).recordUpdate(regularKey);
-    }
-
-    @Test
-    void recordMetrics_ShouldRecordAccessMetrics_WhenOperationIsAccess() {
-        Object key = "testKey";
-
-        when(circuitBreaker.executeWithFallback(any(), any())).thenAnswer(invocation -> {
-            Supplier<Cache.ValueWrapper> supplier = invocation.getArgument(0);
-            return supplier.get();
-        });
-
-        customRedisCache.get(key);
-
-        verify(monitor).recordAccess(key.toString());
-    }
-
-    @Test
-    void recordMetrics_ShouldRecordUpdateMetrics_WhenOperationIsUpdate() {
-        Object key = "testKey";
-        Object value = "testValue";
-
-        doAnswer(invocation -> {
-                    invocation.getArgument(0, Supplier.class).get();
-                    return null;
-                })
-                .when(circuitBreaker)
-                .execute(any());
-
-        customRedisCache.put(key, value);
-
-        verify(monitor).recordUpdate(key.toString());
     }
 }

@@ -8,7 +8,6 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Repository
@@ -23,7 +22,7 @@ interface UserFolioDetailsRepository extends JpaRepository<UserFolioDetailsEntit
             Long userCasID, String kycStatus);
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional
     @Query("""
         UPDATE UserFolioDetailsEntity u
         SET u.pan = :pan, u.version = u.version + 1

@@ -165,7 +165,7 @@ class PortfolioServiceHelperTest {
 
         assertThat(result).hasSize(1);
         PortfolioDetailsDTO dto = result.getFirst();
-        assertThat(dto.totalValue()).isEqualTo(BigDecimal.valueOf(1000.0));
+        assertThat(dto.totalValue()).isEqualByComparingTo(BigDecimal.valueOf(1000.0));
         assertThat(dto.schemeName()).isEqualTo("Test Scheme");
         assertThat(dto.folioNumber()).isEqualTo("FOLIO123");
         assertThat(dto.date()).isEqualTo("2023-12-01");

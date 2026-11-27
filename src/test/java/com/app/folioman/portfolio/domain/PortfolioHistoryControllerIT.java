@@ -6,11 +6,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.app.folioman.config.redis.CacheNames;
 import com.app.folioman.shared.AbstractIntegrationTest;
+import com.app.folioman.shared.CacheNames;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Set;
+import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
@@ -54,7 +55,7 @@ class PortfolioHistoryControllerIT extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.value").isArray())
                 .andReturn();
 
-        Set<String> cacheKeys = redisTemplate.keys(CacheNames.PORTFOLIO_HISTORY_CACHE + "::*");
+        Set<String> cacheKeys = redisTemplate.keys("folioman:cache:" + CacheNames.PORTFOLIO_HISTORY_CACHE + "::*");
         assertThat(cacheKeys).isNotNull();
         assertThat(cacheKeys.stream().anyMatch(key -> key.contains("history_" + casId + "_")))
                 .isTrue();
@@ -114,7 +115,7 @@ class PortfolioHistoryControllerIT extends AbstractIntegrationTest {
 
             InvestorInfoEntity investorInfo = new InvestorInfoEntity()
                     .setEmail(email)
-                    .setName("Integration Test User")
+                    .setName("Integration Test User " + UUID.randomUUID())
                     .setMobile("9999999999")
                     .setAddress("Test Address")
                     .setUserCasDetailsEntity(casDetails);

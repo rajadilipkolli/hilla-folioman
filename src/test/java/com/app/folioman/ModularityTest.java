@@ -59,7 +59,7 @@ class ModularityTest {
     @DisplayName("All expected modules should be present")
     void verifyAllModulesPresent() {
         assertThat(modules.stream().map(m -> m.getIdentifier().toString()))
-                .contains("config", "mfschemes", "portfolio", "shared");
+                .contains("auth", "config", "mfschemes", "portfolio", "pythonbridge", "shared");
     }
 
     @Test

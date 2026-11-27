@@ -21,6 +21,8 @@ interface UserSchemeDetailsRepository extends JpaRepository<UserSchemeDetailsEnt
 
     List<UserSchemeDetailsEntity> findByAmfiIsNull();
 
+    List<UserSchemeDetailsEntity> findByUserFolioDetails_UserCasDetailsEntity_IdAndAmfiIsNull(Long casId);
+
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query(

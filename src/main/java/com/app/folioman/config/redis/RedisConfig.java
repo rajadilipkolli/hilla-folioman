@@ -1,5 +1,6 @@
 package com.app.folioman.config.redis;
 
+import com.app.folioman.shared.CacheNames;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import java.net.ConnectException;
 import java.time.Duration;
@@ -23,7 +24,6 @@ import org.springframework.data.redis.serializer.GenericJacksonJsonRedisSerializ
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-import tools.jackson.databind.json.JsonMapper;
 
 @Configuration(proxyBeanMethods = false)
 @EnableCaching
@@ -66,6 +66,8 @@ class RedisConfig implements CachingConfigurer {
         // Create default cache configuration with compression if enabled
         RedisCacheConfiguration cacheConfiguration = RedisCacheConfiguration.defaultCacheConfig()
                 .entryTtl(Duration.ofSeconds(redisAppProperties.getDefaultTtl()))
+                .disableCachingNullValues()
+                .prefixCacheNameWith("folioman:cache:")
                 .serializeKeysWith(
                         RedisSerializationContext.SerializationPair.fromSerializer(new StringRedisSerializer()));
 
@@ -92,6 +94,7 @@ class RedisConfig implements CachingConfigurer {
         // Create the custom cache manager with our circuit breaker and default TTL
         return new CustomRedisCacheManager(
                 redisCacheWriter,
+                cacheConfiguration,
                 initialCacheConfigurations,
                 monitor,
                 circuitBreaker,
@@ -102,12 +105,11 @@ class RedisConfig implements CachingConfigurer {
      * Creates an optimized serializer for Redis values
      */
     private RedisSerializer<Object> createOptimizedSerializer() {
-        // Create a custom jsonMapper for JSON serialization
-        JsonMapper jsonMapper = JsonMapper.builder()
-                .changeDefaultVisibility(visibilityChecker -> visibilityChecker.with(JsonAutoDetect.Visibility.ANY))
+        return GenericJacksonJsonRedisSerializer.builder()
+                .enableUnsafeDefaultTyping()
+                .customize(builder -> builder.changeDefaultVisibility(
+                        visibilityChecker -> visibilityChecker.with(JsonAutoDetect.Visibility.ANY)))
                 .build();
-        // Use JSON serialization for better memory efficiency and readability
-        return new GenericJacksonJsonRedisSerializer(jsonMapper);
     }
 
     @Override

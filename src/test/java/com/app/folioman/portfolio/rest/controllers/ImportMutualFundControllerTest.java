@@ -8,6 +8,7 @@ import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -16,8 +17,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.app.folioman.auth.domain.JwtService;
 import com.app.folioman.auth.domain.TokenBlacklistService;
-import com.app.folioman.portfolio.PortfolioAPI;
+import com.app.folioman.portfolio.PortfolioAnalyticsQuery;
+import com.app.folioman.portfolio.PortfolioImportUseCase;
 import com.app.folioman.portfolio.rest.dtos.CasDTO;
+import com.app.folioman.portfolio.rest.dtos.InvestorInfoDTO;
 import com.app.folioman.portfolio.rest.dtos.PortfolioResponse;
 import com.app.folioman.portfolio.rest.dtos.UploadFileResponse;
 import java.math.BigDecimal;
@@ -35,7 +38,6 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.multipart.MultipartFile;
 
 @WebMvcTest(controllers = ImportMutualFundController.class)
 @WithMockUser(roles = "USER")
@@ -46,7 +48,10 @@ class ImportMutualFundControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private PortfolioAPI portfolioAPI;
+    private PortfolioImportUseCase portfolioImportUseCase;
+
+    @MockitoBean
+    private PortfolioAnalyticsQuery portfolioAnalyticsQuery;
 
     @MockitoBean
     private JwtService jwtService;
@@ -56,8 +61,8 @@ class ImportMutualFundControllerTest {
 
     @BeforeEach
     void setUp() {
-        reset(portfolioAPI);
-        Mockito.doReturn(true).when(portfolioAPI).isPanOwnedByEmail(any(), any());
+        reset(portfolioImportUseCase, portfolioAnalyticsQuery);
+        Mockito.doReturn(true).when(portfolioAnalyticsQuery).isPanOwnedByEmail(any(), any());
     }
 
     @Test
@@ -114,14 +119,14 @@ class ImportMutualFundControllerTest {
         String pan = "ABCDE1234F";
         PortfolioResponse response = new PortfolioResponse(new BigDecimal("15000"), List.of());
 
-        doReturn(response).when(portfolioAPI).getPortfolioByPAN(eq(pan), any(), any());
+        doReturn(response).when(portfolioAnalyticsQuery).getPortfolioByPAN(eq(pan), any(), any());
 
         this.mockMvc
                 .perform(get("/api/portfolio/{pan}", pan).accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalPortfolioValue", is(15000)));
 
-        verify(portfolioAPI).getPortfolioByPAN(eq(pan), any(), any());
+        verify(portfolioAnalyticsQuery).getPortfolioByPAN(eq(pan), any(), any());
     }
 
     @Test
@@ -130,7 +135,7 @@ class ImportMutualFundControllerTest {
                 new MockMultipartFile("file", "test.json", MediaType.APPLICATION_JSON_VALUE, "{}".getBytes());
         UploadFileResponse response = new UploadFileResponse(1, 2, 3, 100L);
 
-        doReturn(response).when(portfolioAPI).upload(any(MultipartFile.class));
+        doReturn(response).when(portfolioImportUseCase).upload(any(byte[].class));
 
         this.mockMvc
                 .perform(
@@ -141,7 +146,7 @@ class ImportMutualFundControllerTest {
                 .andExpect(jsonPath("$.newTransactions", is(3)))
                 .andExpect(jsonPath("$.userCASDetailsId", is(100)));
 
-        verify(portfolioAPI).upload(any(MultipartFile.class));
+        verify(portfolioImportUseCase).upload(any(byte[].class));
     }
 
     @Test
@@ -153,8 +158,8 @@ class ImportMutualFundControllerTest {
 
         // Mock PDF conversion
         CasDTO mockCasDto = new CasDTO(null, null, null, null, List.of());
-        doReturn(mockCasDto).when(portfolioAPI).convertPdfCasToJson(any(MultipartFile.class), eq("pass123"));
-        doReturn(response).when(portfolioAPI).uploadFromDto(mockCasDto);
+        doReturn(mockCasDto).when(portfolioImportUseCase).convertPdfCasToJson(any(), eq("test.pdf"), eq("pass123"));
+        doReturn(response).when(portfolioImportUseCase).uploadFromDto(mockCasDto);
 
         this.mockMvc
                 .perform(multipart("/api/upload-pdf-cas")
@@ -165,7 +170,44 @@ class ImportMutualFundControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.userCASDetailsId", is(100)));
 
-        verify(portfolioAPI).convertPdfCasToJson(any(MultipartFile.class), eq("pass123"));
-        verify(portfolioAPI).uploadFromDto(mockCasDto);
+        verify(portfolioImportUseCase).convertPdfCasToJson(any(), eq("test.pdf"), eq("pass123"));
+        verify(portfolioImportUseCase).uploadFromDto(mockCasDto);
+    }
+
+    @Test
+    void upload_RejectsMismatchedInvestorEmail() throws Exception {
+        String json = """
+                {"investor_info":{"email":"owner@example.com","name":"Owner"},"folios":[]}
+                """;
+        MockMultipartFile file =
+                new MockMultipartFile("file", "test.json", MediaType.APPLICATION_JSON_VALUE, json.getBytes());
+
+        this.mockMvc
+                .perform(multipart("/api/upload-handler")
+                        .with(user("other@example.com").roles("USER"))
+                        .with(csrf())
+                        .file(file)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void uploadPasswordProtectedCasPdf_RejectsMismatchedInvestorEmail() throws Exception {
+        MockMultipartFile file =
+                new MockMultipartFile("file", "test.pdf", MediaType.APPLICATION_PDF_VALUE, "pdf content".getBytes());
+        MockMultipartFile password = new MockMultipartFile("password", "", "text/plain", "pass123".getBytes());
+
+        CasDTO mockCasDto =
+                new CasDTO(null, null, null, new InvestorInfoDTO("owner@example.com", "Owner", null, null), List.of());
+        doReturn(mockCasDto).when(portfolioImportUseCase).convertPdfCasToJson(any(), eq("test.pdf"), eq("pass123"));
+
+        this.mockMvc
+                .perform(multipart("/api/upload-pdf-cas")
+                        .with(user("other@example.com").roles("USER"))
+                        .with(csrf())
+                        .file(file)
+                        .file(password)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isForbidden());
     }
 }

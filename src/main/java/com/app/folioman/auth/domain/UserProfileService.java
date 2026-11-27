@@ -1,22 +1,23 @@
 package com.app.folioman.auth.domain;
 
+import com.app.folioman.auth.UserProfileQuery;
 import com.app.folioman.auth.rest.dtos.PortfolioSummaryItemDTO;
 import com.app.folioman.auth.rest.dtos.PortfoliosDTO;
 import com.app.folioman.auth.rest.dtos.UserProfileDTO;
-import com.app.folioman.portfolio.PortfolioAPI;
+import com.app.folioman.portfolio.PortfolioSummaryQuery;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional(readOnly = true)
-public class UserProfileService {
+class UserProfileService implements UserProfileQuery {
 
     private final UserRepository userRepository;
-    private final PortfolioAPI portfolioAPI;
+    private final PortfolioSummaryQuery portfolioSummaryQuery;
 
-    UserProfileService(UserRepository userRepository, PortfolioAPI portfolioAPI) {
+    UserProfileService(UserRepository userRepository, PortfolioSummaryQuery portfolioSummaryQuery) {
         this.userRepository = userRepository;
-        this.portfolioAPI = portfolioAPI;
+        this.portfolioSummaryQuery = portfolioSummaryQuery;
     }
 
     public UserProfileDTO getCurrentUserProfile(String username) {
@@ -24,7 +25,7 @@ public class UserProfileService {
                 .findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
 
-        var portfolioSummaries = portfolioAPI.getPortfolioSummariesByEmail(user.getEmail());
+        var portfolioSummaries = portfolioSummaryQuery.getPortfolioSummariesByEmail(user.getEmail());
         var mutualFunds = portfolioSummaries.stream()
                 .map(ps -> new PortfolioSummaryItemDTO(ps.getName(), ps.getValue(), ps.getXirr()))
                 .toList();

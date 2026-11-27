@@ -4,21 +4,23 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.app.folioman.config.redis.CacheNames;
+import com.app.folioman.shared.CacheNames;
 import java.util.Collections;
 import java.util.Set;
 import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.scheduling.BackgroundJob;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -27,6 +29,8 @@ import org.springframework.data.redis.core.RedisTemplate;
 
 @ExtendWith(MockitoExtension.class)
 class PortfolioCacheConfigTest {
+
+    private static final String CACHE_KEY_PATTERN = "folioman:cache:" + CacheNames.TRANSACTION_CACHE + "::*";
 
     @Mock
     private RedisTemplate<String, Object> redisTemplate;
@@ -40,18 +44,15 @@ class PortfolioCacheConfigTest {
     @Mock
     private ApplicationStartedEvent applicationStartedEvent;
 
-    @InjectMocks
     private PortfolioCacheConfig portfolioCacheConfig;
 
-    @Test
-    void constructor_ShouldInitializeFields() {
-        PortfolioCacheConfig config = new PortfolioCacheConfig(redisTemplate, portfolioCacheProperties);
-
-        verify(portfolioCacheProperties, never()).getEviction();
+    @BeforeEach
+    void setUp() {
+        portfolioCacheConfig = spy(new PortfolioCacheConfig(redisTemplate, portfolioCacheProperties));
     }
 
     @Test
-    void scheduleTransactionCacheEvictionJob_ShouldScheduleJobWithCronExpression() {
+    void scheduleTransactionCacheEvictionJob_ShouldScheduleJob() {
         String cronExpression = "0 0 2 * * ?";
         when(portfolioCacheProperties.getEviction()).thenReturn(eviction);
         when(eviction.getTransactionCron()).thenReturn(cronExpression);
@@ -68,11 +69,11 @@ class PortfolioCacheConfigTest {
 
     @Test
     void evictTransactionCaches_WithNoKeys_ShouldReturnEarly() {
-        when(redisTemplate.keys(anyString())).thenReturn(Collections.emptySet());
+        doReturn(Collections.emptySet()).when(portfolioCacheConfig).scanKeys(CACHE_KEY_PATTERN);
 
         portfolioCacheConfig.evictTransactionCaches();
 
-        verify(redisTemplate).keys(CacheNames.TRANSACTION_CACHE + "::*");
+        verify(portfolioCacheConfig).scanKeys(CACHE_KEY_PATTERN);
         verify(redisTemplate, never()).delete(anyString());
     }
 
@@ -83,11 +84,12 @@ class PortfolioCacheConfigTest {
                 CacheNames.TRANSACTION_CACHE + "::yearly_2023",
                 CacheNames.TRANSACTION_CACHE + "::daily_2023",
                 CacheNames.TRANSACTION_CACHE + "::weekly_2023");
-        when(redisTemplate.keys(CacheNames.TRANSACTION_CACHE + "::*")).thenReturn(keys);
+        doReturn(keys).when(portfolioCacheConfig).scanKeys(CACHE_KEY_PATTERN);
         when(portfolioCacheProperties.getEviction()).thenReturn(eviction);
         when(eviction.getBatchSize()).thenReturn(10);
 
         portfolioCacheConfig.evictTransactionCaches();
+
         verify(redisTemplate).delete(CacheNames.TRANSACTION_CACHE + "::monthly_2023");
         verify(redisTemplate).delete(CacheNames.TRANSACTION_CACHE + "::yearly_2023");
         verify(redisTemplate, never()).delete(CacheNames.TRANSACTION_CACHE + "::daily_2023");
@@ -100,7 +102,7 @@ class PortfolioCacheConfigTest {
                 CacheNames.TRANSACTION_CACHE + "::monthly_1",
                 CacheNames.TRANSACTION_CACHE + "::monthly_2",
                 CacheNames.TRANSACTION_CACHE + "::monthly_3");
-        when(redisTemplate.keys(CacheNames.TRANSACTION_CACHE + "::*")).thenReturn(keys);
+        doReturn(keys).when(portfolioCacheConfig).scanKeys(CACHE_KEY_PATTERN);
         when(portfolioCacheProperties.getEviction()).thenReturn(eviction);
         when(eviction.getBatchSize()).thenReturn(2);
 
@@ -112,23 +114,25 @@ class PortfolioCacheConfigTest {
 
     @Test
     void evictTransactionCaches_WithException_ShouldHandleGracefully() {
-        when(redisTemplate.keys(anyString())).thenThrow(new RuntimeException("Redis connection failed"));
+        doThrow(new RuntimeException("Redis connection failed"))
+                .when(portfolioCacheConfig)
+                .scanKeys(anyString());
 
         portfolioCacheConfig.evictTransactionCaches();
 
-        verify(redisTemplate).keys(CacheNames.TRANSACTION_CACHE + "::*");
+        verify(portfolioCacheConfig).scanKeys(CACHE_KEY_PATTERN);
         verify(redisTemplate, never()).delete(anyString());
     }
 
     @Test
     void evictTransactionCaches_WithDeleteException_ShouldHandleGracefully() {
         Set<String> keys = Set.of(CacheNames.TRANSACTION_CACHE + "::monthly_2023");
-        when(redisTemplate.keys(CacheNames.TRANSACTION_CACHE + "::*")).thenReturn(keys);
+        doReturn(keys).when(portfolioCacheConfig).scanKeys(CACHE_KEY_PATTERN);
         doThrow(new RuntimeException("Delete failed")).when(redisTemplate).delete(anyString());
 
         portfolioCacheConfig.evictTransactionCaches();
 
-        verify(redisTemplate).keys(CacheNames.TRANSACTION_CACHE + "::*");
+        verify(portfolioCacheConfig).scanKeys(CACHE_KEY_PATTERN);
         verify(redisTemplate).delete(CacheNames.TRANSACTION_CACHE + "::monthly_2023");
     }
 
@@ -138,10 +142,10 @@ class PortfolioCacheConfigTest {
                 CacheNames.TRANSACTION_CACHE + "::daily_2023",
                 CacheNames.TRANSACTION_CACHE + "::weekly_2023",
                 CacheNames.TRANSACTION_CACHE + "::custom_2023");
-        when(redisTemplate.keys(CacheNames.TRANSACTION_CACHE + "::*")).thenReturn(keys);
+        doReturn(keys).when(portfolioCacheConfig).scanKeys(CACHE_KEY_PATTERN);
 
         portfolioCacheConfig.evictTransactionCaches();
-        verify(redisTemplate).keys(CacheNames.TRANSACTION_CACHE + "::*");
+        verify(portfolioCacheConfig).scanKeys(CACHE_KEY_PATTERN);
         verify(redisTemplate, never()).delete(anyString());
     }
 
@@ -153,7 +157,7 @@ class PortfolioCacheConfigTest {
                 CacheNames.TRANSACTION_CACHE + "::daily_report",
                 CacheNames.TRANSACTION_CACHE + "::some_monthly_data",
                 CacheNames.TRANSACTION_CACHE + "::yearly_stats");
-        when(redisTemplate.keys(CacheNames.TRANSACTION_CACHE + "::*")).thenReturn(keys);
+        doReturn(keys).when(portfolioCacheConfig).scanKeys(CACHE_KEY_PATTERN);
         when(portfolioCacheProperties.getEviction()).thenReturn(eviction);
         when(eviction.getBatchSize()).thenReturn(5);
 

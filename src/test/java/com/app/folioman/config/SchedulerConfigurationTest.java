@@ -9,7 +9,6 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.app.folioman.config.redis.AdaptiveStrategyScheduler;
-import com.app.folioman.mfschemes.MFNavService;
 import com.app.folioman.portfolio.UserSchemeDetailService;
 import org.jobrunr.jobs.lambdas.JobLambda;
 import org.jobrunr.scheduling.BackgroundJob;
@@ -28,9 +27,6 @@ class SchedulerConfigurationTest {
     private UserSchemeDetailService userSchemeDetailService;
 
     @Mock
-    private MFNavService mfNavService;
-
-    @Mock
     private AdaptiveStrategyScheduler adaptiveStrategyScheduler;
 
     @Mock
@@ -43,20 +39,16 @@ class SchedulerConfigurationTest {
 
     @BeforeEach
     void setUp() {
-        schedulerConfiguration = new SchedulerConfiguration(
-                userSchemeDetailService, mfNavService, adaptiveStrategyScheduler, schedulerProperties);
+        schedulerConfiguration =
+                new SchedulerConfiguration(userSchemeDetailService, adaptiveStrategyScheduler, schedulerProperties);
     }
 
     @Test
-    void scheduleAllJobs_ShouldScheduleAllFourJobs() {
+    void scheduleAllJobs_ShouldScheduleAllJobs() {
         String amfiCron = "0 0 1 * * ?";
-        String historicalNavCron = "0 0 2 * * ?";
-        String dailyDataCron = "0 0 3 * * ?";
         String adaptiveStrategyCron = "0 0 4 * * ?";
 
         when(schedulerProperties.getAmfiJobCron()).thenReturn(amfiCron);
-        when(schedulerProperties.getHistoricalNavJobCron()).thenReturn(historicalNavCron);
-        when(schedulerProperties.getDailyDataJobCron()).thenReturn(dailyDataCron);
         when(schedulerProperties.getAdaptiveStrategyJobCron()).thenReturn(adaptiveStrategyCron);
 
         try (MockedStatic<BackgroundJob> backgroundJobMock = mockStatic(BackgroundJob.class)) {
@@ -66,42 +58,30 @@ class SchedulerConfigurationTest {
                     eq("user-scheme-amfi-update"), eq(amfiCron), any(JobLambda.class)));
 
             backgroundJobMock.verify(() -> BackgroundJob.scheduleRecurrently(
-                    eq("historical-nav-load"), eq(historicalNavCron), any(JobLambda.class)));
-
-            backgroundJobMock.verify(() ->
-                    BackgroundJob.scheduleRecurrently(eq("daily-nav-load"), eq(dailyDataCron), any(JobLambda.class)));
-
-            backgroundJobMock.verify(() -> BackgroundJob.scheduleRecurrently(
                     eq("adaptive-cache-strategy"), eq(adaptiveStrategyCron), any(JobLambda.class)));
         }
 
         // Each getter is invoked once for logging and once when passed to BackgroundJob.scheduleRecurrently
         verify(schedulerProperties, times(2)).getAmfiJobCron();
-        verify(schedulerProperties, times(2)).getHistoricalNavJobCron();
-        verify(schedulerProperties, times(2)).getDailyDataJobCron();
         verify(schedulerProperties, times(2)).getAdaptiveStrategyJobCron();
     }
 
     @Test
     void scheduleAllJobs_ShouldCallAllPrivateMethods() {
         when(schedulerProperties.getAmfiJobCron()).thenReturn("0 0 1 * * ?");
-        when(schedulerProperties.getHistoricalNavJobCron()).thenReturn("0 0 2 * * ?");
-        when(schedulerProperties.getDailyDataJobCron()).thenReturn("0 0 3 * * ?");
         when(schedulerProperties.getAdaptiveStrategyJobCron()).thenReturn("0 0 4 * * ?");
 
         try (MockedStatic<BackgroundJob> backgroundJobMock = mockStatic(BackgroundJob.class)) {
             schedulerConfiguration.scheduleAllJobs(applicationStartedEvent);
 
             backgroundJobMock.verify(
-                    () -> BackgroundJob.scheduleRecurrently(anyString(), anyString(), any(JobLambda.class)), times(4));
+                    () -> BackgroundJob.scheduleRecurrently(anyString(), anyString(), any(JobLambda.class)), times(2));
         }
     }
 
     @Test
     void scheduleAllJobs_ShouldUseCorrectJobNames() {
         when(schedulerProperties.getAmfiJobCron()).thenReturn("0 0 1 * * ?");
-        when(schedulerProperties.getHistoricalNavJobCron()).thenReturn("0 0 2 * * ?");
-        when(schedulerProperties.getDailyDataJobCron()).thenReturn("0 0 3 * * ?");
         when(schedulerProperties.getAdaptiveStrategyJobCron()).thenReturn("0 0 4 * * ?");
 
         try (MockedStatic<BackgroundJob> backgroundJobMock = mockStatic(BackgroundJob.class)) {
@@ -109,12 +89,6 @@ class SchedulerConfigurationTest {
 
             backgroundJobMock.verify(() -> BackgroundJob.scheduleRecurrently(
                     eq("user-scheme-amfi-update"), anyString(), any(JobLambda.class)));
-
-            backgroundJobMock.verify(() ->
-                    BackgroundJob.scheduleRecurrently(eq("historical-nav-load"), anyString(), any(JobLambda.class)));
-
-            backgroundJobMock.verify(
-                    () -> BackgroundJob.scheduleRecurrently(eq("daily-nav-load"), anyString(), any(JobLambda.class)));
 
             backgroundJobMock.verify(() -> BackgroundJob.scheduleRecurrently(
                     eq("adaptive-cache-strategy"), anyString(), any(JobLambda.class)));
