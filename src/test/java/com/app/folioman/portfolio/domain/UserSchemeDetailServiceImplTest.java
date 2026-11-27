@@ -3,6 +3,7 @@ package com.app.folioman.portfolio.domain;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -11,6 +12,7 @@ import com.app.folioman.mfschemes.MfSchemeService;
 import com.app.folioman.mfschemes.rest.dtos.FundDetailProjection;
 import com.app.folioman.mfschemes.rest.dtos.MFSchemeProjection;
 import com.app.folioman.mfschemes.rest.dtos.MFSchemeTypeProjection;
+import jakarta.persistence.EntityManager;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -18,6 +20,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -30,6 +33,9 @@ class UserSchemeDetailServiceImplTest {
 
     @Mock
     private MfSchemeService mfSchemeService;
+
+    @Mock
+    private EntityManager entityManager;
 
     @InjectMocks
     private UserSchemeDetailServiceImpl userSchemeDetailService;
@@ -136,7 +142,9 @@ class UserSchemeDetailServiceImplTest {
 
         userSchemeDetailService.setUserSchemeAMFIIfNull();
 
-        verify(userSchemeDetailsRepository).updateAmfiAndIsinById(123L, "INE123456789", 1L);
+        InOrder updateOrder = inOrder(userSchemeDetailsRepository, entityManager);
+        updateOrder.verify(userSchemeDetailsRepository).updateAmfiAndIsinById(123L, "INE123456789", 1L);
+        updateOrder.verify(entityManager).refresh(userSchemeDetailsEntity);
         verify(mfSchemeService, never()).fetchSchemes(anyString());
     }
 
@@ -154,7 +162,9 @@ class UserSchemeDetailServiceImplTest {
 
         verify(userSchemeDetailsRepository).findByAmfiIsNull();
         verify(mfSchemeService).findByPayOut("INE111222333");
-        verify(userSchemeDetailsRepository).updateAmfiAndIsinById(123L, "INE111222333", 5L);
+        InOrder updateOrder = inOrder(userSchemeDetailsRepository, entityManager);
+        updateOrder.verify(userSchemeDetailsRepository).updateAmfiAndIsinById(123L, "INE111222333", 5L);
+        updateOrder.verify(entityManager).refresh(schemeWithIsin);
     }
 
     @Test
@@ -172,7 +182,9 @@ class UserSchemeDetailServiceImplTest {
 
         verify(userSchemeDetailsRepository).findByAmfiIsNull();
         verify(mfSchemeService).fetchSchemes("Test Income Scheme");
-        verify(userSchemeDetailsRepository).updateAmfiAndIsinById(456L, null, 6L);
+        InOrder updateOrder = inOrder(userSchemeDetailsRepository, entityManager);
+        updateOrder.verify(userSchemeDetailsRepository).updateAmfiAndIsinById(456L, null, 6L);
+        updateOrder.verify(entityManager).refresh(schemeWithoutIsin);
     }
 
     @Test
