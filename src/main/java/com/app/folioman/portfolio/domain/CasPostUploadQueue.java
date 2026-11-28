@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
@@ -47,6 +48,7 @@ public class CasPostUploadQueue {
     }
 
     @Recurring(id = "dispatch-pending-cas-post-upload", interval = "PT1M")
+    @Transactional
     public void dispatchPending() {
         var requests = jdbcTemplate.query(
                 """

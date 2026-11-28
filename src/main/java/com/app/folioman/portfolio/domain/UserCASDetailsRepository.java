@@ -14,8 +14,12 @@ import org.springframework.stereotype.Repository;
 interface UserCASDetailsRepository extends JpaRepository<UserCasDetailsEntity, Long> {
 
     @Query("""
-            select u from UserCasDetailsEntity u join fetch u.folios join fetch u.investorInfoEntity as i
-            where upper(i.email) = upper(:email) and i.name = :name
+            select u from UserCasDetailsEntity u join fetch u.folios join fetch u.investorInfoEntity
+            where u.id = (
+                select min(candidate.id) from UserCasDetailsEntity candidate
+                join candidate.investorInfoEntity i
+                where upper(i.email) = upper(:email) and i.name = :name and candidate.folios is not empty
+            )
             """)
     Optional<UserCasDetailsEntity> findByInvestorEmailAndName(@Param("email") String email, @Param("name") String name);
 

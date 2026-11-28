@@ -52,6 +52,31 @@ class UserCASDetailsRepositoryTest {
         assertThat(result.get().getInvestorInfoEntity().getName()).isEqualTo(name);
     }
 
+    @Test
+    @ResourceLock(value = "database", mode = ResourceAccessMode.READ_WRITE)
+    void findByInvestorEmailAndName_SelectsLowestMatchingCasIdAndFetchesAllItsFolios() {
+        String name = "Legacy CAS User";
+        var first = getUserCASDetails("Legacy@example.com", name);
+        first.addFolioEntity(new UserFolioDetailsEntity()
+                .setFolio("FOLIO456")
+                .setAmc("AMC_NAME")
+                .setPan("ABCDE1234F"));
+        var second = getUserCASDetails("legacy@example.com", name);
+        second.getFolios().getFirst().setFolio("FOLIO789");
+        entityManager.persist(first);
+        entityManager.persistAndFlush(second);
+        entityManager.clear();
+
+        var result = UserCasDetailsRepository.findByInvestorEmailAndName("LEGACY@example.com", name);
+
+        assertThat(result).hasValueSatisfying(cas -> {
+            assertThat(cas.getId()).isEqualTo(first.getId());
+            assertThat(cas.getFolios())
+                    .extracting(UserFolioDetailsEntity::getFolio)
+                    .containsExactlyInAnyOrder("FOLIO123", "FOLIO456");
+        });
+    }
+
     private UserCasDetailsEntity getUserCASDetails(String email, String name) {
         InvestorInfoEntity investorInfo = new InvestorInfoEntity();
         investorInfo.setEmail(email);
