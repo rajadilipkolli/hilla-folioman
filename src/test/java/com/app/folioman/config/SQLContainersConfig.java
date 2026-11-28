@@ -7,7 +7,6 @@ import org.springframework.boot.testcontainers.service.connection.ServiceConnect
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.DynamicPropertyRegistrar;
-import org.testcontainers.Testcontainers;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.output.Slf4jLogConsumer;
@@ -19,26 +18,25 @@ import org.testcontainers.utility.DockerImageName;
 @Import({AuditConfiguration.class})
 public class SQLContainersConfig {
 
-    private static final Network network = Network.newNetwork();
+    @Bean(destroyMethod = "close")
+    Network sqlContainersNetwork() {
+        return Network.newNetwork();
+    }
 
-    private static final PostgreSQLContainer postgreSQLContainer = new PostgreSQLContainer(
-                    DockerImageName.parse("postgres").withTag("19.0-alpine"))
-            .withCommand("postgres", "-c", "max_connections=200")
-            .withNetwork(network)
-            .withNetworkAliases("postgres")
-            .withReuse(true);
+    @Bean
+    @ServiceConnection
+    PostgreSQLContainer postgreSQLContainer(Network sqlContainersNetwork) {
+        return new PostgreSQLContainer(DockerImageName.parse("postgres").withTag("19.0-alpine"))
+                .withCommand("postgres", "-c", "max_connections=200")
+                .withNetwork(sqlContainersNetwork)
+                .withNetworkAliases("postgres");
+    }
 
-    private static final GenericContainer<?> mfNavDataContainer;
-
-    static {
-        postgreSQLContainer.start();
-
-        Testcontainers.exposeHostPorts(postgreSQLContainer.getFirstMappedPort());
-        String jdbcUrl = postgreSQLContainer.getJdbcUrl().replace("localhost", "host.testcontainers.internal");
-
-        mfNavDataContainer = new GenericContainer<>(
-                        DockerImageName.parse("ghcr.io/rajadilipkolli/historical-mf-nav-data:latest"))
-                .withNetwork(network)
+    @Bean
+    GenericContainer<?> mfNavDataContainer(Network sqlContainersNetwork, PostgreSQLContainer postgreSQLContainer) {
+        String jdbcUrl = "jdbc:postgresql://postgres:5432/" + postgreSQLContainer.getDatabaseName();
+        return new GenericContainer<>(DockerImageName.parse("ghcr.io/rajadilipkolli/historical-mf-nav-data:latest"))
+                .withNetwork(sqlContainersNetwork)
                 .withExposedPorts(8080)
                 .withEnv("SPRING_PROFILES_ACTIVE", "docker")
                 .withEnv("JAVA_TOOL_OPTIONS", "-Dspring.profiles.active=docker")
@@ -54,26 +52,14 @@ public class SQLContainersConfig {
                 .waitingFor(Wait.forLogMessage(".*Started DailyNavApplication.*", 1)
                         .withStartupTimeout(Duration.ofMinutes(2)))
                 .dependsOn(postgreSQLContainer);
-
-        mfNavDataContainer.start();
-        try {
-            Thread.sleep(15000);
-        } catch (InterruptedException e) {
-        }
     }
 
     @Bean
-    @ServiceConnection
-    PostgreSQLContainer postgreSQLContainer() {
-        return postgreSQLContainer;
+    DynamicPropertyRegistrar dynamicProperties(GenericContainer<?> mfNavDataContainer) {
+        return registry -> registry.add("app.nav.mfapi.data-url", () -> mfNavDataUrl(mfNavDataContainer));
     }
 
-    @Bean
-    DynamicPropertyRegistrar dynamicProperties() {
-        return registry -> registry.add("app.nav.mfapi.data-url", SQLContainersConfig::mfNavDataUrl);
-    }
-
-    public static String mfNavDataUrl() {
+    public static String mfNavDataUrl(GenericContainer<?> mfNavDataContainer) {
         return "http://" + mfNavDataContainer.getHost() + ":" + mfNavDataContainer.getMappedPort(8080) + "/api/v1";
     }
 }

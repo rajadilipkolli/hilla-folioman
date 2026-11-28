@@ -10,13 +10,12 @@ import org.springframework.data.redis.cache.RedisCache;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.cache.RedisCacheWriter;
-import org.springframework.data.redis.serializer.RedisSerializer;
 
 public class CustomRedisCacheManager extends RedisCacheManager {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CustomRedisCacheManager.class);
     private final RedisCacheWriter redisCacheWriter;
-    private final RedisSerializer<Object> redisSerializer;
+    private final RedisCacheConfiguration defaultCacheConfiguration;
     private final Duration defaultTtl;
     private final Monitor monitor;
     private final CacheCircuitBreaker circuitBreaker;
@@ -27,12 +26,28 @@ public class CustomRedisCacheManager extends RedisCacheManager {
             Monitor monitor,
             CacheCircuitBreaker circuitBreaker,
             Duration defaultTtl) {
-        super(
+        this(
                 cacheWriter,
                 RedisCacheConfiguration.defaultCacheConfig(),
+                initialCacheConfigurations,
+                monitor,
+                circuitBreaker,
+                defaultTtl);
+    }
+
+    public CustomRedisCacheManager(
+            RedisCacheWriter cacheWriter,
+            RedisCacheConfiguration defaultCacheConfiguration,
+            Map<String, RedisCacheConfiguration> initialCacheConfigurations,
+            Monitor monitor,
+            CacheCircuitBreaker circuitBreaker,
+            Duration defaultTtl) {
+        super(
+                cacheWriter,
+                defaultCacheConfiguration,
                 initialCacheConfigurations != null ? initialCacheConfigurations : Collections.emptyMap());
         this.redisCacheWriter = cacheWriter;
-        this.redisSerializer = RedisSerializer.java(); // Custom serializer if needed
+        this.defaultCacheConfiguration = defaultCacheConfiguration;
         this.defaultTtl = defaultTtl != null ? defaultTtl : Duration.ofMinutes(10);
         this.monitor = monitor;
         this.circuitBreaker = circuitBreaker;
@@ -42,13 +57,14 @@ public class CustomRedisCacheManager extends RedisCacheManager {
 
     @Override
     protected RedisCache createRedisCache(String name, @Nullable RedisCacheConfiguration cacheConfig) {
-        // Configure cache with either provided config or default
-        Duration ttl =
-                cacheConfig != null ? cacheConfig.getTtlFunction().getTimeToLive(Object.class, null) : defaultTtl;
+        RedisCacheConfiguration effectiveConfig =
+                cacheConfig != null ? cacheConfig : defaultCacheConfiguration.entryTtl(defaultTtl);
 
-        LOGGER.debug("Creating Redis cache '{}' with TTL: {}", name, ttl);
+        LOGGER.debug(
+                "Creating Redis cache '{}' with TTL: {}",
+                name,
+                effectiveConfig.getTtlFunction().getTimeToLive(Object.class, null));
 
-        // Return the custom RedisCache implementation with circuit breaker support
-        return new CustomRedisCache(name, redisCacheWriter, redisSerializer, ttl, monitor, circuitBreaker);
+        return new CustomRedisCache(name, redisCacheWriter, effectiveConfig, monitor, circuitBreaker);
     }
 }

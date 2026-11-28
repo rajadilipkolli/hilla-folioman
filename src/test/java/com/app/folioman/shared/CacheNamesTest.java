@@ -1,4 +1,4 @@
-package com.app.folioman.config.redis;
+package com.app.folioman.shared;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;

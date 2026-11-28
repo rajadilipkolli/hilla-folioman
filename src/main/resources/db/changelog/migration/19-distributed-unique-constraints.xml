@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.29.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+
+    <changeSet id="1764288000000-1" author="appUser">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <uniqueConstraintExists schemaName="portfolio" tableName="investor_info" constraintName="uc_investor_info_email_name"/>
+            </not>
+        </preConditions>
+        <addUniqueConstraint schemaName="portfolio" tableName="investor_info" columnNames="email, name"
+                             constraintName="uc_investor_info_email_name"/>
+    </changeSet>
+
+    <changeSet id="1764288000000-repair-scheme-values" author="appUser">
+        <comment>Keep the newest row for each valuation date and scheme. No schema tables reference scheme_value.</comment>
+        <sql>
+            DELETE FROM portfolio.scheme_value AS duplicate
+            USING (
+                SELECT id, ROW_NUMBER() OVER (PARTITION BY date, user_scheme_detail_id ORDER BY id DESC) AS row_num
+                FROM portfolio.scheme_value
+            ) AS ranked
+            WHERE duplicate.id = ranked.id AND ranked.row_num > 1;
+        </sql>
+    </changeSet>
+
+    <changeSet id="1764288000000-2" author="appUser">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <uniqueConstraintExists schemaName="portfolio" tableName="scheme_value" constraintName="uc_scheme_value_date_scheme_detail"/>
+            </not>
+        </preConditions>
+        <addUniqueConstraint schemaName="portfolio" tableName="scheme_value" columnNames="date, user_scheme_detail_id"
+                             constraintName="uc_scheme_value_date_scheme_detail"/>
+    </changeSet>
+
+</databaseChangeLog>

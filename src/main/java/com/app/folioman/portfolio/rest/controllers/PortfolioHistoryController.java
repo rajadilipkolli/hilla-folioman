@@ -1,6 +1,6 @@
 package com.app.folioman.portfolio.rest.controllers;
 
-import com.app.folioman.portfolio.PortfolioAPI;
+import com.app.folioman.portfolio.PortfolioSummaryQuery;
 import com.app.folioman.portfolio.rest.dtos.PortfolioHistoryDTO;
 import com.app.folioman.portfolio.rest.dtos.PortfolioSummaryDTO;
 import com.app.folioman.shared.PrincipalUtil;
@@ -23,10 +23,10 @@ import org.springframework.web.bind.annotation.RestController;
 @Validated
 public class PortfolioHistoryController {
 
-    private final PortfolioAPI portfolioAPI;
+    private final PortfolioSummaryQuery portfolioSummaryQuery;
 
-    public PortfolioHistoryController(PortfolioAPI portfolioAPI) {
-        this.portfolioAPI = portfolioAPI;
+    public PortfolioHistoryController(PortfolioSummaryQuery portfolioSummaryQuery) {
+        this.portfolioSummaryQuery = portfolioSummaryQuery;
     }
 
     @GetMapping("/{id}/history")
@@ -39,7 +39,7 @@ public class PortfolioHistoryController {
         LocalDate effectiveFrom = from == null ? effectiveTo.minusYears(1) : from;
         String userEmail = PrincipalUtil.getEmailFromContext();
 
-        return portfolioAPI
+        return portfolioSummaryQuery
                 .getPortfolioHistory(id, userEmail, effectiveFrom, effectiveTo)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -48,7 +48,7 @@ public class PortfolioHistoryController {
     @GetMapping("/{id}/summary")
     public ResponseEntity<PortfolioSummaryDTO> getPortfolioSummary(@PathVariable Long id) {
         String userEmail = PrincipalUtil.getEmailFromContext();
-        return portfolioAPI
+        return portfolioSummaryQuery
                 .getPortfolioSummary(id, userEmail)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());

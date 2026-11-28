@@ -1,6 +1,6 @@
 package com.app.folioman.portfolio.rest.controllers;
 
-import com.app.folioman.portfolio.PortfolioAPI;
+import com.app.folioman.portfolio.PortfolioAnalyticsQuery;
 import com.app.folioman.portfolio.rest.dtos.InvestmentReturnsDTO;
 import com.app.folioman.portfolio.rest.dtos.MonthlyInvestmentResponseDTO;
 import com.app.folioman.portfolio.rest.dtos.YearlyInvestmentResponseDTO;
@@ -25,10 +25,10 @@ import org.springframework.web.server.ResponseStatusException;
 @Validated
 public class UserTransactionsController {
 
-    private final PortfolioAPI portfolioAPI;
+    private final PortfolioAnalyticsQuery portfolioAnalyticsQuery;
 
-    public UserTransactionsController(PortfolioAPI portfolioAPI) {
-        this.portfolioAPI = portfolioAPI;
+    public UserTransactionsController(PortfolioAnalyticsQuery portfolioAnalyticsQuery) {
+        this.portfolioAnalyticsQuery = portfolioAnalyticsQuery;
     }
 
     @GetMapping("/returns/{pan}")
@@ -36,10 +36,10 @@ public class UserTransactionsController {
             @PathVariable @Pattern(regexp = "[A-Z]{5}[0-9]{4}[A-Z]", message = "Invalid PAN number format")
                     String pan) {
         String email = PrincipalUtil.getEmailFromContext();
-        if (!portfolioAPI.isPanOwnedByEmail(pan, email)) {
+        if (!portfolioAnalyticsQuery.isPanOwnedByEmail(pan, email)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
-        return portfolioAPI.getInvestmentReturnsByPan(pan, email).orElse(null);
+        return portfolioAnalyticsQuery.getInvestmentReturnsByPan(pan, email).orElse(null);
     }
 
     @GetMapping("/investments/{pan}")
@@ -47,10 +47,10 @@ public class UserTransactionsController {
             @PathVariable @Pattern(regexp = "[A-Z]{5}[0-9]{4}[A-Z]", message = "Invalid PAN number format")
                     String pan) {
         String email = PrincipalUtil.getEmailFromContext();
-        if (!portfolioAPI.isPanOwnedByEmail(pan, email)) {
+        if (!portfolioAnalyticsQuery.isPanOwnedByEmail(pan, email)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
-        return portfolioAPI.getTotalInvestmentsByPanPerMonth(pan, email);
+        return portfolioAnalyticsQuery.getTotalInvestmentsByPanPerMonth(pan, email);
     }
 
     @GetMapping("/investments/yearly/{pan}")
@@ -58,9 +58,9 @@ public class UserTransactionsController {
             @PathVariable @Pattern(regexp = "[A-Z]{5}[0-9]{4}[A-Z]", message = "Invalid PAN number format")
                     String pan) {
         String email = PrincipalUtil.getEmailFromContext();
-        if (!portfolioAPI.isPanOwnedByEmail(pan, email)) {
+        if (!portfolioAnalyticsQuery.isPanOwnedByEmail(pan, email)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
-        return portfolioAPI.getTotalInvestmentsByPanPerYear(pan, email);
+        return portfolioAnalyticsQuery.getTotalInvestmentsByPanPerYear(pan, email);
     }
 }

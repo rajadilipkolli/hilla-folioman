@@ -41,37 +41,12 @@ public interface MFNavService {
     MFSchemeDTO getNavByDateWithRetry(Long schemeId, LocalDate asOfDate);
 
     /**
-     * Loads the latest day's NAV data for all schemes.
-     */
-    void loadLastDayDataNav();
-
-    /**
-     * Loads historical NAV data if it doesn't already exist in the database.
-     */
-    void loadHistoricalDataIfNotExists();
-
-    /**
-     * Retrieves a mapping of AMFI codes to ISIN codes.
-     *
-     * @return A map where keys are ISIN codes and values are AMFI codes
-     */
-    Map<String, Long> getAmfiCodeIsinMap();
-
-    /**
      * Finds the most recent NAV entry for a given scheme ID.
      *
      * @param schemeId The scheme ID to retrieve NAV for
      * @return Optional containing the latest scheme NAV if found, empty otherwise
      */
     Optional<MFSchemeDTO> findTopBySchemeIdOrderByDateDesc(Long schemeId);
-
-    /**
-     * Process NAVs for a list of scheme codes asynchronously.
-     * This method should handle parallel processing and transactional boundaries.
-     *
-     * @param schemeCodes List of scheme codes to process
-     */
-    void processNavsAsync(List<Long> schemeCodes);
 
     /**
      * Retrieves NAV projections for multiple schemes over a date range.

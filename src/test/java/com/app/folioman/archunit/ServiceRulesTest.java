@@ -6,6 +6,7 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.constructors;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.fields;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.methods;
+import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 import com.tngtech.archunit.core.domain.JavaModifier;
 import com.tngtech.archunit.core.importer.ImportOption;
@@ -92,6 +93,15 @@ class ServiceRulesTest {
     // Methods
     @ArchTest
     static final ArchRule bean_methods_are_not_allowed = beanMethodsAreNotAllowedRule(DOMAIN_PACKAGE);
+
+    @ArchTest
+    static final ArchRule domain_should_not_depend_on_web_multipart = noClasses()
+            .that()
+            .resideInAPackage(DOMAIN_PACKAGE)
+            .should()
+            .dependOnClassesThat()
+            .resideInAPackage("org.springframework.web.multipart..")
+            .because("Domain services should not depend on Spring Web MultipartFile abstractions");
 
     @ArchTest
     static final ArchRule static_methods_are_not_allowed = methods()

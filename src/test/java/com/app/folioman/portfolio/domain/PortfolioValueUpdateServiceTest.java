@@ -181,7 +181,6 @@ class PortfolioValueUpdateServiceTest {
         Mockito.lenient()
                 .when(folioSchemeRepository.findByUserSchemeDetails_Id(anyLong()))
                 .thenReturn(Optional.of(existingFolioScheme));
-        when(folioSchemeRepository.findByUserFolioDetails_Id(anyLong())).thenReturn(List.of(existingFolioScheme));
         when(folioSchemeRepository.save(any(FolioSchemeEntity.class))).thenReturn(existingFolioScheme);
 
         SchemeValueEntity sv = new SchemeValueEntity();

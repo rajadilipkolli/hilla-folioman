@@ -67,9 +67,11 @@ class PortfolioServiceHelper {
         MFSchemeDTO scheme;
         try {
             scheme = mfNavService.getNavByDateWithRetry(portfolioDetails.getSchemeId(), asOfDate);
-            double totalValue = portfolioDetails.getBalanceUnits() * Double.parseDouble(scheme.nav());
+            BigDecimal totalValue = BigDecimal.valueOf(portfolioDetails.getBalanceUnits())
+                    .multiply(new BigDecimal(scheme.nav()))
+                    .setScale(4, RoundingMode.HALF_UP);
             return new PortfolioDetailsDTO(
-                    BigDecimal.valueOf(totalValue).setScale(4, RoundingMode.HALF_UP),
+                    totalValue,
                     portfolioDetails.getSchemeName(),
                     portfolioDetails.getFolioNumber(),
                     scheme.date(),
@@ -82,10 +84,12 @@ class PortfolioServiceHelper {
                     asOfDate,
                     navNotFoundException);
             // Use a default NAV value or handle as needed
-            double defaultNav = 10.0;
-            double totalValue = portfolioDetails.getBalanceUnits() * defaultNav;
+            BigDecimal defaultNav = BigDecimal.TEN;
+            BigDecimal totalValue = BigDecimal.valueOf(portfolioDetails.getBalanceUnits())
+                    .multiply(defaultNav)
+                    .setScale(4, RoundingMode.HALF_UP);
             return new PortfolioDetailsDTO(
-                    BigDecimal.valueOf(totalValue),
+                    totalValue,
                     portfolioDetails.getSchemeName(),
                     portfolioDetails.getFolioNumber(),
                     asOfDate.toString(),

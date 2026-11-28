@@ -1,8 +1,8 @@
 package com.app.folioman.mfschemes.rest.controllers;
 
-import com.app.folioman.config.redis.CacheNames;
 import com.app.folioman.mfschemes.MfSchemeService;
 import com.app.folioman.mfschemes.rest.dtos.FundDetailProjection;
+import com.app.folioman.shared.CacheNames;
 import com.vaadin.hilla.Endpoint;
 import jakarta.annotation.security.RolesAllowed;
 import java.util.List;

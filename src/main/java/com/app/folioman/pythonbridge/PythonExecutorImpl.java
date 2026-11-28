@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.jspecify.annotations.Nullable;
@@ -17,9 +18,11 @@ import tools.jackson.databind.json.JsonMapper;
 class PythonExecutorImpl implements PythonExecutor {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PythonExecutorImpl.class);
+    private static final int DEFAULT_MAX_CONCURRENT_PROCESSES = 4;
 
     private final PythonBridgeProperties properties;
     private final JsonMapper jsonMapper;
+    private final Semaphore processSemaphore = new Semaphore(DEFAULT_MAX_CONCURRENT_PROCESSES);
 
     private final AtomicBoolean available = new AtomicBoolean(false);
     private final AtomicBoolean checked = new AtomicBoolean(false);
@@ -42,12 +45,13 @@ class PythonExecutorImpl implements PythonExecutor {
             int exitCode = p.waitFor();
             boolean isAvail = exitCode == 0;
             available.set(isAvail);
-            checked.set(true);
+            if (isAvail) {
+                checked.set(true);
+            }
             return isAvail;
         } catch (Exception e) {
             LOGGER.warn("Python executable not found or failed to run: {}", properties.executable(), e);
             available.set(false);
-            checked.set(true);
             return false;
         }
     }
@@ -100,7 +104,10 @@ class PythonExecutorImpl implements PythonExecutor {
 
         long startTime = System.currentTimeMillis();
         Process process = null;
+        boolean acquired = false;
         try {
+            processSemaphore.acquire();
+            acquired = true;
             process = pb.start();
 
             try (OutputStream os = process.getOutputStream()) {
@@ -125,15 +132,11 @@ class PythonExecutorImpl implements PythonExecutor {
             try (InputStream is = process.getInputStream()) {
                 output = is.readAllBytes();
             }
-            byte[] errorOutput;
-            try (InputStream es = process.getErrorStream()) {
-                errorOutput = es.readAllBytes();
-            }
 
             int exitCode = process.exitValue();
             long executionTime = System.currentTimeMillis() - startTime;
 
-            return new PythonResult(exitCode, output, errorOutput, executionTime, jsonMapper);
+            return new PythonResult(exitCode, output, new byte[0], executionTime, jsonMapper);
 
         } catch (IOException e) {
             throw new PythonExecutionException(
@@ -148,6 +151,9 @@ class PythonExecutorImpl implements PythonExecutor {
         } finally {
             if (process != null && process.isAlive()) {
                 process.destroyForcibly();
+            }
+            if (acquired) {
+                processSemaphore.release();
             }
         }
     }

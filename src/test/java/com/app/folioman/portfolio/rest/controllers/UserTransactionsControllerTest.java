@@ -12,7 +12,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.app.folioman.auth.domain.JwtService;
 import com.app.folioman.auth.domain.TokenBlacklistService;
-import com.app.folioman.portfolio.PortfolioAPI;
+import com.app.folioman.portfolio.PortfolioAnalyticsQuery;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +31,7 @@ class UserTransactionsControllerTest {
     private MockMvc mockMvc;
 
     @MockitoBean
-    private PortfolioAPI portfolioAPI;
+    private PortfolioAnalyticsQuery portfolioAnalyticsQuery;
 
     @MockitoBean
     private JwtService jwtService;
@@ -71,13 +71,14 @@ class UserTransactionsControllerTest {
     @Test
     void checksOwnershipAgainBeforeUsingPreviouslyRequestedPan() throws Exception {
         String pan = "ABCDE1234F";
-        when(portfolioAPI.isPanOwnedByEmail(pan, "user")).thenReturn(true, false);
-        when(portfolioAPI.getTotalInvestmentsByPanPerMonth(pan, "user")).thenReturn(List.of());
+        when(portfolioAnalyticsQuery.isPanOwnedByEmail(pan, "user")).thenReturn(true, false);
+        when(portfolioAnalyticsQuery.getTotalInvestmentsByPanPerMonth(pan, "user"))
+                .thenReturn(List.of());
 
         mockMvc.perform(get("/api/portfolio/investments/{pan}", pan)).andExpect(status().isOk());
         mockMvc.perform(get("/api/portfolio/investments/{pan}", pan)).andExpect(status().isForbidden());
 
-        verify(portfolioAPI, times(2)).isPanOwnedByEmail(pan, "user");
-        verify(portfolioAPI).getTotalInvestmentsByPanPerMonth(pan, "user");
+        verify(portfolioAnalyticsQuery, times(2)).isPanOwnedByEmail(pan, "user");
+        verify(portfolioAnalyticsQuery).getTotalInvestmentsByPanPerMonth(pan, "user");
     }
 }

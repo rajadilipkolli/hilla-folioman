@@ -1,13 +1,11 @@
 package com.app.folioman.portfolio.rest.controllers;
 
-import com.app.folioman.portfolio.rest.dtos.Fund;
+import com.app.folioman.portfolio.ReBalanceUseCase;
 import com.app.folioman.portfolio.rest.dtos.InvestmentRequest;
 import com.app.folioman.portfolio.rest.dtos.InvestmentResponse;
 import com.vaadin.hilla.Endpoint;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.Valid;
-import java.util.ArrayList;
-import java.util.List;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,24 +19,14 @@ import org.springframework.web.bind.annotation.RestController;
 @RolesAllowed("USER")
 public class ReBalanceController {
 
+    private final ReBalanceUseCase reBalanceUseCase;
+
+    public ReBalanceController(ReBalanceUseCase reBalanceUseCase) {
+        this.reBalanceUseCase = reBalanceUseCase;
+    }
+
     @PostMapping("/rebalance")
     public InvestmentResponse reBalance(@RequestBody @Valid InvestmentRequest investmentRequest) {
-        List<Double> investments = new ArrayList<>();
-
-        // Calculate the total current value of all funds
-        double totalCurrentValue =
-                investmentRequest.funds().stream().mapToDouble(Fund::value).sum();
-
-        // Calculate the total value after the new investment
-        double totalAfterInvestment = totalCurrentValue + investmentRequest.amountToInvest();
-
-        // Calculate the target value for each fund and how much to invest
-        for (Fund fund : investmentRequest.funds()) {
-            double targetValue = fund.ratio() * totalAfterInvestment;
-            double amountToInvestInFund = targetValue - fund.value();
-            investments.add(amountToInvestInFund);
-        }
-
-        return new InvestmentResponse(investments);
+        return reBalanceUseCase.reBalance(investmentRequest);
     }
 }

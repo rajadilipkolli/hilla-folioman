@@ -2,8 +2,10 @@ package com.app.folioman.portfolio.domain;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.data.Offset.offset;
+import static org.mockito.Mockito.doReturn;
 
 import com.app.folioman.mfschemes.MFNavService;
+import com.app.folioman.mfschemes.rest.dtos.MFSchemeDTO;
 import com.app.folioman.shared.AbstractIntegrationTest;
 import java.math.BigDecimal;
 import java.nio.file.Files;
@@ -12,6 +14,7 @@ import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -48,6 +51,7 @@ class PortfolioValueUpdateServiceIntTest extends AbstractIntegrationTest {
     @Order(1)
     void shouldCalculateCorrectBalanceAndValueAfterBuysAndSells() {
         Long amfiCode = 120684L;
+        seedNavs(amfiCode);
 
         UserCasDetailsEntity casDetails = TransactionTestDataBuilder.builder()
                 .withInvestor("test1@example.com", "Test User 1")
@@ -88,9 +92,7 @@ class PortfolioValueUpdateServiceIntTest extends AbstractIntegrationTest {
                 .orElseThrow();
         assertThat(value.getBalance()).isEqualByComparingTo(new BigDecimal("145.0"));
 
-        BigDecimal realNav = new BigDecimal(
-                mfNavService.getNavOnDate(amfiCode, value.getDate()).nav());
-        BigDecimal expectedValue = value.getBalance().multiply(realNav);
+        BigDecimal expectedValue = value.getBalance().multiply(new BigDecimal("15"));
 
         assertThat(value.getValue()).isCloseTo(expectedValue, offset(new BigDecimal("0.5")));
     }
@@ -164,6 +166,7 @@ class PortfolioValueUpdateServiceIntTest extends AbstractIntegrationTest {
     @Order(3)
     void shouldNotCreateDuplicatesOnReprocessing() {
         Long amfiCode = 120684L;
+        seedNavs(amfiCode);
 
         UserCasDetailsEntity casDetails = TransactionTestDataBuilder.builder()
                 .withInvestor("idemp@example.com", "Idemp User")
@@ -194,12 +197,7 @@ class PortfolioValueUpdateServiceIntTest extends AbstractIntegrationTest {
     @Order(4)
     void shouldHandleSchemeWithZeroBalanceAfterFullRedemption() {
         Long amfiCode = 120684L;
-        jdbcTemplate.update("""
-                INSERT INTO nav (scheme_code, date, nav) VALUES
-                    (?, DATE '2023-01-02', 100000),
-                    (?, DATE '2023-02-01', 150000)
-                ON CONFLICT DO NOTHING
-                """, amfiCode, amfiCode);
+        seedNavs(amfiCode);
 
         UserCasDetailsEntity casDetails = TransactionTestDataBuilder.builder()
                 .withInvestor("zero@example.com", "Zero User")
@@ -231,6 +229,19 @@ class PortfolioValueUpdateServiceIntTest extends AbstractIntegrationTest {
         assertThat(value).isNotNull();
         assertThat(value.getBalance()).isEqualByComparingTo(new BigDecimal("0.0"));
         assertThat(value.getValue()).isEqualByComparingTo(new BigDecimal("0.0"));
+    }
+
+    private void seedNavs(Long amfiCode) {
+        doReturn(Optional.of(
+                        new MFSchemeDTO("Axis", amfiCode, "INF846K01EW2", "Axis ELSS", "15", "2023-04-03", "Equity")))
+                .when(mfNavService)
+                .findTopBySchemeIdOrderByDateDesc(amfiCode);
+        jdbcTemplate.update("""
+                INSERT INTO nav (scheme_code, date, nav)
+                SELECT ?, fixture_date::date, 150000
+                FROM generate_series(DATE '2023-01-02', DATE '2023-04-03', INTERVAL '1 day') AS fixture_date
+                ON CONFLICT (scheme_code, date) DO UPDATE SET nav = EXCLUDED.nav
+                """, amfiCode);
     }
 
     private void persistFolioSchemes(UserCasDetailsEntity casDetails) {

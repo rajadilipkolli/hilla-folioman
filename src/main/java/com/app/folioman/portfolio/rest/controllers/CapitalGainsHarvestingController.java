@@ -1,6 +1,7 @@
 package com.app.folioman.portfolio.rest.controllers;
 
-import com.app.folioman.portfolio.PortfolioAPI;
+import com.app.folioman.portfolio.CapitalGainsHarvestingUseCase;
+import com.app.folioman.portfolio.PortfolioAnalyticsQuery;
 import com.app.folioman.portfolio.rest.dtos.CapitalGainsHarvestingRequestDTO;
 import com.app.folioman.portfolio.rest.dtos.CapitalGainsHarvestingResponseDTO;
 import com.app.folioman.shared.PrincipalUtil;
@@ -24,10 +25,14 @@ import org.springframework.web.server.ResponseStatusException;
 @RolesAllowed("USER")
 public class CapitalGainsHarvestingController {
 
-    private final PortfolioAPI portfolioAPI;
+    private final CapitalGainsHarvestingUseCase capitalGainsHarvestingUseCase;
+    private final PortfolioAnalyticsQuery portfolioAnalyticsQuery;
 
-    public CapitalGainsHarvestingController(PortfolioAPI portfolioAPI) {
-        this.portfolioAPI = portfolioAPI;
+    public CapitalGainsHarvestingController(
+            CapitalGainsHarvestingUseCase capitalGainsHarvestingUseCase,
+            PortfolioAnalyticsQuery portfolioAnalyticsQuery) {
+        this.capitalGainsHarvestingUseCase = capitalGainsHarvestingUseCase;
+        this.portfolioAnalyticsQuery = portfolioAnalyticsQuery;
     }
 
     @PostMapping("/{pan}/capital-gains-harvesting")
@@ -36,9 +41,9 @@ public class CapitalGainsHarvestingController {
                     String pan,
             @RequestBody @Valid CapitalGainsHarvestingRequestDTO request) {
         String email = PrincipalUtil.getEmailFromContext();
-        if (!portfolioAPI.isPanOwnedByEmail(pan, email)) {
+        if (!portfolioAnalyticsQuery.isPanOwnedByEmail(pan, email)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN);
         }
-        return portfolioAPI.getCapitalGainsHarvesting(pan, email, request);
+        return capitalGainsHarvestingUseCase.getCapitalGainsHarvesting(pan, email, request);
     }
 }

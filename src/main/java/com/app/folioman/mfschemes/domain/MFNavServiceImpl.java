@@ -5,13 +5,15 @@ import com.app.folioman.mfschemes.NavNotFoundException;
 import com.app.folioman.mfschemes.config.ApplicationProperties;
 import com.app.folioman.mfschemes.rest.dtos.MFSchemeDTO;
 import com.app.folioman.mfschemes.rest.dtos.MFSchemeNavProjection;
+import io.github.resilience4j.circuitbreaker.CircuitBreaker;
+import io.github.resilience4j.circuitbreaker.CircuitBreakerConfig;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -32,11 +34,19 @@ class MFNavServiceImpl implements MFNavService {
     private final JdbcTemplate jdbcTemplate;
     private final ApplicationProperties applicationProperties;
     private final RestClient restClient;
+    private final CircuitBreaker navApiCircuitBreaker;
 
     MFNavServiceImpl(JdbcTemplate jdbcTemplate, ApplicationProperties applicationProperties, RestClient restClient) {
         this.jdbcTemplate = jdbcTemplate;
         this.applicationProperties = applicationProperties;
         this.restClient = restClient;
+        CircuitBreakerConfig config = CircuitBreakerConfig.custom()
+                .failureRateThreshold(50)
+                .waitDurationInOpenState(Duration.ofSeconds(30))
+                .slidingWindowSize(20)
+                .minimumNumberOfCalls(5)
+                .build();
+        this.navApiCircuitBreaker = CircuitBreaker.of("mfApiNav", config);
     }
 
     @Override
@@ -73,11 +83,14 @@ class MFNavServiceImpl implements MFNavService {
                 if (isin != null && !isin.isEmpty()) {
                     String url = applicationProperties.getNav().getMfApi().getDataUrl() + "/nav/" + isin + "/"
                             + inputDate.toString();
-                    Map<String, Object> navResp = restClient
-                            .get()
-                            .uri(url)
-                            .retrieve()
-                            .body(new ParameterizedTypeReference<Map<String, Object>>() {});
+                    Map<String, Object> navResp = CircuitBreaker.decorateSupplier(
+                                    navApiCircuitBreaker,
+                                    () -> restClient
+                                            .get()
+                                            .uri(url)
+                                            .retrieve()
+                                            .body(new ParameterizedTypeReference<Map<String, Object>>() {}))
+                            .get();
                     if (navResp != null && navResp.get("nav") != null) {
                         return new MFSchemeDTO(
                                 dto.amc(),
@@ -106,23 +119,9 @@ class MFNavServiceImpl implements MFNavService {
     }
 
     @Override
-    public void loadLastDayDataNav() {}
-
-    @Override
-    public void loadHistoricalDataIfNotExists() {}
-
-    @Override
-    public Map<String, Long> getAmfiCodeIsinMap() {
-        return new HashMap<>();
-    }
-
-    @Override
     public Optional<MFSchemeDTO> findTopBySchemeIdOrderByDateDesc(Long schemeId) {
         return Optional.ofNullable(getNav(schemeId));
     }
-
-    @Override
-    public void processNavsAsync(List<Long> schemeCodes) {}
 
     @Override
     public Map<Long, Map<LocalDate, MFSchemeNavProjection>> getNavsForSchemesAndDates(

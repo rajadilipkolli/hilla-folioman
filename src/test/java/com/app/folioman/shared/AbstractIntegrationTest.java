@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -47,9 +46,6 @@ public abstract class AbstractIntegrationTest {
 
     @Autowired
     protected RedisTemplate<String, Object> redisTemplate;
-
-    @Autowired
-    protected ApplicationEventPublisher applicationEventPublisher;
 
     @Autowired
     protected ApplicationProperties applicationProperties;

@@ -14,7 +14,7 @@ class UserSchemeDetailsServiceTest {
     @BeforeEach
     void setUp() {
         // Initialize UserSchemeDetailsService with mock dependencies or nulls
-        userSchemeDetailsService = new UserSchemeDetailServiceImpl(null, null);
+        userSchemeDetailsService = new UserSchemeDetailServiceImpl(null, null, null);
     }
 
     @Test

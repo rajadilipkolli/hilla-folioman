@@ -18,6 +18,9 @@ interface SchemeValueRepository extends JpaRepository<@NonNull SchemeValueEntity
     Optional<SchemeValueEntity> findFirstByUserSchemeDetailsEntity_IdAndDateBeforeOrderByDateDesc(
             Long id, LocalDate schemeFromDate);
 
+    List<SchemeValueEntity> findByUserSchemeDetailsEntity_IdAndDateBetween(
+            Long schemeDetailId, LocalDate startDate, LocalDate endDate);
+
     @Query("""
             SELECT sv FROM SchemeValueEntity sv JOIN FETCH sv.userSchemeDetailsEntity
             WHERE sv.userSchemeDetailsEntity.id IN :schemeIds

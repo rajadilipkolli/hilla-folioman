@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                      https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.29.xsd"
+        objectQuotingStrategy="QUOTE_ONLY_RESERVED_WORDS">
+
+    <changeSet id="cas-post-upload-request" author="appUser">
+        <createTable schemaName="portfolio" tableName="cas_post_upload_request">
+            <column name="cas_id" type="BIGINT">
+                <constraints primaryKey="true" nullable="false"
+                             foreignKeyName="fk_cas_post_upload_request_cas"
+                             references="portfolio.user_cas_details(id)" deleteCascade="true"/>
+            </column>
+            <column name="job_id" type="UUID">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+</databaseChangeLog>

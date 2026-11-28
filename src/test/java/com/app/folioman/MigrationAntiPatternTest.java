@@ -38,7 +38,7 @@ public class MigrationAntiPatternTest {
                 String type = column.getAttribute("type");
                 String name = column.getAttribute("name");
 
-                if (type != null && !type.isEmpty()) {
+                if (!type.isEmpty()) {
                     String typeUpper = type.toUpperCase();
 
                     // 1. Assert no timestamp without timezone for audit/expiry

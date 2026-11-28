@@ -18,6 +18,7 @@ public class ReduceCacheSizePolicy implements CachePolicy {
     private static final Duration EXPIRATION_TIME = Duration.ofMinutes(30); // Default expiration time
     private static final Logger LOGGER = LoggerFactory.getLogger(ReduceCacheSizePolicy.class);
     private static final String PROTECTED_KEY_PREFIX = "critical:"; // Keys that should never be evicted
+    private static final String TOKEN_BLACKLIST_PREFIX = "token:blacklist:";
 
     @Override
     public Duration getExpirationTime() {
@@ -26,9 +27,9 @@ public class ReduceCacheSizePolicy implements CachePolicy {
 
     @Override
     public void apply(RedisTemplate<String, Object> redisTemplate, MeterRegistry meterRegistry) {
-        // Use the more efficient scan operation from Monitor
+        // Use the more efficient scan operation from Monitor, strictly scoped to cache namespace
         Monitor monitor = new Monitor(redisTemplate, meterRegistry);
-        Set<String> allKeys = monitor.scanKeys("*");
+        Set<String> allKeys = monitor.scanKeys(Monitor.CACHE_KEY_PREFIX + "*");
 
         if (allKeys == null || allKeys.isEmpty()) {
             LOGGER.info("Cache is empty, nothing to reduce.");
@@ -58,13 +59,14 @@ public class ReduceCacheSizePolicy implements CachePolicy {
         List<KeyMetadata> keyMetadataList = new ArrayList<>(allKeys.size());
 
         for (String key : allKeys) {
-            // Skip protected keys
-            if (key.startsWith(PROTECTED_KEY_PREFIX)) {
+            String logicalKey =
+                    key.startsWith(Monitor.CACHE_KEY_PREFIX) ? key.substring(Monitor.CACHE_KEY_PREFIX.length()) : key;
+            if (logicalKey.startsWith(PROTECTED_KEY_PREFIX) || logicalKey.startsWith(TOKEN_BLACKLIST_PREFIX)) {
                 continue;
             }
 
-            // Get access count from metrics
-            double accessCount = getAccessCountForKey(meterRegistry, key);
+            // Get access count from metrics using low-cardinality cache tag
+            double accessCount = getAccessCountForKey(meterRegistry, logicalKey);
 
             // Get remaining TTL
             Long ttl = redisTemplate.getExpire(key);
@@ -119,13 +121,10 @@ public class ReduceCacheSizePolicy implements CachePolicy {
         }
     }
 
-    private double getAccessCountForKey(MeterRegistry meterRegistry, String key) {
-        if (key.indexOf("SimpleKey") > 0) {
-            key = key.substring(key.indexOf("SimpleKey"));
-        } else if (key.indexOf("::") > 0) {
-            key = key.substring(key.indexOf("::") + 2);
-        }
-        return meterRegistry.counter("cache.access", "key", key).count();
+    private double getAccessCountForKey(MeterRegistry meterRegistry, String logicalKey) {
+        int separatorIdx = logicalKey.indexOf("::");
+        String cacheName = separatorIdx > 0 ? logicalKey.substring(0, separatorIdx) : logicalKey;
+        return meterRegistry.counter("cache.access", "cache", cacheName).count();
     }
 
     // Record to store key metadata for eviction decisions

@@ -2,6 +2,8 @@ package com.app.folioman.portfolio.rest.controllers;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -10,8 +12,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.app.folioman.auth.domain.JwtService;
 import com.app.folioman.auth.domain.TokenBlacklistService;
+import com.app.folioman.portfolio.ReBalanceUseCase;
 import com.app.folioman.portfolio.rest.dtos.Fund;
 import com.app.folioman.portfolio.rest.dtos.InvestmentRequest;
+import com.app.folioman.portfolio.rest.dtos.InvestmentResponse;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +37,9 @@ class ReBalanceControllerTest {
     private JsonMapper jsonMapper;
 
     @MockitoBean
+    private ReBalanceUseCase reBalanceUseCase;
+
+    @MockitoBean
     private JwtService jwtService;
 
     @MockitoBean
@@ -40,18 +47,10 @@ class ReBalanceControllerTest {
 
     @Test
     void rebalanceCalculation() throws Exception {
-        // Create test data
         List<Fund> funds = List.of(new Fund(5000.0, 0.4), new Fund(3000.0, 0.3), new Fund(2000.0, 0.3));
-
         InvestmentRequest request = new InvestmentRequest(funds, 1000.0);
-
-        // Expected calculations:
-        // Total current value: 5000 + 3000 + 2000 = 10000
-        // Total with new investment: 10000 + 1000 = 11000
-        // Expected investments:
-        // Fund A: Target = 0.4 * 11000 = 4400, Investment = 4400 - 5000 = -600
-        // Fund B: Target = 0.3 * 11000 = 3300, Investment = 3300 - 3000 = 300
-        // Fund C: Target = 0.3 * 11000 = 3300, Investment = 3300 - 2000 = 1300
+        when(reBalanceUseCase.reBalance(any(InvestmentRequest.class)))
+                .thenReturn(new InvestmentResponse(List.of(-600.0, 300.0, 1300.0)));
 
         mockMvc.perform(post("/api/portfolio/rebalance")
                         .with(csrf())
@@ -65,14 +64,10 @@ class ReBalanceControllerTest {
 
     @Test
     void rebalanceWithLargeNumbers() throws Exception {
-        // Create test data with larger numbers
         List<Fund> funds = List.of(new Fund(500000.0, 0.5), new Fund(500000.0, 0.5));
-
         InvestmentRequest request = new InvestmentRequest(funds, 100000.0);
-
-        // Total: 1000000 + 100000 = 1100000
-        // Fund A: Target = 0.5 * 1100000 = 550000, Investment = 550000 - 500000 = 50000
-        // Fund B: Target = 0.5 * 1100000 = 550000, Investment = 550000 - 500000 = 50000
+        when(reBalanceUseCase.reBalance(any(InvestmentRequest.class)))
+                .thenReturn(new InvestmentResponse(List.of(50000.0, 50000.0)));
 
         mockMvc.perform(post("/api/portfolio/rebalance")
                         .with(csrf())
@@ -85,6 +80,9 @@ class ReBalanceControllerTest {
 
     @Test
     void reBalance() throws Exception {
+        when(reBalanceUseCase.reBalance(any(InvestmentRequest.class)))
+                .thenReturn(new InvestmentResponse(List.of(1050.0, -125.0, 75.0)));
+
         this.mockMvc
                 .perform(post("/api/portfolio/rebalance")
                         .with(csrf())

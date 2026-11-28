@@ -27,8 +27,7 @@ public class NoSQLContainersConfig {
     @Bean
     @ServiceConnection(name = "redis")
     RedisStackContainer redisStackContainer() {
-        return new RedisStackContainer(RedisStackContainer.DEFAULT_IMAGE_NAME.withTag(RedisStackContainer.DEFAULT_TAG))
-                .withReuse(true);
+        return new RedisStackContainer(RedisStackContainer.DEFAULT_IMAGE_NAME.withTag(RedisStackContainer.DEFAULT_TAG));
     }
 
     @Bean

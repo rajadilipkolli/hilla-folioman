@@ -4,8 +4,8 @@ import com.app.folioman.mfschemes.MfSchemeService;
 import com.app.folioman.mfschemes.rest.dtos.FundDetailProjection;
 import com.app.folioman.mfschemes.rest.dtos.MFSchemeProjection;
 import com.app.folioman.portfolio.UserSchemeDetailService;
+import jakarta.persistence.EntityManager;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -16,22 +16,35 @@ import org.springframework.util.StringUtils;
 
 @Service
 @Transactional(readOnly = true)
-class UserSchemeDetailServiceImpl implements UserSchemeDetailService {
+public class UserSchemeDetailServiceImpl implements UserSchemeDetailService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(UserSchemeDetailServiceImpl.class);
 
     private final UserSchemeDetailsRepository userSchemeDetailsRepository;
     private final MfSchemeService mfSchemeService;
+    private final EntityManager entityManager;
 
     UserSchemeDetailServiceImpl(
-            UserSchemeDetailsRepository userSchemeDetailsRepository, MfSchemeService mfSchemeService) {
+            UserSchemeDetailsRepository userSchemeDetailsRepository,
+            MfSchemeService mfSchemeService,
+            EntityManager entityManager) {
         this.userSchemeDetailsRepository = userSchemeDetailsRepository;
         this.mfSchemeService = mfSchemeService;
+        this.entityManager = entityManager;
     }
 
     @Override
+    @Transactional
     public void setUserSchemeAMFIIfNull() {
         List<UserSchemeDetailsEntity> userSchemeDetailsEntities = userSchemeDetailsRepository.findByAmfiIsNull();
+        userSchemeDetailsEntities.forEach(this::processUserSchemeDetails);
+    }
+
+    @Override
+    @Transactional
+    public void setUserSchemeAMFIIfNull(Long casId) {
+        List<UserSchemeDetailsEntity> userSchemeDetailsEntities =
+                userSchemeDetailsRepository.findByUserFolioDetails_UserCasDetailsEntity_IdAndAmfiIsNull(casId);
         userSchemeDetailsEntities.forEach(this::processUserSchemeDetails);
     }
 
@@ -52,12 +65,7 @@ class UserSchemeDetailServiceImpl implements UserSchemeDetailService {
     private void processRtaCode(UserSchemeDetailsEntity userSchemeDetailsEntity, String rtaCode) {
         LOGGER.debug(
                 "RTA code for userSchemeDetailsEntity with id: {} is {}", userSchemeDetailsEntity.getId(), rtaCode);
-        List<MFSchemeProjection> mfSchemeEntityList = mfSchemeService.fetchSchemesByRtaCode(rtaCode);
-        if (!mfSchemeEntityList.isEmpty()) {
-            handleNonEmptyMfSchemeList(userSchemeDetailsEntity, mfSchemeEntityList);
-        } else {
-            handleEmptyMfSchemeList(userSchemeDetailsEntity);
-        }
+        handleEmptyMfSchemeList(userSchemeDetailsEntity);
     }
 
     private void handleEmptyMfSchemeList(UserSchemeDetailsEntity userSchemeDetailsEntity) {
@@ -67,8 +75,7 @@ class UserSchemeDetailServiceImpl implements UserSchemeDetailService {
         if (StringUtils.hasText(storedIsin)) {
             Optional<MFSchemeProjection> match = mfSchemeService.findByPayOut(storedIsin);
             if (match.isPresent()) {
-                updateUserSchemeDetails(
-                        userSchemeDetailsEntity.getId(), match.get().getAmfiCode(), storedIsin);
+                updateUserSchemeDetails(userSchemeDetailsEntity, match.get().getAmfiCode(), storedIsin);
                 return;
             }
         }
@@ -84,7 +91,7 @@ class UserSchemeDetailServiceImpl implements UserSchemeDetailService {
         if (!fundDetailProjections.isEmpty()) {
             Long schemeId = getSchemeId(fundDetailProjections, scheme);
             if (schemeId != null) {
-                updateUserSchemeDetails(userSchemeDetails.getId(), schemeId, null);
+                updateUserSchemeDetails(userSchemeDetails, schemeId, null);
             }
         }
     }
@@ -93,32 +100,17 @@ class UserSchemeDetailServiceImpl implements UserSchemeDetailService {
         String isin = scheme.substring(scheme.lastIndexOf("ISIN:") + 5).strip();
         if (StringUtils.hasText(isin)) {
             Optional<MFSchemeProjection> mfSchemeEntity = mfSchemeService.findByPayOut(isin);
-            mfSchemeEntity.ifPresent(schemeEntity ->
-                    updateUserSchemeDetails(userSchemeDetails.getId(), schemeEntity.getAmfiCode(), isin));
+            mfSchemeEntity.ifPresent(
+                    schemeEntity -> updateUserSchemeDetails(userSchemeDetails, schemeEntity.getAmfiCode(), isin));
         } else {
             LOGGER.warn("ISIN is null after extraction for scheme: {}", scheme);
         }
     }
 
-    private void handleNonEmptyMfSchemeList(
-            UserSchemeDetailsEntity userSchemeDetails, List<MFSchemeProjection> mfSchemeEntityList) {
-        Optional<MFSchemeProjection> matchingScheme = mfSchemeEntityList.stream()
-                .filter(scheme -> Objects.equals(scheme.getIsin(), userSchemeDetails.getIsin()))
-                .findFirst();
-
-        matchingScheme.ifPresentOrElse(
-                mfSchemeProjection -> updateUserSchemeDetails(
-                        userSchemeDetails.getId(), mfSchemeProjection.getAmfiCode(), mfSchemeProjection.getIsin()),
-                () -> {
-                    LOGGER.debug("ISIN not found in the list of schemes");
-                    MFSchemeProjection firstScheme = mfSchemeEntityList.getFirst();
-                    updateUserSchemeDetails(
-                            userSchemeDetails.getId(), firstScheme.getAmfiCode(), firstScheme.getIsin());
-                });
-    }
-
-    private void updateUserSchemeDetails(Long userSchemeId, Long schemeId, @Nullable String isin) {
-        userSchemeDetailsRepository.updateAmfiAndIsinById(schemeId, isin, userSchemeId);
+    private void updateUserSchemeDetails(UserSchemeDetailsEntity scheme, Long schemeId, @Nullable String isin) {
+        userSchemeDetailsRepository.updateAmfiAndIsinById(schemeId, isin, scheme.getId());
+        // The bulk update commits in a separate transaction; refresh the entity loaded by this one.
+        entityManager.refresh(scheme);
     }
 
     private @Nullable Long getSchemeId(List<FundDetailProjection> fundDetailProjections, String scheme) {

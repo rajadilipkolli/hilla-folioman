@@ -11,10 +11,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.app.folioman.config.redis.CacheNames;
 import com.app.folioman.portfolio.rest.dtos.MonthlyInvestmentResponseDTO;
 import com.app.folioman.portfolio.rest.dtos.YearlyInvestmentResponseDTO;
 import com.app.folioman.shared.AbstractIntegrationTest;
+import com.app.folioman.shared.CacheNames;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
@@ -128,7 +128,7 @@ class UserTransactionsControllerIT extends AbstractIntegrationTest {
 
         // 3. Wait for the asynchronous Redis writes to finish.
         await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
-            Set<String> cacheKeys = redisTemplate.keys(CacheNames.TRANSACTION_CACHE + "::*");
+            Set<String> cacheKeys = redisTemplate.keys("folioman:cache:" + CacheNames.TRANSACTION_CACHE + "::*");
             assertThat(cacheKeys).anyMatch(key -> key.contains("monthly_" + TEST_PAN));
             assertThat(cacheKeys).anyMatch(key -> key.contains("yearly_" + TEST_PAN));
         });
@@ -163,7 +163,7 @@ class UserTransactionsControllerIT extends AbstractIntegrationTest {
     @DisplayName("Should evict cache and refresh data when eviction is triggered")
     void shouldEvictCacheAndRefreshData() throws Exception {
         // 1. Verify we have existing cache entries before eviction
-        Set<String> cacheKeysBefore = redisTemplate.keys(CacheNames.TRANSACTION_CACHE + "::*");
+        Set<String> cacheKeysBefore = redisTemplate.keys("folioman:cache:" + CacheNames.TRANSACTION_CACHE + "::*");
         boolean hasMonthlyKey = cacheKeysBefore.stream().anyMatch(key -> key.contains("monthly_" + TEST_PAN));
         boolean hasYearlyKey = cacheKeysBefore.stream().anyMatch(key -> key.contains("yearly_" + TEST_PAN));
 
@@ -186,7 +186,7 @@ class UserTransactionsControllerIT extends AbstractIntegrationTest {
         evictTransactionCaches();
 
         // 4. Verify cache was cleared
-        Set<String> cacheKeysAfter = redisTemplate.keys(CacheNames.TRANSACTION_CACHE + "::*");
+        Set<String> cacheKeysAfter = redisTemplate.keys("folioman:cache:" + CacheNames.TRANSACTION_CACHE + "::*");
         boolean monthlyKeyGone = cacheKeysAfter.stream().noneMatch(key -> key.contains("monthly_" + TEST_PAN));
         boolean yearlyKeyGone = cacheKeysAfter.stream().noneMatch(key -> key.contains("yearly_" + TEST_PAN));
 
@@ -207,7 +207,7 @@ class UserTransactionsControllerIT extends AbstractIntegrationTest {
 
         // 6. Wait for the cache to be repopulated.
         await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
-            Set<String> cacheKeysNew = redisTemplate.keys(CacheNames.TRANSACTION_CACHE + "::*");
+            Set<String> cacheKeysNew = redisTemplate.keys("folioman:cache:" + CacheNames.TRANSACTION_CACHE + "::*");
             assertThat(cacheKeysNew).anyMatch(key -> key.contains("monthly_" + TEST_PAN));
         });
 
@@ -225,7 +225,7 @@ class UserTransactionsControllerIT extends AbstractIntegrationTest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isForbidden());
 
-        Set<String> cacheKeys = redisTemplate.keys(CacheNames.TRANSACTION_CACHE + "::*");
+        Set<String> cacheKeys = redisTemplate.keys("folioman:cache:" + CacheNames.TRANSACTION_CACHE + "::*");
         assertThat(cacheKeys).isNotNull();
         assertThat(cacheKeys).anyMatch(key -> key.contains("monthly_" + TEST_PAN + "_junit@email.com"));
         assertThat(cacheKeys).noneMatch(key -> key.contains("other@example.com"));
@@ -367,7 +367,7 @@ class UserTransactionsControllerIT extends AbstractIntegrationTest {
                     "file", "test-cas-file.json", MediaType.APPLICATION_JSON_VALUE, fileInputStream);
 
             mockMvc.perform(multipart("/api/upload-handler")
-                            .with(testUser())
+                            .with(user("cache.test@example.com").roles("USER"))
                             .with(csrf())
                             .file(multipartFile))
                     .andExpect(status().isOk())
@@ -394,7 +394,7 @@ class UserTransactionsControllerIT extends AbstractIntegrationTest {
         // 4. Verify cache keys were created for the specific PAN using Awaitility
         // Since caching might have slight latency in Redis containers
         await().atMost(Duration.ofSeconds(5)).untilAsserted(() -> {
-            Set<String> cacheKeys = redisTemplate.keys(CacheNames.TRANSACTION_CACHE + "::*");
+            Set<String> cacheKeys = redisTemplate.keys("folioman:cache:" + CacheNames.TRANSACTION_CACHE + "::*");
             assertThat(cacheKeys).isNotNull();
             boolean monthlyKeyCached = cacheKeys.stream().anyMatch(key -> key.contains("monthly_" + testPan));
             boolean yearlyKeyCached = cacheKeys.stream().anyMatch(key -> key.contains("yearly_" + testPan));
@@ -467,7 +467,7 @@ class UserTransactionsControllerIT extends AbstractIntegrationTest {
      * PortfolioCacheConfig.evictTransactionCaches() method but directly in the test
      */
     private void evictTransactionCaches() {
-        String cacheKeyPattern = CacheNames.TRANSACTION_CACHE + "::*";
+        String cacheKeyPattern = "folioman:cache:" + CacheNames.TRANSACTION_CACHE + "::*";
         Set<String> keys = redisTemplate.keys(cacheKeyPattern);
 
         if (!keys.isEmpty()) {
@@ -483,7 +483,7 @@ class UserTransactionsControllerIT extends AbstractIntegrationTest {
      * Helper method to clear cache for a specific PAN
      */
     private void clearCacheForPan(String pan) {
-        String pattern = CacheNames.TRANSACTION_CACHE + "::*";
+        String pattern = "folioman:cache:" + CacheNames.TRANSACTION_CACHE + "::*";
         Set<String> keys = redisTemplate.keys(pattern);
         if (keys != null && !keys.isEmpty()) {
             Set<String> toDelete =

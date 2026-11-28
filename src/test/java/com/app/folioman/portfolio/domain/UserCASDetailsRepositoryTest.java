@@ -52,6 +52,31 @@ class UserCASDetailsRepositoryTest {
         assertThat(result.get().getInvestorInfoEntity().getName()).isEqualTo(name);
     }
 
+    @Test
+    @ResourceLock(value = "database", mode = ResourceAccessMode.READ_WRITE)
+    void findByInvestorEmailAndName_SelectsLowestMatchingCasIdAndFetchesAllItsFolios() {
+        String name = "Legacy CAS User";
+        var first = getUserCASDetails("Legacy@example.com", name);
+        first.addFolioEntity(new UserFolioDetailsEntity()
+                .setFolio("FOLIO456")
+                .setAmc("AMC_NAME")
+                .setPan("ABCDE1234F"));
+        var second = getUserCASDetails("legacy@example.com", name);
+        second.getFolios().getFirst().setFolio("FOLIO789");
+        entityManager.persist(first);
+        entityManager.persistAndFlush(second);
+        entityManager.clear();
+
+        var result = UserCasDetailsRepository.findByInvestorEmailAndName("LEGACY@example.com", name);
+
+        assertThat(result).hasValueSatisfying(cas -> {
+            assertThat(cas.getId()).isEqualTo(first.getId());
+            assertThat(cas.getFolios())
+                    .extracting(UserFolioDetailsEntity::getFolio)
+                    .containsExactlyInAnyOrder("FOLIO123", "FOLIO456");
+        });
+    }
+
     private UserCasDetailsEntity getUserCASDetails(String email, String name) {
         InvestorInfoEntity investorInfo = new InvestorInfoEntity();
         investorInfo.setEmail(email);
@@ -164,9 +189,24 @@ class UserCASDetailsRepositoryTest {
         String panNumber = "ABCDE1234F";
         LocalDate asOfDate = LocalDate.of(2023, 12, 31);
 
-        // persist a scheme with non-zero balance and one with zero balance
-        persistSamplePortfolio(panNumber, 11111L, "NONZERO SCHEME", asOfDate.minusDays(7));
-        persistSamplePortfolio(panNumber, 22222L, "ZERO SCHEME", asOfDate.minusDays(7), 0.0);
+        // persist a scheme with non-zero balance and one with zero balance under the same investor
+        UserCasDetailsEntity cas = persistSamplePortfolio(
+                panNumber, 11111L, "NONZERO SCHEME", asOfDate.minusDays(7), 10.0, "persisted@example.com");
+        UserFolioDetailsEntity folio = cas.getFolios().getFirst();
+        UserSchemeDetailsEntity zeroScheme = new UserSchemeDetailsEntity();
+        zeroScheme.setScheme("ZERO SCHEME");
+        zeroScheme.setAmfi(22222L);
+        zeroScheme.setRta("RTA");
+        UserTransactionDetailsEntity zeroTxn = new UserTransactionDetailsEntity();
+        zeroTxn.setBalance(BigDecimal.ZERO);
+        zeroTxn.setTransactionDate(asOfDate.minusDays(7));
+        zeroTxn.setType(TransactionType.PURCHASE);
+        zeroTxn.setAmount(BigDecimal.ZERO);
+        zeroTxn.setNav(BigDecimal.TEN);
+        zeroTxn.setUnits(BigDecimal.ZERO);
+        zeroScheme.addTransaction(zeroTxn);
+        folio.addScheme(zeroScheme);
+        entityManager.flush();
 
         List<PortfolioDetailsProjection> result =
                 UserCasDetailsRepository.getPortfolioDetails(panNumber, "persisted@example.com", asOfDate);

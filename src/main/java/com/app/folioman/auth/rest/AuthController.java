@@ -246,8 +246,11 @@ public class AuthController {
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
             if (jwtService.validateToken(token)) {
-                String username = jwtService.extractUsername(token);
-                return ResponseEntity.ok(Map.of("username", username, "valid", true));
+                String jti = jwtService.extractJti(token);
+                if (!tokenBlacklistService.isBlacklisted(jti)) {
+                    String username = jwtService.extractUsername(token);
+                    return ResponseEntity.ok(Map.of("username", username, "valid", true));
+                }
             }
         }
         ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.UNAUTHORIZED, "Invalid or missing token");
